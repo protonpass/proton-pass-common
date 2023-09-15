@@ -1,0 +1,10 @@
+[package]
+name = "proton-pass-common"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+doctest = false
+
+[dependencies]
+email_address = "0.2.4"

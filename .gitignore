@@ -1,0 +1,8 @@
+/target
+/Cargo.lock
+
+proton-pass-mobile/src/uniffi
+proton-pass-mobile/src/*.h
+proton-pass-mobile/src/*.swift
+proton-pass-mobile/src/*.modulemap
+proton-pass-mobile/pkg

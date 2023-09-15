@@ -1,0 +1,21 @@
+[package]
+name = "proton-pass-mobile"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+doctest = false
+crate-type = ["cdylib", "staticlib"]
+name = "proton_pass_common"
+
+[dependencies]
+proton-pass-common = { path = "../proton-pass-common" }
+uniffi = { version = "0.24.1" }
+
+[build-dependencies]
+uniffi = { version = "0.24.1", features = [ "build" ] }
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "./bindgen.rs"
+required-features = [ "uniffi/cli" ]

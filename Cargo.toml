@@ -1,0 +1,9 @@
+[workspace]
+members = [
+    "proton-pass-common",
+    "proton-pass-mobile",
+    "proton-pass-web",
+]
+
+[profile.release]
+opt-level = "s" # Tell `rustc` to optimize for small code size.

@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum AliasPrefixError {
     TwoConsecutiveDots,
     InvalidCharacter,
@@ -8,7 +8,7 @@ pub enum AliasPrefixError {
     PrefixTooLong,
     PrefixEmpty,
 }
-impl std::error::Error for AliasPrefixError{}
+impl std::error::Error for AliasPrefixError {}
 impl fmt::Display for AliasPrefixError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self)

@@ -23,6 +23,11 @@ fn empty() {
 }
 
 #[test]
+fn dot_at_the_beginning() {
+    verify_error(".a.b.c", AliasPrefixError::DotAtTheBeginning);
+}
+
+#[test]
 fn dot_at_the_end() {
     verify_error("a.b.c.", AliasPrefixError::DotAtTheEnd);
 }

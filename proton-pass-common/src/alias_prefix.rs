@@ -2,6 +2,7 @@
 pub enum AliasPrefixError {
     TwoConsecutiveDots,
     InvalidCharacter,
+    DotAtTheBeginning,
     DotAtTheEnd,
     PrefixTooLong,
     PrefixEmpty,
@@ -19,6 +20,10 @@ pub fn validate_alias_prefix(prefix: &str) -> Result<(), AliasPrefixError> {
 
     if prefix.contains("..") {
         return Err(AliasPrefixError::TwoConsecutiveDots);
+    }
+
+    if prefix.starts_with('.') {
+        return Err(AliasPrefixError::DotAtTheBeginning);
     }
 
     if prefix.ends_with('.') {

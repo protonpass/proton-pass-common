@@ -1,6 +1,6 @@
-use proton_pass_common::*;
+use proton_pass_common::email;
 
 #[test]
 fn without_at() {
-    assert!(!is_email_valid("test.com"))
+    assert!(!email::is_email_valid("test.com"))
 }

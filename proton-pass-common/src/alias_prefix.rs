@@ -1,9 +1,18 @@
+use std::fmt;
+
+#[derive(Debug)]
 pub enum AliasPrefixError {
     TwoConsecutiveDots,
     InvalidCharacter,
     DotAtTheEnd,
     PrefixTooLong,
     PrefixEmpty,
+}
+impl std::error::Error for AliasPrefixError{}
+impl fmt::Display for AliasPrefixError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 pub const MAX_PREFIX_LENGTH: usize = 40;

@@ -4,6 +4,7 @@ members = [
     "proton-pass-common",
     "proton-pass-mobile",
     "proton-pass-web",
+    "proton-pass-derive"
 ]
 
 [profile.release]

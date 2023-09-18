@@ -8,3 +8,4 @@ doctest = false
 
 [dependencies]
 email_address = "0.2.4"
+proton-pass-derive = { path = "../proton-pass-derive" }

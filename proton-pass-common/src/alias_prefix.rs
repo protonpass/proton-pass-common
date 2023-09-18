@@ -1,6 +1,4 @@
-use std::fmt;
-
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, proton_pass_derive::Error, PartialEq, Eq)]
 pub enum AliasPrefixError {
     TwoConsecutiveDots,
     InvalidCharacter,
@@ -8,13 +6,6 @@ pub enum AliasPrefixError {
     PrefixTooLong,
     PrefixEmpty,
 }
-impl std::error::Error for AliasPrefixError {}
-impl fmt::Display for AliasPrefixError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
 pub const MAX_PREFIX_LENGTH: usize = 40;
 
 pub fn validate_alias_prefix(prefix: &str) -> Result<(), AliasPrefixError> {

@@ -1,3 +1,20 @@
+
+[Error]
+enum LoginError{
+    "InvalidTOTP",
+    "InvalidURL",
+};
+
+dictionary Login {
+    string title;
+    string username;
+    string password;
+    string? totp;
+    sequence<string> urls;
+};
+
 namespace common {
     boolean is_email_valid(string email);
+    [Throws=LoginError]
+    void is_login_valid(Login login);
 };

@@ -2,7 +2,6 @@
 .idea/
 /target
 /Cargo.lock
-.idea
 
 proton-pass-mobile/src/uniffi
 proton-pass-mobile/src/*.h

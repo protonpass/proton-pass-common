@@ -5,6 +5,15 @@ enum LoginError{
     "InvalidURL",
 };
 
+[Error]
+enum AliasPrefixError {
+    "TwoConsecutiveDots",
+    "InvalidCharacter",
+    "DotAtTheEnd",
+    "PrefixTooLong",
+    "PrefixEmpty",
+};
+
 dictionary Login {
     string title;
     string username;
@@ -15,6 +24,8 @@ dictionary Login {
 
 namespace common {
     boolean is_email_valid(string email);
+    [Throws=AliasPrefixError]
+    void validate_alias_prefix(string prefix);
     [Throws=LoginError]
     void is_login_valid(Login login);
 };

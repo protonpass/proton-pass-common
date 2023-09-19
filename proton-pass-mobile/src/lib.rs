@@ -1,9 +1,14 @@
-use proton_pass_common::login::Login;
+use proton_pass_common::alias_prefix::AliasPrefixError;
+use proton_pass_common::login::{Login, LoginError};
 
 pub fn is_email_valid(email: String) -> bool {
     proton_pass_common::email::is_email_valid(&email)
 }
 
-pub fn is_login_valid(login: Login) -> Result<(), proton_pass_common::login::LoginError> {
+pub fn validate_alias_prefix(prefix: String) -> Result<(), AliasPrefixError> {
+    proton_pass_common::alias_prefix::validate_alias_prefix(&prefix)
+}
+
+pub fn is_login_valid(login: Login) -> Result<(), LoginError> {
     proton_pass_common::login::validate_login(login)
 }

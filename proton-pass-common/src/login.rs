@@ -1,15 +1,13 @@
 #![allow(dead_code, unused_variables)]
 
 use proton_pass_derive::Error;
-use wasm_bindgen::prelude::wasm_bindgen;
 
-#[wasm_bindgen]
 pub struct Login {
-    title: String,
-    username: String,
-    password: String,
-    totp: Option<String>,
-    urls: Vec<String>,
+    pub title: String,
+    pub username: String,
+    pub password: String,
+    pub totp: Option<String>,
+    pub urls: Vec<String>,
 }
 
 #[derive(Debug, Error, PartialEq, Eq)]

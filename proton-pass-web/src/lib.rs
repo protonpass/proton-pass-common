@@ -1,6 +1,6 @@
+mod login;
 mod utils;
 
-pub use utils::set_panic_hook;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -16,9 +16,12 @@ pub fn validate_alias_prefix(prefix: String) -> Result<(), JsError> {
     }
 }
 #[wasm_bindgen]
-pub fn validate_login_obj(login: proton_pass_common::login::Login) -> Result<(), JsError> {
-    match proton_pass_common::login::validate_login(login) {
+pub fn validate_login_obj(login: WasmLogin) -> Result<(), JsError> {
+    match proton_pass_common::login::validate_login(login.into()) {
         Ok(_) => Ok(()),
         Err(e) => Err(e.into()),
     }
 }
+
+pub use login::WasmLogin;
+pub use utils::set_panic_hook;

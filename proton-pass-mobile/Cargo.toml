@@ -6,7 +6,7 @@ edition = "2021"
 [lib]
 doctest = false
 crate-type = ["cdylib", "staticlib"]
-name = "proton_pass_common"
+name = "proton_pass_common_mobile"
 
 [dependencies]
 proton-pass-common = { path = "../proton-pass-common" }

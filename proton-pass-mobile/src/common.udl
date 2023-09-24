@@ -12,6 +12,7 @@ enum AliasPrefixError {
     "DotAtTheEnd",
     "PrefixTooLong",
     "PrefixEmpty",
+    "DotAtTheBeginning"
 };
 
 dictionary Login {
@@ -22,7 +23,7 @@ dictionary Login {
     sequence<string> urls;
 };
 
-namespace common {
+namespace proton_pass_common_mobile {
     boolean is_email_valid(string email);
     [Throws=AliasPrefixError]
     void validate_alias_prefix(string prefix);

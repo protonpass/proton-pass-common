@@ -1,6 +1,8 @@
 use proton_pass_common::alias_prefix::AliasPrefixError;
 use proton_pass_common::login::{Login, LoginError};
 
+uniffi::include_scaffolding!("common");
+
 pub fn is_email_valid(email: String) -> bool {
     proton_pass_common::email::is_email_valid(&email)
 }

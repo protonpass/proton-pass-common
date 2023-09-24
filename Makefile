@@ -30,6 +30,7 @@ clean: ## Remove compile artifacts
 	@rm -f proton-pass-mobile/src/*.modulemap
 	@rm -rf proton-pass-mobile/android/lib/build
 	@rm -rf proton-pass-mobile/android/lib/src/main/jniLibs
+	@rm -rf proton-pass-mobile/src/proton/android/pass/commonrust/proton_pass_common_mobile.kt
 	@rm -rf proton-pass-web/pkg
 
 .PHONY: help
@@ -40,7 +41,7 @@ help: ## Display this help screen
 .PHONY: kotlin-bindings
 kotlin-bindings: ## Generate the kotlin bindings
 	@cargo run -p proton-pass-mobile --features=uniffi/cli --bin uniffi-bindgen generate proton-pass-mobile/src/common.udl --language kotlin
-	@cp proton-pass-mobile/src/proton/android/pass/commonrust/common.kt proton-pass-mobile/android/lib/src/main/java/proton/android/pass/commonrust/common.kt
+	@cp proton-pass-mobile/src/proton/android/pass/commonrust/proton_pass_common_mobile.kt proton-pass-mobile/android/lib/src/main/java/proton/android/pass/commonrust/proton_pass_common_mobile.kt
 
 .PHONY: swift-bindings
 swift-bindings: ## Generate the swift bindings

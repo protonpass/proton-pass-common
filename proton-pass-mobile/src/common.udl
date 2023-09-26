@@ -24,6 +24,8 @@ dictionary Login {
 };
 
 namespace proton_pass_common_mobile {
+    string library_version();
+
     boolean is_email_valid(string email);
     [Throws=AliasPrefixError]
     void validate_alias_prefix(string prefix);

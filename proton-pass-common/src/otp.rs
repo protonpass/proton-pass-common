@@ -2,19 +2,20 @@ use proton_pass_derive::Error;
 use crate::otp::OTPAlgorithm::{SHA1, SHA256, SHA512};
 use crate::otp::OTPType::{HOTP, TOTP};
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, PartialEq, Eq)]
 pub enum OTPError {
     InvalidType,
     InvalidAlgorithm
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum OTPType {
-    TOTP, HOTP
+    TOTP,
+    HOTP
 }
 
 impl OTPType {
-    fn init(string: &str) -> Result<OTPType, OTPError> {
+    pub fn parse(string: &str) -> Result<OTPType, OTPError> {
         match string.to_uppercase().as_str() {
             "TOTP" => Ok(TOTP),
             "HOTP" => Ok(HOTP),
@@ -23,13 +24,13 @@ impl OTPType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum OTPAlgorithm {
     SHA1, SHA256, SHA512
 }
 
 impl OTPAlgorithm {
-    fn init(string: &str) -> Result<OTPAlgorithm, OTPError> {
+    pub fn parse(string: &str) -> Result<OTPAlgorithm, OTPError> {
         match string.to_uppercase().as_str() {
             "SHA1" => Ok(SHA1),
             "SHA256" => Ok(SHA256),

@@ -77,8 +77,12 @@ For generating the bindings, run `make kotlin-bindings`.
 Link to the UniFFI guide: https://mozilla.github.io/uniffi-rs/
 
 ### iOS
-
-TO BE DONE: Figure out how to build it.
+In order to build the iOS modules, you'll need to add the following targets in rustup:
+```bash
+rustup target add aarch64-apple-ios
+rustup target add aarch64-apple-ios-sim
+rustup target add aarch64-apple-darwin
+```
 
 For generating the bindings, run `make swift-bindings`.
 

@@ -4,6 +4,9 @@
 /Cargo.lock
 
 proton-pass-mobile/android/lib/**/*.kt
+proton-pass-mobile/iOS/headers
+proton-pass-mobile/iOS/frameworks
+proton-pass-mobile/iOS/PassRustCore/*.xcframework
 proton-pass-mobile/src/proton
 proton-pass-mobile/src/*.h
 proton-pass-mobile/src/*.swift

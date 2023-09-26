@@ -3,6 +3,7 @@ MAKEFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 PROJECT_ROOT := $(dir $(MAKEFILE_PATH))
 
 MOBILE_LIB_NAME:=libproton_pass_common_mobile.so
+ANDROID_BINDINGS_DIR:=${PROJECT_ROOT}/proton-pass-mobile/android/lib/src/main/java/proton/android/pass/commonrust
 ANDROID_JNI_DIR:=${PROJECT_ROOT}/proton-pass-mobile/android/lib/src/main/jniLibs
 
 .PHONY: default
@@ -41,7 +42,8 @@ help: ## Display this help screen
 .PHONY: kotlin-bindings
 kotlin-bindings: ## Generate the kotlin bindings
 	@cargo run -p proton-pass-mobile --features=uniffi/cli --bin uniffi-bindgen generate proton-pass-mobile/src/common.udl --language kotlin
-	@cp proton-pass-mobile/src/proton/android/pass/commonrust/proton_pass_common_mobile.kt proton-pass-mobile/android/lib/src/main/java/proton/android/pass/commonrust/proton_pass_common_mobile.kt
+	@mkdir -p ${ANDROID_BINDINGS_DIR}
+	@cp proton-pass-mobile/src/proton/android/pass/commonrust/proton_pass_common_mobile.kt ${ANDROID_BINDINGS_DIR}/proton_pass_common_mobile.kt
 
 .PHONY: swift-bindings
 swift-bindings: ## Generate the swift bindings

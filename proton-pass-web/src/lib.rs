@@ -4,6 +4,11 @@ mod utils;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
+pub fn library_version() -> String {
+    proton_pass_common::library_version()
+}
+
+#[wasm_bindgen]
 pub fn is_email_valid(email: String) -> bool {
     proton_pass_common::email::is_email_valid(&email)
 }

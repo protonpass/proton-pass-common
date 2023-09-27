@@ -53,7 +53,9 @@ impl TOTPComponents {
         match uri.authority() {
             Some(value) => {
                 let authority = value.to_string();
-                if authority.to_lowercase() == "totp" {
+                if authority.is_empty() {
+                    Err(TOTPError::NoAuthority)
+                } else if authority.to_lowercase() == "totp" {
                     Ok(())
                 } else {
                     Err(TOTPError::InvalidAuthority(authority))
@@ -65,7 +67,14 @@ impl TOTPComponents {
 
     fn parse_label(uri: &URI) -> Option<String> {
         match uri.path().segments().last() {
-            Some(value) => Some(value.to_string()),
+            Some(value) => {
+                let label = value.to_string();
+                if label.is_empty() {
+                    None
+                } else {
+                    Some(label)
+                }
+            },
             _ => None
         }
     }

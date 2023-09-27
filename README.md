@@ -28,6 +28,17 @@ In order to run the tests you can either call `make test` or `cargo test -p prot
 
 ## Project management
 
+### Generate a release
+
+In order to generate a new release, please follow these steps:
+
+1. Make sure the `CHANGELOG.md` document has been updated.
+2. Make sure you have `cargo-release` installed (`cargo install cargo-release`).
+3. Run `cargo release [major|minor|patch]`. It will do a dry-run, it won't actually change anything.
+4. If the steps look alright to you, run again `cargo release [major|minor|patch] --execute`.
+5. Create a tag using `git tag <VERSION_NUMBER>`.
+6. Push the changes and the tag.
+
 ### Formatting
 
 ```

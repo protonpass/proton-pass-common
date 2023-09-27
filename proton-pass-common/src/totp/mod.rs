@@ -1,4 +1,4 @@
-mod algorithm;
+pub mod algorithm;
 pub mod components;
-mod error;
+pub mod error;
 mod get_value;

@@ -8,7 +8,7 @@ ANDROID_JNI_DIR:=${PROJECT_ROOT}/proton-pass-mobile/android/lib/src/main/jniLibs
 IOS_HEADER_DIR:=${PROJECT_ROOT}/proton-pass-mobile/ios/headers
 IOS_FRAMEWORK_DIR:=${PROJECT_ROOT}/proton-pass-mobile/ios/frameworks
 IOS_LIB_DIR:=${PROJECT_ROOT}/proton-pass-mobile/ios/libs
-IOS_LIB_NAME:=libproton_pass_common_mobile.a
+IOS_LIB_NAME:=libproton_pass_common_mobile.dylib
 IOS_PACKAGE_DIR:=${PROJECT_ROOT}/proton-pass-mobile/ios/PassRustCore
 IOS_XCFRAMEWORK_NAME:=RustFramework.xcframework
 

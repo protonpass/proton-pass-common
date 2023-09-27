@@ -8,5 +8,8 @@ final class PassRustCoreTests: XCTestCase {
 
         // Defining Test Cases and Test Methods
         // https://developer.apple.com/documentation/xctest/defining_test_cases_and_test_methods
+        XCTAssertFalse(isEmailValid(email: "test"))
+        XCTAssertTrue(isEmailValid(email: "test@test.com"))
+
     }
 }

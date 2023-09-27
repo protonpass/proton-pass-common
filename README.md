@@ -83,8 +83,18 @@ rustup target add aarch64-apple-ios
 rustup target add aarch64-apple-ios-sim
 rustup target add aarch64-apple-darwin
 ```
+To use rust in iOS we are leveraging the power of `Swift Packages`.
 
-For generating the bindings, run `make swift-bindings`.
+The **iOS** folder in **proton-pass-mobile** contains the scaffold of our package.
+The current package is called `PassRustCore` and it is the one that is used in the Pass iOS project.
+
+For now the update of this package must be done by hand.
+You first need to update the package by:
+- Calling `make clean`, cleans the project
+- Calling `make swift-bindings`, generates the bindings
+- Calling `make ios-xcframework`, create the xcframework and update the Package
+
+You should then have an up-to-date package that you can drag and drop in the `LocalPackages` directory in the Pass project.
 
 Link to the UniFFI guide: https://mozilla.github.io/uniffi-rs/
 

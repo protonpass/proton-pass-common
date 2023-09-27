@@ -1,8 +1,5 @@
-
-[Error]
-enum LoginError{
-    "InvalidTOTP",
-    "InvalidURL",
+namespace proton_pass_common_mobile {
+    string library_version();
 };
 
 [Error]
@@ -15,6 +12,13 @@ enum AliasPrefixError {
     "DotAtTheBeginning"
 };
 
+interface AliasPrefixValidator {
+    constructor();
+    [Throws=AliasPrefixError]
+    void validate(string prefix);
+};
+
+
 dictionary Login {
     string title;
     string username;
@@ -23,12 +27,20 @@ dictionary Login {
     sequence<string> urls;
 };
 
-namespace proton_pass_common_mobile {
-    string library_version();
+[Error]
+enum LoginError{
+    "InvalidTOTP",
+    "InvalidURL",
+};
 
-    boolean is_email_valid(string email);
-    [Throws=AliasPrefixError]
-    void validate_alias_prefix(string prefix);
+interface LoginValidator {
+    constructor();
     [Throws=LoginError]
-    void is_login_valid(Login login);
+    void validate(Login login);
+};
+
+
+interface EmailValidator {
+    constructor();
+    boolean is_email_valid(string email);
 };

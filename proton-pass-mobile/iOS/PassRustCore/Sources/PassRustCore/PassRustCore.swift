@@ -353,6 +353,221 @@ private struct FfiConverterString: FfiConverter {
     }
 }
 
+public protocol AliasPrefixValidatorProtocol {
+    func validate(prefix: String) throws
+}
+
+public class AliasPrefixValidator: AliasPrefixValidatorProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    public convenience init() {
+        self.init(unsafeFromRawPointer: try! rustCall {
+            uniffi_proton_pass_common_mobile_fn_constructor_aliasprefixvalidator_new($0)
+        })
+    }
+
+    deinit {
+        try! rustCall { uniffi_proton_pass_common_mobile_fn_free_aliasprefixvalidator(pointer, $0) }
+    }
+
+    public func validate(prefix: String) throws {
+        try
+            rustCallWithError(FfiConverterTypeAliasPrefixError.lift) {
+                uniffi_proton_pass_common_mobile_fn_method_aliasprefixvalidator_validate(self.pointer,
+                                                                                         FfiConverterString.lower(prefix), $0)
+            }
+    }
+}
+
+public struct FfiConverterTypeAliasPrefixValidator: FfiConverter {
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = AliasPrefixValidator
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> AliasPrefixValidator {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if ptr == nil {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: AliasPrefixValidator, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> AliasPrefixValidator {
+        return AliasPrefixValidator(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: AliasPrefixValidator) -> UnsafeMutableRawPointer {
+        return value.pointer
+    }
+}
+
+public func FfiConverterTypeAliasPrefixValidator_lift(_ pointer: UnsafeMutableRawPointer) throws -> AliasPrefixValidator {
+    return try FfiConverterTypeAliasPrefixValidator.lift(pointer)
+}
+
+public func FfiConverterTypeAliasPrefixValidator_lower(_ value: AliasPrefixValidator) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeAliasPrefixValidator.lower(value)
+}
+
+public protocol EmailValidatorProtocol {
+    func isEmailValid(email: String) -> Bool
+}
+
+public class EmailValidator: EmailValidatorProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    public convenience init() {
+        self.init(unsafeFromRawPointer: try! rustCall {
+            uniffi_proton_pass_common_mobile_fn_constructor_emailvalidator_new($0)
+        })
+    }
+
+    deinit {
+        try! rustCall { uniffi_proton_pass_common_mobile_fn_free_emailvalidator(pointer, $0) }
+    }
+
+    public func isEmailValid(email: String) -> Bool {
+        return try! FfiConverterBool.lift(
+            try!
+                rustCall {
+                    uniffi_proton_pass_common_mobile_fn_method_emailvalidator_is_email_valid(self.pointer,
+                                                                                             FfiConverterString.lower(email), $0)
+                }
+        )
+    }
+}
+
+public struct FfiConverterTypeEmailValidator: FfiConverter {
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = EmailValidator
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> EmailValidator {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if ptr == nil {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: EmailValidator, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> EmailValidator {
+        return EmailValidator(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: EmailValidator) -> UnsafeMutableRawPointer {
+        return value.pointer
+    }
+}
+
+public func FfiConverterTypeEmailValidator_lift(_ pointer: UnsafeMutableRawPointer) throws -> EmailValidator {
+    return try FfiConverterTypeEmailValidator.lift(pointer)
+}
+
+public func FfiConverterTypeEmailValidator_lower(_ value: EmailValidator) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeEmailValidator.lower(value)
+}
+
+public protocol LoginValidatorProtocol {
+    func validate(login: Login) throws
+}
+
+public class LoginValidator: LoginValidatorProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    public convenience init() {
+        self.init(unsafeFromRawPointer: try! rustCall {
+            uniffi_proton_pass_common_mobile_fn_constructor_loginvalidator_new($0)
+        })
+    }
+
+    deinit {
+        try! rustCall { uniffi_proton_pass_common_mobile_fn_free_loginvalidator(pointer, $0) }
+    }
+
+    public func validate(login: Login) throws {
+        try
+            rustCallWithError(FfiConverterTypeLoginError.lift) {
+                uniffi_proton_pass_common_mobile_fn_method_loginvalidator_validate(self.pointer,
+                                                                                   FfiConverterTypeLogin.lower(login), $0)
+            }
+    }
+}
+
+public struct FfiConverterTypeLoginValidator: FfiConverter {
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = LoginValidator
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> LoginValidator {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if ptr == nil {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: LoginValidator, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> LoginValidator {
+        return LoginValidator(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: LoginValidator) -> UnsafeMutableRawPointer {
+        return value.pointer
+    }
+}
+
+public func FfiConverterTypeLoginValidator_lift(_ pointer: UnsafeMutableRawPointer) throws -> LoginValidator {
+    return try FfiConverterTypeLoginValidator.lift(pointer)
+}
+
+public func FfiConverterTypeLoginValidator_lower(_ value: LoginValidator) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeLoginValidator.lower(value)
+}
+
 public struct Login {
     public var title: String
     public var username: String
@@ -603,32 +818,6 @@ public func libraryVersion() -> String {
     )
 }
 
-public func isEmailValid(email: String) -> Bool {
-    return try! FfiConverterBool.lift(
-        try! rustCall {
-            uniffi_proton_pass_common_mobile_fn_func_is_email_valid(
-                FfiConverterString.lower(email), $0
-            )
-        }
-    )
-}
-
-public func validateAliasPrefix(prefix: String) throws {
-    try rustCallWithError(FfiConverterTypeAliasPrefixError.lift) {
-        uniffi_proton_pass_common_mobile_fn_func_validate_alias_prefix(
-            FfiConverterString.lower(prefix), $0
-        )
-    }
-}
-
-public func isLoginValid(login: Login) throws {
-    try rustCallWithError(FfiConverterTypeLoginError.lift) {
-        uniffi_proton_pass_common_mobile_fn_func_is_login_valid(
-            FfiConverterTypeLogin.lower(login), $0
-        )
-    }
-}
-
 private enum InitializationResult {
     case ok
     case contractVersionMismatch
@@ -648,13 +837,22 @@ private var initializationResult: InitializationResult {
     if uniffi_proton_pass_common_mobile_checksum_func_library_version() != 41133 {
         return InitializationResult.apiChecksumMismatch
     }
-    if uniffi_proton_pass_common_mobile_checksum_func_is_email_valid() != 26407 {
+    if uniffi_proton_pass_common_mobile_checksum_method_aliasprefixvalidator_validate() != 27396 {
         return InitializationResult.apiChecksumMismatch
     }
-    if uniffi_proton_pass_common_mobile_checksum_func_validate_alias_prefix() != 13441 {
+    if uniffi_proton_pass_common_mobile_checksum_method_loginvalidator_validate() != 10934 {
         return InitializationResult.apiChecksumMismatch
     }
-    if uniffi_proton_pass_common_mobile_checksum_func_is_login_valid() != 62121 {
+    if uniffi_proton_pass_common_mobile_checksum_method_emailvalidator_is_email_valid() != 33535 {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if uniffi_proton_pass_common_mobile_checksum_constructor_aliasprefixvalidator_new() != 7446 {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if uniffi_proton_pass_common_mobile_checksum_constructor_loginvalidator_new() != 40416 {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if uniffi_proton_pass_common_mobile_checksum_constructor_emailvalidator_new() != 37096 {
         return InitializationResult.apiChecksumMismatch
     }
 

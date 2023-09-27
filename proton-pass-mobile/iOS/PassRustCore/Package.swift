@@ -25,9 +25,6 @@ let package = Package(
             dependencies: [
                 .target(name: "RustFrameworkFFI")
             ]
-        ),
-        .testTarget(
-            name: "PassRustCoreTests",
-            dependencies: ["PassRustCore"]),
+        )
     ]
 )

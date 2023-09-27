@@ -81,7 +81,7 @@ ios-lib-ios-sim: ## Build the iOS library for iOS arm simulators
 	@cargo build -p proton-pass-mobile --release --target aarch64-apple-ios-sim
 
 .PHONY: ios-xcframework
-ios-xcframework: ios-lib-macos ios-lib-ios ios-lib-ios-sim ## Build the iOS xcframework for
+ios-xcframework: ios-lib-macos ios-lib-ios ios-lib-ios-sim ## Build the iOS xcframework
 	@xcodebuild -create-xcframework \
                -library "target/aarch64-apple-ios/release/${IOS_LIB_NAME}" \
                -headers proton-pass-mobile/ios/headers \
@@ -91,6 +91,9 @@ ios-xcframework: ios-lib-macos ios-lib-ios ios-lib-ios-sim ## Build the iOS xcfr
                -headers proton-pass-mobile/ios/headers \
                -output "${IOS_FRAMEWORK_DIR}/${IOS_XCFRAMEWORK_NAME}"
 	@cp -R "${IOS_FRAMEWORK_DIR}/${IOS_XCFRAMEWORK_NAME}" "${IOS_PACKAGE_DIR}/${IOS_XCFRAMEWORK_NAME}"
+
+.PHONY: ios-package
+ios-package: clean swift-bindings ios-xcframework ## Update the iOS package
 
 .PHONY: android-dirs
 android-dirs: ## Build the dir structure for android libs

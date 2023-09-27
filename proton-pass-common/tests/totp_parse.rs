@@ -17,7 +17,7 @@ fn invalid_scheme() {
     // Then
     match sut {
         Err(error) => assert_eq!(error, TOTPError::InvalidScheme("https".to_string())),
-        _ => panic!("Should not be able to parse")
+        _ => panic!("Should not be able to parse"),
     }
 }
 
@@ -32,7 +32,7 @@ fn invalid_authority() {
     // Then
     match sut {
         Err(error) => assert_eq!(error, TOTPError::InvalidAuthority("hotp".to_string())),
-        _ => panic!("Should not be able to parse")
+        _ => panic!("Should not be able to parse"),
     }
 }
 
@@ -47,7 +47,7 @@ fn no_authority() {
     // Then
     match sut {
         Err(error) => assert_eq!(error, TOTPError::NoAuthority),
-        _ => panic!("Should not be able to parse")
+        _ => panic!("Should not be able to parse"),
     }
 }
 
@@ -62,7 +62,7 @@ fn no_queries() {
     // Then
     match sut {
         Err(error) => assert_eq!(error, TOTPError::NoQueries),
-        _ => panic!("Should not be able to parse")
+        _ => panic!("Should not be able to parse"),
     }
 }
 
@@ -77,7 +77,7 @@ fn no_secret() {
     // Then
     match sut {
         Err(error) => assert_eq!(error, TOTPError::NoSecret),
-        _ => panic!("Should not be able to parse")
+        _ => panic!("Should not be able to parse"),
     }
 }
 
@@ -92,7 +92,7 @@ fn empty_secret() {
     // Then
     match sut {
         Err(error) => assert_eq!(error, TOTPError::EmptySecret),
-        _ => panic!("Should not be able to parse")
+        _ => panic!("Should not be able to parse"),
     }
 }
 
@@ -107,14 +107,15 @@ fn invalid_algorithm() {
     // Then
     match sut {
         Err(error) => assert_eq!(error, TOTPError::InvalidAlgorithm("SHA128".to_string())),
-        _ => panic!("Should not be able to parse")
+        _ => panic!("Should not be able to parse"),
     }
 }
 
 #[test]
 fn explicit_params() {
     // Given
-    let uri = "otpauth://totp/john.doe%40example.com?secret=somesecret&issuer=ProtonMail&algorithm=SHA512&digits=8&period=45";
+    let uri =
+        "otpauth://totp/john.doe%40example.com?secret=somesecret&issuer=ProtonMail&algorithm=SHA512&digits=8&period=45";
 
     // When
     let sut = make_sut(uri);
@@ -128,8 +129,8 @@ fn explicit_params() {
             assert_eq!(components.algorithm, Some(SHA512));
             assert_eq!(components.digits, Some(8));
             assert_eq!(components.period, Some(45));
-        },
-        _ => panic!("Should be able to parse")
+        }
+        _ => panic!("Should be able to parse"),
     }
 }
 
@@ -150,7 +151,7 @@ fn implicit_params() {
             assert_eq!(components.algorithm, None);
             assert_eq!(components.digits, None);
             assert_eq!(components.period, None);
-        },
-        _ => panic!("Should be able to parse")
+        }
+        _ => panic!("Should be able to parse"),
     }
 }

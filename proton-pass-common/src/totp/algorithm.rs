@@ -5,7 +5,7 @@ use crate::totp::error::TOTPError;
 pub enum Algorithm {
     SHA1,
     SHA256,
-    SHA512
+    SHA512,
 }
 
 impl Algorithm {
@@ -14,15 +14,15 @@ impl Algorithm {
             "SHA1" => Ok(SHA1),
             "SHA256" => Ok(SHA256),
             "SHA512" => Ok(SHA512),
-            _ => Err(TOTPError::InvalidAlgorithm(value.to_string()))
+            _ => Err(TOTPError::InvalidAlgorithm(value.to_string())),
         }
     }
 }
 
 #[cfg(test)]
 mod test {
-    use crate::totp::algorithm::Algorithm::{SHA1, SHA256, SHA512};
     use crate::totp::algorithm::Algorithm;
+    use crate::totp::algorithm::Algorithm::{SHA1, SHA256, SHA512};
     use crate::totp::error::TOTPError;
 
     #[test]
@@ -36,6 +36,9 @@ mod test {
         assert_eq!(Algorithm::new("sha512"), Ok(SHA512));
         assert_eq!(Algorithm::new("SHA512"), Ok(SHA512));
 
-        assert_eq!(Algorithm::new("sha"), Err(TOTPError::InvalidAlgorithm("sha".to_string())));
+        assert_eq!(
+            Algorithm::new("sha"),
+            Err(TOTPError::InvalidAlgorithm("sha".to_string()))
+        );
     }
 }

@@ -1,8 +1,8 @@
-use queryst::parse;
-use uriparse::URI;
 use crate::totp::algorithm::Algorithm;
 use crate::totp::error::TOTPError;
 use crate::totp::get_value::{GetQueryValue, Queries};
+use queryst::parse;
+use uriparse::URI;
 
 #[derive(Debug)]
 pub struct TOTPComponents {
@@ -11,14 +11,14 @@ pub struct TOTPComponents {
     pub issuer: Option<String>,
     pub algorithm: Option<Algorithm>,
     pub digits: Option<u8>,
-    pub period: Option<u16>
+    pub period: Option<u16>,
 }
 
 impl TOTPComponents {
     pub fn from_uri(uri: &str) -> Result<Self, TOTPError> {
         match URI::try_from(uri) {
             Ok(uri) => Self::parse_uri(uri),
-            Err(error) => Err(TOTPError::URIError(error))
+            Err(error) => Err(TOTPError::URIError(error)),
         }
     }
 
@@ -35,7 +35,14 @@ impl TOTPComponents {
         let digits: Option<u8> = queries.get_string_parsable_value("digits");
         let period: Option<u16> = queries.get_string_parsable_value("period");
 
-        Ok(Self { label, secret, issuer, algorithm, digits, period })
+        Ok(Self {
+            label,
+            secret,
+            issuer,
+            algorithm,
+            digits,
+            period,
+        })
     }
 }
 
@@ -60,8 +67,8 @@ impl TOTPComponents {
                 } else {
                     Err(TOTPError::InvalidAuthority(authority))
                 }
-            },
-            None => Err(TOTPError::NoAuthority)
+            }
+            None => Err(TOTPError::NoAuthority),
         }
     }
 
@@ -74,8 +81,8 @@ impl TOTPComponents {
                 } else {
                     Some(label)
                 }
-            },
-            _ => None
+            }
+            _ => None,
         }
     }
 
@@ -96,7 +103,7 @@ impl TOTPComponents {
 
         match queries_value.as_object() {
             Some(value) => Ok(value.clone()),
-            _ => Err(TOTPError::NoQueries)
+            _ => Err(TOTPError::NoQueries),
         }
     }
 
@@ -109,19 +116,17 @@ impl TOTPComponents {
                     Ok(value)
                 }
             }
-            _ => Err(TOTPError::NoSecret)
+            _ => Err(TOTPError::NoSecret),
         }
     }
 
     fn get_algorithm(queries: &Queries) -> Result<Option<Algorithm>, TOTPError> {
         match queries.get_string_value("algorithm") {
-            Some(value) => {
-                match Algorithm::new(value.as_str()) {
-                    Ok(algorithm) => Ok(Some(algorithm)),
-                    Err(error) => Err(error)
-                }
+            Some(value) => match Algorithm::new(value.as_str()) {
+                Ok(algorithm) => Ok(Some(algorithm)),
+                Err(error) => Err(error),
             },
-            _ => Ok(None)
+            _ => Ok(None),
         }
     }
 }

@@ -1,5 +1,5 @@
-use uriparse::URIError;
 use proton_pass_derive::Error;
+use uriparse::URIError;
 
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum TOTPError {
@@ -10,5 +10,5 @@ pub enum TOTPError {
     URIError(URIError),
     NoSecret,
     EmptySecret,
-    NoQueries
+    NoQueries,
 }

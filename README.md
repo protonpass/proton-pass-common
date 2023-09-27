@@ -89,7 +89,9 @@ The **iOS** folder in **proton-pass-mobile** contains the scaffold of our packag
 The current package is called `PassRustCore` and it is the one that is used in the Pass iOS project.
 
 For now the update of this package must be done by hand.
-You first need to update the package by:
+There is two ways to update the package either you call:
+`make ios-package` and wait for the process to finish to have an updated package
+or you can do it by hand
 - Calling `make clean`, cleans the project
 - Calling `make swift-bindings`, generates the bindings
 - Calling `make ios-xcframework`, create the xcframework and update the Package

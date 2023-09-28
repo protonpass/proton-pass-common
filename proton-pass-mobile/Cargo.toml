@@ -3,6 +3,14 @@ name = "proton-pass-mobile"
 version = "0.1.0"
 edition = "2021"
 
+# Flags for cargo-release
+[package.metadata.release]
+pre-release-replacements = [
+    # Yes, we are relying on the number of whitespaces
+    {file="android/lib/build.gradle.kts", search="    version = .*", replace="    version = \"{{version}}\""}
+]
+
+
 [lib]
 doctest = false
 crate-type = ["cdylib", "staticlib"]

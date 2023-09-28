@@ -42,7 +42,4 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${COROUTINES}")
     implementation("net.java.dev.jna:jna:${JNA}")
-
-
-    testImplementation("junit:junit:4.13.2")
 }

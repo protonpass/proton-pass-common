@@ -1,6 +1,6 @@
 use crate::totp::components::{
     TOTPComponents, DEFAULT_ALGORITHM, DEFAULT_DIGITS, DEFAULT_PERIOD, OTP_SCHEME, QUERY_ALGORITHM, QUERY_DIGITS,
-    QUERY_PERIOD, QUERY_SECRET, TOTP_HOST,
+    QUERY_ISSUER, QUERY_PERIOD, QUERY_SECRET, TOTP_HOST,
 };
 use url::Url;
 
@@ -30,7 +30,7 @@ pub fn uri_for_editing(original_uri: &str) -> String {
 /// Sanitize the user input URI before saving.
 ///
 /// - Invalid
-///   => Return as-is
+///   => Treat as secret, sanitize and add default params
 ///
 /// - Valid with no params
 ///   => Add default params
@@ -40,32 +40,58 @@ pub fn uri_for_editing(original_uri: &str) -> String {
 ///
 /// - Valid with custom params
 ///   => Return as-is
-pub fn uri_for_saving(edited_uri: &str) -> String {
-    let edited_uri_string = edited_uri.to_string();
+pub fn uri_for_saving(original_uri: &str, edited_uri: &str) -> String {
+    let (original_label, original_issuer) = match TOTPComponents::from_uri(original_uri) {
+        Ok(components) => (components.label, components.issuer),
+        _ => (None, None),
+    };
 
-    let components;
-    if let Ok(value) = TOTPComponents::from_uri(edited_uri) {
-        components = value
-    } else {
-        // Invalid URI => return as-is
-        return edited_uri_string;
-    }
+    let trimmed_uri = edited_uri.trim();
+
+    let components = match TOTPComponents::from_uri(trimmed_uri) {
+        Ok(value) => value,
+        _ => {
+            // Invalid URI
+            // => treat as secret, sanitize and add default params
+            let sanitized_secret = trimmed_uri.replace(" ", "");
+            TOTPComponents {
+                label: None,
+                secret: sanitized_secret,
+                issuer: None,
+                algorithm: None,
+                digits: None,
+                period: None,
+            }
+        }
+    };
 
     let base_uri = format!("{}://{}/", OTP_SCHEME, TOTP_HOST);
-    let mut uri;
-    if let Ok(value) = Url::parse(&base_uri) {
-        uri = value
-    } else {
-        return edited_uri_string;
-    }
+
+    let mut uri = match Url::parse(&base_uri) {
+        Ok(value) => value,
+        _ => panic!(
+            "Should be able to create Url struct with scheme {} and host {}",
+            OTP_SCHEME, TOTP_HOST
+        ),
+    };
 
     // Add label path
-    if let Some(label) = components.label {
-        uri.set_path(label.as_str());
+    if let Some(edited_label) = components.label {
+        uri.set_path(edited_label.as_str());
+    } else if let Some(original_label) = original_label {
+        uri.set_path(original_label.as_str());
     }
 
     // Set secret query
     uri.query_pairs_mut().append_pair(QUERY_SECRET, &components.secret);
+
+    // Set issuer query
+    if let Some(edited_issuer) = components.issuer {
+        uri.query_pairs_mut().append_pair(QUERY_ISSUER, edited_issuer.as_str());
+    } else if let Some(original_issuer) = original_issuer {
+        uri.query_pairs_mut()
+            .append_pair(QUERY_ISSUER, original_issuer.as_str());
+    }
 
     // Set algorithm query
     let algorithm = match components.algorithm {

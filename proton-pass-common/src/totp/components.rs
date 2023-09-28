@@ -3,7 +3,7 @@ use crate::totp::algorithm::Algorithm::SHA1;
 use crate::totp::error::TOTPError;
 use crate::totp::get_value::{GetQueryValue, Queries};
 use queryst::parse;
-use uriparse::URI;
+use url::Url;
 
 #[derive(Debug)]
 pub struct TOTPComponents {
@@ -29,13 +29,13 @@ pub const DEFAULT_PERIOD: u16 = 30;
 
 impl TOTPComponents {
     pub fn from_uri(uri: &str) -> Result<Self, TOTPError> {
-        match URI::try_from(uri) {
+        match Url::parse(uri) {
             Ok(uri) => Self::parse_uri(uri),
-            Err(error) => Err(TOTPError::URIError(error)),
+            Err(error) => Err(TOTPError::URLParseError(error)),
         }
     }
 
-    fn parse_uri(uri: URI) -> Result<Self, TOTPError> {
+    fn parse_uri(uri: Url) -> Result<Self, TOTPError> {
         Self::check_scheme(&uri)?;
         Self::check_otp_type(&uri)?;
 
@@ -60,7 +60,7 @@ impl TOTPComponents {
 }
 
 impl TOTPComponents {
-    fn check_scheme(uri: &URI) -> Result<(), TOTPError> {
+    fn check_scheme(uri: &Url) -> Result<(), TOTPError> {
         let scheme = uri.scheme().to_string();
         if scheme.to_lowercase() == OTP_SCHEME {
             Ok(())
@@ -69,40 +69,38 @@ impl TOTPComponents {
         }
     }
 
-    fn check_otp_type(uri: &URI) -> Result<(), TOTPError> {
-        match uri.authority() {
-            Some(value) => {
-                let authority = value.to_string();
-                if authority.is_empty() {
-                    Err(TOTPError::NoAuthority)
-                } else if authority.to_lowercase() == TOTP_HOST {
-                    Ok(())
-                } else {
-                    Err(TOTPError::InvalidAuthority(authority))
-                }
-            }
-            None => Err(TOTPError::NoAuthority),
+    fn check_otp_type(uri: &Url) -> Result<(), TOTPError> {
+        let authority = uri.authority();
+        if authority.is_empty() {
+            Err(TOTPError::NoAuthority)
+        } else if authority.to_lowercase() == TOTP_HOST {
+            Ok(())
+        } else {
+            Err(TOTPError::InvalidAuthority(authority.to_string()))
         }
     }
 
-    fn parse_label(uri: &URI) -> Option<String> {
-        match uri.path().segments().last() {
-            Some(value) => {
-                let label = value.to_string();
-                if label.is_empty() {
-                    None
+    fn parse_label(uri: &Url) -> Option<String> {
+        match uri.path_segments() {
+            Some(segments) => {
+                if let Some(label) = segments.last() {
+                    if !label.is_empty() {
+                        Some(label.to_string())
+                    } else {
+                        None
+                    }
                 } else {
-                    Some(label)
+                    None
                 }
             }
             _ => None,
         }
     }
 
-    fn parse_queries(uri: &URI) -> Result<Queries, TOTPError> {
+    fn parse_queries(uri: &Url) -> Result<Queries, TOTPError> {
         let queries_string;
         if let Some(value) = uri.query() {
-            queries_string = value.as_str();
+            queries_string = value;
         } else {
             return Err(TOTPError::NoQueries);
         }

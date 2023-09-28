@@ -1,5 +1,5 @@
 use proton_pass_derive::Error;
-use uriparse::URIError;
+use url::ParseError;
 
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum TOTPError {
@@ -7,7 +7,7 @@ pub enum TOTPError {
     NoAuthority,
     InvalidAlgorithm(String),
     InvalidScheme(String),
-    URIError(URIError),
+    URLParseError(ParseError),
     NoSecret,
     EmptySecret,
     NoQueries,

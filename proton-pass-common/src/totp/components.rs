@@ -1,4 +1,5 @@
 use crate::totp::algorithm::Algorithm;
+use crate::totp::algorithm::Algorithm::SHA1;
 use crate::totp::error::TOTPError;
 use crate::totp::get_value::{GetQueryValue, Queries};
 use queryst::parse;
@@ -13,6 +14,18 @@ pub struct TOTPComponents {
     pub digits: Option<u8>,
     pub period: Option<u16>,
 }
+
+pub const OTP_SCHEME: &str = "otpauth";
+pub const TOTP_HOST: &str = "totp";
+pub const QUERY_SECRET: &str = "secret";
+pub const QUERY_ISSUER: &str = "issuer";
+pub const QUERY_ALGORITHM: &str = "algorithm";
+pub const QUERY_DIGITS: &str = "digits";
+pub const QUERY_PERIOD: &str = "period";
+
+pub const DEFAULT_ALGORITHM: Algorithm = SHA1;
+pub const DEFAULT_DIGITS: u8 = 6;
+pub const DEFAULT_PERIOD: u16 = 30;
 
 impl TOTPComponents {
     pub fn from_uri(uri: &str) -> Result<Self, TOTPError> {
@@ -30,10 +43,10 @@ impl TOTPComponents {
 
         let queries = &Self::parse_queries(&uri)?;
         let secret = Self::get_secret(queries)?;
-        let issuer = queries.get_string_value("issuer");
+        let issuer = queries.get_string_value(QUERY_ISSUER);
         let algorithm: Option<Algorithm> = Self::get_algorithm(queries)?;
-        let digits: Option<u8> = queries.get_string_parsable_value("digits");
-        let period: Option<u16> = queries.get_string_parsable_value("period");
+        let digits: Option<u8> = queries.get_string_parsable_value(QUERY_DIGITS);
+        let period: Option<u16> = queries.get_string_parsable_value(QUERY_PERIOD);
 
         Ok(Self {
             label,
@@ -49,7 +62,7 @@ impl TOTPComponents {
 impl TOTPComponents {
     fn check_scheme(uri: &URI) -> Result<(), TOTPError> {
         let scheme = uri.scheme().to_string();
-        if scheme.to_lowercase() == "otpauth" {
+        if scheme.to_lowercase() == OTP_SCHEME {
             Ok(())
         } else {
             Err(TOTPError::InvalidScheme(scheme))
@@ -62,7 +75,7 @@ impl TOTPComponents {
                 let authority = value.to_string();
                 if authority.is_empty() {
                     Err(TOTPError::NoAuthority)
-                } else if authority.to_lowercase() == "totp" {
+                } else if authority.to_lowercase() == TOTP_HOST {
                     Ok(())
                 } else {
                     Err(TOTPError::InvalidAuthority(authority))
@@ -108,7 +121,7 @@ impl TOTPComponents {
     }
 
     fn get_secret(queries: &Queries) -> Result<String, TOTPError> {
-        match queries.get_string_value("secret") {
+        match queries.get_string_value(QUERY_SECRET) {
             Some(value) => {
                 if value.is_empty() {
                     Err(TOTPError::EmptySecret)
@@ -121,7 +134,7 @@ impl TOTPComponents {
     }
 
     fn get_algorithm(queries: &Queries) -> Result<Option<Algorithm>, TOTPError> {
-        match queries.get_string_value("algorithm") {
+        match queries.get_string_value(QUERY_ALGORITHM) {
             Some(value) => match Algorithm::new(value.as_str()) {
                 Ok(algorithm) => Ok(Some(algorithm)),
                 Err(error) => Err(error),
@@ -131,8 +144,29 @@ impl TOTPComponents {
     }
 }
 
+impl TOTPComponents {
+    pub fn has_default_params(&self) -> bool {
+        let default_algorithm = match &self.algorithm {
+            Some(value) => *value == DEFAULT_ALGORITHM,
+            _ => true,
+        };
+
+        let default_digits = match &self.digits {
+            Some(value) => *value == DEFAULT_DIGITS,
+            _ => true,
+        };
+
+        let default_period = match &self.period {
+            Some(value) => *value == DEFAULT_PERIOD,
+            _ => true,
+        };
+
+        default_algorithm && default_digits && default_period
+    }
+}
+
 #[cfg(test)]
-mod test {
+mod test_from_uri {
     use crate::totp::algorithm::Algorithm::SHA512;
     use crate::totp::components::TOTPComponents;
     use crate::totp::error::TOTPError;
@@ -289,5 +323,59 @@ mod test {
             }
             _ => panic!("Should be able to parse"),
         }
+    }
+}
+
+#[cfg(test)]
+mod test_has_default_params {
+    use crate::totp::algorithm::Algorithm::SHA512;
+    use crate::totp::components::{TOTPComponents, DEFAULT_ALGORITHM, DEFAULT_DIGITS, DEFAULT_PERIOD};
+
+    #[test]
+    fn custom_params() {
+        // Given
+        let sut = TOTPComponents {
+            label: None,
+            secret: "somesecret".to_string(),
+            issuer: None,
+            algorithm: Some(SHA512),
+            digits: Some(DEFAULT_DIGITS),
+            period: Some(DEFAULT_PERIOD),
+        };
+
+        // Then
+        assert!(!sut.has_default_params());
+    }
+
+    #[test]
+    fn explicit_default_params() {
+        // Given
+        let sut = TOTPComponents {
+            label: None,
+            secret: "somesecret".to_string(),
+            issuer: None,
+            algorithm: Some(DEFAULT_ALGORITHM),
+            digits: Some(DEFAULT_DIGITS),
+            period: Some(DEFAULT_PERIOD),
+        };
+
+        // Then
+        assert!(sut.has_default_params());
+    }
+
+    #[test]
+    fn implicit_default_params() {
+        // Given
+        let sut = TOTPComponents {
+            label: None,
+            secret: "somesecret".to_string(),
+            issuer: None,
+            algorithm: None,
+            digits: None,
+            period: None,
+        };
+
+        // Then
+        assert!(sut.has_default_params());
     }
 }

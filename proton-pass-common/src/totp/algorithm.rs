@@ -9,6 +9,16 @@ pub enum Algorithm {
 }
 
 impl Algorithm {
+    pub fn value(&self) -> &str {
+        match self {
+            SHA1 => "SHA1",
+            SHA256 => "SHA256",
+            SHA512 => "SHA512",
+        }
+    }
+}
+
+impl Algorithm {
     pub fn new(value: &str) -> Result<Self, TOTPError> {
         match value.to_uppercase().as_str() {
             "SHA1" => Ok(SHA1),

@@ -23,10 +23,10 @@ pub fn uri_for_editing(original_uri: &str) -> String {
     }
 
     if components.has_default_params() {
-        return original_uri_string;
+        return components.secret;
     }
 
-    components.secret
+    original_uri_string
 }
 
 impl TOTPComponents {

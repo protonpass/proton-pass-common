@@ -102,16 +102,19 @@ android-dirs: ## Build the dir structure for android libs
 .PHONY: android-lib-armv7
 android-lib-armv7: android-dirs ## Build the android library for armv7
 	@cargo build -p proton-pass-mobile --release --target armv7-linux-androideabi
+	@arm-none-eabi-strip "target/armv7-linux-androideabi/release/${MOBILE_LIB_NAME}" || echo "Could not strip armv7 shared library"
 	@cp "target/armv7-linux-androideabi/release/${MOBILE_LIB_NAME}" "${ANDROID_JNI_DIR}/armeabi-v7a/${MOBILE_LIB_NAME}"
 
 .PHONY: android-lib-aarch64
 android-lib-aarch64: android-dirs ## Build the android library for aarch64
 	@cargo build -p proton-pass-mobile --release --target aarch64-linux-android
+	@aarch64-linux-gnu-strip "target/aarch64-linux-android/release/${MOBILE_LIB_NAME}" || echo "Could not strip aarch64 shared library"
 	@cp "target/aarch64-linux-android/release/${MOBILE_LIB_NAME}" "${ANDROID_JNI_DIR}/arm64-v8a/${MOBILE_LIB_NAME}"
 
 .PHONY: android-lib-x86_64
 android-lib-x86_64: android-dirs ## Build the android library for x86_64
 	@cargo build -p proton-pass-mobile --release --target x86_64-linux-android
+	@strip "target/x86_64-linux-android/release/${MOBILE_LIB_NAME}" || echo "Could not strip x86_64 shared library"
 	@cp "target/x86_64-linux-android/release/${MOBILE_LIB_NAME}" "${ANDROID_JNI_DIR}/x86_64/${MOBILE_LIB_NAME}"
 
 .PHONY: android

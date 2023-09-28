@@ -18,11 +18,6 @@ val privateProperties = Properties().apply {
     }
 }
 
-val nexusUser = "NEXUS_USER".fromVariable()
-val nexusPwd = "NEXUS_PWD".fromVariable()
-val nexusUrl = "NEXUS_URL".fromVariable()
-val gitLabSSHPrefix = "GITLAB_SSH_PREFIX".fromVariable()
-val gitLabDomain = "GITLAB_DOMAIN".fromVariable()
 val gitHubDomain = "GITHUB_PROTONMAIL_DOMAIN".fromVariable()
 val mavenUrl = "MAVEN_URL".fromVariable()
 val mavenUser = "mavenCentralUsername".fromVariable()
@@ -75,20 +70,6 @@ mavenPublishing {
         }
     }
 }
-
-publishing {
-    repositories {
-        maven {
-            url = uri(nexusUrl)
-            name = "ProtonNexus"
-            credentials {
-                username = nexusUser
-                password = nexusPwd
-            }
-        }
-    }
-}
-
 
 signing {
     useInMemoryPgpKeys(mavenSigningKey, mavenSigningKeyPassword)

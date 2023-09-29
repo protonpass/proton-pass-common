@@ -98,20 +98,8 @@ impl TOTPComponents {
     }
 
     fn parse_queries(uri: &Url) -> Result<Queries, TOTPError> {
-        let queries_string;
-        if let Some(value) = uri.query() {
-            queries_string = value;
-        } else {
-            return Err(TOTPError::NoQueries);
-        }
-
-        let queries_value;
-        if let Ok(value) = parse(queries_string) {
-            queries_value = value;
-        } else {
-            return Err(TOTPError::NoQueries);
-        }
-
+        let queries_string = uri.query().ok_or(TOTPError::NoQueries)?;
+        let queries_value = parse(queries_string).map_err(|_| TOTPError::NoQueries)?;
         match queries_value.as_object() {
             Some(value) => Ok(value.clone()),
             _ => Err(TOTPError::NoQueries),

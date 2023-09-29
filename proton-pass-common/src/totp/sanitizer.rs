@@ -53,7 +53,7 @@ pub fn uri_for_saving(original_uri: &str, edited_uri: &str) -> String {
         _ => {
             // Invalid URI
             // => treat as secret, sanitize and add default params
-            let sanitized_secret = trimmed_uri.replace(" ", "");
+            let sanitized_secret = trimmed_uri.replace(' ', "");
             TOTPComponents {
                 label: None,
                 secret: sanitized_secret,

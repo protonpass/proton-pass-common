@@ -133,7 +133,7 @@ impl TOTPComponents {
 
     fn get_algorithm(queries: &Queries) -> Result<Option<Algorithm>, TOTPError> {
         match queries.get_string_value(QUERY_ALGORITHM) {
-            Some(value) => match Algorithm::new(value.as_str()) {
+            Some(value) => match Algorithm::try_from(value.as_str()) {
                 Ok(algorithm) => Ok(Some(algorithm)),
                 Err(error) => Err(error),
             },

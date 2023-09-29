@@ -10,5 +10,5 @@ doctest = false
 email_address = "0.2.4"
 proton-pass-derive = { path = "../proton-pass-derive" }
 url = "2.4.1"
-queryst = "3.0.0"
-serde_json = "1.0.107"
+serde-querystring = "0.2.1"
+serde = { version = "1.0.188", features = ["derive"] }

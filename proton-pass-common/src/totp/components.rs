@@ -5,7 +5,7 @@ use crate::totp::get_value::{GetQueryValue, Queries};
 use queryst::parse;
 use url::Url;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct TOTPComponents {
     pub label: Option<String>,
     pub secret: String,
@@ -170,10 +170,7 @@ mod test_from_uri {
         let sut = make_sut(uri);
 
         // Then
-        match sut {
-            Err(error) => assert_eq!(error, TOTPError::InvalidScheme("https".to_string())),
-            _ => panic!("Should not be able to parse"),
-        }
+        assert_eq!(sut, Err(TOTPError::InvalidScheme("https".to_string())));
     }
 
     #[test]
@@ -185,10 +182,7 @@ mod test_from_uri {
         let sut = make_sut(uri);
 
         // Then
-        match sut {
-            Err(error) => assert_eq!(error, TOTPError::InvalidAuthority("hotp".to_string())),
-            _ => panic!("Should not be able to parse"),
-        }
+        assert_eq!(sut, Err(TOTPError::InvalidAuthority("hotp".to_string())));
     }
 
     #[test]
@@ -200,10 +194,7 @@ mod test_from_uri {
         let sut = make_sut(uri);
 
         // Then
-        match sut {
-            Err(error) => assert_eq!(error, TOTPError::NoAuthority),
-            _ => panic!("Should not be able to parse"),
-        }
+        assert_eq!(sut, Err(TOTPError::NoAuthority));
     }
 
     #[test]
@@ -215,10 +206,7 @@ mod test_from_uri {
         let sut = make_sut(uri);
 
         // Then
-        match sut {
-            Err(error) => assert_eq!(error, TOTPError::NoQueries),
-            _ => panic!("Should not be able to parse"),
-        }
+        assert_eq!(sut, Err(TOTPError::NoQueries));
     }
 
     #[test]
@@ -230,10 +218,7 @@ mod test_from_uri {
         let sut = make_sut(uri);
 
         // Then
-        match sut {
-            Err(error) => assert_eq!(error, TOTPError::NoSecret),
-            _ => panic!("Should not be able to parse"),
-        }
+        assert_eq!(sut, Err(TOTPError::NoSecret));
     }
 
     #[test]
@@ -245,10 +230,7 @@ mod test_from_uri {
         let sut = make_sut(uri);
 
         // Then
-        match sut {
-            Err(error) => assert_eq!(error, TOTPError::EmptySecret),
-            _ => panic!("Should not be able to parse"),
-        }
+        assert_eq!(sut, Err(TOTPError::EmptySecret));
     }
 
     #[test]
@@ -260,10 +242,7 @@ mod test_from_uri {
         let sut = make_sut(uri);
 
         // Then
-        match sut {
-            Err(error) => assert_eq!(error, TOTPError::InvalidAlgorithm("SHA128".to_string())),
-            _ => panic!("Should not be able to parse"),
-        }
+        assert_eq!(sut, Err(TOTPError::InvalidAlgorithm("SHA128".to_string())));
     }
 
     #[test]

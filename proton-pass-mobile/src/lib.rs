@@ -3,6 +3,7 @@
 mod alias;
 mod email;
 mod login;
+mod totp;
 
 uniffi::include_scaffolding!("common");
 
@@ -13,3 +14,4 @@ pub fn library_version() -> String {
 pub use alias::*;
 pub use email::*;
 pub use login::*;
+pub use totp::*;

@@ -28,7 +28,7 @@ dictionary Login {
 };
 
 [Error]
-enum LoginError{
+enum LoginError {
     "InvalidTOTP",
     "InvalidURL",
 };
@@ -39,8 +39,46 @@ interface LoginValidator {
     void validate(Login login);
 };
 
-
 interface EmailValidator {
     constructor();
     boolean is_email_valid(string email);
+};
+
+[Error]
+enum TOTPError {
+    "InvalidAuthority",
+    "NoAuthority",
+    "InvalidAlgorithm",
+    "InvalidScheme",
+    "URLParseError",
+    "NoSecret",
+    "EmptySecret",
+    "NoQueries"
+};
+
+enum TOTPAlgorithm {
+    "SHA1",
+    "SHA256",
+    "SHA512"
+};
+
+dictionary TOTPComponents {
+    string? label;
+    string secret;
+    string? issuer;
+    TOTPAlgorithm? algorithm;
+    u8? digits;
+    u16? period;
+};
+
+interface TotpUriSanitizer {
+    constructor();
+    string uri_for_editing(string original_uri);
+    string uri_for_saving(string original_uri, string edited_uri);
+};
+
+interface TotpUriParser {
+    constructor();
+    [Throws=TOTPError]
+    TOTPComponents parse(string uri_string);
 };

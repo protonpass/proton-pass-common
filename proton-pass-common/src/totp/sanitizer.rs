@@ -12,19 +12,18 @@ use url::Url;
 /// - Original URI has default params (missing optional params or params with default values)
 ///   => Return only the secret
 pub fn uri_for_editing(original_uri: &str) -> String {
-    let original_uri_string = original_uri.to_string();
     let components;
     if let Ok(value) = TOTPComponents::from_uri(original_uri) {
         components = value
     } else {
-        return original_uri_string;
+        return original_uri.to_string();
     }
 
     if components.has_default_params() {
         return components.secret;
     }
 
-    original_uri_string
+    original_uri.to_string()
 }
 
 /// Sanitize the user input URI before saving.

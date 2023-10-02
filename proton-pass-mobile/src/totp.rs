@@ -26,7 +26,7 @@ impl TotpUriSanitizer {
         uri_for_editing(original_uri.as_str())
     }
 
-    pub fn uri_for_saving(&self, original_uri: String, edited_uri: String) -> String {
+    pub fn uri_for_saving(&self, original_uri: String, edited_uri: String) -> Result<String, TOTPError> {
         uri_for_saving(original_uri.as_str(), edited_uri.as_str())
     }
 }

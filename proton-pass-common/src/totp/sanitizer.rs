@@ -3,6 +3,7 @@ use crate::totp::totp::{
     QUERY_PERIOD, QUERY_SECRET, TOTP, TOTP_HOST,
 };
 use url::Url;
+use crate::totp::error::TOTPError;
 
 /// Take an original URI string and convert it to a string for user to edit.
 ///
@@ -39,7 +40,7 @@ pub fn uri_for_editing(original_uri: &str) -> String {
 ///
 /// - Valid with custom params
 ///   => Return as-is
-pub fn uri_for_saving(original_uri: &str, edited_uri: &str) -> String {
+pub fn uri_for_saving(original_uri: &str, edited_uri: &str) -> Result<String, TOTPError> {
     let (original_label, original_issuer) = match TOTP::from_uri(original_uri) {
         Ok(components) => (components.label, components.issuer),
         _ => (None, None),
@@ -48,21 +49,25 @@ pub fn uri_for_saving(original_uri: &str, edited_uri: &str) -> String {
     let trimmed_uri = edited_uri.trim();
 
     let components = match TOTP::from_uri(trimmed_uri) {
-        Ok(value) => value,
+        Ok(value) => Ok(value),
         _ => {
-            // Invalid URI
-            // => treat as secret, sanitize and add default params
-            let sanitized_secret = trimmed_uri.replace(' ', "");
-            TOTP {
-                label: None,
-                secret: sanitized_secret,
-                issuer: None,
-                algorithm: None,
-                digits: None,
-                period: None,
+            if Url::parse(trimmed_uri).is_ok() {
+                Err(TOTPError::NotTotpUri)
+            } else {
+                // Invalid URI
+                // => treat as secret, sanitize and add default params
+                let sanitized_secret = trimmed_uri.replace(' ', "");
+                Ok(TOTP {
+                    label: None,
+                    secret: sanitized_secret,
+                    issuer: None,
+                    algorithm: None,
+                    digits: None,
+                    period: None,
+                })
             }
         }
-    };
+    }?;
 
     let base_uri = format!("{}://{}/", OTP_SCHEME, TOTP_HOST);
 
@@ -113,5 +118,5 @@ pub fn uri_for_saving(original_uri: &str, edited_uri: &str) -> String {
     };
     uri.query_pairs_mut().append_pair(QUERY_PERIOD, &format!("{}", period));
 
-    uri.as_str().to_string()
+    Ok(uri.as_str().to_string())
 }

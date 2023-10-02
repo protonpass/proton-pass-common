@@ -46,6 +46,7 @@ interface EmailValidator {
 
 [Error]
 enum TOTPError {
+    "NotTotpUri",
     "InvalidAuthority",
     "NoAuthority",
     "InvalidAlgorithm",
@@ -74,6 +75,7 @@ dictionary TOTP {
 interface TotpUriSanitizer {
     constructor();
     string uri_for_editing(string original_uri);
+    [Throws=TOTPError]
     string uri_for_saving(string original_uri, string edited_uri);
 };
 

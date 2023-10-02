@@ -1,9 +1,6 @@
-use crate::totp::totp::{
-    DEFAULT_ALGORITHM, DEFAULT_DIGITS, DEFAULT_PERIOD, OTP_SCHEME, QUERY_ALGORITHM, QUERY_DIGITS, QUERY_ISSUER,
-    QUERY_PERIOD, QUERY_SECRET, TOTP, TOTP_HOST,
-};
-use url::Url;
 use crate::totp::error::TOTPError;
+use crate::totp::totp::TOTP;
+use url::Url;
 
 /// Take an original URI string and convert it to a string for user to edit.
 ///
@@ -69,54 +66,5 @@ pub fn uri_for_saving(original_uri: &str, edited_uri: &str) -> Result<String, TO
         }
     }?;
 
-    let base_uri = format!("{}://{}/", OTP_SCHEME, TOTP_HOST);
-
-    let mut uri = match Url::parse(&base_uri) {
-        Ok(value) => value,
-        _ => panic!(
-            "Should be able to create Url struct with scheme {} and host {}",
-            OTP_SCHEME, TOTP_HOST
-        ),
-    };
-
-    // Add label path
-    if let Some(edited_label) = components.label {
-        uri.set_path(edited_label.as_str());
-    } else if let Some(original_label) = original_label {
-        uri.set_path(original_label.as_str());
-    }
-
-    // Set secret query
-    uri.query_pairs_mut().append_pair(QUERY_SECRET, &components.secret);
-
-    // Set issuer query
-    if let Some(edited_issuer) = components.issuer {
-        uri.query_pairs_mut().append_pair(QUERY_ISSUER, edited_issuer.as_str());
-    } else if let Some(original_issuer) = original_issuer {
-        uri.query_pairs_mut()
-            .append_pair(QUERY_ISSUER, original_issuer.as_str());
-    }
-
-    // Set algorithm query
-    let algorithm = match components.algorithm {
-        Some(entered_algorithm) => entered_algorithm,
-        _ => DEFAULT_ALGORITHM,
-    };
-    uri.query_pairs_mut().append_pair(QUERY_ALGORITHM, algorithm.value());
-
-    // Set digits
-    let digits = match components.digits {
-        Some(entered_digits) => entered_digits,
-        _ => DEFAULT_DIGITS,
-    };
-    uri.query_pairs_mut().append_pair(QUERY_DIGITS, &format!("{}", digits));
-
-    // Set period
-    let period = match components.period {
-        Some(entered_period) => entered_period,
-        _ => DEFAULT_PERIOD,
-    };
-    uri.query_pairs_mut().append_pair(QUERY_PERIOD, &format!("{}", period));
-
-    Ok(uri.as_str().to_string())
+    Ok(components.to_uri(original_label, original_issuer))
 }

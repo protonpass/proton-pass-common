@@ -62,7 +62,7 @@ enum TOTPAlgorithm {
     "SHA512"
 };
 
-dictionary TOTPComponents {
+dictionary TOTP {
     string? label;
     string secret;
     string? issuer;
@@ -80,5 +80,5 @@ interface TotpUriSanitizer {
 interface TotpUriParser {
     constructor();
     [Throws=TOTPError]
-    TOTPComponents parse(string uri_string);
+    TOTP parse(string uri_string);
 };

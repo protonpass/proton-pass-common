@@ -1,6 +1,6 @@
-use crate::totp::components::{
-    TOTPComponents, DEFAULT_ALGORITHM, DEFAULT_DIGITS, DEFAULT_PERIOD, OTP_SCHEME, QUERY_ALGORITHM, QUERY_DIGITS,
-    QUERY_ISSUER, QUERY_PERIOD, QUERY_SECRET, TOTP_HOST,
+use crate::totp::totp::{
+    DEFAULT_ALGORITHM, DEFAULT_DIGITS, DEFAULT_PERIOD, OTP_SCHEME, QUERY_ALGORITHM, QUERY_DIGITS, QUERY_ISSUER,
+    QUERY_PERIOD, QUERY_SECRET, TOTP, TOTP_HOST,
 };
 use url::Url;
 
@@ -13,7 +13,7 @@ use url::Url;
 ///   => Return only the secret
 pub fn uri_for_editing(original_uri: &str) -> String {
     let components;
-    if let Ok(value) = TOTPComponents::from_uri(original_uri) {
+    if let Ok(value) = TOTP::from_uri(original_uri) {
         components = value
     } else {
         return original_uri.to_string();
@@ -40,20 +40,20 @@ pub fn uri_for_editing(original_uri: &str) -> String {
 /// - Valid with custom params
 ///   => Return as-is
 pub fn uri_for_saving(original_uri: &str, edited_uri: &str) -> String {
-    let (original_label, original_issuer) = match TOTPComponents::from_uri(original_uri) {
+    let (original_label, original_issuer) = match TOTP::from_uri(original_uri) {
         Ok(components) => (components.label, components.issuer),
         _ => (None, None),
     };
 
     let trimmed_uri = edited_uri.trim();
 
-    let components = match TOTPComponents::from_uri(trimmed_uri) {
+    let components = match TOTP::from_uri(trimmed_uri) {
         Ok(value) => value,
         _ => {
             // Invalid URI
             // => treat as secret, sanitize and add default params
             let sanitized_secret = trimmed_uri.replace(' ', "");
-            TOTPComponents {
+            TOTP {
                 label: None,
                 secret: sanitized_secret,
                 issuer: None,

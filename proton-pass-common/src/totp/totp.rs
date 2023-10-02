@@ -123,6 +123,60 @@ impl TOTP {
     }
 }
 
+impl TOTP {
+    pub fn to_uri(&self, original_label: Option<String>, original_issuer: Option<String>) -> String {
+        let base_uri = format!("{}://{}/", OTP_SCHEME, TOTP_HOST);
+
+        let mut uri = match Url::parse(&base_uri) {
+            Ok(value) => value,
+            _ => panic!(
+                "Should be able to create Url struct with scheme {} and host {}",
+                OTP_SCHEME, TOTP_HOST
+            ),
+        };
+
+        // Add label path
+        if let Some(edited_label) = &self.label {
+            uri.set_path(edited_label.as_str());
+        } else if let Some(original_label) = original_label {
+            uri.set_path(original_label.as_str());
+        }
+
+        // Set secret query
+        uri.query_pairs_mut().append_pair(QUERY_SECRET, &self.secret);
+
+        // Set issuer query
+        if let Some(edited_issuer) = &self.issuer {
+            uri.query_pairs_mut().append_pair(QUERY_ISSUER, edited_issuer.as_str());
+        } else if let Some(original_issuer) = original_issuer {
+            uri.query_pairs_mut()
+                .append_pair(QUERY_ISSUER, original_issuer.as_str());
+        }
+
+        // Set algorithm query
+        let algorithm = match &self.algorithm {
+            Some(entered_algorithm) => entered_algorithm,
+            _ => &DEFAULT_ALGORITHM,
+        };
+        uri.query_pairs_mut().append_pair(QUERY_ALGORITHM, algorithm.value());
+
+        // Set digits
+        let digits = match &self.digits {
+            Some(entered_digits) => entered_digits,
+            _ => &DEFAULT_DIGITS,
+        };
+        uri.query_pairs_mut().append_pair(QUERY_DIGITS, &format!("{}", digits));
+
+        // Set period
+        let period = match &self.period {
+            Some(entered_period) => entered_period,
+            _ => &DEFAULT_PERIOD,
+        };
+        uri.query_pairs_mut().append_pair(QUERY_PERIOD, &format!("{}", period));
+        uri.as_str().to_string()
+    }
+}
+
 #[cfg(test)]
 mod test_from_uri {
     use crate::totp::algorithm::Algorithm::SHA512;
@@ -314,5 +368,79 @@ mod test_has_default_params {
 
         // Then
         assert!(sut.has_default_params());
+    }
+}
+
+#[cfg(test)]
+mod test_to_uri {
+    use crate::totp::algorithm::Algorithm::SHA512;
+    use crate::totp::totp::TOTP;
+
+    #[test]
+    fn to_uri() {
+        assert_eq!(
+            TOTP {
+                label: None,
+                secret: "some_secret".to_string(),
+                issuer: None,
+                algorithm: None,
+                digits: None,
+                period: None,
+            }
+            .to_uri(None, None),
+            "otpauth://totp/?secret=some_secret&algorithm=SHA1&digits=6&period=30".to_string()
+        );
+
+        assert_eq!(
+            TOTP {
+                label: None,
+                secret: "some_secret".to_string(),
+                issuer: None,
+                algorithm: None,
+                digits: None,
+                period: None,
+            }
+            .to_uri(Some("john.doe".to_string()), None),
+            "otpauth://totp/john.doe?secret=some_secret&algorithm=SHA1&digits=6&period=30".to_string()
+        );
+
+        assert_eq!(
+            TOTP {
+                label: None,
+                secret: "some_secret".to_string(),
+                issuer: None,
+                algorithm: None,
+                digits: None,
+                period: None,
+            }
+            .to_uri(Some("john.doe".to_string()), Some("Proton".to_string())),
+            "otpauth://totp/john.doe?secret=some_secret&issuer=Proton&algorithm=SHA1&digits=6&period=30".to_string()
+        );
+
+        assert_eq!(
+            TOTP {
+                label: Some("jane.doe".to_string()),
+                secret: "some_secret".to_string(),
+                issuer: None,
+                algorithm: None,
+                digits: None,
+                period: None,
+            }
+            .to_uri(Some("john.doe".to_string()), Some("Proton".to_string())),
+            "otpauth://totp/jane.doe?secret=some_secret&issuer=Proton&algorithm=SHA1&digits=6&period=30".to_string()
+        );
+
+        assert_eq!(
+            TOTP {
+                label: Some("jane.doe".to_string()),
+                secret: "some_secret".to_string(),
+                issuer: None,
+                algorithm: Some(SHA512),
+                digits: Some(8),
+                period: None,
+            }
+            .to_uri(Some("john.doe".to_string()), Some("Proton".to_string())),
+            "otpauth://totp/jane.doe?secret=some_secret&issuer=Proton&algorithm=SHA512&digits=8&period=30".to_string()
+        );
     }
 }

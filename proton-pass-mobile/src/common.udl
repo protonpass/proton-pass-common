@@ -84,3 +84,21 @@ interface TotpUriParser {
     [Throws=TOTPError]
     TOTP parse(string uri_string);
 };
+
+[Error]
+enum PasswordGeneratorError {
+    "FailToGenerate",
+};
+
+dictionary RandomPasswordConfig {
+    u32 length;
+    boolean numbers;
+    boolean uppercase_letters;
+    boolean symbols;
+};
+
+interface RandomPasswordGenerator {
+    constructor();
+    [Throws=PasswordGeneratorError]
+    string generate(RandomPasswordConfig config);
+};

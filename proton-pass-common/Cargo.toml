@@ -8,6 +8,7 @@ doctest = false
 
 [dependencies]
 email_address = "0.2.4"
+passwords = "3.1.16"
 proton-pass-derive = { path = "../proton-pass-derive" }
 url = "2.4.1"
 serde-querystring = "0.2.1"

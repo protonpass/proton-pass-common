@@ -1,6 +1,6 @@
-pub use proton_pass_common::totp::components::TOTPComponents;
 pub use proton_pass_common::totp::error::TOTPError;
 use proton_pass_common::totp::sanitizer::{uri_for_editing, uri_for_saving};
+pub use proton_pass_common::totp::totp::TOTP;
 
 pub struct TotpUriParser;
 pub struct TotpUriSanitizer;
@@ -12,8 +12,8 @@ impl TotpUriParser {
         Self
     }
 
-    pub fn parse(&self, uri_string: String) -> Result<TOTPComponents, TOTPError> {
-        TOTPComponents::from_uri(uri_string.as_str())
+    pub fn parse(&self, uri_string: String) -> Result<TOTP, TOTPError> {
+        TOTP::from_uri(uri_string.as_str())
     }
 }
 

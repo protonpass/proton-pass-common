@@ -5,7 +5,7 @@ use crate::totp::queries::Queries;
 use url::Url;
 
 #[derive(Debug, Default, PartialEq, Eq)]
-pub struct TOTPComponents {
+pub struct TOTP {
     pub label: Option<String>,
     pub secret: String,
     pub issuer: Option<String>,
@@ -26,7 +26,7 @@ pub const DEFAULT_ALGORITHM: Algorithm = SHA1;
 pub const DEFAULT_DIGITS: u8 = 6;
 pub const DEFAULT_PERIOD: u16 = 30;
 
-impl TOTPComponents {
+impl TOTP {
     pub fn from_uri(uri: &str) -> Result<Self, TOTPError> {
         match Url::parse(uri) {
             Ok(uri) => Self::parse_uri(uri),
@@ -63,7 +63,7 @@ impl TOTPComponents {
     }
 }
 
-impl TOTPComponents {
+impl TOTP {
     fn check_scheme(uri: &Url) -> Result<(), TOTPError> {
         let scheme = uri.scheme().to_string();
         if scheme.to_lowercase() == OTP_SCHEME {
@@ -102,7 +102,7 @@ impl TOTPComponents {
     }
 }
 
-impl TOTPComponents {
+impl TOTP {
     pub fn has_default_params(&self) -> bool {
         let default_algorithm = match &self.algorithm {
             Some(value) => *value == DEFAULT_ALGORITHM,
@@ -126,11 +126,11 @@ impl TOTPComponents {
 #[cfg(test)]
 mod test_from_uri {
     use crate::totp::algorithm::Algorithm::SHA512;
-    use crate::totp::components::TOTPComponents;
     use crate::totp::error::TOTPError;
+    use crate::totp::totp::TOTP;
 
-    fn make_sut(uri: &str) -> Result<TOTPComponents, TOTPError> {
-        TOTPComponents::from_uri(uri)
+    fn make_sut(uri: &str) -> Result<TOTP, TOTPError> {
+        TOTP::from_uri(uri)
     }
 
     #[test]
@@ -266,12 +266,12 @@ mod test_from_uri {
 #[cfg(test)]
 mod test_has_default_params {
     use crate::totp::algorithm::Algorithm::SHA512;
-    use crate::totp::components::{TOTPComponents, DEFAULT_ALGORITHM, DEFAULT_DIGITS, DEFAULT_PERIOD};
+    use crate::totp::totp::{DEFAULT_ALGORITHM, DEFAULT_DIGITS, DEFAULT_PERIOD, TOTP};
 
     #[test]
     fn custom_params() {
         // Given
-        let sut = TOTPComponents {
+        let sut = TOTP {
             label: None,
             secret: "somesecret".to_string(),
             issuer: None,
@@ -287,7 +287,7 @@ mod test_has_default_params {
     #[test]
     fn explicit_default_params() {
         // Given
-        let sut = TOTPComponents {
+        let sut = TOTP {
             label: None,
             secret: "somesecret".to_string(),
             issuer: None,
@@ -303,7 +303,7 @@ mod test_has_default_params {
     #[test]
     fn implicit_default_params() {
         // Given
-        let sut = TOTPComponents {
+        let sut = TOTP {
             label: None,
             secret: "somesecret".to_string(),
             issuer: None,

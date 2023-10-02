@@ -102,3 +102,25 @@ interface RandomPasswordGenerator {
     [Throws=PasswordGeneratorError]
     string generate(RandomPasswordConfig config);
 };
+
+enum WordSeparator {
+    "Hyphens",
+    "Spaces",
+    "Periods",
+    "Commas",
+    "Underscores",
+    "Numbers",
+    "NumbersAndSymbols",
+};
+
+dictionary PassphraseConfig {
+    WordSeparator separator;
+    boolean capitalise;
+    boolean include_numbers;
+};
+
+interface PassphraseGenerator {
+    constructor();
+    sequence<string> random_words(u32 word_count);
+    string generate_passphrase(sequence<string> words, PassphraseConfig config);
+};

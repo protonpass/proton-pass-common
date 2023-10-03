@@ -2,6 +2,7 @@ pub use proton_pass_common::password::error::PasswordGeneratorError;
 pub use proton_pass_common::password::passphrase_generator::WordSeparator;
 pub use proton_pass_common::password::passphrase_generator::{random_words, PassphraseConfig};
 pub use proton_pass_common::password::random_generator::RandomPasswordConfig;
+pub use proton_pass_common::password::scorer::{check_score, PasswordScore};
 
 pub struct RandomPasswordGenerator;
 
@@ -28,5 +29,17 @@ impl PassphraseGenerator {
 
     pub fn generate_passphrase(&self, words: Vec<String>, config: PassphraseConfig) -> String {
         config.generate(words)
+    }
+}
+
+pub struct PasswordScorer;
+
+impl PasswordScorer {
+    pub fn new() -> Self {
+        Self
+    }
+
+    pub fn check_score(&self, password: String) -> PasswordScore {
+        check_score(&password)
     }
 }

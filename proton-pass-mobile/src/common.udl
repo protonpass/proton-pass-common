@@ -124,3 +124,19 @@ interface PassphraseGenerator {
     sequence<string> random_words(u32 word_count);
     string generate_passphrase(sequence<string> words, PassphraseConfig config);
 };
+
+enum PasswordScore {
+    "VeryDangerous",
+    "Dangerous",
+    "VeryWeak",
+    "Weak",
+    "Good",
+    "Strong",
+    "VeryStrong",
+    "Invulnerable",
+};
+
+interface PasswordScorer {
+    constructor();
+    PasswordScore check_score(string password);
+};

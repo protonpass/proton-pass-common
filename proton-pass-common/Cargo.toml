@@ -8,6 +8,7 @@ doctest = false
 
 [dependencies]
 email_address = "0.2.4"
+getrandom = { features = ["js"] }
 passwords = "3.1.16"
 proton-pass-derive = { path = "../proton-pass-derive" }
 rand = "0.8.5"

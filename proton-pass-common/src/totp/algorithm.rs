@@ -21,6 +21,16 @@ impl<'a> TryFrom<&'a str> for Algorithm {
     }
 }
 
+impl From<&Algorithm> for totp_rs::Algorithm {
+    fn from(value: &Algorithm) -> Self {
+        match value {
+            SHA1 => totp_rs::Algorithm::SHA1,
+            SHA256 => totp_rs::Algorithm::SHA256,
+            SHA512 => totp_rs::Algorithm::SHA512,
+        }
+    }
+}
+
 impl Algorithm {
     pub fn value(&self) -> &str {
         match self {

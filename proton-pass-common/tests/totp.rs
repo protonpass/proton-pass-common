@@ -1,5 +1,5 @@
 use proton_pass_common::totp::error::TOTPError;
-use proton_pass_common::totp::sanitizer::{uri_for_editing, uri_for_saving};
+use proton_pass_common::totp::sanitizer::{sanitize_secret, uri_for_editing, uri_for_saving};
 
 #[test]
 fn for_editing() {
@@ -118,4 +118,12 @@ fn for_saving() {
         ),
         Ok("otpauth://totp/?secret=new_secret&issuer=new_issuer&algorithm=SHA1&digits=8&period=45".to_string())
     );
+}
+
+#[test]
+fn sanitizing_secret() {
+    assert_eq!(sanitize_secret("ABC ABC ABC"), "ABCABCABC");
+    assert_eq!(sanitize_secret("ABC-ABC-ABC"), "ABCABCABC");
+    assert_eq!(sanitize_secret("ABC_ABC_ABC"), "ABCABCABC");
+    assert_eq!(sanitize_secret(" ABC-ABC_ABC "), "ABCABCABC");
 }

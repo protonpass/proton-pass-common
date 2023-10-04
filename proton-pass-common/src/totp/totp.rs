@@ -1,6 +1,7 @@
 use crate::totp::algorithm::Algorithm;
 use crate::totp::error::TOTPError;
 use crate::totp::queries::Queries;
+use crate::totp::sanitizer::sanitize_secret;
 use url::Url;
 
 #[derive(Debug, Default, PartialEq, Eq)]
@@ -178,12 +179,13 @@ impl TOTP {
 
 impl TOTP {
     pub fn generate_current_token(&self) -> Result<String, TOTPError> {
+        let sanitized_secret = sanitize_secret(self.secret.as_str());
         let totp = totp_rs::TOTP::new_unchecked(
             self.algorithm.as_ref().unwrap_or(&DEFAULT_ALGORITHM).into(),
             self.digits.unwrap_or(DEFAULT_DIGITS) as usize,
             1,
             self.period.unwrap_or(DEFAULT_PERIOD) as u64,
-            totp_rs::Secret::Encoded(self.secret.clone()).to_bytes().unwrap(),
+            totp_rs::Secret::Encoded(sanitized_secret).to_bytes().unwrap(),
         );
         totp.generate_current()
             .map_err(|e| TOTPError::SystemTimeError(e.duration()))

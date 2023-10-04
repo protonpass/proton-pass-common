@@ -53,7 +53,7 @@ pub fn uri_for_saving(original_uri: &str, edited_uri: &str) -> Result<String, TO
             } else {
                 // Invalid URI
                 // => treat as secret, sanitize and add default params
-                let sanitized_secret = trimmed_uri.replace(' ', "");
+                let sanitized_secret = sanitize_secret(trimmed_uri);
                 Ok(TOTP {
                     label: None,
                     secret: sanitized_secret,
@@ -67,4 +67,8 @@ pub fn uri_for_saving(original_uri: &str, edited_uri: &str) -> Result<String, TO
     }?;
 
     Ok(components.to_uri(original_label, original_issuer))
+}
+
+pub fn sanitize_secret(secret: &str) -> String {
+    secret.replace([' ', '-', '_'], "")
 }

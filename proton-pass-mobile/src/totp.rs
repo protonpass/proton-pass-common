@@ -30,3 +30,15 @@ impl TotpUriSanitizer {
         uri_for_saving(original_uri.as_str(), edited_uri.as_str())
     }
 }
+
+pub struct TotpTokenGenerator;
+
+impl TotpTokenGenerator {
+    pub fn new() -> Self {
+        Self
+    }
+
+    pub fn generate_current_token(&self, totp: TOTP) -> Result<String, TOTPError> {
+        totp.generate_current_token()
+    }
+}

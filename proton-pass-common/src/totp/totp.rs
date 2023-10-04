@@ -176,6 +176,20 @@ impl TOTP {
     }
 }
 
+impl TOTP {
+    pub fn generate_current_token(&self) -> Result<String, TOTPError> {
+        let totp = totp_rs::TOTP::new_unchecked(
+            self.algorithm.as_ref().unwrap_or(&DEFAULT_ALGORITHM).into(),
+            self.digits.unwrap_or(DEFAULT_DIGITS) as usize,
+            1,
+            self.period.unwrap_or(DEFAULT_PERIOD) as u64,
+            totp_rs::Secret::Encoded(self.secret.clone()).to_bytes().unwrap(),
+        );
+        totp.generate_current()
+            .map_err(|e| TOTPError::SystemTimeError(e.duration()))
+    }
+}
+
 #[cfg(test)]
 mod test_from_uri {
     use super::*;

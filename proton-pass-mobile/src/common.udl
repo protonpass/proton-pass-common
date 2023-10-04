@@ -54,7 +54,8 @@ enum TOTPError {
     "URLParseError",
     "NoSecret",
     "EmptySecret",
-    "NoQueries"
+    "NoQueries",
+    "SystemTimeError"
 };
 
 enum TOTPAlgorithm {
@@ -139,4 +140,8 @@ enum PasswordScore {
 interface PasswordScorer {
     constructor();
     PasswordScore check_score(string password);
+interface TotpTokenGenerator {
+    constructor();
+    [Throws=TOTPError]
+    string generate_current_token(TOTP totp);
 };

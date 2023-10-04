@@ -140,6 +140,8 @@ enum PasswordScore {
 interface PasswordScorer {
     constructor();
     PasswordScore check_score(string password);
+};
+
 interface TotpTokenGenerator {
     constructor();
     [Throws=TOTPError]

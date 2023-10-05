@@ -55,7 +55,8 @@ enum TOTPError {
     "NoSecret",
     "EmptySecret",
     "NoQueries",
-    "SystemTimeError"
+    "SystemTimeError",
+    "SecretParseError"
 };
 
 enum TOTPAlgorithm {

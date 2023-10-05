@@ -1,0 +1,48 @@
+[Error]
+enum TOTPError {
+    "NotTotpUri",
+    "InvalidAuthority",
+    "NoAuthority",
+    "InvalidAlgorithm",
+    "InvalidScheme",
+    "URLParseError",
+    "NoSecret",
+    "EmptySecret",
+    "NoQueries",
+    "SystemTimeError",
+    "SecretParseError"
+};
+
+enum TOTPAlgorithm {
+    "SHA1",
+    "SHA256",
+    "SHA512"
+};
+
+dictionary TOTP {
+    string? label;
+    string secret;
+    string? issuer;
+    TOTPAlgorithm? algorithm;
+    u8? digits;
+    u16? period;
+};
+
+interface TotpUriSanitizer {
+    constructor();
+    string uri_for_editing(string original_uri);
+    [Throws=TOTPError]
+    string uri_for_saving(string original_uri, string edited_uri);
+};
+
+interface TotpUriParser {
+    constructor();
+    [Throws=TOTPError]
+    TOTP parse(string uri_string);
+};
+
+interface TotpTokenGenerator {
+    constructor();
+    [Throws=TOTPError]
+    string generate_current_token(TOTP totp);
+};

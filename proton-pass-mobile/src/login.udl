@@ -1,0 +1,19 @@
+dictionary Login {
+    string title;
+    string username;
+    string password;
+    string? totp;
+    sequence<string> urls;
+};
+
+[Error]
+enum LoginError {
+    "InvalidTOTP",
+    "InvalidURL",
+};
+
+interface LoginValidator {
+    constructor();
+    [Throws=LoginError]
+    void validate(Login login);
+};

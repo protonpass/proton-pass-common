@@ -1,0 +1,4 @@
+interface EmailValidator {
+    constructor();
+    boolean is_email_valid(string email);
+};

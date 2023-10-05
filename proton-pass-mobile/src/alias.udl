@@ -1,0 +1,15 @@
+[Error]
+enum AliasPrefixError {
+    "TwoConsecutiveDots",
+    "InvalidCharacter",
+    "DotAtTheEnd",
+    "PrefixTooLong",
+    "PrefixEmpty",
+    "DotAtTheBeginning"
+};
+
+interface AliasPrefixValidator {
+    constructor();
+    [Throws=AliasPrefixError]
+    void validate(string prefix);
+};

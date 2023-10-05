@@ -33,9 +33,7 @@ impl Algorithm {
 
 #[cfg(test)]
 mod test {
-    use crate::totp::algorithm::Algorithm;
-    use crate::totp::algorithm::Algorithm::{SHA1, SHA256, SHA512};
-    use crate::totp::error::TOTPError;
+    use super::*;
 
     #[test]
     fn new_algorithm() {

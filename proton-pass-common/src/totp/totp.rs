@@ -1,4 +1,4 @@
-use crate::totp::algorithm::{Algorithm, Algorithm::SHA1};
+use crate::totp::algorithm::Algorithm;
 use crate::totp::error::TOTPError;
 use crate::totp::queries::Queries;
 use url::Url;
@@ -21,7 +21,7 @@ pub const QUERY_ALGORITHM: &str = "algorithm";
 pub const QUERY_DIGITS: &str = "digits";
 pub const QUERY_PERIOD: &str = "period";
 
-pub const DEFAULT_ALGORITHM: Algorithm = SHA1;
+pub const DEFAULT_ALGORITHM: Algorithm = Algorithm::SHA1;
 pub const DEFAULT_DIGITS: u8 = 6;
 pub const DEFAULT_PERIOD: u16 = 30;
 

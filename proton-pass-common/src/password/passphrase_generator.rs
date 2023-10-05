@@ -2,7 +2,6 @@ use crate::utils::{get_random_index, uppercase_first_letter};
 use passwords::PasswordGenerator;
 use rand::{thread_rng, Rng};
 use std::cmp::max;
-use WordSeparator::{Commas, Hyphens, Numbers, NumbersAndSymbols, Periods, Spaces, Underscores};
 
 // https://doc.rust-lang.org/cargo/reference/build-scripts.html#case-study-code-generation
 include!(concat!(env!("OUT_DIR"), "/wordlists.rs"));
@@ -23,12 +22,12 @@ pub enum WordSeparator {
 impl WordSeparator {
     fn value(&self) -> String {
         match self {
-            Hyphens => "-".to_string(),
-            Spaces => " ".to_string(),
-            Periods => ".".to_string(),
-            Commas => ",".to_string(),
-            Underscores => "_".to_string(),
-            Numbers => PasswordGenerator {
+            WordSeparator::Hyphens => "-".to_string(),
+            WordSeparator::Spaces => " ".to_string(),
+            WordSeparator::Periods => ".".to_string(),
+            WordSeparator::Commas => ",".to_string(),
+            WordSeparator::Underscores => "_".to_string(),
+            WordSeparator::Numbers => PasswordGenerator {
                 length: 1,
                 numbers: true,
                 lowercase_letters: false,
@@ -40,7 +39,7 @@ impl WordSeparator {
             }
             .generate_one()
             .unwrap_or("1".to_string()),
-            NumbersAndSymbols => PasswordGenerator {
+            WordSeparator::NumbersAndSymbols => PasswordGenerator {
                 length: 1,
                 numbers: true,
                 lowercase_letters: false,

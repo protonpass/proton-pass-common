@@ -14,4 +14,5 @@ pub enum TOTPError {
     EmptySecret,
     NoQueries,
     SystemTimeError(Duration),
+    SecretParseError,
 }

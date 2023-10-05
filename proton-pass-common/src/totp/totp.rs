@@ -180,12 +180,15 @@ impl TOTP {
 impl TOTP {
     pub fn generate_current_token(&self) -> Result<String, TOTPError> {
         let sanitized_secret = sanitize_secret(self.secret.as_str());
+        let encoded_secret = totp_rs::Secret::Encoded(sanitized_secret)
+            .to_bytes()
+            .map_err(|_| TOTPError::SecretParseError)?;
         let totp = totp_rs::TOTP::new_unchecked(
             self.algorithm.as_ref().unwrap_or(&DEFAULT_ALGORITHM).into(),
             self.digits.unwrap_or(DEFAULT_DIGITS) as usize,
             1,
             self.period.unwrap_or(DEFAULT_PERIOD) as u64,
-            totp_rs::Secret::Encoded(sanitized_secret).to_bytes().unwrap(),
+            encoded_secret,
         );
         totp.generate_current()
             .map_err(|e| TOTPError::SystemTimeError(e.duration()))

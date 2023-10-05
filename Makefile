@@ -102,7 +102,7 @@ android-dirs: ## Build the dir structure for android libs
 .PHONY: android-lib-armv7
 android-lib-armv7: android-dirs ## Build the android library for armv7
 	@cargo build -p proton-pass-mobile --release --target armv7-linux-androideabi
-	@arm-none-eabi-strip "target/armv7-linux-androideabi/release/${MOBILE_LIB_NAME}" || echo "Could not strip armv7 shared library"
+	@arm-none-eabi-strip "target/armv7-linux-androideabi/release/${MOBILE_LIB_NAME}" || arm-linux-gnueabihf-strip "target/armv7-linux-androideabi/release/${MOBILE_LIB_NAME}" || echo "Could not strip armv7 shared library"
 	@cp "target/armv7-linux-androideabi/release/${MOBILE_LIB_NAME}" "${ANDROID_JNI_DIR}/armeabi-v7a/${MOBILE_LIB_NAME}"
 
 .PHONY: android-lib-aarch64

@@ -1,5 +1,4 @@
-use crate::totp::algorithm::Algorithm;
-use crate::totp::algorithm::Algorithm::SHA1;
+use crate::totp::algorithm::{Algorithm, Algorithm::SHA1};
 use crate::totp::error::TOTPError;
 use crate::totp::queries::Queries;
 use url::Url;
@@ -179,9 +178,7 @@ impl TOTP {
 
 #[cfg(test)]
 mod test_from_uri {
-    use crate::totp::algorithm::Algorithm::SHA512;
-    use crate::totp::error::TOTPError;
-    use crate::totp::totp::TOTP;
+    use super::*;
 
     fn make_sut(uri: &str) -> Result<TOTP, TOTPError> {
         TOTP::from_uri(uri)
@@ -286,7 +283,7 @@ mod test_from_uri {
                 assert_eq!(components.label, Some("john.doe%40example.com".to_string()));
                 assert_eq!(components.secret, "somesecret");
                 assert_eq!(components.issuer, Some("ProtonMail".to_string()));
-                assert_eq!(components.algorithm, Some(SHA512));
+                assert_eq!(components.algorithm, Some(Algorithm::SHA512));
                 assert_eq!(components.digits, Some(8));
                 assert_eq!(components.period, Some(45));
             }
@@ -319,8 +316,7 @@ mod test_from_uri {
 
 #[cfg(test)]
 mod test_has_default_params {
-    use crate::totp::algorithm::Algorithm::SHA512;
-    use crate::totp::totp::{DEFAULT_ALGORITHM, DEFAULT_DIGITS, DEFAULT_PERIOD, TOTP};
+    use super::*;
 
     #[test]
     fn custom_params() {
@@ -329,7 +325,7 @@ mod test_has_default_params {
             label: None,
             secret: "somesecret".to_string(),
             issuer: None,
-            algorithm: Some(SHA512),
+            algorithm: Some(Algorithm::SHA512),
             digits: Some(DEFAULT_DIGITS),
             period: Some(DEFAULT_PERIOD),
         };
@@ -373,8 +369,7 @@ mod test_has_default_params {
 
 #[cfg(test)]
 mod test_to_uri {
-    use crate::totp::algorithm::Algorithm::SHA512;
-    use crate::totp::totp::TOTP;
+    use super::*;
 
     #[test]
     fn to_uri() {
@@ -435,7 +430,7 @@ mod test_to_uri {
                 label: Some("jane.doe".to_string()),
                 secret: "some_secret".to_string(),
                 issuer: None,
-                algorithm: Some(SHA512),
+                algorithm: Some(Algorithm::SHA512),
                 digits: Some(8),
                 period: None,
             }

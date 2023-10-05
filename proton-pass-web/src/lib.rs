@@ -1,3 +1,4 @@
+mod common;
 mod login;
 mod password;
 mod utils;
@@ -21,6 +22,7 @@ pub fn validate_alias_prefix(prefix: String) -> Result<(), JsError> {
         Err(e) => Err(e.into()),
     }
 }
+
 #[wasm_bindgen]
 pub fn validate_login_obj(login: WasmLogin) -> Result<(), JsError> {
     match proton_pass_common::login::validate_login(login.into()) {
@@ -38,25 +40,26 @@ pub fn generate_password(config: WasmRandomPasswordConfig) -> Result<String, JsE
     }
 }
 
-// Can't get these 2 functions to compile because of Vec<String> type
-/*
 #[wasm_bindgen]
-pub fn random_word(word_count: u32) -> Vec<String> {
-    proton_pass_common::password::passphrase_generator::random_words(word_count)
+pub fn random_word(word_count: u32) -> ExportedStringVec {
+    let words = proton_pass_common::password::passphrase_generator::random_words(word_count);
+    let as_string_value: Vec<StringValue> = words.into_iter().map(|w| StringValue { value: w }).collect();
+    ExportedStringVec(as_string_value)
 }
 
 #[wasm_bindgen]
-pub fn generate_passphrase(words: Vec<String>, config: WasmPassphraseConfig) -> String {
+pub fn generate_passphrase(words: ExportedStringVec, config: WasmPassphraseConfig) -> String {
+    let strings: Vec<String> = words.0.into_iter().map(|v| v.value).collect();
     let cfg: proton_pass_common::password::passphrase_generator::PassphraseConfig = config.into();
-    cfg.generate(words.into())
+    cfg.generate(strings)
 }
-*/
 
 #[wasm_bindgen]
 pub fn check_password_score(password: String) -> WasmPasswordScore {
     proton_pass_common::password::scorer::check_score(&password).into()
 }
 
-use crate::password::{WasmPasswordScore, WasmRandomPasswordConfig};
+pub use common::{ExportedStringVec, StringValue};
 pub use login::WasmLogin;
+pub use password::{WasmPassphraseConfig, WasmPasswordScore, WasmRandomPasswordConfig};
 pub use utils::set_panic_hook;

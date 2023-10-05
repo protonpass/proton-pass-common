@@ -10,8 +10,8 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 proton-pass-common = { path = "../proton-pass-common" }
 
-wasm-bindgen = "0.2.87"
 console_error_panic_hook = { version = "0.1.7", optional = true }
+wasm-bindgen = "0.2.87"
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.37"

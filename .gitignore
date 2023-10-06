@@ -12,4 +12,5 @@ proton-pass-mobile/src/common.udl
 proton-pass-mobile/src/*.h
 proton-pass-mobile/src/*.swift
 proton-pass-mobile/src/*.modulemap
+proton-pass-mobile/iOS/**/*.swift
 proton-pass-mobile/pkg

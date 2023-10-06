@@ -5,11 +5,11 @@ PROJECT_ROOT := $(dir $(MAKEFILE_PATH))
 MOBILE_LIB_NAME:=libproton_pass_common_mobile.so
 ANDROID_BINDINGS_DIR:=${PROJECT_ROOT}/proton-pass-mobile/android/lib/src/main/java/proton/android/pass/commonrust
 ANDROID_JNI_DIR:=${PROJECT_ROOT}/proton-pass-mobile/android/lib/src/main/jniLibs
-IOS_HEADER_DIR:=${PROJECT_ROOT}/proton-pass-mobile/ios/headers
-IOS_FRAMEWORK_DIR:=${PROJECT_ROOT}/proton-pass-mobile/ios/frameworks
-IOS_LIB_DIR:=${PROJECT_ROOT}/proton-pass-mobile/ios/libs
+IOS_HEADER_DIR:=${PROJECT_ROOT}/proton-pass-mobile/iOS/headers
+IOS_FRAMEWORK_DIR:=${PROJECT_ROOT}/proton-pass-mobile/iOS/frameworks
+IOS_LIB_DIR:=${PROJECT_ROOT}/proton-pass-mobile/iOS/libs
 IOS_LIB_NAME:=libproton_pass_common_mobile.a
-IOS_PACKAGE_DIR:=${PROJECT_ROOT}/proton-pass-mobile/ios/PassRustCore
+IOS_PACKAGE_DIR:=${PROJECT_ROOT}/proton-pass-mobile/iOS/PassRustCore
 IOS_XCFRAMEWORK_NAME:=RustFramework.xcframework
 
 .PHONY: default
@@ -67,6 +67,7 @@ swift-bindings: swift-dirs ## Generate the swift bindings
 swift-dirs: ## Build the dir structure for swift libs
 	@mkdir -p ${IOS_HEADER_DIR}
 	@mkdir -p ${IOS_FRAMEWORK_DIR}
+	@mkdir -p ${IOS_PACKAGE_DIR}/Sources/PassRustCore
 
 .PHONY: ios-lib-macos
 ios-lib-macos: ## Build the iOS library for macOS arm
@@ -84,11 +85,11 @@ ios-lib-ios-sim: ## Build the iOS library for iOS arm simulators
 ios-xcframework: ios-lib-macos ios-lib-ios ios-lib-ios-sim ## Build the iOS xcframework
 	@xcodebuild -create-xcframework \
                -library "target/aarch64-apple-ios/release/${IOS_LIB_NAME}" \
-               -headers proton-pass-mobile/ios/headers \
+               -headers proton-pass-mobile/iOS/headers \
                -library "target/aarch64-apple-ios-sim/release/${IOS_LIB_NAME}" \
-               -headers proton-pass-mobile/ios/headers \
+               -headers proton-pass-mobile/iOS/headers \
                -library "target/aarch64-apple-darwin/release/${IOS_LIB_NAME}" \
-               -headers proton-pass-mobile/ios/headers \
+               -headers proton-pass-mobile/iOS/headers \
                -output "${IOS_FRAMEWORK_DIR}/${IOS_XCFRAMEWORK_NAME}"
 	@cp -R "${IOS_FRAMEWORK_DIR}/${IOS_XCFRAMEWORK_NAME}" "${IOS_PACKAGE_DIR}/${IOS_XCFRAMEWORK_NAME}"
 

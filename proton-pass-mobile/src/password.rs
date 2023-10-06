@@ -1,4 +1,7 @@
-pub use proton_pass_common::password::{check_score, get_generator, PasswordScore, PassphraseConfig, PasswordGeneratorError, RandomPasswordConfig, WordSeparator};
+pub use proton_pass_common::password::{
+    check_score, get_generator, PassphraseConfig, PasswordGeneratorError, PasswordScore, RandomPasswordConfig,
+    WordSeparator,
+};
 
 type Result<T> = std::result::Result<T, PasswordGeneratorError>;
 

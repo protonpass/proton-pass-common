@@ -14,9 +14,7 @@ fn main() {
 fn words(mut f_dest: &File, const_name: &str, fname_src: &str) {
     f_dest.write_all(b"const ").expect("Error writing wordlist");
     f_dest.write_all(const_name.as_bytes()).expect("Error writing wordlist");
-    f_dest
-        .write_all(b": &[&str] = &[")
-        .expect("Error writing wordlist");
+    f_dest.write_all(b": &[&str] = &[").expect("Error writing wordlist");
 
     let f_src = BufReader::new(File::open(fname_src).unwrap_or_else(|e| panic!("Error opening {fname_src}: {e}")));
     for (line_number, line) in f_src.lines().enumerate() {

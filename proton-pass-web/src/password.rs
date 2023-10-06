@@ -1,9 +1,5 @@
-use crate::password::WasmWordSeparator::{Commas, Hyphens, Numbers, NumbersAndSymbols, Periods, Spaces, Underscores};
-use proton_pass_common::password::passphrase_generator::{PassphraseConfig, WordSeparator};
-use proton_pass_common::password::random_generator::RandomPasswordConfig;
-use proton_pass_common::password::scorer::PasswordScore;
-use proton_pass_common::password::scorer::PasswordScore::{
-    Dangerous, Good, Invulnerable, Strong, VeryDangerous, VeryStrong, VeryWeak, Weak,
+pub use proton_pass_common::password::{
+    PassphraseConfig, PasswordGeneratorError, PasswordScore, RandomPasswordConfig, WordSeparator,
 };
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -40,13 +36,13 @@ pub enum WasmWordSeparator {
 impl From<WasmWordSeparator> for WordSeparator {
     fn from(value: WasmWordSeparator) -> Self {
         match value {
-            Hyphens => WordSeparator::Hyphens,
-            Spaces => WordSeparator::Spaces,
-            Periods => WordSeparator::Periods,
-            Commas => WordSeparator::Commas,
-            Underscores => WordSeparator::Underscores,
-            Numbers => WordSeparator::Numbers,
-            NumbersAndSymbols => WordSeparator::NumbersAndSymbols,
+            WasmWordSeparator::Hyphens => WordSeparator::Hyphens,
+            WasmWordSeparator::Spaces => WordSeparator::Spaces,
+            WasmWordSeparator::Periods => WordSeparator::Periods,
+            WasmWordSeparator::Commas => WordSeparator::Commas,
+            WasmWordSeparator::Underscores => WordSeparator::Underscores,
+            WasmWordSeparator::Numbers => WordSeparator::Numbers,
+            WasmWordSeparator::NumbersAndSymbols => WordSeparator::NumbersAndSymbols,
         }
     }
 }
@@ -56,6 +52,7 @@ pub struct WasmPassphraseConfig {
     separator: WasmWordSeparator,
     capitalise: bool,
     include_numbers: bool,
+    count: u32,
 }
 
 impl From<WasmPassphraseConfig> for PassphraseConfig {
@@ -64,6 +61,7 @@ impl From<WasmPassphraseConfig> for PassphraseConfig {
             separator: value.separator.into(),
             capitalise: value.capitalise,
             include_numbers: value.include_numbers,
+            count: value.count,
         }
     }
 }
@@ -83,14 +81,14 @@ pub enum WasmPasswordScore {
 impl From<PasswordScore> for WasmPasswordScore {
     fn from(value: PasswordScore) -> Self {
         match value {
-            VeryDangerous => WasmPasswordScore::VeryDangerous,
-            Dangerous => WasmPasswordScore::Dangerous,
-            VeryWeak => WasmPasswordScore::VeryWeak,
-            Weak => WasmPasswordScore::Weak,
-            Good => WasmPasswordScore::Good,
-            Strong => WasmPasswordScore::Strong,
-            VeryStrong => WasmPasswordScore::VeryStrong,
-            Invulnerable => WasmPasswordScore::Invulnerable,
+            PasswordScore::VeryDangerous => WasmPasswordScore::VeryDangerous,
+            PasswordScore::Dangerous => WasmPasswordScore::Dangerous,
+            PasswordScore::VeryWeak => WasmPasswordScore::VeryWeak,
+            PasswordScore::Weak => WasmPasswordScore::Weak,
+            PasswordScore::Good => WasmPasswordScore::Good,
+            PasswordScore::Strong => WasmPasswordScore::Strong,
+            PasswordScore::VeryStrong => WasmPasswordScore::VeryStrong,
+            PasswordScore::Invulnerable => WasmPasswordScore::Invulnerable,
         }
     }
 }

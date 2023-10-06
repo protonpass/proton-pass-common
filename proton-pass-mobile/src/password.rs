@@ -1,8 +1,6 @@
-pub use proton_pass_common::password::error::PasswordGeneratorError;
-pub use proton_pass_common::password::passphrase_generator::WordSeparator;
-pub use proton_pass_common::password::passphrase_generator::{random_words, PassphraseConfig};
-pub use proton_pass_common::password::random_generator::RandomPasswordConfig;
-pub use proton_pass_common::password::scorer::{check_score, PasswordScore};
+pub use proton_pass_common::password::{check_score, get_generator, PasswordScore, PassphraseConfig, PasswordGeneratorError, RandomPasswordConfig, WordSeparator};
+
+type Result<T> = std::result::Result<T, PasswordGeneratorError>;
 
 pub struct RandomPasswordGenerator;
 
@@ -11,8 +9,9 @@ impl RandomPasswordGenerator {
         Self
     }
 
-    pub fn generate(&self, config: RandomPasswordConfig) -> Result<String, PasswordGeneratorError> {
-        config.generate()
+    pub fn generate(&self, config: RandomPasswordConfig) -> Result<String> {
+        let mut generator = get_generator();
+        generator.generate_random(&config)
     }
 }
 
@@ -23,12 +22,19 @@ impl PassphraseGenerator {
         Self
     }
 
-    pub fn random_words(&self, word_count: u32) -> Vec<String> {
-        random_words(word_count)
+    pub fn random_words(&self, word_count: u32) -> Result<Vec<String>> {
+        let mut generator = get_generator();
+        generator.random_words(word_count as usize)
     }
 
-    pub fn generate_passphrase(&self, words: Vec<String>, config: PassphraseConfig) -> String {
-        config.generate(words)
+    pub fn generate_passphrase(&self, words: Vec<String>, config: PassphraseConfig) -> Result<String> {
+        let mut generator = get_generator();
+        generator.generate_passphrase_from_words(words, &config)
+    }
+
+    pub fn generate_random_passphrase(&self, config: PassphraseConfig) -> Result<String> {
+        let mut generator = get_generator();
+        generator.generate_passphrase(&config)
     }
 }
 

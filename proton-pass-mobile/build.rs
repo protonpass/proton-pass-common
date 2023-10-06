@@ -7,6 +7,8 @@ type IOError = io::Error;
 pub const OUTPUT_UDL_NAME: &str = "common";
 
 fn main() {
+    println!("cargo:rerun-if-changed=src/*.udl");
+
     merge_udl_files();
     uniffi::generate_scaffolding(format!("src/{}.udl", OUTPUT_UDL_NAME)).unwrap();
 }

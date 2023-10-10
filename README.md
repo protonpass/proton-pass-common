@@ -79,7 +79,21 @@ $ rustup target add armv7-linux-androideabi
 
 Then, make sure to download the NDK from Android Studio. Any recent version should work (for reference, `25.1.8937393` works).
 
-Finally, edit the path to your NDK in `.cargo/config.toml` (TO BE DONE: Try to make this bootstrapable / workdir independant).
+Finally, edit your `$CARGO_HOME/config.toml` or create a `.cargo/config.toml` in this project and add the following contents:
+
+```toml
+[target.armv7-linux-androideabi]
+ar = "PATH_TO_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/ar"
+linker = "PATH_TO_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi30-clang"
+
+[target.aarch64-linux-android]
+ar = "PATH_TO_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/ar"
+linker = "PATH_TO_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android30-clang"
+
+[target.x86_64-linux-android]
+ar = "PATH_TO_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/ar"
+linker = "PATH_TO_NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android30-clang"
+```
 
 In order to perform the build, run `make android` and hopefully everything will work.
 

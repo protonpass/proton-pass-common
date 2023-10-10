@@ -2,6 +2,7 @@
 .idea/
 /target
 /Cargo.lock
+.cargo/
 
 proton-pass-mobile/android/lib/**/*.kt
 proton-pass-mobile/iOS/headers

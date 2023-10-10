@@ -2,5 +2,4 @@ push = false
 consolidate-commits = true
 pre-release-commit-message = "(cargo-release) Bump version"
 tag = false
-dev-version = false
 publish = false

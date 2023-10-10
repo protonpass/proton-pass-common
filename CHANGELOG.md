@@ -8,6 +8,12 @@
 
 ### Other
 
+## 0.2.1 (2023-10-10)
+
+### Fixes :bug:
+
+- Handle empty edited TOTP URI
+
 ## 0.2.0 (2023-10-06)
 
 ### Features :tada:

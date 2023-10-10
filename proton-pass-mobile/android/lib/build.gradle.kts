@@ -81,7 +81,7 @@ dependencies {
     val JNA = "5.13.0"
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${COROUTINES}")
-    implementation("net.java.dev.jna:jna:${JNA}")
+    implementation("net.java.dev.jna:jna:${JNA}@aar")
 }
 
 fun String.fromVariable(): String {

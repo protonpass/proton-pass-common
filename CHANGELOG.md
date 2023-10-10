@@ -4,6 +4,8 @@
 
 ### Fixes :bug:
 
+- Android: Specify JNA as an AAR dependency explicitly.
+
 ### Other
 
 ## 0.2.0 (2023-10-06)

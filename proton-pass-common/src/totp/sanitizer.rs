@@ -38,12 +38,16 @@ pub fn uri_for_editing(original_uri: &str) -> String {
 /// - Valid with custom params
 ///   => Return as-is
 pub fn uri_for_saving(original_uri: &str, edited_uri: &str) -> Result<String, TOTPError> {
+    let trimmed_uri = edited_uri.trim();
+
+    if trimmed_uri.is_empty() {
+        return Ok("".to_string());
+    }
+
     let (original_label, original_issuer) = match TOTP::from_uri(original_uri) {
         Ok(components) => (components.label, components.issuer),
         _ => (None, None),
     };
-
-    let trimmed_uri = edited_uri.trim();
 
     let components = match TOTP::from_uri(trimmed_uri) {
         Ok(value) => Ok(value),

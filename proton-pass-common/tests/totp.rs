@@ -45,6 +45,10 @@ fn for_editing() {
 
 #[test]
 fn for_saving() {
+    // Empty edited URI
+    // => save as empty string
+    assert_eq!(uri_for_saving("invalid original", "  "), Ok("".to_string()));
+
     // Invalid original, edit with secret only
     // => sanitize secret and add default params
     assert_eq!(

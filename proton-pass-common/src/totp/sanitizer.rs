@@ -38,39 +38,48 @@ pub fn uri_for_editing(original_uri: &str) -> String {
 /// - Valid with custom params
 ///   => Return as-is
 pub fn uri_for_saving(original_uri: &str, edited_uri: &str) -> Result<String, TOTPError> {
-    let trimmed_uri = edited_uri.trim();
+    let trimmed_edited_uri = edited_uri.trim();
 
-    if trimmed_uri.is_empty() {
+    if trimmed_edited_uri.is_empty() {
         return Ok("".to_string());
     }
 
     let (original_label, original_issuer) = match TOTP::from_uri(original_uri) {
-        Ok(components) => (components.label, components.issuer),
+        Ok(original_totp) => (original_totp.label, original_totp.issuer),
         _ => (None, None),
     };
 
-    let components = match TOTP::from_uri(trimmed_uri) {
-        Ok(value) => Ok(value),
-        _ => {
-            if Url::parse(trimmed_uri).is_ok() {
-                Err(TOTPError::NotTotpUri)
-            } else {
-                // Invalid URI
-                // => treat as secret, sanitize and add default params
-                let sanitized_secret = sanitize_secret(trimmed_uri);
-                Ok(TOTP {
-                    label: None,
-                    secret: sanitized_secret,
-                    issuer: None,
-                    algorithm: None,
-                    digits: None,
-                    period: None,
-                })
+    let edited_totp: Option<TOTP> = match TOTP::from_uri(trimmed_edited_uri) {
+        Ok(value) => Ok(Some(value)),
+        Err(error) => {
+            match error {
+                TOTPError::EmptySecret => Ok(None),
+                _ => {
+                    if Url::parse(trimmed_edited_uri).is_ok() {
+                        Err(TOTPError::NotTotpUri)
+                    } else {
+                        // Invalid URI
+                        // => treat as secret, sanitize and add default params
+                        let sanitized_secret = sanitize_secret(trimmed_edited_uri);
+                        Ok(Some(TOTP {
+                            label: None,
+                            secret: sanitized_secret,
+                            issuer: None,
+                            algorithm: None,
+                            digits: None,
+                            period: None,
+                        }))
+                    }
+                }
             }
         }
     }?;
 
-    Ok(components.to_uri(original_label, original_issuer))
+    if let Some(edited_totp) = edited_totp {
+        Ok(edited_totp.to_uri(original_label, original_issuer))
+    } else {
+        Ok("".to_string())
+    }
 }
 
 pub fn sanitize_secret(secret: &str) -> String {

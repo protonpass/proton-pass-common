@@ -122,6 +122,14 @@ fn for_saving() {
         ),
         Ok("otpauth://totp/?secret=new_secret&issuer=new_issuer&algorithm=SHA1&digits=8&period=45".to_string())
     );
+
+    assert_eq!(
+        uri_for_saving(
+            "anything",
+            "otpauth://totp/?secret=&algorithm=SHA256&digits=6&period=30"
+        ),
+        Ok("".to_string())
+    );
 }
 
 #[test]

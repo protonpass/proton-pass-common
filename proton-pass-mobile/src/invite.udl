@@ -1,0 +1,4 @@
+interface NewUserInviteCreator {
+    constructor();
+    bytes create_signature_body(string email, bytes vault_key);
+};

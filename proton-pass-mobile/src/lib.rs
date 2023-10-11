@@ -2,6 +2,7 @@
 
 mod alias;
 mod email;
+mod invite;
 mod login;
 mod password;
 mod totp;
@@ -14,6 +15,7 @@ pub fn library_version() -> String {
 
 pub use alias::*;
 pub use email::*;
+pub use invite::*;
 pub use login::*;
 pub use password::*;
 pub use totp::*;

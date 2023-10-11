@@ -75,6 +75,13 @@ pub fn check_password_score(password: String) -> WasmPasswordScore {
     proton_pass_common::password::check_score(&password).into()
 }
 
+#[wasm_bindgen]
+pub fn create_new_user_invite_signature_body(email: String, vault_key: js_sys::Uint8Array) -> js_sys::Uint8Array {
+    let vault_key_as_vec = vault_key.to_vec();
+    let res = proton_pass_common::invite::create_signature_body(&email, vault_key_as_vec);
+    utils::vec_to_uint8_array(res)
+}
+
 pub use common::{ExportedStringVec, StringValue};
 pub use login::WasmLogin;
 pub use password::{WasmPassphraseConfig, WasmPasswordScore, WasmRandomPasswordConfig};

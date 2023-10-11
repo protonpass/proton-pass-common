@@ -11,6 +11,7 @@ crate-type = ["cdylib", "rlib"]
 proton-pass-common = { path = "../proton-pass-common" }
 
 console_error_panic_hook = { version = "0.1.7", optional = true }
+js-sys = "0.3.64"
 wasm-bindgen = "0.2.87"
 
 [dev-dependencies]

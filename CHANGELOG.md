@@ -4,9 +4,13 @@
 
 ### Fixes :bug:
 
-- Android: Specify JNA as an AAR dependency explicitly.
-
 ### Other
+
+## 0.3.0
+
+### Features :tada:
+
+- Allow to create signature bodies for NewUserInvites. 
 
 ## 0.2.2 (2023-10-11)
 
@@ -18,6 +22,7 @@
 
 ### Fixes :bug:
 
+- Android: Specify JNA as an AAR dependency explicitly.
 - Handle empty edited TOTP URI
 
 ## 0.2.0 (2023-10-06)

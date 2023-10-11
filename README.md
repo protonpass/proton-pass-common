@@ -135,3 +135,9 @@ Before being able to build the web artifacts you'll need to follow these steps f
 Then run `make web` and if everything worked, you're good to go!
 
 Link for the RustWasm book: https://rustwasm.github.io/docs/book/introduction.html
+
+## License
+
+The code and data files in this distribution are licensed under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. See <https://www.gnu.org/licenses/> for a copy of this license.
+
+See [LICENSE](LICENSE) file

@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.3.2
+
+### Other
+
+- Allow to generate TOTP token from secret
+
 ## 0.3.1
 
 ### Refactor

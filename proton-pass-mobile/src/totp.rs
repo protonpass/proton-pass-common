@@ -41,4 +41,16 @@ impl TotpTokenGenerator {
     pub fn generate_current_token(&self, totp: TOTP, current_time: u64) -> Result<String, TOTPError> {
         totp.generate_current_token(current_time)
     }
+
+    pub fn generate_current_token_from_secret(&self, secret: String, current_time: u64) -> Result<String, TOTPError> {
+        let totp = TOTP {
+            label: None,
+            secret,
+            issuer: None,
+            algorithm: None,
+            digits: None,
+            period: None,
+        };
+        totp.generate_current_token(current_time)
+    }
 }

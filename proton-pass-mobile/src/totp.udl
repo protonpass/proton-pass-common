@@ -45,4 +45,6 @@ interface TotpTokenGenerator {
     constructor();
     [Throws=TOTPError]
     string generate_current_token(TOTP totp, u64 current_time);
+    [Throws=TOTPError]
+    string generate_current_token_from_secret(string secret, u64 current_time);
 };

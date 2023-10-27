@@ -11,6 +11,7 @@ IOS_LIB_DIR:=${PROJECT_ROOT}/proton-pass-mobile/iOS/libs
 IOS_LIB_NAME:=libproton_pass_common_mobile.a
 IOS_PACKAGE_DIR:=${PROJECT_ROOT}/proton-pass-mobile/iOS/PassRustCore
 IOS_XCFRAMEWORK_NAME:=RustFramework.xcframework
+WEB_BUILD_DIR:=${PROJECT_ROOT}/proton-pass-web/pkg
 
 .PHONY: default
 default: help
@@ -124,4 +125,5 @@ android: android-lib-aarch64 android-lib-armv7 android-lib-x86_64 ## Build all t
 
 .PHONY: web
 web: ## Build the web artifacts
-	@wasm-pack build proton-pass-web
+	@wasm-pack build proton-pass-web --scope protontech
+	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "@protontech\/pass-rust-core",/g' "${WEB_BUILD_DIR}/package.json"

@@ -15,3 +15,5 @@ proton-pass-mobile/src/*.swift
 proton-pass-mobile/src/*.modulemap
 proton-pass-mobile/iOS/**/*.swift
 proton-pass-mobile/pkg
+
+proton-pass-web/pkg

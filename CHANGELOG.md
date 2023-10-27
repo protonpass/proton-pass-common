@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.3.1
+
+### Refactor
+
+- Allow to pass time on TOTP token generation
+
 ## 0.3.0
 
 ### Features :tada:

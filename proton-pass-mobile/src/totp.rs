@@ -38,7 +38,7 @@ impl TotpTokenGenerator {
         Self
     }
 
-    pub fn generate_current_token(&self, totp: TOTP) -> Result<String, TOTPError> {
-        totp.generate_current_token()
+    pub fn generate_current_token(&self, totp: TOTP, current_time: u64) -> Result<String, TOTPError> {
+        totp.generate_current_token(current_time)
     }
 }

@@ -178,7 +178,7 @@ impl TOTP {
 }
 
 impl TOTP {
-    pub fn generate_current_token(&self) -> Result<String, TOTPError> {
+    pub fn generate_current_token(&self, current_time: u64) -> Result<String, TOTPError> {
         let sanitized_secret = sanitize_secret(self.secret.as_str());
         let encoded_secret = totp_rs::Secret::Encoded(sanitized_secret)
             .to_bytes()
@@ -190,8 +190,7 @@ impl TOTP {
             self.period.unwrap_or(DEFAULT_PERIOD) as u64,
             encoded_secret,
         );
-        totp.generate_current()
-            .map_err(|e| TOTPError::SystemTimeError(e.duration()))
+        Ok(totp.generate(current_time))
     }
 }
 

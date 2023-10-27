@@ -1,5 +1,4 @@
 use proton_pass_derive::Error;
-use std::time::Duration;
 use url::ParseError;
 
 #[derive(Debug, Error, PartialEq, Eq)]
@@ -13,6 +12,5 @@ pub enum TOTPError {
     NoSecret,
     EmptySecret,
     NoQueries,
-    SystemTimeError(Duration),
     SecretParseError,
 }

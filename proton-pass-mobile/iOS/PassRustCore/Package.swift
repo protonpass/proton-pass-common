@@ -24,6 +24,9 @@ let package = Package(
             name: "PassRustCore",
             dependencies: [
                 .target(name: "RustFrameworkFFI")
+            ],
+            swiftSettings: [
+                .unsafeFlags(["-suppress-warnings"]),
             ]
         )
     ]

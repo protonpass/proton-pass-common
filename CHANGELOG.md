@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.3.3
+
+### Other
+
+- Update of compilation settings of swift package to remove warnings
+
 ## 0.3.2
 
 ### Other

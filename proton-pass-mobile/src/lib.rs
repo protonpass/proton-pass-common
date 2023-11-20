@@ -1,6 +1,7 @@
 #![allow(clippy::new_without_default)]
 
 mod alias;
+mod creditcard;
 mod email;
 mod invite;
 mod login;
@@ -14,6 +15,7 @@ pub fn library_version() -> String {
 }
 
 pub use alias::*;
+pub use creditcard::*;
 pub use email::*;
 pub use invite::*;
 pub use login::*;

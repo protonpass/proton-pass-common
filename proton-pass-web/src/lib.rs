@@ -1,4 +1,5 @@
 mod common;
+mod creditcard;
 mod login;
 mod password;
 mod utils;
@@ -82,7 +83,15 @@ pub fn create_new_user_invite_signature_body(email: String, vault_key: js_sys::U
     utils::vec_to_uint8_array(res)
 }
 
+#[wasm_bindgen]
+pub fn detect_credit_card_type(card_number: String) -> WasmCreditCardType {
+    let detector = creditcard::CreditCardDetector::default();
+    let detected = detector.detect(&card_number);
+    detected.into()
+}
+
 pub use common::{ExportedStringVec, StringValue};
+pub use creditcard::WasmCreditCardType;
 pub use login::WasmLogin;
 pub use password::{WasmPassphraseConfig, WasmPasswordScore, WasmRandomPasswordConfig};
 pub use utils::set_panic_hook;

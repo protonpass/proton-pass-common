@@ -1,4 +1,5 @@
 pub mod alias_prefix;
+pub mod creditcard;
 pub mod email;
 pub mod invite;
 pub mod login;

@@ -1,0 +1,20 @@
+enum CreditCardType {
+    "Visa",
+    "Mastercard",
+    "AmericanExpress",
+    "DinersClub",
+    "Discover",
+    "JCB",
+    "UnionPay",
+    "Maestro",
+    "Elo",
+    "Mir",
+    "Hiper",
+    "Hipercard",
+    "Unknown",
+};
+
+interface CreditCardDetector {
+    constructor();
+    CreditCardType detect(string number);
+};

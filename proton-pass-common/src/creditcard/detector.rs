@@ -1,3 +1,4 @@
+use luhn::valid;
 use regex::Regex;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -47,7 +48,9 @@ impl Default for CreditCardDetector {
 impl CreditCardDetector {
     pub fn detect(&self, number: &str) -> CreditCardType {
         let cleaned_card_number: String = number.chars().filter(char::is_ascii_digit).collect();
-
+        if !valid(&cleaned_card_number) {
+            return CreditCardType::Unknown;
+        }
         for (card_type, pattern) in self.regexes.iter() {
             if pattern.is_match(&cleaned_card_number) {
                 return card_type.clone();

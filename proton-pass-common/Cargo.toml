@@ -18,3 +18,10 @@ serde = { version = "1.0.188", features = ["derive"] }
 totp-rs = "5.4.0"
 regex = "1.10.2"
 luhn = "1.0.1"
+
+[dev-dependencies]
+criterion = { version = "0.4", features = ["html_reports"] }
+
+[[bench]]
+name = "card_detector"
+harness = false

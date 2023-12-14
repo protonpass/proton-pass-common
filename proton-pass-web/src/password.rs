@@ -1,9 +1,12 @@
 pub use proton_pass_common::password::{
     PassphraseConfig, PasswordGeneratorError, PasswordScore, RandomPasswordConfig, WordSeparator,
 };
-use wasm_bindgen::prelude::wasm_bindgen;
+use serde::{Deserialize, Serialize};
+use tsify::Tsify;
+use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen]
+#[derive(Tsify, Deserialize, Serialize)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct WasmRandomPasswordConfig {
     length: u32,
     numbers: bool,
@@ -22,7 +25,8 @@ impl From<WasmRandomPasswordConfig> for RandomPasswordConfig {
     }
 }
 
-#[wasm_bindgen]
+#[derive(Tsify, Deserialize, Serialize)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
 pub enum WasmWordSeparator {
     Hyphens,
     Spaces,
@@ -47,7 +51,8 @@ impl From<WasmWordSeparator> for WordSeparator {
     }
 }
 
-#[wasm_bindgen]
+#[derive(Tsify, Deserialize, Serialize)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct WasmPassphraseConfig {
     separator: WasmWordSeparator,
     capitalise: bool,
@@ -66,7 +71,8 @@ impl From<WasmPassphraseConfig> for PassphraseConfig {
     }
 }
 
-#[wasm_bindgen]
+#[derive(Tsify, Deserialize, Serialize)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
 pub enum WasmPasswordScore {
     VeryDangerous,
     Dangerous,

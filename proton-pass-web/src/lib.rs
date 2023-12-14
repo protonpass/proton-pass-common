@@ -41,25 +41,21 @@ pub fn generate_password(config: WasmRandomPasswordConfig) -> Result<String, JsE
 }
 
 #[wasm_bindgen]
-pub fn random_words(word_count: u32) -> Result<ExportedStringVec, JsError> {
+pub fn random_words(word_count: u32) -> Result<WasmStringList, JsError> {
     let mut generator = get_generator();
     generator
         .random_words(word_count as usize)
-        .map(|words| {
-            let as_string_value: Vec<StringValue> = words.into_iter().map(|w| StringValue { value: w }).collect();
-            ExportedStringVec(as_string_value)
-        })
+        .map(WasmStringList)
         .map_err(|e| e.into())
 }
 
 #[wasm_bindgen]
-pub fn generate_passphrase(words: ExportedStringVec, config: WasmPassphraseConfig) -> Result<String, JsError> {
-    let strings: Vec<String> = words.0.into_iter().map(|v| v.value).collect();
+pub fn generate_passphrase(words: WasmStringList, config: WasmPassphraseConfig) -> Result<String, JsError> {
     let mut generator = get_generator();
     let cfg: PassphraseConfig = config.into();
 
     generator
-        .generate_passphrase_from_words(strings, &cfg)
+        .generate_passphrase_from_words(words.0, &cfg)
         .map_err(|e| e.into())
 }
 
@@ -90,7 +86,7 @@ pub fn detect_credit_card_type(card_number: String) -> WasmCreditCardType {
     detected.into()
 }
 
-pub use common::{ExportedStringVec, StringValue};
+pub use common::WasmStringList;
 pub use creditcard::WasmCreditCardType;
 pub use login::WasmLogin;
 pub use password::{WasmPassphraseConfig, WasmPasswordScore, WasmRandomPasswordConfig};

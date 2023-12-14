@@ -1,7 +1,10 @@
 pub use proton_pass_common::creditcard::{CreditCardDetector, CreditCardType};
-use wasm_bindgen::prelude::wasm_bindgen;
+use serde::{Deserialize, Serialize};
+use tsify::Tsify;
+use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen]
+#[derive(Tsify, Deserialize, Serialize)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
 pub enum WasmCreditCardType {
     Visa,
     Mastercard,

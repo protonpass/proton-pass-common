@@ -1,7 +1,10 @@
 use proton_pass_common::login::Login;
+use serde::{Deserialize, Serialize};
+use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen]
+#[derive(Tsify, Deserialize, Serialize)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct WasmLogin {
     title: String,
     username: String,

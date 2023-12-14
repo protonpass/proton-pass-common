@@ -125,5 +125,6 @@ android: android-lib-aarch64 android-lib-armv7 android-lib-x86_64 ## Build all t
 
 .PHONY: web
 web: ## Build the web artifacts
-	@wasm-pack build proton-pass-web --scope protontech
+	@wasm-pack build proton-pass-web --scope protontech --target nodejs
+	@node ./patch.mjs
 	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "@protontech\/pass-rust-core",/g' "${WEB_BUILD_DIR}/package.json"

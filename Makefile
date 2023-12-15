@@ -12,6 +12,8 @@ IOS_LIB_NAME:=libproton_pass_common_mobile.a
 IOS_PACKAGE_DIR:=${PROJECT_ROOT}/proton-pass-mobile/iOS/PassRustCore
 IOS_XCFRAMEWORK_NAME:=RustFramework.xcframework
 WEB_BUILD_DIR:=${PROJECT_ROOT}/proton-pass-web/pkg
+WEB_TEST_DIR:=${PROJECT_ROOT}/proton-pass-web/test
+WEB_TEST_BUILD_DIR:=${PROJECT_ROOT}/proton-pass-web/test/pkg
 
 .PHONY: default
 default: help
@@ -39,7 +41,8 @@ clean: ## Remove compile artifacts
 	@rm -rf proton-pass-mobile/android/lib/build
 	@rm -rf proton-pass-mobile/android/lib/src/main/jniLibs
 	@rm -rf proton-pass-mobile/src/proton/android/pass/commonrust/proton_pass_common_mobile.kt
-	@rm -rf proton-pass-web/pkg
+	@rm -rf ${WEB_BUILD_DIR}
+	@rm -rf ${WEB_TEST_BUILD_DIR}
 	@rm -rf proton-pass-mobile/iOS/frameworks
 	@rm -rf proton-pass-mobile/iOS/headers
 	@rm -rf proton-pass-mobile/iOS/PassRustCore/Sources/PassRustCore/PassRustCore.swift
@@ -125,6 +128,11 @@ android: android-lib-aarch64 android-lib-armv7 android-lib-x86_64 ## Build all t
 
 .PHONY: web
 web: ## Build the web artifacts
-	@wasm-pack build proton-pass-web --scope protontech --target nodejs
-	@node ./patch.mjs
+	@wasm-pack build proton-pass-web --scope protontech
 	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "@protontech\/pass-rust-core",/g' "${WEB_BUILD_DIR}/package.json"
+
+.PHONY: web-test
+web-test: ## Test the web artifacts
+	@wasm-pack build proton-pass-web --scope protontech --target nodejs --out-dir ${WEB_TEST_BUILD_DIR}
+	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "@protontech\/pass-rust-core",/g' "${WEB_TEST_BUILD_DIR}/package.json"
+	@cd ${WEB_TEST_DIR} && bun test

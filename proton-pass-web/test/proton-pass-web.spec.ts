@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test";
-import * as packageJSON from "../pkg/package.json";
+import * as packageJSON from "./pkg/package.json";
 
 import {
   detect_credit_card_type,
   generate_passphrase,
   library_version,
   random_words,
-} from "../pkg/proton_pass_web.mjs";
+} from "./pkg/proton_pass_web.js";
 
 describe("ProtonPassWeb WASM", () => {
   test("Library version", () => {

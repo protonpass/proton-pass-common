@@ -17,5 +17,5 @@
     "allowJs": true,
     "types": ["bun-types"]
   },
-  "include": ["../pkg/**/*"]
+  "include": ["./pkg/**/*"]
 }

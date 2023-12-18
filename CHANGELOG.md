@@ -6,6 +6,13 @@
 
 ### Other
 
+## 0.4.0
+
+### Features :tada:
+
+- Credit card detector
+- Better interfaces for web bindings
+
 ## 0.3.3
 
 ### Other

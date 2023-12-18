@@ -8,7 +8,7 @@ This repository is structured into 3 main modules:
 
 - `proton-pass-common`: Pure rust, contains the core code for all the functions, with tests and everything.
 - `proton-pass-mobile`: Contains the necessary glue code for exporting the library to mobile clients (android and iOS) using UniFFI.
-- `proton-pass-mobile`: Contains the necessary glue code for exporting the library to web clients (using `wasm-pack`).
+- `proton-pass-web`: Contains the necessary glue code for exporting the library to web clients (using `wasm-pack`).
 
 ### Adding a new function
 

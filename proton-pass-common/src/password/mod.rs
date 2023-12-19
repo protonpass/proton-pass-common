@@ -4,7 +4,7 @@ mod scorer;
 use password_generator::PasswordGenerator;
 use proton_pass_derive::Error;
 use rand::{rngs::ThreadRng, thread_rng};
-pub use scorer::{check_score, PasswordScore};
+pub use scorer::{check_score, numeric_score, PasswordScore};
 
 type ProductionPasswordGenerator = PasswordGenerator<ThreadRng>;
 

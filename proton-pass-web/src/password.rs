@@ -74,26 +74,16 @@ impl From<WasmPassphraseConfig> for PassphraseConfig {
 #[derive(Tsify, Deserialize, Serialize)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub enum WasmPasswordScore {
-    VeryDangerous,
-    Dangerous,
-    VeryWeak,
     Weak,
-    Good,
     Strong,
-    VeryStrong,
     Invulnerable,
 }
 
 impl From<PasswordScore> for WasmPasswordScore {
     fn from(value: PasswordScore) -> Self {
         match value {
-            PasswordScore::VeryDangerous => WasmPasswordScore::VeryDangerous,
-            PasswordScore::Dangerous => WasmPasswordScore::Dangerous,
-            PasswordScore::VeryWeak => WasmPasswordScore::VeryWeak,
             PasswordScore::Weak => WasmPasswordScore::Weak,
-            PasswordScore::Good => WasmPasswordScore::Good,
             PasswordScore::Strong => WasmPasswordScore::Strong,
-            PasswordScore::VeryStrong => WasmPasswordScore::VeryStrong,
             PasswordScore::Invulnerable => WasmPasswordScore::Invulnerable,
         }
     }

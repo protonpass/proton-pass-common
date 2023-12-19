@@ -31,6 +31,10 @@ lint: ## Lint the project
 test: ## Run the library tests
 	@cargo test -p proton-pass-common
 
+.PHONY: bench
+bench: ## Run the benchmarks
+	@cargo bench -p proton-pass-common
+
 .PHONY: clean
 clean: ## Remove compile artifacts
 	@cargo clean

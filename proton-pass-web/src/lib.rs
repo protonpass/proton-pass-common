@@ -73,6 +73,11 @@ pub fn check_password_score(password: String) -> WasmPasswordScore {
 }
 
 #[wasm_bindgen]
+pub fn calculate_password_score(password: String) -> f64 {
+    proton_pass_common::password::numeric_score(&password)
+}
+
+#[wasm_bindgen]
 pub fn create_new_user_invite_signature_body(email: String, vault_key: js_sys::Uint8Array) -> js_sys::Uint8Array {
     let vault_key_as_vec = vault_key.to_vec();
     let res = proton_pass_common::invite::create_signature_body(&email, vault_key_as_vec);

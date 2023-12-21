@@ -5,9 +5,9 @@ include!(concat!(env!("OUT_DIR"), "/common_passwords.rs"));
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum PasswordScore {
+    Vulnerable,
     Weak,
     Strong,
-    Invulnerable,
 }
 
 fn is_common(password: &str) -> bool {
@@ -32,9 +32,8 @@ pub fn check_score(password: &str) -> PasswordScore {
 
 fn password_score(score: f64) -> PasswordScore {
     match score {
-        s if (0.0..80.0).contains(&s) => PasswordScore::Weak,
-        s if (80.0..92.0).contains(&s) => PasswordScore::Strong,
-        s if (92.0..99.0).contains(&s) => PasswordScore::Invulnerable,
-        _ => PasswordScore::Invulnerable,
+        s if s <= 80.0 => PasswordScore::Vulnerable,
+        s if (80.0..92.0).contains(&s) => PasswordScore::Weak,
+        _ => PasswordScore::Strong,
     }
 }

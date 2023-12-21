@@ -17,17 +17,17 @@ macro_rules! map {
 #[test]
 fn score_passwords() {
     let cases = map!(
-        "" => PasswordScore::Weak,
-        "a" => PasswordScore::Weak,
-        "abcde" => PasswordScore::Weak,
-        "abcABC123" => PasswordScore::Weak,
-        "azK@BC123" => PasswordScore::Weak,
+        "" => PasswordScore::Vulnerable,
+        "a" => PasswordScore::Vulnerable,
+        "abcde" => PasswordScore::Vulnerable,
+        "abcABC123" => PasswordScore::Vulnerable,
+        "azK@BC123" => PasswordScore::Vulnerable,
 
-        "ajqu(y%L_12Fe" => PasswordScore::Invulnerable,
+        "ajqu(y%L_12Fe" => PasswordScore::Strong,
 
         // Appears in a common password list
-        "Qwerty12345678" => PasswordScore::Weak,
-        "Zsfghj9128734" => PasswordScore::Strong,
+        "Qwerty12345678" => PasswordScore::Vulnerable,
+        "Zsfghj9128734" => PasswordScore::Weak,
     );
 
     for (input, expected) in cases {

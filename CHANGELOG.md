@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.5.1
+
+### Other
+
+- Renamed password scores.
+
 ## 0.5.0
 
 ### Features :tada:

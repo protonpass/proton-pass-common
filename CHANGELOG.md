@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.5.0
+
+### Features :tada:
+
+- New password scoring algorithm.
+
 ## 0.4.0
 
 ### Features :tada:

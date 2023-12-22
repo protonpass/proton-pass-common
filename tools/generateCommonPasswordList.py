@@ -35,9 +35,12 @@ def main(dst: str):
     # Dedup
     deduped_words = sorted(list(set(words)))
 
+    # Sort by length
+    sorted_by_length = reversed(sorted(deduped_words, key=len))
+
     # Write
     with open(dst, 'w') as f:
-        f.write("\n".join(deduped_words))
+        f.write("\n".join(sorted_by_length))
 
     print(f"Wrote the passwords file to {dst}")
 

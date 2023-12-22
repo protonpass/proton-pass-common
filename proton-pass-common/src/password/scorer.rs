@@ -61,12 +61,10 @@ fn score_password(password: &str) -> f64 {
             score -= max_score * 0.2;
         }
 
-        let is_considered_strong = if analyzed_password.length() < 13 {
-            false
-        } else if analyzed_password.length() >= 13 && analyzed_password.length() <= 20 {
-            analyzed_password.symbols_count() > 0
-        } else {
-            true
+        let is_considered_strong = match analyzed_password.length() {
+            s if (0..13).contains(&s) => false,
+            s if (13..20).contains(&s) => analyzed_password.symbols_count() > 0,
+            _ => true,
         };
 
         if !is_considered_strong {
@@ -111,8 +109,6 @@ fn password_without_common(password: &str) -> String {
 
             // Use the replace method to perform case-insensitive replacement
             let result = pattern.replace_all(password, "");
-
-            // Convert the result to a String
             return result.to_string();
         }
     }

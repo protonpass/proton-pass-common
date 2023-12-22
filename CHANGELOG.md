@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.5.2
+
+### Other
+
+- Fixed password scoring algorithm.
+
 ## 0.5.1
 
 ### Other

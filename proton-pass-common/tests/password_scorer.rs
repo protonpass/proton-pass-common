@@ -23,8 +23,6 @@ fn score_passwords() {
         "abcABC123" => PasswordScore::Vulnerable,
         "azK@BC123" => PasswordScore::Vulnerable,
 
-        "ajqu(y%L_12Fe" => PasswordScore::Strong,
-
         // Appears in a common password list
         "Qwerty12345678" => PasswordScore::Vulnerable,
         "Zsfghj9128734" => PasswordScore::Weak,

@@ -1,5 +1,6 @@
 pub use proton_pass_common::totp::error::TOTPError;
 use proton_pass_common::totp::sanitizer::{uri_for_editing, uri_for_saving};
+pub use proton_pass_common::totp::totp::TotpTokenResult;
 pub use proton_pass_common::totp::totp::TOTP;
 
 pub struct TotpUriParser;
@@ -38,15 +39,20 @@ impl TotpTokenGenerator {
         Self
     }
 
-    pub fn generate_current_token(&self, totp: TOTP, current_time: u64) -> Result<String, TOTPError> {
-        totp.generate_current_token(current_time)
-    }
-
-    pub fn generate_current_token_from_secret(&self, secret: String, current_time: u64) -> Result<String, TOTPError> {
-        let totp = TOTP {
-            secret,
-            ..Default::default()
+    pub fn generate_token(&self, uri: String, current_time: u64) -> Result<TotpTokenResult, TOTPError> {
+        let totp: TOTP = if uri.contains("otpauth") {
+            TOTP::from_uri(&uri)?
+        } else {
+            TOTP {
+                secret: uri,
+                ..Default::default()
+            }
         };
-        totp.generate_current_token(current_time)
+        let token = totp.generate_token(current_time)?;
+        Ok(TotpTokenResult {
+            totp,
+            token,
+            timestamp: current_time,
+        })
     }
 }

@@ -40,10 +40,14 @@ interface TotpUriParser {
     TOTP parse(string uri_string);
 };
 
+dictionary TotpTokenResult {
+    TOTP totp;
+    string token;
+    u64 timestamp;
+};
+
 interface TotpTokenGenerator {
     constructor();
     [Throws=TOTPError]
-    string generate_current_token(TOTP totp, u64 current_time);
-    [Throws=TOTPError]
-    string generate_current_token_from_secret(string secret, u64 current_time);
+    TotpTokenResult generate_token(string uri, u64 current_time);
 };

@@ -14,6 +14,12 @@ pub struct TOTP {
     pub period: Option<u16>,
 }
 
+pub struct TotpTokenResult {
+    pub totp: TOTP,
+    pub token: String,
+    pub timestamp: u64,
+}
+
 pub const OTP_SCHEME: &str = "otpauth";
 pub const TOTP_HOST: &str = "totp";
 pub const QUERY_SECRET: &str = "secret";
@@ -178,7 +184,7 @@ impl TOTP {
 }
 
 impl TOTP {
-    pub fn generate_current_token(&self, current_time: u64) -> Result<String, TOTPError> {
+    pub fn generate_token(&self, current_time: u64) -> Result<String, TOTPError> {
         let sanitized_secret = sanitize_secret(self.secret.as_str());
         let encoded_secret = totp_rs::Secret::Encoded(sanitized_secret)
             .to_bytes()

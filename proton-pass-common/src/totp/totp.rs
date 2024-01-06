@@ -127,6 +127,18 @@ impl TOTP {
 
         default_algorithm && default_digits && default_period
     }
+
+    pub fn unwrap_algorithm(&self) -> Algorithm {
+        self.algorithm.unwrap_or(DEFAULT_ALGORITHM)
+    }
+
+    pub fn unwrap_digits(&self) -> u8 {
+        self.digits.unwrap_or(DEFAULT_DIGITS)
+    }
+
+    pub fn unwrap_period(&self) -> u16 {
+        self.period.unwrap_or(DEFAULT_PERIOD)
+    }
 }
 
 impl TOTP {
@@ -356,6 +368,9 @@ mod test_has_default_params {
 
         // Then
         assert!(!sut.has_default_params());
+        assert_eq!(sut.unwrap_algorithm(), Algorithm::SHA512);
+        assert_eq!(sut.unwrap_digits(), DEFAULT_DIGITS);
+        assert_eq!(sut.unwrap_period(), DEFAULT_PERIOD);
     }
 
     #[test]
@@ -372,6 +387,9 @@ mod test_has_default_params {
 
         // Then
         assert!(sut.has_default_params());
+        assert_eq!(sut.unwrap_algorithm(), DEFAULT_ALGORITHM);
+        assert_eq!(sut.unwrap_digits(), DEFAULT_DIGITS);
+        assert_eq!(sut.unwrap_period(), DEFAULT_PERIOD);
     }
 
     #[test]
@@ -388,6 +406,9 @@ mod test_has_default_params {
 
         // Then
         assert!(sut.has_default_params());
+        assert_eq!(sut.unwrap_algorithm(), DEFAULT_ALGORITHM);
+        assert_eq!(sut.unwrap_digits(), DEFAULT_DIGITS);
+        assert_eq!(sut.unwrap_period(), DEFAULT_PERIOD);
     }
 }
 

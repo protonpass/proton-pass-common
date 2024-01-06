@@ -34,10 +34,11 @@ interface TotpUriSanitizer {
     string uri_for_saving(string original_uri, string edited_uri);
 };
 
-interface TotpUriParser {
+interface TotpHandler {
     constructor();
-    [Throws=TOTPError]
-    TOTP parse(string uri_string);
+    TOTPAlgorithm unwrap_algorithm(TOTP totp);
+    u8 unwrap_digits(TOTP totp);
+    u16 unwrap_period(TOTP totp);
 };
 
 dictionary TotpTokenResult {

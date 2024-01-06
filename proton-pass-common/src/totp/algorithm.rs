@@ -1,7 +1,7 @@
 use crate::totp::algorithm::Algorithm::{SHA1, SHA256, SHA512};
 use crate::totp::error::TOTPError;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum Algorithm {
     SHA1,
     SHA256,

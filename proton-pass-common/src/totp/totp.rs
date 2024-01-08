@@ -207,10 +207,10 @@ impl TOTP {
             .to_bytes()
             .map_err(|_| TOTPError::SecretParseError)?;
         let totp = totp_rs::TOTP::new_unchecked(
-            self.algorithm.as_ref().unwrap_or(&DEFAULT_ALGORITHM).into(),
-            self.digits.unwrap_or(DEFAULT_DIGITS) as usize,
+            (&self.get_algorithm()).into(),
+            self.get_digits() as usize,
             1,
-            self.period.unwrap_or(DEFAULT_PERIOD) as u64,
+            self.get_period() as u64,
             encoded_secret,
         );
         Ok(totp.generate(current_time))

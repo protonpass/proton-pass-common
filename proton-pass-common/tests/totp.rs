@@ -9,6 +9,9 @@ fn for_editing() {
     // Invalid
     assert_eq!(uri_for_editing("invalid uri"), "invaliduri");
 
+    // Unsupported protocol
+    assert_eq!(uri_for_editing("https://proton.me"), "https://proton.me");
+
     // No label, no params
     assert_eq!(uri_for_editing("otpauth://totp/?secret=some_secret"), "some_secret");
 

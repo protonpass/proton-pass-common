@@ -7,7 +7,7 @@ fn for_editing() {
     assert_eq!(uri_for_editing(""), "");
 
     // Invalid
-    assert_eq!(uri_for_editing("invalid uri"), "invalid uri");
+    assert_eq!(uri_for_editing("invalid uri"), "invaliduri");
 
     // No label, no params
     assert_eq!(uri_for_editing("otpauth://totp/?secret=some_secret"), "some_secret");

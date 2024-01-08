@@ -5,7 +5,6 @@ enum TOTPError {
     "NoAuthority",
     "InvalidAlgorithm",
     "InvalidScheme",
-    "URLParseError",
     "NoSecret",
     "EmptySecret",
     "NoQueries",

@@ -36,7 +36,12 @@ impl TOTP {
     pub fn from_uri(uri: &str) -> Result<Self, TOTPError> {
         match Url::parse(uri) {
             Ok(uri) => Self::parse_uri(uri),
-            Err(error) => Err(TOTPError::URLParseError(error)),
+
+            // Not an URI, remove all white spaces and treat the whole string as secret
+            _ => Ok(TOTP {
+                secret: uri.chars().filter(|c| !c.is_whitespace()).collect(),
+                ..Default::default()
+            }),
         }
     }
 
@@ -340,6 +345,28 @@ mod test_from_uri {
             Ok(components) => {
                 assert_eq!(components.label, None);
                 assert_eq!(components.secret, "somesecret");
+                assert_eq!(components.issuer, None);
+                assert_eq!(components.algorithm, None);
+                assert_eq!(components.digits, None);
+                assert_eq!(components.period, None);
+            }
+            _ => panic!("Should be able to parse"),
+        }
+    }
+
+    #[test]
+    fn whole_uri_as_secret() {
+        // Given
+        let uri = "not an uri";
+
+        // When
+        let sut = make_sut(uri);
+
+        // Then
+        match sut {
+            Ok(components) => {
+                assert_eq!(components.label, None);
+                assert_eq!(components.secret, "notanuri");
                 assert_eq!(components.issuer, None);
                 assert_eq!(components.algorithm, None);
                 assert_eq!(components.digits, None);

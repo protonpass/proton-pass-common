@@ -49,14 +49,7 @@ impl TotpTokenGenerator {
     }
 
     pub fn generate_token(&self, uri: String, current_time: u64) -> Result<TotpTokenResult, TOTPError> {
-        let totp: TOTP = if uri.contains("otpauth") {
-            TOTP::from_uri(&uri)?
-        } else {
-            TOTP {
-                secret: uri,
-                ..Default::default()
-            }
-        };
+        let totp = TOTP::from_uri(&uri)?;
         let token = totp.generate_token(current_time)?;
         Ok(TotpTokenResult {
             totp,

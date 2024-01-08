@@ -133,15 +133,15 @@ impl TOTP {
         default_algorithm && default_digits && default_period
     }
 
-    pub fn unwrap_algorithm(&self) -> Algorithm {
+    pub fn get_algorithm(&self) -> Algorithm {
         self.algorithm.unwrap_or(DEFAULT_ALGORITHM)
     }
 
-    pub fn unwrap_digits(&self) -> u8 {
+    pub fn get_digits(&self) -> u8 {
         self.digits.unwrap_or(DEFAULT_DIGITS)
     }
 
-    pub fn unwrap_period(&self) -> u16 {
+    pub fn get_period(&self) -> u16 {
         self.period.unwrap_or(DEFAULT_PERIOD)
     }
 }
@@ -356,24 +356,13 @@ mod test_from_uri {
 
     #[test]
     fn whole_uri_as_secret() {
-        // Given
-        let uri = "not an uri";
-
-        // When
-        let sut = make_sut(uri);
-
-        // Then
-        match sut {
-            Ok(components) => {
-                assert_eq!(components.label, None);
-                assert_eq!(components.secret, "notanuri");
-                assert_eq!(components.issuer, None);
-                assert_eq!(components.algorithm, None);
-                assert_eq!(components.digits, None);
-                assert_eq!(components.period, None);
-            }
-            _ => panic!("Should be able to parse"),
-        }
+        let sut = make_sut("not an uri").expect("Should be able to parse");
+        assert_eq!(sut.label, None);
+        assert_eq!(sut.secret, "notanuri");
+        assert_eq!(sut.issuer, None);
+        assert_eq!(sut.algorithm, None);
+        assert_eq!(sut.digits, None);
+        assert_eq!(sut.period, None);
     }
 }
 
@@ -395,9 +384,9 @@ mod test_has_default_params {
 
         // Then
         assert!(!sut.has_default_params());
-        assert_eq!(sut.unwrap_algorithm(), Algorithm::SHA512);
-        assert_eq!(sut.unwrap_digits(), DEFAULT_DIGITS);
-        assert_eq!(sut.unwrap_period(), DEFAULT_PERIOD);
+        assert_eq!(sut.get_algorithm(), Algorithm::SHA512);
+        assert_eq!(sut.get_digits(), DEFAULT_DIGITS);
+        assert_eq!(sut.get_period(), DEFAULT_PERIOD);
     }
 
     #[test]
@@ -414,9 +403,9 @@ mod test_has_default_params {
 
         // Then
         assert!(sut.has_default_params());
-        assert_eq!(sut.unwrap_algorithm(), DEFAULT_ALGORITHM);
-        assert_eq!(sut.unwrap_digits(), DEFAULT_DIGITS);
-        assert_eq!(sut.unwrap_period(), DEFAULT_PERIOD);
+        assert_eq!(sut.get_algorithm(), DEFAULT_ALGORITHM);
+        assert_eq!(sut.get_digits(), DEFAULT_DIGITS);
+        assert_eq!(sut.get_period(), DEFAULT_PERIOD);
     }
 
     #[test]
@@ -433,9 +422,9 @@ mod test_has_default_params {
 
         // Then
         assert!(sut.has_default_params());
-        assert_eq!(sut.unwrap_algorithm(), DEFAULT_ALGORITHM);
-        assert_eq!(sut.unwrap_digits(), DEFAULT_DIGITS);
-        assert_eq!(sut.unwrap_period(), DEFAULT_PERIOD);
+        assert_eq!(sut.get_algorithm(), DEFAULT_ALGORITHM);
+        assert_eq!(sut.get_digits(), DEFAULT_DIGITS);
+        assert_eq!(sut.get_period(), DEFAULT_PERIOD);
     }
 }
 

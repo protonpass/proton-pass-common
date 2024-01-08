@@ -12,16 +12,16 @@ impl TotpHandler {
         Self
     }
 
-    pub fn unwrap_algorithm(&self, totp: TOTP) -> TOTPAlgorithm {
-        totp.unwrap_algorithm()
+    pub fn get_algorithm(&self, totp: TOTP) -> TOTPAlgorithm {
+        totp.get_algorithm()
     }
 
-    pub fn unwrap_digits(&self, totp: TOTP) -> u8 {
-        totp.unwrap_digits()
+    pub fn get_digits(&self, totp: TOTP) -> u8 {
+        totp.get_digits()
     }
 
-    pub fn unwrap_period(&self, totp: TOTP) -> u16 {
-        totp.unwrap_period()
+    pub fn get_period(&self, totp: TOTP) -> u16 {
+        totp.get_period()
     }
 }
 

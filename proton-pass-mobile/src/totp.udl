@@ -35,9 +35,9 @@ interface TotpUriSanitizer {
 
 interface TotpHandler {
     constructor();
-    TOTPAlgorithm unwrap_algorithm(TOTP totp);
-    u8 unwrap_digits(TOTP totp);
-    u16 unwrap_period(TOTP totp);
+    TOTPAlgorithm get_algorithm(TOTP totp);
+    u8 get_digits(TOTP totp);
+    u16 get_period(TOTP totp);
 };
 
 dictionary TotpTokenResult {

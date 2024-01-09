@@ -69,6 +69,13 @@ pub fn generate_random_passphrase(config: WasmPassphraseConfig) -> Result<String
 
 #[wasm_bindgen]
 pub fn check_password_score(password: String) -> WasmPasswordScore {
+    proton_pass_common::password::check_score(&password)
+        .password_score
+        .into()
+}
+
+#[wasm_bindgen]
+pub fn analyze_password(password: String) -> WasmPasswordScoreResult {
     proton_pass_common::password::check_score(&password).into()
 }
 
@@ -91,6 +98,7 @@ pub fn detect_credit_card_type(card_number: String) -> WasmCreditCardType {
     detected.into()
 }
 
+use crate::password::WasmPasswordScoreResult;
 pub use common::WasmStringList;
 pub use creditcard::WasmCreditCardType;
 pub use login::WasmLogin;

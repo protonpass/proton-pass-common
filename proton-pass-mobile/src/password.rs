@@ -1,6 +1,6 @@
 pub use proton_pass_common::password::{
-    check_score, get_generator, PassphraseConfig, PasswordGeneratorError, PasswordScore, RandomPasswordConfig,
-    WordSeparator,
+    check_score, get_generator, PassphraseConfig, PasswordGeneratorError, PasswordPenalty, PasswordScore,
+    PasswordScoreResult, RandomPasswordConfig, WordSeparator,
 };
 
 type Result<T> = std::result::Result<T, PasswordGeneratorError>;
@@ -49,6 +49,10 @@ impl PasswordScorer {
     }
 
     pub fn check_score(&self, password: String) -> PasswordScore {
+        check_score(&password).password_score
+    }
+
+    pub fn score_password(&self, password: String) -> PasswordScoreResult {
         check_score(&password)
     }
 }

@@ -6,6 +6,16 @@
 
 ### Other
 
+## 0.5.3
+
+### Features
+
+- Improve TOTP token generation to handle URIs and standalone secrets.
+
+### Other
+
+- Improved password scoring algorithm.
+
 ## 0.5.2
 
 ### Other

@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.5.4
+
+### Other
+
+- Add back `TotpUriParser`
+
 ## 0.5.3
 
 ### Features

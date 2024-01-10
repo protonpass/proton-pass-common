@@ -5,6 +5,7 @@ enum TOTPError {
     "NoAuthority",
     "InvalidAlgorithm",
     "InvalidScheme",
+    "URLParseError",
     "NoSecret",
     "EmptySecret",
     "NoQueries",
@@ -50,4 +51,10 @@ interface TotpTokenGenerator {
     constructor();
     [Throws=TOTPError]
     TotpTokenResult generate_token(string uri, u64 current_time);
+};
+
+interface TotpUriParser {
+    constructor();
+    [Throws=TOTPError]
+    TOTP parse(string uri_string);
 };

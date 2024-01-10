@@ -58,3 +58,15 @@ impl TotpTokenGenerator {
         })
     }
 }
+
+pub struct TotpUriParser;
+
+impl TotpUriParser {
+    pub fn new() -> Self {
+        Self
+    }
+
+    pub fn parse(&self, uri_string: String) -> Result<TOTP, TOTPError> {
+        TOTP::from_uri(uri_string.as_str())
+    }
+}

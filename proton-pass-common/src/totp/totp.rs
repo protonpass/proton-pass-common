@@ -203,15 +203,17 @@ impl TOTP {
 impl TOTP {
     pub fn generate_token(&self, current_time: u64) -> Result<String, TOTPError> {
         let sanitized_secret = sanitize_secret(self.secret.as_str());
-        let raw_secret = totp_rs::Secret::Raw(sanitized_secret.into_bytes())
+        let encoded_secret = totp_rs::Secret::Encoded(sanitized_secret.clone());
+        let raw_secret = totp_rs::Secret::Raw(sanitized_secret.clone().into_bytes());
+        let final_secret = encoded_secret
             .to_bytes()
-            .map_err(|_| TOTPError::SecretParseError)?;
+            .unwrap_or(raw_secret.to_bytes().map_err(|_| TOTPError::SecretParseError)?);
         let totp = totp_rs::TOTP::new_unchecked(
             (&self.get_algorithm()).into(),
             self.get_digits() as usize,
             1,
             self.get_period() as u64,
-            raw_secret,
+            final_secret,
         );
         Ok(totp.generate(current_time))
     }
@@ -498,5 +500,25 @@ mod test_to_uri {
             .to_uri(Some("john.doe".to_string()), Some("Proton".to_string())),
             "otpauth://totp/jane.doe?secret=some_secret&issuer=Proton&algorithm=SHA512&digits=8&period=30".to_string()
         );
+    }
+}
+
+#[cfg(test)]
+mod test_generate_token {
+    use super::*;
+
+    #[test]
+    fn full_uri() {
+        let uri = "otpauth://totp/jane.doe?secret=JBSWY3DPEHPK3PXP&issuer=Proton&algorithm=SHA1&digits=6&period=30";
+        let totp = TOTP::from_uri(uri).expect("Able to parse");
+        let token = totp.generate_token(1_704_971_572).expect("Able to generate token");
+        assert_eq!(token, "983462");
+    }
+
+    #[test]
+    fn secret_only() {
+        let totp = TOTP::from_uri("random-invalid-secret").expect("Able to parse");
+        let token = totp.generate_token(1_704_971_921).expect("Able to generate token");
+        assert_eq!(token, "964817");
     }
 }

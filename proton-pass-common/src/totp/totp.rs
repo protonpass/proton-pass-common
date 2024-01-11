@@ -521,4 +521,18 @@ mod test_generate_token {
         let token = totp.generate_token(1_704_971_921).expect("Able to generate token");
         assert_eq!(token, "964817");
     }
+
+    #[test]
+    fn full_uri_consistent_with_secret_only() {
+        let secret = "JBSWY3DPEHPK3PXP";
+        let timestamp = 1_704_972_215;
+        let uri = format!("otpauth://totp/mylabel?secret={secret}&algorithm=SHA1&digits=6&period=30");
+        let expected = "612829";
+
+        let uri_token = TOTP::from_uri(&uri).unwrap().generate_token(timestamp).unwrap();
+        let secret_token = TOTP::from_uri(secret).unwrap().generate_token(timestamp).unwrap();
+
+        assert_eq!(expected, uri_token);
+        assert_eq!(expected, secret_token);
+    }
 }

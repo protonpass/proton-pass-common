@@ -203,7 +203,7 @@ impl TOTP {
 impl TOTP {
     pub fn generate_token(&self, current_time: u64) -> Result<String, TOTPError> {
         let sanitized_secret = sanitize_secret(self.secret.as_str());
-        let encoded_secret = totp_rs::Secret::Encoded(sanitized_secret)
+        let raw_secret = totp_rs::Secret::Raw(sanitized_secret.into_bytes())
             .to_bytes()
             .map_err(|_| TOTPError::SecretParseError)?;
         let totp = totp_rs::TOTP::new_unchecked(
@@ -211,7 +211,7 @@ impl TOTP {
             self.get_digits() as usize,
             1,
             self.get_period() as u64,
-            encoded_secret,
+            raw_secret,
         );
         Ok(totp.generate(current_time))
     }

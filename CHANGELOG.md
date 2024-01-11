@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.5.6
+
+### Fixes :bug:
+
+- Fix TOTP generation.
+
 ## 0.5.5
 
 ### Other

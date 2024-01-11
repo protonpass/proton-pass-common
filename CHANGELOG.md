@@ -6,11 +6,17 @@
 
 ### Other
 
+## 0.5.5
+
+### Other
+
+- Relax restrictions when generating TOTP tokens.
+
 ## 0.5.4
 
 ### Other
 
-- Add back `TotpUriParser`
+- Add back `TotpUriParser`.
 
 ## 0.5.3
 

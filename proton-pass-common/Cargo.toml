@@ -7,17 +7,24 @@ edition = "2021"
 doctest = false
 
 [dependencies]
+proton-pass-derive = { path = "../proton-pass-derive" }
+
+async-trait = "0.1.74"
+coset = "0.3.5"
 email_address = "0.2.4"
 getrandom = { version = "0.2.10", features = ["js"] }
-passwords = "3.1.16"
-proton-pass-derive = { path = "../proton-pass-derive" }
-rand = "0.8.5"
-url = "2.4.1"
-serde-querystring = "0.2.1"
-serde = { version = "1.0.188", features = ["derive"] }
-totp-rs = "5.4.0"
-regex = "1.10.2"
 luhn = "1.0.1"
+passkey = { version = "0.2.0" }
+passkey-authenticator = { version = "0.2.0", features = ["testable"] }
+passwords = "3.1.16"
+rand = "0.8.5"
+regex = "1.10.2"
+rmp-serde = "1.1.2"
+serde = { version = "1.0.188", features = ["derive"] }
+serde_json = "1.0.111"
+serde-querystring = "0.2.1"
+totp-rs = "5.4.0"
+url = "2.4.1"
 
 [dev-dependencies]
 criterion = { version = "0.4", features = ["html_reports"] }

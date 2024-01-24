@@ -18,6 +18,7 @@ name = "proton_pass_common_mobile"
 
 [dependencies]
 proton-pass-common = { path = "../proton-pass-common" }
+tokio = { version = "1.35", features = ["full"] }
 uniffi = { version = "0.24.1" }
 
 [build-dependencies]

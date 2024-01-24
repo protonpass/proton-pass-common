@@ -1,0 +1,21 @@
+[Error]
+enum PasskeyError {
+    "InvalidUri",
+    "RuntimeError",
+    "GenerationError",
+    "ResolveChallengeError",
+    "SerializationError"
+};
+
+dictionary CreatePasskeyResponse {
+    bytes passkey;
+    string response;
+};
+
+interface PasskeyManager {
+    [Throws=PasskeyError]
+    constructor();
+
+    [Throws=PasskeyError]
+    CreatePasskeyResponse generate_passkey(string url, string display_name, bytes challenge_bytes);
+};

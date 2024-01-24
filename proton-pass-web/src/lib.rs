@@ -1,6 +1,7 @@
 mod common;
 mod creditcard;
 mod login;
+mod passkey;
 mod password;
 mod utils;
 
@@ -96,6 +97,25 @@ pub fn detect_credit_card_type(card_number: String) -> WasmCreditCardType {
     let detector = creditcard::CreditCardDetector::default();
     let detected = detector.detect(&card_number);
     detected.into()
+}
+
+#[wasm_bindgen]
+pub fn generate_passkey(domain: String, display_name: String, challenge_bytes: js_sys::Uint8Array) {
+    let challenge_as_vec = challenge_bytes.to_vec();
+    let generator = passkey::PasskeyManager::new().unwrap();
+    generator
+        .generate_passkey(domain, display_name, challenge_as_vec)
+        .unwrap();
+}
+
+#[wasm_bindgen]
+pub fn resolve_passkey_challenge(domain: String, passkey: js_sys::Uint8Array, challenge_bytes: js_sys::Uint8Array) {
+    let passkey_as_vec = passkey.to_vec();
+    let challenge_as_vec = challenge_bytes.to_vec();
+    let generator = passkey::PasskeyManager::new().unwrap();
+    generator
+        .resolve_challenge(domain, passkey_as_vec, challenge_as_vec)
+        .unwrap();
 }
 
 use crate::password::WasmPasswordScoreResult;

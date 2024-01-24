@@ -5,6 +5,7 @@ mod creditcard;
 mod email;
 mod invite;
 mod login;
+mod passkey;
 mod password;
 mod totp;
 
@@ -19,5 +20,6 @@ pub use creditcard::*;
 pub use email::*;
 pub use invite::*;
 pub use login::*;
+pub use passkey::*;
 pub use password::*;
 pub use totp::*;

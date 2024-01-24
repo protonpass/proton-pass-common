@@ -3,6 +3,7 @@ pub mod creditcard;
 pub mod email;
 pub mod invite;
 pub mod login;
+pub mod passkey;
 pub mod password;
 pub mod totp;
 

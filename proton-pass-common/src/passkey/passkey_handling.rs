@@ -1,9 +1,8 @@
-use coset::iana;
 use passkey::{
     authenticator::{Authenticator, UserValidationMethod},
     client::Client,
-    types::{ctap2::*, rand::random_vec, webauthn::*, Bytes, Passkey},
 };
+use passkey_types::{ctap2::Aaguid, webauthn::*, Bytes, Passkey};
 use url::Url;
 
 use super::{PasskeyError, PasskeyResult, ProtonPassKey};
@@ -52,37 +51,12 @@ fn get_authenticator(pk: Option<ProtonPassKey>) -> Authenticator<Option<Passkey>
 
 async fn generate_passkey(
     origin: Url,
-    user_entity: PublicKeyCredentialUserEntity,
-    parameters_from_rp: PublicKeyCredentialParameters,
-    challenge_bytes_from_rp: Bytes,
+    request: PublicKeyCredentialCreationOptions,
 ) -> PasskeyResult<CreatePassKeyResponse> {
     let authenticator = get_authenticator(None);
     let mut my_client = Client::new(authenticator);
 
-    let domain = if let Some(d) = origin.domain() {
-        d.to_string()
-    } else {
-        return Err(PasskeyError::InvalidUri("Does not contain a domain".to_string()));
-    };
-
-    let request = CredentialCreationOptions {
-        public_key: PublicKeyCredentialCreationOptions {
-            rp: PublicKeyCredentialRpEntity {
-                id: None, // Leaving the ID as None means use the effective domain
-                name: domain,
-            },
-            user: user_entity,
-            challenge: challenge_bytes_from_rp,
-            pub_key_cred_params: vec![parameters_from_rp],
-            timeout: None,
-            exclude_credentials: None,
-            authenticator_selection: None,
-            hints: None,
-            attestation: AttestationConveyancePreference::None,
-            attestation_formats: None,
-            extensions: None,
-        },
-    };
+    let request = CredentialCreationOptions { public_key: request };
 
     // Now create the credential.
     let my_webauthn_credential = my_client
@@ -105,23 +79,12 @@ async fn generate_passkey(
     }
 }
 
-pub async fn generate_passkey_for_domain(
-    url: &str,
-    display_name: &str,
-    challenge_bytes: Vec<u8>,
-) -> PasskeyResult<CreatePassKeyResponse> {
+pub async fn generate_passkey_for_domain(url: &str, request: &str) -> PasskeyResult<CreatePassKeyResponse> {
     let origin = Url::parse(url).map_err(|e| PasskeyError::InvalidUri(format!("Error parsing uri: {:?}", e)))?;
-    let user_entity = PublicKeyCredentialUserEntity {
-        id: random_vec(32).into(),
-        display_name: display_name.to_string(),
-        name: display_name.to_string(),
-    };
-    let parameters_from_rp = PublicKeyCredentialParameters {
-        ty: PublicKeyCredentialType::PublicKey,
-        alg: iana::Algorithm::ES256,
-    };
-    let challenge_from_rp = Bytes::from(challenge_bytes);
-    generate_passkey(origin, user_entity, parameters_from_rp, challenge_from_rp).await
+
+    let parsed: PublicKeyCredentialCreationOptions = serde_json::from_str(request)
+        .map_err(|e| PasskeyError::SerializationError(format!("Error parsing request: {:?}", e)))?;
+    generate_passkey(origin, parsed).await
 }
 
 async fn resolve_challenge(

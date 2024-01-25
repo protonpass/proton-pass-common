@@ -14,15 +14,10 @@ impl PasskeyManager {
         }
     }
 
-    pub fn generate_passkey(
-        &self,
-        url: String,
-        display_name: String,
-        challenge_bytes: Vec<u8>,
-    ) -> PasskeyResult<CreatePassKeyResponse> {
+    pub fn generate_passkey(&self, url: String, request: String) -> PasskeyResult<CreatePassKeyResponse> {
         self.rt
             .handle()
-            .block_on(async move { generate_passkey_for_domain(&url, &display_name, challenge_bytes).await })
+            .block_on(async move { generate_passkey_for_domain(&url, &request).await })
     }
 
     pub fn resolve_challenge(&self, url: String, passkey: Vec<u8>, challenge_bytes: Vec<u8>) -> PasskeyResult<()> {

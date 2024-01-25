@@ -100,12 +100,9 @@ pub fn detect_credit_card_type(card_number: String) -> WasmCreditCardType {
 }
 
 #[wasm_bindgen]
-pub fn generate_passkey(domain: String, display_name: String, challenge_bytes: js_sys::Uint8Array) {
-    let challenge_as_vec = challenge_bytes.to_vec();
+pub fn generate_passkey(domain: String, request: String) {
     let generator = passkey::PasskeyManager::new().unwrap();
-    generator
-        .generate_passkey(domain, display_name, challenge_as_vec)
-        .unwrap();
+    generator.generate_passkey(domain, request).unwrap();
 }
 
 #[wasm_bindgen]

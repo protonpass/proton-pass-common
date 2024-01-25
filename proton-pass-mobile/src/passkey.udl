@@ -17,5 +17,5 @@ interface PasskeyManager {
     constructor();
 
     [Throws=PasskeyError]
-    CreatePasskeyResponse generate_passkey(string url, string display_name, bytes challenge_bytes);
+    CreatePasskeyResponse generate_passkey(string url, string request);
 };

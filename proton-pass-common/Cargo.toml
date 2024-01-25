@@ -16,6 +16,7 @@ getrandom = { version = "0.2.10", features = ["js"] }
 luhn = "1.0.1"
 passkey = { version = "0.2.0" }
 passkey-authenticator = { version = "0.2.0", features = ["testable"] }
+passkey-types = { version = "0.2.0", features = ["serialize_bytes_as_base64_string"] }
 passwords = "3.1.16"
 rand = "0.8.5"
 regex = "1.10.2"
@@ -28,6 +29,7 @@ url = "2.4.1"
 
 [dev-dependencies]
 criterion = { version = "0.4", features = ["html_reports"] }
+tokio = { version = "1.35", features = ["rt"]}
 
 [[bench]]
 name = "card_detector"

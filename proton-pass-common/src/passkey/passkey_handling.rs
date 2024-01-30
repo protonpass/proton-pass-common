@@ -62,3 +62,35 @@ pub(crate) fn deserialize_passkey(content: &[u8]) -> PasskeyResult<ProtonPassKey
         ))),
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::passkey::protonpasskey::{
+        ProtonKey, ProtonLabel, ProtonRegisteredLabelKeyOperation, ProtonRegisteredLabelKeyType, ProtonValue,
+    };
+
+    #[test]
+    fn can_serialize_and_deserialize() {
+        let passkey = ProtonPassKey {
+            key: ProtonKey {
+                kty: ProtonRegisteredLabelKeyType::Text("test".to_string()),
+                key_id: vec![1, 2, 3],
+                alg: None,
+                key_ops: vec![ProtonRegisteredLabelKeyOperation::Text("some".to_string())],
+                base_iv: vec![1, 2, 3],
+                params: vec![(
+                    ProtonLabel::Text("label".to_string()),
+                    ProtonValue::Text("value".to_string()),
+                )],
+            },
+            credential_id: vec![1, 2, 3, 4, 5],
+            rp_id: "some_rp_id".to_string(),
+            user_handle: None,
+            counter: None,
+        };
+        let serialized = serialize_passkey(&passkey).expect("should be able to serialize passkey");
+        let deserialized = deserialize_passkey(&serialized).expect("should be able to deserialize");
+        assert_eq!(passkey, deserialized);
+    }
+}

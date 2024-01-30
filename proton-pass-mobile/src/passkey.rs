@@ -32,9 +32,15 @@ impl PasskeyManager {
                         user_display_name: r.user_display_name,
                         user_name: r.user_name,
                     }),
-                    Err(e) => Err(e),
+                    Err(e) => {
+                        println!("Error in generate_passkey: {:?}", e);
+                        Err(e)
+                    }
                 },
-                Err(e) => Err(e),
+                Err(e) => {
+                    println!("Error in generate_passkey: {:?}", e);
+                    Err(e)
+                }
             }
         })
     }
@@ -44,9 +50,15 @@ impl PasskeyManager {
             match resolve_challenge_for_domain(&url, &passkey, &request).await {
                 Ok(r) => match r.response() {
                     Ok(response) => Ok(response),
-                    Err(e) => Err(e),
+                    Err(e) => {
+                        println!("Error in resolve_challenge: {:?}", e);
+                        Err(e)
+                    }
                 },
-                Err(e) => Err(e),
+                Err(e) => {
+                    println!("Error in resolve_challenge: {:?}", e);
+                    Err(e)
+                }
             }
         })
     }

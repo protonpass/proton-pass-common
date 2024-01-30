@@ -1,12 +1,13 @@
+mod generate;
 mod passkey_handling;
 mod protonpasskey;
 mod protonpasskeydeserializer;
 mod protonpasskeyserializer;
+mod resolve;
 
-pub use passkey_handling::{
-    generate_passkey_for_domain, resolve_challenge_for_domain, CreatePassKeyResponse, ResolveChallengeResponse,
-};
+pub use generate::{generate_passkey_for_domain, CreatePassKeyResponse};
 pub use protonpasskey::ProtonPassKey;
+pub use resolve::{resolve_challenge_for_domain, ResolveChallengeResponse};
 
 pub type PasskeyResult<T> = Result<T, PasskeyError>;
 

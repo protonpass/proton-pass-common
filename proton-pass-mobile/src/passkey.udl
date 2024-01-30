@@ -10,6 +10,9 @@ enum PasskeyError {
 dictionary CreatePasskeyResponse {
     bytes passkey;
     string response;
+    string rp_name;
+    string user_name;
+    string user_display_name;
 };
 
 interface PasskeyManager {

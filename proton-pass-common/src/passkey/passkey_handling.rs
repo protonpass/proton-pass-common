@@ -2,7 +2,7 @@ use passkey::{
     authenticator::{Authenticator, UserValidationMethod},
     client::Client,
 };
-use passkey_types::{ctap2::Aaguid, webauthn::*, Bytes, Passkey};
+use passkey_types::{ctap2::Aaguid, webauthn::*, Passkey};
 use url::Url;
 
 use super::{PasskeyError, PasskeyResult, ProtonPassKey};
@@ -38,6 +38,18 @@ impl CreatePassKeyResponse {
     pub fn response(&self) -> PasskeyResult<String> {
         serde_json::to_string(&self.credential)
             .map_err(|e| PasskeyError::SerializationError(format!("Error serializing credential: {:?}", e)))
+    }
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct ResolveChallengeResponse {
+    pub response: AuthenticatedPublicKeyCredential,
+}
+
+impl ResolveChallengeResponse {
+    pub fn response(&self) -> PasskeyResult<String> {
+        serde_json::to_string(&self.response)
+            .map_err(|e| PasskeyError::SerializationError(format!("Error serializing response: {:?}", e)))
     }
 }
 
@@ -87,48 +99,30 @@ pub async fn generate_passkey_for_domain(url: &str, request: &str) -> PasskeyRes
     generate_passkey(origin, parsed).await
 }
 
-async fn resolve_challenge(
-    origin: Url,
-    pk: &ProtonPassKey,
-    challenge_bytes: Bytes,
-) -> PasskeyResult<AuthenticatedPublicKeyCredential> {
-    let domain = if let Some(d) = origin.domain() {
-        d.to_string()
-    } else {
-        return Err(PasskeyError::InvalidUri("Does not contain a domain".to_string()));
-    };
+async fn resolve_challenge(origin: Url, pk: &ProtonPassKey, request: &str) -> PasskeyResult<ResolveChallengeResponse> {
+    let parsed: PublicKeyCredentialRequestOptions = serde_json::from_str(request)
+        .map_err(|e| PasskeyError::SerializationError(format!("Error parsing request: {:?}", e)))?;
 
-    let credential_request = CredentialRequestOptions {
-        public_key: PublicKeyCredentialRequestOptions {
-            challenge: challenge_bytes,
-            timeout: None,
-            rp_id: Some(domain),
-            allow_credentials: None,
-            user_verification: UserVerificationRequirement::default(),
-            hints: None,
-            attestation: AttestationConveyancePreference::None,
-            attestation_formats: None,
-            extensions: None,
-        },
-    };
+    let credential_request = CredentialRequestOptions { public_key: parsed };
 
     let authenticator = get_authenticator(Some(pk.clone()));
     let client = Client::new(authenticator);
 
-    client
+    let res = client
         .authenticate(&origin, credential_request, None)
         .await
-        .map_err(|e| PasskeyError::ResolveChallengeError(format!("Error authenticating: {:?}", e)))
+        .map_err(|e| PasskeyError::ResolveChallengeError(format!("Error authenticating: {:?}", e)))?;
+
+    Ok(ResolveChallengeResponse { response: res })
 }
 
 pub async fn resolve_challenge_for_domain(
     url: &str,
     pk: &[u8],
-    challenge_bytes: Vec<u8>,
-) -> PasskeyResult<AuthenticatedPublicKeyCredential> {
+    request: &str,
+) -> PasskeyResult<ResolveChallengeResponse> {
     let deserialized: ProtonPassKey = rmp_serde::from_slice(pk)
         .map_err(|e| PasskeyError::SerializationError(format!("Could not deserialize passkey: {:?}", e)))?;
     let origin = Url::parse(url).map_err(|e| PasskeyError::InvalidUri(format!("Error parsing uri: {:?}", e)))?;
-    let challenge_bytes = Bytes::from(challenge_bytes);
-    resolve_challenge(origin, &deserialized, challenge_bytes).await
+    resolve_challenge(origin, &deserialized, request).await
 }

@@ -1,5 +1,6 @@
 use proton_pass_common::passkey::{
     generate_passkey_for_domain, resolve_challenge_for_domain, CreatePassKeyResponse, PasskeyError, PasskeyResult,
+    ResolveChallengeResponse,
 };
 
 pub struct PasskeyManager {
@@ -20,11 +21,14 @@ impl PasskeyManager {
             .block_on(async move { generate_passkey_for_domain(&url, &request).await })
     }
 
-    pub fn resolve_challenge(&self, url: String, passkey: Vec<u8>, challenge_bytes: Vec<u8>) -> PasskeyResult<()> {
-        self.rt.handle().block_on(async move {
-            resolve_challenge_for_domain(&url, &passkey, challenge_bytes)
-                .await
-                .map(|_| ())
-        })
+    pub fn resolve_challenge(
+        &self,
+        url: String,
+        passkey: Vec<u8>,
+        request: String,
+    ) -> PasskeyResult<ResolveChallengeResponse> {
+        self.rt
+            .handle()
+            .block_on(async move { resolve_challenge_for_domain(&url, &passkey, &request).await })
     }
 }

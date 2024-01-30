@@ -33,11 +33,15 @@ impl PasskeyManager {
         })
     }
 
-    pub fn resolve_challenge(&self, url: String, passkey: Vec<u8>, challenge_bytes: Vec<u8>) -> PasskeyResult<()> {
+    pub fn resolve_challenge(&self, url: String, passkey: Vec<u8>, request: String) -> PasskeyResult<String> {
         self.rt.handle().block_on(async move {
-            resolve_challenge_for_domain(&url, &passkey, challenge_bytes)
-                .await
-                .map(|_| ())
+            match resolve_challenge_for_domain(&url, &passkey, &request).await {
+                Ok(r) => match r.response() {
+                    Ok(response) => Ok(response),
+                    Err(e) => Err(e),
+                },
+                Err(e) => Err(e),
+            }
         })
     }
 }

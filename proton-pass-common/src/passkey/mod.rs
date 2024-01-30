@@ -3,7 +3,9 @@ mod protonpasskey;
 mod protonpasskeydeserializer;
 mod protonpasskeyserializer;
 
-pub use passkey_handling::{generate_passkey_for_domain, resolve_challenge_for_domain, CreatePassKeyResponse};
+pub use passkey_handling::{
+    generate_passkey_for_domain, resolve_challenge_for_domain, CreatePassKeyResponse, ResolveChallengeResponse,
+};
 pub use protonpasskey::ProtonPassKey;
 
 pub type PasskeyResult<T> = Result<T, PasskeyError>;

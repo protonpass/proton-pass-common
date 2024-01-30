@@ -106,13 +106,10 @@ pub fn generate_passkey(domain: String, request: String) {
 }
 
 #[wasm_bindgen]
-pub fn resolve_passkey_challenge(domain: String, passkey: js_sys::Uint8Array, challenge_bytes: js_sys::Uint8Array) {
+pub fn resolve_passkey_challenge(domain: String, passkey: js_sys::Uint8Array, request: String) {
     let passkey_as_vec = passkey.to_vec();
-    let challenge_as_vec = challenge_bytes.to_vec();
     let generator = passkey::PasskeyManager::new().unwrap();
-    generator
-        .resolve_challenge(domain, passkey_as_vec, challenge_as_vec)
-        .unwrap();
+    generator.resolve_challenge(domain, passkey_as_vec, request).unwrap();
 }
 
 use crate::password::WasmPasswordScoreResult;

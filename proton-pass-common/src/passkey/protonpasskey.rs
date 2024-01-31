@@ -2,20 +2,31 @@
 
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct ProtonPassKey {
+    #[serde(rename = "key")]
     pub key: ProtonKey,
+    #[serde(rename = "cid")]
     pub credential_id: Vec<u8>,
+    #[serde(rename = "rid")]
     pub rp_id: String,
+    #[serde(rename = "uhd")]
     pub user_handle: Option<Vec<u8>>,
+    #[serde(rename = "cnt")]
     pub counter: Option<u32>,
 }
 
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct ProtonKey {
+    #[serde(rename = "kty")]
     pub kty: ProtonRegisteredLabelKeyType,
+    #[serde(rename = "kid")]
     pub key_id: Vec<u8>,
+    #[serde(rename = "alg")]
     pub alg: Option<ProtonRegisteredLabelWithPrivateAlgorithm>,
+    #[serde(rename = "kops")]
     pub key_ops: Vec<ProtonRegisteredLabelKeyOperation>,
+    #[serde(rename = "biv")]
     pub base_iv: Vec<u8>,
+    #[serde(rename = "par")]
     pub params: Vec<(ProtonLabel, ProtonValue)>,
 }
 
@@ -31,21 +42,31 @@ pub enum ProtonKeyType {
 }
 
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(tag = "t", content = "c")]
 pub enum ProtonRegisteredLabelKeyType {
+    #[serde(rename = "assign")]
     Assigned(ProtonKeyType),
+    #[serde(rename = "txt")]
     Text(String),
 }
 
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(tag = "t", content = "c")]
 pub enum ProtonRegisteredLabelKeyOperation {
+    #[serde(rename = "assign")]
     Assigned(ProtonKeyOperation),
+    #[serde(rename = "txt")]
     Text(String),
 }
 
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(tag = "t", content = "c")]
 pub enum ProtonRegisteredLabelWithPrivateAlgorithm {
+    #[serde(rename = "priv")]
     PrivateUse(i64),
+    #[serde(rename = "assign")]
     Assigned(ProtonAlgorithm),
+    #[serde(rename = "txt")]
     Text(String),
 }
 
@@ -133,23 +154,57 @@ pub enum ProtonKeyOperation {
 }
 
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(tag = "t", content = "c")]
 pub enum ProtonLabel {
+    #[serde(rename = "int")]
     Int(i64),
+    #[serde(rename = "txt")]
     Text(String),
 }
 
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(tag = "t", content = "c")]
 pub enum ProtonValue {
+    #[serde(rename = "int")]
     Integer(ProtonInteger),
+    #[serde(rename = "bytes")]
     Bytes(Vec<u8>),
+    #[serde(rename = "float")]
     Float(f64),
+    #[serde(rename = "txt")]
     Text(String),
+    #[serde(rename = "bool")]
     Bool(bool),
+    #[serde(rename = "null")]
     Null,
+    #[serde(rename = "tag")]
     Tag(u64, Box<ProtonValue>),
+    #[serde(rename = "array")]
     Array(Vec<ProtonValue>),
+    #[serde(rename = "map")]
     Map(Vec<(ProtonValue, ProtonValue)>),
 }
 
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
-pub struct ProtonInteger(pub(crate) i128);
+pub struct ProtonInteger {
+    #[serde(rename = "inner")]
+    inner: Vec<u8>,
+}
+
+impl From<i128> for ProtonInteger {
+    fn from(value: i128) -> Self {
+        Self {
+            inner: value.to_le_bytes().to_vec(),
+        }
+    }
+}
+
+impl From<ProtonInteger> for i128 {
+    fn from(value: ProtonInteger) -> Self {
+        let mut as_bytes: [u8; 16] = [0; 16];
+        for (idx, value) in value.inner.into_iter().enumerate() {
+            as_bytes[idx] = value;
+        }
+        i128::from_le_bytes(as_bytes)
+    }
+}

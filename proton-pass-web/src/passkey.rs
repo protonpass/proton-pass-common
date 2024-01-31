@@ -1,4 +1,6 @@
-use proton_pass_common::passkey::{generate_passkey_for_domain, resolve_challenge_for_domain, PasskeyError, PasskeyResult};
+use proton_pass_common::passkey::{
+    generate_passkey_for_domain, resolve_challenge_for_domain, PasskeyError, PasskeyResult,
+};
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 
@@ -31,7 +33,8 @@ impl PasskeyManager {
     }
 
     pub fn generate_passkey(&self, url: String, request: String) -> PasskeyResult<WasmGeneratePasskeyResponse> {
-        let res = self.rt
+        let res = self
+            .rt
             .handle()
             .block_on(async move { generate_passkey_for_domain(&url, &request).await })?;
 
@@ -52,7 +55,8 @@ impl PasskeyManager {
         passkey: Vec<u8>,
         request: String,
     ) -> PasskeyResult<WasmResolvePasskeyChallengeResponse> {
-        let res = self.rt
+        let res = self
+            .rt
             .handle()
             .block_on(async move { resolve_challenge_for_domain(&url, &passkey, &request).await })?;
 

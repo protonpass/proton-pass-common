@@ -107,7 +107,11 @@ pub fn generate_passkey(domain: String, request: String) -> Result<WasmGenerateP
 }
 
 #[wasm_bindgen]
-pub fn resolve_passkey_challenge(domain: String, passkey: js_sys::Uint8Array, request: String) -> Result<WasmResolvePasskeyChallengeResponse, JsError> {
+pub fn resolve_passkey_challenge(
+    domain: String,
+    passkey: js_sys::Uint8Array,
+    request: String,
+) -> Result<WasmResolvePasskeyChallengeResponse, JsError> {
     let passkey_as_vec = passkey.to_vec();
     let generator = PasskeyManager::new()?;
     Ok(generator.resolve_challenge(domain, passkey_as_vec, request)?)

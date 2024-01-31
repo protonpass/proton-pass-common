@@ -204,7 +204,8 @@ impl From<ProtonValue> for Value {
 
 impl From<ProtonInteger> for Integer {
     fn from(value: ProtonInteger) -> Self {
-        Integer::try_from(value.0).unwrap_or_else(|_| Integer::from(0))
+        let as_i128: i128 = i128::from(value);
+        Integer::try_from(as_i128).unwrap_or_else(|_| Integer::from(0))
     }
 }
 

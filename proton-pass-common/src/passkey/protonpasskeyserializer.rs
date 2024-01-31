@@ -210,14 +210,14 @@ impl From<Value> for ProtonValue {
                 ProtonValue::Map(mapped)
             }
 
-            _ => ProtonValue::Integer(ProtonInteger(0)),
+            _ => ProtonValue::Integer(ProtonInteger::from(0i128)),
         }
     }
 }
 
 impl From<Integer> for ProtonInteger {
     fn from(value: Integer) -> Self {
-        ProtonInteger(i128::from(value))
+        ProtonInteger::from(i128::from(value))
     }
 }
 

@@ -5,6 +5,7 @@ mod passkey;
 mod password;
 mod utils;
 
+use crate::password::WasmPasswordScoreResult;
 use proton_pass_common::password::{get_generator, PassphraseConfig, RandomPasswordConfig};
 use wasm_bindgen::prelude::*;
 
@@ -100,21 +101,21 @@ pub fn detect_credit_card_type(card_number: String) -> WasmCreditCardType {
 }
 
 #[wasm_bindgen]
-pub fn generate_passkey(domain: String, request: String) {
-    let generator = passkey::PasskeyManager::new().unwrap();
-    generator.generate_passkey(domain, request).unwrap();
+pub fn generate_passkey(domain: String, request: String) -> Result<WasmGeneratePasskeyResponse, JsError> {
+    let generator = PasskeyManager::new()?;
+    Ok(generator.generate_passkey(domain, request)?)
 }
 
 #[wasm_bindgen]
-pub fn resolve_passkey_challenge(domain: String, passkey: js_sys::Uint8Array, request: String) {
+pub fn resolve_passkey_challenge(domain: String, passkey: js_sys::Uint8Array, request: String) -> Result<WasmResolvePasskeyChallengeResponse, JsError> {
     let passkey_as_vec = passkey.to_vec();
-    let generator = passkey::PasskeyManager::new().unwrap();
-    generator.resolve_challenge(domain, passkey_as_vec, request).unwrap();
+    let generator = PasskeyManager::new()?;
+    Ok(generator.resolve_challenge(domain, passkey_as_vec, request)?)
 }
 
-use crate::password::WasmPasswordScoreResult;
 pub use common::WasmStringList;
 pub use creditcard::WasmCreditCardType;
 pub use login::WasmLogin;
+pub use passkey::{PasskeyManager, WasmGeneratePasskeyResponse, WasmResolvePasskeyChallengeResponse};
 pub use password::{WasmPassphraseConfig, WasmPasswordScore, WasmRandomPasswordConfig};
 pub use utils::set_panic_hook;

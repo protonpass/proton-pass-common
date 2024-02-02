@@ -8,11 +8,14 @@ use url::Url;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct CreatePassKeyResponse {
-    pub passkey: Vec<u8>,
     pub credential: CreatedPublicKeyCredential,
+    pub passkey: Vec<u8>,
+    pub domain: String,
+    pub rp_id: Option<String>,
     pub rp_name: String,
     pub user_name: String,
     pub user_display_name: String,
+    pub user_id: Vec<u8>,
 }
 
 impl CreatePassKeyResponse {
@@ -31,7 +34,13 @@ async fn generate_passkey(
 
     let request = CredentialCreationOptions { public_key: request };
 
+    let domain = match origin.domain() {
+        Some(d) => d.to_string(),
+        None => request.public_key.rp.name.to_string(),
+    };
+    let rp_id = request.public_key.rp.id.clone();
     let rp_name = request.public_key.rp.name.clone();
+    let user_id = request.public_key.user.id.to_vec();
     let user_name = request.public_key.user.name.clone();
     let user_display_name = request.public_key.user.display_name.clone();
 
@@ -50,6 +59,9 @@ async fn generate_passkey(
             rp_name,
             user_name,
             user_display_name,
+            rp_id,
+            user_id,
+            domain,
         })
     } else {
         Err(PasskeyError::GenerationError(

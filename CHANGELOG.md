@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.6.0
+
+### Features :tada:
+
+- Initial passkey support.
+
 ## 0.5.6
 
 ### Fixes :bug:

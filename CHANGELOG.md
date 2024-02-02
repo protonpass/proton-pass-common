@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.6.1
+
+### Other
+
+- Expose more information when generating passkeys.
+
 ## 0.6.0
 
 ### Features :tada:

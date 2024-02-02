@@ -3,6 +3,7 @@ use proton_pass_common::passkey::{
 };
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
+use wasm_bindgen::prelude::wasm_bindgen;
 
 pub struct PasskeyManager {
     rt: tokio::runtime::Runtime,
@@ -11,11 +12,14 @@ pub struct PasskeyManager {
 #[derive(Tsify, Deserialize, Serialize)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct WasmGeneratePasskeyResponse {
-    pub passkey: Vec<u8>,
     pub response: String,
+    pub passkey: Vec<u8>,
+    pub domain: String,
+    pub rp_id: Option<String>,
     pub rp_name: String,
     pub user_name: String,
     pub user_display_name: String,
+    pub user_id: Vec<u8>,
 }
 
 #[derive(Tsify, Deserialize, Serialize)]
@@ -41,11 +45,14 @@ impl PasskeyManager {
         let response = res.response()?;
 
         Ok(WasmGeneratePasskeyResponse {
-            passkey: res.passkey,
             response,
+            passkey: res.passkey,
+            domain: res.domain,
+            rp_id: res.rp_id,
             rp_name: res.rp_name,
             user_name: res.user_name,
             user_display_name: res.user_display_name,
+            user_id: res.user_id,
         })
     }
 

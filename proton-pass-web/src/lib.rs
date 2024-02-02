@@ -10,6 +10,11 @@ use proton_pass_common::password::{get_generator, PassphraseConfig, RandomPasswo
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
+pub fn pass_common_set_panic_hook() {
+    set_panic_hook()
+}
+
+#[wasm_bindgen]
 pub fn library_version() -> String {
     proton_pass_common::library_version()
 }

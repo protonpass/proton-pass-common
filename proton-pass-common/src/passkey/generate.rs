@@ -9,6 +9,7 @@ use url::Url;
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct CreatePassKeyResponse {
     pub credential: CreatedPublicKeyCredential,
+    pub key_id: String,
     pub passkey: Vec<u8>,
     pub domain: String,
     pub rp_id: Option<String>,
@@ -23,6 +24,14 @@ impl CreatePassKeyResponse {
         serde_json::to_string(&self.credential)
             .map_err(|e| PasskeyError::SerializationError(format!("Error serializing credential: {:?}", e)))
     }
+}
+
+fn vec_to_hex(vec: &[u8]) -> String {
+    let mut output = String::new();
+    for byte in vec {
+        output.push_str(&format!("{:02X}", byte))
+    }
+    output
 }
 
 async fn generate_passkey(
@@ -51,11 +60,13 @@ async fn generate_passkey(
         .map_err(|e| PasskeyError::GenerationError(format!("failed to generate passkey: {:?}", e)))?;
     if let Some(pk) = my_client.authenticator().store() {
         let converted = ProtonPassKey::from(pk.clone());
+        let key_id = vec_to_hex(&converted.credential_id);
         let serialized = serialize_passkey(&converted)?;
 
         Ok(CreatePassKeyResponse {
             passkey: serialized,
             credential: my_webauthn_credential,
+            key_id,
             rp_name,
             user_name,
             user_display_name,

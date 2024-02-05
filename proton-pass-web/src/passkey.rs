@@ -14,6 +14,7 @@ pub struct PasskeyManager {
 pub struct WasmGeneratePasskeyResponse {
     pub response: String,
     pub passkey: Vec<u8>,
+    pub key_id: String,
     pub domain: String,
     pub rp_id: Option<String>,
     pub rp_name: String,
@@ -46,6 +47,7 @@ impl PasskeyManager {
 
         Ok(WasmGeneratePasskeyResponse {
             response,
+            key_id: res.key_id,
             passkey: res.passkey,
             domain: res.domain,
             rp_id: res.rp_id,

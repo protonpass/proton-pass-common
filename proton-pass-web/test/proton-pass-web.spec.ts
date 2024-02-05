@@ -50,5 +50,6 @@ describe("ProtonPassWeb WASM", () => {
         expect(response.response).not.toBeEmpty();
         expect(response.passkey).not.toBeEmpty()
         expect(response.user_id).not.toBeEmpty();
+        expect(response.key_id).not.toBeEmpty();
     });
 });

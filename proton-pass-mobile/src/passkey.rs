@@ -3,6 +3,7 @@ use proton_pass_common::passkey::{generate_passkey_for_domain, resolve_challenge
 
 pub struct CreatePasskeyResponse {
     pub response: String,
+    pub key_id: String,
     pub passkey: Vec<u8>,
     pub domain: String,
     pub rp_id: Option<String>,
@@ -30,6 +31,7 @@ impl PasskeyManager {
                 Ok(r) => match r.response() {
                     Ok(response) => Ok(CreatePasskeyResponse {
                         response,
+                        key_id: r.key_id,
                         passkey: r.passkey,
                         domain: r.domain,
                         rp_id: r.rp_id,

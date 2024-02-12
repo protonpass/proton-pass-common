@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.6.3
+
+### Other
+
+- Offer functions for parsing the passkey creation request.
+
 ## 0.6.2
 
 ### Other

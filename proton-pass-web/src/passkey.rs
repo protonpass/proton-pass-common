@@ -1,5 +1,5 @@
 use proton_pass_common::passkey::{
-    generate_passkey_for_domain, resolve_challenge_for_domain, PasskeyError, PasskeyResult,
+    generate_passkey_for_domain, parse_create_passkey_data, resolve_challenge_for_domain, PasskeyError, PasskeyResult,
 };
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
@@ -27,6 +27,15 @@ pub struct WasmGeneratePasskeyResponse {
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct WasmResolvePasskeyChallengeResponse {
     pub response: String,
+}
+
+#[derive(Tsify, Deserialize, Serialize)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct WasmCreatePasskeyData {
+    pub rp_id: Option<String>,
+    pub rp_name: String,
+    pub user_name: String,
+    pub user_display_name: String,
 }
 
 impl PasskeyManager {
@@ -72,5 +81,14 @@ impl PasskeyManager {
         let response = res.response()?;
 
         Ok(WasmResolvePasskeyChallengeResponse { response })
+    }
+
+    pub fn parse_create_request(&self, request: String) -> PasskeyResult<WasmCreatePasskeyData> {
+        parse_create_passkey_data(&request).map(|d| WasmCreatePasskeyData {
+            rp_id: d.rp_id,
+            rp_name: d.rp_name,
+            user_name: d.user_name,
+            user_display_name: d.user_display_name,
+        })
     }
 }

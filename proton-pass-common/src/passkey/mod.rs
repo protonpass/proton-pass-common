@@ -5,7 +5,7 @@ mod protonpasskeydeserializer;
 mod protonpasskeyserializer;
 mod resolve;
 
-pub use generate::{generate_passkey_for_domain, CreatePassKeyResponse};
+pub use generate::{generate_passkey_for_domain, parse_create_passkey_data, CreatePassKeyResponse, CreatePasskeyData};
 pub use protonpasskey::ProtonPassKey;
 pub use resolve::{resolve_challenge_for_domain, ResolveChallengeResponse};
 

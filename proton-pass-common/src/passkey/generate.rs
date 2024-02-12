@@ -88,3 +88,22 @@ pub async fn generate_passkey_for_domain(url: &str, request: &str) -> PasskeyRes
         .map_err(|e| PasskeyError::SerializationError(format!("Error parsing request: {:?}", e)))?;
     generate_passkey(origin, parsed).await
 }
+
+pub struct CreatePasskeyData {
+    pub rp_id: Option<String>,
+    pub rp_name: String,
+    pub user_name: String,
+    pub user_display_name: String,
+}
+
+pub fn parse_create_passkey_data(request: &str) -> PasskeyResult<CreatePasskeyData> {
+    let parsed: PublicKeyCredentialCreationOptions = serde_json::from_str(request)
+        .map_err(|e| PasskeyError::SerializationError(format!("Error parsing request: {:?}", e)))?;
+
+    Ok(CreatePasskeyData {
+        rp_id: parsed.rp.id,
+        rp_name: parsed.rp.name,
+        user_name: parsed.user.name,
+        user_display_name: parsed.user.display_name,
+    })
+}

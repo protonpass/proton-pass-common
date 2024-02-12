@@ -107,8 +107,8 @@ pub fn detect_credit_card_type(card_number: String) -> WasmCreditCardType {
 
 #[wasm_bindgen]
 pub fn generate_passkey(domain: String, request: String) -> Result<WasmGeneratePasskeyResponse, JsError> {
-    let generator = PasskeyManager::new()?;
-    Ok(generator.generate_passkey(domain, request)?)
+    let manager = PasskeyManager::new()?;
+    Ok(manager.generate_passkey(domain, request)?)
 }
 
 #[wasm_bindgen]
@@ -118,10 +118,17 @@ pub fn resolve_passkey_challenge(
     request: String,
 ) -> Result<WasmResolvePasskeyChallengeResponse, JsError> {
     let passkey_as_vec = passkey.to_vec();
-    let generator = PasskeyManager::new()?;
-    Ok(generator.resolve_challenge(domain, passkey_as_vec, request)?)
+    let manager = PasskeyManager::new()?;
+    Ok(manager.resolve_challenge(domain, passkey_as_vec, request)?)
 }
 
+#[wasm_bindgen]
+pub fn parse_create_passkey_data(request: String) -> Result<WasmCreatePasskeyData, JsError> {
+    let manager = PasskeyManager::new()?;
+    Ok(manager.parse_create_request(request)?)
+}
+
+use crate::passkey::WasmCreatePasskeyData;
 pub use common::WasmStringList;
 pub use creditcard::WasmCreditCardType;
 pub use login::WasmLogin;

@@ -20,6 +20,13 @@ dictionary CreatePasskeyResponse {
 
 };
 
+dictionary CreatePasskeyData {
+    string? rp_id;
+    string rp_name;
+    string user_name;
+    string user_display_name;
+};
+
 interface PasskeyManager {
     [Throws=PasskeyError]
     constructor();
@@ -29,4 +36,7 @@ interface PasskeyManager {
 
     [Throws=PasskeyError]
     string resolve_challenge(string url, bytes passkey, string request);
+
+    [Throws=PasskeyError]
+    CreatePasskeyData parse_create_request(string request);
 };

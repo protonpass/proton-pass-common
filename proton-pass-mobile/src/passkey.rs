@@ -1,5 +1,7 @@
 pub use proton_pass_common::passkey::PasskeyError;
-use proton_pass_common::passkey::{generate_passkey_for_domain, resolve_challenge_for_domain, PasskeyResult};
+use proton_pass_common::passkey::{
+    generate_passkey_for_domain, parse_create_passkey_data, resolve_challenge_for_domain, PasskeyResult,
+};
 
 pub struct CreatePasskeyResponse {
     pub response: String,
@@ -11,6 +13,13 @@ pub struct CreatePasskeyResponse {
     pub user_name: String,
     pub user_display_name: String,
     pub user_id: Vec<u8>,
+}
+
+pub struct CreatePasskeyData {
+    pub rp_id: Option<String>,
+    pub rp_name: String,
+    pub user_name: String,
+    pub user_display_name: String,
 }
 
 pub struct PasskeyManager {
@@ -68,6 +77,15 @@ impl PasskeyManager {
                     Err(e)
                 }
             }
+        })
+    }
+
+    pub fn parse_create_request(&self, request: String) -> PasskeyResult<CreatePasskeyData> {
+        parse_create_passkey_data(&request).map(|d| CreatePasskeyData {
+            rp_id: d.rp_id,
+            rp_name: d.rp_name,
+            user_name: d.user_name,
+            user_display_name: d.user_display_name,
         })
     }
 }

@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.6.4
+
+### Other
+
+- Make passkey resolve challenge resilient to domain without protocol.
+
 ## 0.6.3
 
 ### Other

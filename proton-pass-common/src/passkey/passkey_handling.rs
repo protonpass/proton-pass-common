@@ -1,6 +1,7 @@
 use super::{PasskeyError, PasskeyResult, ProtonPassKey};
 use passkey::authenticator::{Authenticator, UserValidationMethod};
 use passkey_types::{ctap2::Aaguid, Passkey};
+use url::{ParseError, Url};
 
 const CONTENT_FORMAT_VERSION: u8 = 1;
 
@@ -63,6 +64,21 @@ pub(crate) fn deserialize_passkey(content: &[u8]) -> PasskeyResult<ProtonPassKey
             "Unknown SerializedPassKey format_version {}",
             deserialized.format_version
         ))),
+    }
+}
+
+pub(crate) fn parse_url(url: &str) -> PasskeyResult<Url> {
+    match Url::parse(url) {
+        Ok(url) => Ok(url),
+        Err(err) => {
+            if let ParseError::RelativeUrlWithoutBase = err {
+                let with_protocol = format!("https://{}", url);
+                Ok(Url::parse(&with_protocol)
+                    .map_err(|e| PasskeyError::InvalidUri(format!("Error parsing uri: {:?}", e)))?)
+            } else {
+                Err(PasskeyError::InvalidUri(format!("Error parsing uri: {:?}", err)))
+            }
+        }
     }
 }
 

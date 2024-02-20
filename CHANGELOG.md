@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.6.5
+
+### Other
+
+- Allow url without schema in passkey generation.
+
 ## 0.6.4
 
 ### Other

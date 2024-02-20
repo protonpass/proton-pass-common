@@ -1,10 +1,10 @@
-use super::passkey_handling::{deserialize_passkey, get_authenticator};
+use super::passkey_handling::{deserialize_passkey, get_authenticator, parse_url};
 use super::{PasskeyError, PasskeyResult, ProtonPassKey};
 use passkey::client::Client;
 use passkey_types::webauthn::{
     AuthenticatedPublicKeyCredential, CredentialRequestOptions, PublicKeyCredentialRequestOptions,
 };
-use url::{ParseError, Url};
+use url::Url;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct ResolveChallengeResponse {
@@ -40,19 +40,7 @@ pub async fn resolve_challenge_for_domain(
     pk: &[u8],
     request: &str,
 ) -> PasskeyResult<ResolveChallengeResponse> {
-    let origin = match Url::parse(url) {
-        Ok(url) => url,
-        Err(err) => {
-            if let ParseError::RelativeUrlWithoutBase = err {
-                let with_protocol = format!("https://{}", url);
-                Url::parse(&with_protocol)
-                    .map_err(|e| PasskeyError::InvalidUri(format!("Error parsing uri: {:?}", e)))?
-            } else {
-                return Err(PasskeyError::InvalidUri(format!("Error parsing uri: {:?}", err)));
-            }
-        }
-    };
-
+    let origin = parse_url(url)?;
     let deserialized = deserialize_passkey(pk)?;
     resolve_challenge(origin, &deserialized, request).await
 }

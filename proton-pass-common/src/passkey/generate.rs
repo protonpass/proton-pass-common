@@ -1,4 +1,4 @@
-use super::passkey_handling::{get_authenticator, serialize_passkey};
+use super::passkey_handling::{get_authenticator, parse_url, serialize_passkey};
 use super::{PasskeyError, PasskeyResult, ProtonPassKey};
 use passkey::client::Client;
 use passkey_types::webauthn::{
@@ -82,7 +82,7 @@ async fn generate_passkey(
 }
 
 pub async fn generate_passkey_for_domain(url: &str, request: &str) -> PasskeyResult<CreatePassKeyResponse> {
-    let origin = Url::parse(url).map_err(|e| PasskeyError::InvalidUri(format!("Error parsing uri: {:?}", e)))?;
+    let origin = parse_url(url)?;
 
     let parsed: PublicKeyCredentialCreationOptions = serde_json::from_str(request)
         .map_err(|e| PasskeyError::SerializationError(format!("Error parsing request: {:?}", e)))?;

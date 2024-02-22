@@ -1,6 +1,9 @@
-pub use proton_pass_common::passkey::PasskeyError;
 use proton_pass_common::passkey::{
-    generate_passkey_for_domain, parse_create_passkey_data, resolve_challenge_for_domain, PasskeyResult,
+    generate_passkey_for_domain, generate_passkey_for_ios, parse_create_passkey_data, resolve_challenge_for_domain,
+    PasskeyResult,
+};
+pub use proton_pass_common::passkey::{
+    CreatePasskeyIosRequest, CreatePasskeyIosResponse, CreatePasskeyIosResponseData, PasskeyError,
 };
 
 pub struct CreatePasskeyResponse {
@@ -56,6 +59,18 @@ impl PasskeyManager {
                 },
                 Err(e) => {
                     println!("Error in generate_passkey: {:?}", e);
+                    Err(e)
+                }
+            }
+        })
+    }
+
+    pub fn generate_ios_passkey(&self, request: CreatePasskeyIosRequest) -> PasskeyResult<CreatePasskeyIosResponse> {
+        self.rt.handle().block_on(async move {
+            match generate_passkey_for_ios(request).await {
+                Ok(r) => Ok(r),
+                Err(e) => {
+                    println!("Error in generate_passkey_for_ios: {:?}", e);
                     Err(e)
                 }
             }

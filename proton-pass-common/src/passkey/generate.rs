@@ -1,9 +1,11 @@
 use super::passkey_handling::{get_authenticator, parse_url, serialize_passkey};
 use super::{PasskeyError, PasskeyResult, ProtonPassKey};
+use coset::iana;
+use coset::iana::EnumI64;
 use passkey::client::Client;
 use passkey_types::webauthn::{
     CreatedPublicKeyCredential, CredentialCreationOptions, PublicKeyCredentialCreationOptions,
-    PublicKeyCredentialRpEntity, PublicKeyCredentialUserEntity,
+    PublicKeyCredentialParameters, PublicKeyCredentialRpEntity, PublicKeyCredentialType, PublicKeyCredentialUserEntity,
 };
 use passkey_types::Bytes;
 use url::Url;
@@ -98,6 +100,7 @@ pub struct CreatePasskeyIosRequest {
     pub user_name: String,
     pub user_handle: Vec<u8>,
     pub client_data_hash: Vec<u8>,
+    pub supported_algorithms: Vec<i64>,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -123,6 +126,17 @@ pub struct CreatePasskeyIosResponse {
 
 pub async fn generate_passkey_for_ios(ios_request: CreatePasskeyIosRequest) -> PasskeyResult<CreatePasskeyIosResponse> {
     let url = parse_url(&ios_request.service_identifier)?;
+    let mut pub_key_cred_params = vec![];
+
+    for algorithm in ios_request.supported_algorithms {
+        if let Some(alg) = iana::Algorithm::from_i64(algorithm) {
+            pub_key_cred_params.push(PublicKeyCredentialParameters {
+                ty: PublicKeyCredentialType::PublicKey,
+                alg,
+            });
+        }
+    }
+
     let options = PublicKeyCredentialCreationOptions {
         rp: PublicKeyCredentialRpEntity {
             id: Some(ios_request.service_identifier.clone()),
@@ -134,7 +148,7 @@ pub async fn generate_passkey_for_ios(ios_request: CreatePasskeyIosRequest) -> P
             name: ios_request.user_name,
         },
         challenge: Bytes::from(Vec::new()),
-        pub_key_cred_params: vec![],
+        pub_key_cred_params,
         timeout: None,
         exclude_credentials: None,
         authenticator_selection: None,

@@ -33,6 +33,7 @@ dictionary CreatePasskeyIosRequest {
     string user_name;
     bytes user_handle;
     bytes client_data_hash;
+    sequence<i64> supported_algorithms;
 };
 
 dictionary CreatePasskeyIosResponseData {

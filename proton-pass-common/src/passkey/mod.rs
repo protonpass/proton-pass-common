@@ -10,7 +10,10 @@ pub use generate::{
     CreatePasskeyData, CreatePasskeyIosRequest, CreatePasskeyIosResponse, CreatePasskeyIosResponseData,
 };
 pub use protonpasskey::ProtonPassKey;
-pub use resolve::{resolve_challenge_for_domain, ResolveChallengeResponse};
+pub use resolve::{
+    resolve_challenge_for_domain, resolve_challenge_for_ios, AuthenticateWithPasskeyIosRequest,
+    AuthenticateWithPasskeyIosResponse, ResolveChallengeResponse,
+};
 
 pub type PasskeyResult<T> = Result<T, PasskeyError>;
 

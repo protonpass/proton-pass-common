@@ -35,6 +35,60 @@ async fn resolve_challenge(origin: Url, pk: &ProtonPassKey, request: &str) -> Pa
     Ok(ResolveChallengeResponse { response: res })
 }
 
+pub struct AuthenticateWithPasskeyIosRequest {
+    pub service_identifier: String,
+    pub passkey: Vec<u8>,
+    pub client_data_hash: Vec<u8>,
+}
+
+pub struct AuthenticateWithPasskeyIosResponse {
+    pub user_handle: Vec<u8>,
+    pub relying_party: String,
+    pub signature: Vec<u8>,
+    pub client_data_hash: Vec<u8>,
+    pub authenticator_data: Vec<u8>,
+    pub credential_id: Vec<u8>,
+}
+
+pub async fn resolve_challenge_for_ios(
+    request: AuthenticateWithPasskeyIosRequest,
+) -> PasskeyResult<AuthenticateWithPasskeyIosResponse> {
+    let url = parse_url(&request.service_identifier)?;
+    let deserialized = deserialize_passkey(&request.passkey)?;
+    let credential_request = CredentialRequestOptions {
+        public_key: PublicKeyCredentialRequestOptions {
+            challenge: Default::default(),
+            timeout: None,
+            rp_id: Some(request.service_identifier.clone()),
+            allow_credentials: None,
+            user_verification: Default::default(),
+            hints: None,
+            attestation: Default::default(),
+            attestation_formats: None,
+            extensions: None,
+        },
+    };
+
+    let authenticator = get_authenticator(Some(deserialized));
+    let client = Client::new(authenticator);
+    let res = client
+        .authenticate(&url, credential_request, Some(request.client_data_hash.clone()))
+        .await
+        .map_err(|e| PasskeyError::ResolveChallengeError(format!("Error authenticating: {:?}", e)))?;
+
+    let user_handle = res.response.user_handle.map(|h| h.to_vec()).unwrap_or_default();
+
+    let response = AuthenticateWithPasskeyIosResponse {
+        user_handle,
+        relying_party: request.service_identifier,
+        signature: res.response.signature.to_vec(),
+        client_data_hash: request.client_data_hash,
+        authenticator_data: res.response.authenticator_data.to_vec(),
+        credential_id: res.raw_id.to_vec(),
+    };
+    Ok(response)
+}
+
 pub async fn resolve_challenge_for_domain(
     url: &str,
     pk: &[u8],

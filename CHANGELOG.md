@@ -8,6 +8,10 @@
 
 ## 0.6.5
 
+### Features :tada:
+
+- Prepare API to allow iOS to generate passkeys.
+
 ### Other
 
 - Allow url without schema in passkey generation.

@@ -97,6 +97,7 @@ pub struct CreatePasskeyIosRequest {
     pub rp_id: String,
     pub user_name: String,
     pub user_handle: Vec<u8>,
+    pub client_data_hash: Vec<u8>,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -160,7 +161,7 @@ pub async fn generate_passkey_for_ios(ios_request: CreatePasskeyIosRequest) -> P
 
     // Now create the credential.
     let my_webauthn_credential = my_client
-        .register(&url, request, None)
+        .register(&url, request, Some(ios_request.client_data_hash))
         .await
         .map_err(|e| PasskeyError::GenerationError(format!("failed to generate passkey: {:?}", e)))?;
     if let Some(pk) = my_client.authenticator().store() {

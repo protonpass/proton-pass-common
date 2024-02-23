@@ -32,6 +32,7 @@ dictionary CreatePasskeyIosRequest {
     string rp_id;
     string user_name;
     bytes user_handle;
+    bytes client_data_hash;
 };
 
 dictionary CreatePasskeyIosResponseData {

@@ -6,8 +6,8 @@ mod protonpasskeyserializer;
 mod resolve;
 
 pub use generate::{
-    generate_passkey_for_domain, generate_passkey_for_ios, parse_create_passkey_data, CreatePassKeyResponse,
-    CreatePasskeyData, CreatePasskeyIosRequest, CreatePasskeyIosResponse, CreatePasskeyIosResponseData,
+    generate_passkey_for_domain, generate_passkey_for_ios, parse_create_passkey_data, CreatePasskeyData,
+    CreatePasskeyIosRequest, CreatePasskeyResponse,
 };
 pub use protonpasskey::ProtonPassKey;
 pub use resolve::{

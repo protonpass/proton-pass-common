@@ -3,8 +3,7 @@ use proton_pass_common::passkey::{
     resolve_challenge_for_ios, PasskeyResult,
 };
 pub use proton_pass_common::passkey::{
-    AuthenticateWithPasskeyIosRequest, AuthenticateWithPasskeyIosResponse, CreatePasskeyIosRequest,
-    CreatePasskeyIosResponse, CreatePasskeyIosResponseData, PasskeyError,
+    AuthenticateWithPasskeyIosRequest, AuthenticateWithPasskeyIosResponse, CreatePasskeyIosRequest, PasskeyError,
 };
 
 pub struct CreatePasskeyResponse {
@@ -17,6 +16,22 @@ pub struct CreatePasskeyResponse {
     pub user_name: String,
     pub user_display_name: String,
     pub user_id: Vec<u8>,
+    pub credential_id: Vec<u8>,
+    pub user_handle: Option<Vec<u8>>,
+}
+
+pub struct CreatePasskeyIosResponse {
+    pub key_id: String,
+    pub passkey: Vec<u8>,
+    pub domain: String,
+    pub rp_id: Option<String>,
+    pub rp_name: String,
+    pub user_name: String,
+    pub user_display_name: String,
+    pub user_id: Vec<u8>,
+    pub credential_id: Vec<u8>,
+    pub client_data_hash: Vec<u8>,
+    pub user_handle: Option<Vec<u8>>,
 }
 
 pub struct CreatePasskeyData {
@@ -52,6 +67,8 @@ impl PasskeyManager {
                         user_name: r.user_name,
                         user_display_name: r.user_display_name,
                         user_id: r.user_id,
+                        credential_id: r.credential_id,
+                        user_handle: r.user_handle,
                     }),
                     Err(e) => {
                         println!("Error in generate_passkey: {:?}", e);
@@ -75,6 +92,19 @@ impl PasskeyManager {
                     Err(e)
                 }
             }
+            .map(|r| CreatePasskeyIosResponse {
+                key_id: r.key_id,
+                passkey: r.passkey,
+                domain: r.domain,
+                rp_id: r.rp_id,
+                rp_name: r.rp_name,
+                user_name: r.user_name,
+                user_display_name: r.user_display_name,
+                user_id: r.user_id,
+                credential_id: r.credential_id,
+                client_data_hash: r.client_data_hash,
+                user_handle: r.user_handle,
+            })
         })
     }
 

@@ -17,7 +17,22 @@ dictionary CreatePasskeyResponse {
     string user_name;
     string user_display_name;
     bytes user_id;
+    bytes credential_id;
+    bytes? user_handle;
+};
 
+dictionary CreatePasskeyIosResponse {
+    bytes passkey;
+    string key_id;
+    string domain;
+    string? rp_id;
+    string rp_name;
+    string user_name;
+    string user_display_name;
+    bytes user_id;
+    bytes credential_id;
+    bytes client_data_hash;
+    bytes? user_handle;
 };
 
 dictionary CreatePasskeyData {
@@ -34,25 +49,6 @@ dictionary CreatePasskeyIosRequest {
     bytes user_handle;
     bytes client_data_hash;
     sequence<i64> supported_algorithms;
-};
-
-dictionary CreatePasskeyIosResponseData {
-    string relying_party;
-    bytes client_data_hash;
-    bytes credential_id;
-    bytes attestation_object;
-};
-
-dictionary CreatePasskeyIosResponse {
-    bytes passkey;
-    string key_id;
-    string domain;
-    string? rp_id;
-    string rp_name;
-    string user_name;
-    string user_display_name;
-    bytes user_id;
-    CreatePasskeyIosResponseData ios_data;
 };
 
 dictionary AuthenticateWithPasskeyIosRequest {

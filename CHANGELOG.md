@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.6.6
+
+### Features
+
+- Add credential_id & user_handle to create passkey response.
+
 ## 0.6.5
 
 ### Features :tada:

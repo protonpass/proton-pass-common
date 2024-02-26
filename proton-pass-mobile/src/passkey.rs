@@ -32,6 +32,7 @@ pub struct CreatePasskeyIosResponse {
     pub credential_id: Vec<u8>,
     pub client_data_hash: Vec<u8>,
     pub user_handle: Option<Vec<u8>>,
+    pub attestation_object: Vec<u8>,
 }
 
 pub struct CreatePasskeyData {
@@ -104,6 +105,7 @@ impl PasskeyManager {
                 credential_id: r.credential_id,
                 client_data_hash: r.client_data_hash,
                 user_handle: r.user_handle,
+                attestation_object: r.attestation_object,
             })
         })
     }

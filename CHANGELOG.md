@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.6.7
+
+### Other
+
+- Add attestation_object to create passkey response for iOS.
+
 ## 0.6.6
 
 ### Features

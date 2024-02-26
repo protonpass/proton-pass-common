@@ -33,6 +33,7 @@ dictionary CreatePasskeyIosResponse {
     bytes credential_id;
     bytes client_data_hash;
     bytes? user_handle;
+    bytes attestation_object;
 };
 
 dictionary CreatePasskeyData {

@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.6.9
+
+### Fixes
+
+- Versioning fixes.
+
 ## 0.6.8
 
 ### Other

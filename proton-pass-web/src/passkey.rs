@@ -21,6 +21,10 @@ pub struct WasmGeneratePasskeyResponse {
     pub user_name: String,
     pub user_display_name: String,
     pub user_id: Vec<u8>,
+    pub credential_id: Vec<u8>,
+    pub user_handle: Option<Vec<u8>>,
+    pub client_data_hash: Vec<u8>,
+    pub attestation_object: Vec<u8>,
 }
 
 #[derive(Tsify, Deserialize, Serialize)]
@@ -64,6 +68,10 @@ impl PasskeyManager {
             user_name: res.user_name,
             user_display_name: res.user_display_name,
             user_id: res.user_id,
+            credential_id: res.credential_id,
+            user_handle: res.user_handle,
+            client_data_hash: res.client_data_hash,
+            attestation_object: res.attestation_object,
         })
     }
 

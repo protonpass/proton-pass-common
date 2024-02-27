@@ -6,6 +6,13 @@
 
 ### Other
 
+## 0.6.8
+
+### Other
+
+- Configure Passkey authenticator display name.
+- Expose new passkey fields to web.
+
 ## 0.6.7
 
 ### Other

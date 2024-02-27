@@ -39,7 +39,9 @@ pub(crate) fn get_authenticator(pk: Option<ProtonPassKey>) -> Authenticator<Opti
     let user_validation_method = MyUserValidationMethod {};
 
     let store: Option<Passkey> = pk.map(Passkey::from);
-    Authenticator::new(my_aaguid, store, user_validation_method)
+    let mut authenticator = Authenticator::new(my_aaguid, store, user_validation_method);
+    authenticator.set_display_name("Proton Pass".to_string());
+    authenticator
 }
 
 pub(crate) fn serialize_passkey(pk: &ProtonPassKey) -> PasskeyResult<Vec<u8>> {

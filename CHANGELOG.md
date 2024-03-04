@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.6.10
+
+### Other
+
+- Include custom AAGUID when generating passkeys.
+
 ## 0.6.9
 
 ### Fixes

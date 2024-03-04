@@ -36,7 +36,9 @@ impl UserValidationMethod for MyUserValidationMethod {
 
 pub(crate) fn get_authenticator(pk: Option<ProtonPassKey>) -> Authenticator<Option<Passkey>, MyUserValidationMethod> {
     // AAGUID: e8d0897d-cc95-477d-8fe6-e476c01ff2fe
-    let my_aaguid = Aaguid::from([0xe8, 0xd0, 0x89, 0x7d, 0xcc, 0x95, 0x47, 0x7d, 0x8f, 0xe6, 0xe4, 0x76, 0xc0, 0x1f, 0xf2, 0xfe]);
+    let my_aaguid = Aaguid::from([
+        0xe8, 0xd0, 0x89, 0x7d, 0xcc, 0x95, 0x47, 0x7d, 0x8f, 0xe6, 0xe4, 0x76, 0xc0, 0x1f, 0xf2, 0xfe,
+    ]);
     let user_validation_method = MyUserValidationMethod {};
 
     let store: Option<Passkey> = pk.map(Passkey::from);

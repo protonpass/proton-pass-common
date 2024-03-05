@@ -3,6 +3,12 @@ use passkey::authenticator::{Authenticator, UserValidationMethod};
 use passkey_types::{ctap2::Aaguid, Passkey};
 use url::{ParseError, Url};
 
+// AAGUID: 50726f74-6f6e-5061-7373-50726f746f6e
+const AAGUID: [u8; 16] = [
+    0x50, 0x72, 0x6F, 0x74, 0x6F, 0x6E, 0x50, 0x61, 0x73, 0x73, // ProtonPass
+    0x50, 0x72, 0x6F, 0x74, 0x6F, 0x6E, // ProtonAG
+];
+
 const CONTENT_FORMAT_VERSION: u8 = 1;
 
 pub(crate) struct MyUserValidationMethod {}
@@ -35,10 +41,7 @@ impl UserValidationMethod for MyUserValidationMethod {
 }
 
 pub(crate) fn get_authenticator(pk: Option<ProtonPassKey>) -> Authenticator<Option<Passkey>, MyUserValidationMethod> {
-    // AAGUID: e8d0897d-cc95-477d-8fe6-e476c01ff2fe
-    let my_aaguid = Aaguid::from([
-        0xe8, 0xd0, 0x89, 0x7d, 0xcc, 0x95, 0x47, 0x7d, 0x8f, 0xe6, 0xe4, 0x76, 0xc0, 0x1f, 0xf2, 0xfe,
-    ]);
+    let my_aaguid = Aaguid::from(AAGUID);
     let user_validation_method = MyUserValidationMethod {};
 
     let store: Option<Passkey> = pk.map(Passkey::from);

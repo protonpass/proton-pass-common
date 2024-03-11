@@ -5,7 +5,7 @@ use proton_pass_common::passkey::{
 use proton_pass_common::passkey_types::webauthn::{
     AuthenticatedPublicKeyCredential, AuthenticatorAssertionResponse, AuthenticatorAttachment,
     AuthenticatorAttestationResponse, AuthenticatorExtensionsClientOutputs, AuthenticatorTransport,
-    CreatedPublicKeyCredential, CredentialPropertiesOutput,
+    CreatedPublicKeyCredential, CredentialPropertiesOutput, PublicKeyCredentialType,
 };
 
 use serde::{Deserialize, Serialize};
@@ -18,6 +18,7 @@ pub struct PasskeyManager {
 
 #[derive(Tsify, Deserialize, Serialize)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
+#[serde(rename_all = "kebab-case")]
 pub enum WasmAuthenticatorAttachment {
     Platform,
     CrossPlatform,
@@ -28,6 +29,23 @@ impl From<AuthenticatorAttachment> for WasmAuthenticatorAttachment {
         match value {
             AuthenticatorAttachment::Platform => WasmAuthenticatorAttachment::Platform,
             AuthenticatorAttachment::CrossPlatform => WasmAuthenticatorAttachment::CrossPlatform,
+        }
+    }
+}
+
+#[derive(Tsify, Deserialize, Serialize)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+#[serde(rename_all = "kebab-case")]
+pub enum WasmPublicKeyCredentialType {
+    PublicKey,
+    Unknown,
+}
+
+impl From<PublicKeyCredentialType> for WasmPublicKeyCredentialType {
+    fn from(value: PublicKeyCredentialType) -> Self {
+        match value {
+            PublicKeyCredentialType::PublicKey => WasmPublicKeyCredentialType::PublicKey,
+            PublicKeyCredentialType::Unknown => WasmPublicKeyCredentialType::Unknown,
         }
     }
 }
@@ -118,6 +136,7 @@ pub struct WasmPublicKeyCredentialAttestation {
     pub response: WasmAuthenticatorAttestationResponse,
     pub authenticator_attachment: Option<WasmAuthenticatorAttachment>,
     pub client_extension_results: WasmAuthenticatorExtensionsClientOutputs,
+    pub r#type: WasmPublicKeyCredentialType,
 }
 
 impl From<CreatedPublicKeyCredential> for WasmPublicKeyCredentialAttestation {
@@ -128,6 +147,7 @@ impl From<CreatedPublicKeyCredential> for WasmPublicKeyCredentialAttestation {
             response: WasmAuthenticatorAttestationResponse::from(value.response),
             authenticator_attachment: value.authenticator_attachment.map(WasmAuthenticatorAttachment::from),
             client_extension_results: WasmAuthenticatorExtensionsClientOutputs::from(value.client_extension_results),
+            r#type: WasmPublicKeyCredentialType::from(value.ty),
         }
     }
 }
@@ -140,6 +160,7 @@ pub struct WasmPublicKeyCredentialAssertion {
     pub response: WasmAuthenticatorAssertionResponse,
     pub authenticator_attachment: Option<WasmAuthenticatorAttachment>,
     pub client_extension_results: WasmAuthenticatorExtensionsClientOutputs,
+    pub r#type: WasmPublicKeyCredentialType,
 }
 
 impl From<AuthenticatedPublicKeyCredential> for WasmPublicKeyCredentialAssertion {
@@ -150,12 +171,14 @@ impl From<AuthenticatedPublicKeyCredential> for WasmPublicKeyCredentialAssertion
             raw_id: value.raw_id.to_vec(),
             authenticator_attachment: value.authenticator_attachment.map(WasmAuthenticatorAttachment::from),
             client_extension_results: WasmAuthenticatorExtensionsClientOutputs::from(value.client_extension_results),
+            r#type: WasmPublicKeyCredentialType::from(value.ty),
         }
     }
 }
 
 #[derive(Tsify, Deserialize, Serialize)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
+#[serde(rename_all = "kebab-case")]
 pub enum WasmAuthenticatorTransport {
     Usb,
     Nfc,

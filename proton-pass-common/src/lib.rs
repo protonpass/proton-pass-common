@@ -11,3 +11,5 @@ pub mod twofa;
 pub fn library_version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
 }
+
+pub use passkey_types;

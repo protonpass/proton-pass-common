@@ -1,6 +1,10 @@
 use proton_pass_common::passkey::{
     generate_passkey_for_domain, parse_create_passkey_data, resolve_challenge_for_domain, PasskeyError, PasskeyResult,
 };
+use proton_pass_common::passkey_types::webauthn::{
+    AuthenticatorAttachment, AuthenticatorAttestationResponse, AuthenticatorExtensionsClientOutputs,
+    AuthenticatorTransport, CreatedPublicKeyCredential, CredentialPropertiesOutput,
+};
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -11,8 +15,127 @@ pub struct PasskeyManager {
 
 #[derive(Tsify, Deserialize, Serialize)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
+pub enum WasmAuthenticatorAttachment {
+    Platform,
+    CrossPlatform,
+}
+
+impl From<AuthenticatorAttachment> for WasmAuthenticatorAttachment {
+    fn from(value: AuthenticatorAttachment) -> Self {
+        match value {
+            AuthenticatorAttachment::Platform => WasmAuthenticatorAttachment::Platform,
+            AuthenticatorAttachment::CrossPlatform => WasmAuthenticatorAttachment::CrossPlatform,
+        }
+    }
+}
+
+#[derive(Tsify, Deserialize, Serialize)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct WasmAuthenticatorExtensionsClientOutputs {
+    pub cred_props: Option<WasmCredentialPropertiesOutput>,
+}
+
+impl From<AuthenticatorExtensionsClientOutputs> for WasmAuthenticatorExtensionsClientOutputs {
+    fn from(value: AuthenticatorExtensionsClientOutputs) -> Self {
+        Self {
+            cred_props: value.cred_props.map(WasmCredentialPropertiesOutput::from),
+        }
+    }
+}
+
+#[derive(Tsify, Deserialize, Serialize)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct WasmCredentialPropertiesOutput {
+    pub discoverable: Option<bool>,
+    pub authenticator_display_name: Option<String>,
+}
+
+impl From<CredentialPropertiesOutput> for WasmCredentialPropertiesOutput {
+    fn from(value: CredentialPropertiesOutput) -> Self {
+        Self {
+            discoverable: value.discoverable,
+            authenticator_display_name: value.authenticator_display_name,
+        }
+    }
+}
+
+#[derive(Tsify, Deserialize, Serialize)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct WasmPublicKeyCredential {
+    pub id: String,
+    pub raw_id: Vec<u8>,
+    pub response: WasmAuthenticatorAttestationResponse,
+    pub authenticator_attachment: Option<WasmAuthenticatorAttachment>,
+    pub client_extension_results: WasmAuthenticatorExtensionsClientOutputs,
+}
+
+impl From<CreatedPublicKeyCredential> for WasmPublicKeyCredential {
+    fn from(value: CreatedPublicKeyCredential) -> Self {
+        Self {
+            id: value.id,
+            raw_id: value.raw_id.to_vec(),
+            response: WasmAuthenticatorAttestationResponse::from(value.response),
+            authenticator_attachment: value.authenticator_attachment.map(WasmAuthenticatorAttachment::from),
+            client_extension_results: WasmAuthenticatorExtensionsClientOutputs::from(value.client_extension_results),
+        }
+    }
+}
+
+#[derive(Tsify, Deserialize, Serialize)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct WasmAuthenticatorAttestationResponse {
+    pub client_data_json: Vec<u8>,
+    pub authenticator_data: Vec<u8>,
+    pub public_key: Option<Vec<u8>>,
+    pub public_key_algorithm: i64,
+    pub attestation_object: Vec<u8>,
+    pub transports: Option<Vec<WasmAuthenticatorTransport>>,
+}
+
+impl From<AuthenticatorAttestationResponse> for WasmAuthenticatorAttestationResponse {
+    fn from(value: AuthenticatorAttestationResponse) -> Self {
+        Self {
+            client_data_json: value.client_data_json.to_vec(),
+            authenticator_data: value.authenticator_data.to_vec(),
+            public_key: value.public_key.map(|k| k.to_vec()),
+            public_key_algorithm: value.public_key_algorithm,
+            attestation_object: value.attestation_object.to_vec(),
+            transports: value.transports.map(|transports| {
+                transports
+                    .into_iter()
+                    .map(WasmAuthenticatorTransport::from)
+                    .collect()
+            }),
+        }
+    }
+}
+
+#[derive(Tsify, Deserialize, Serialize)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub enum WasmAuthenticatorTransport {
+    Usb,
+    Nfc,
+    Ble,
+    Hybrid,
+    Internal,
+}
+
+impl From<AuthenticatorTransport> for WasmAuthenticatorTransport {
+    fn from(value: AuthenticatorTransport) -> Self {
+        match value {
+            AuthenticatorTransport::Usb => WasmAuthenticatorTransport::Usb,
+            AuthenticatorTransport::Nfc => WasmAuthenticatorTransport::Nfc,
+            AuthenticatorTransport::Ble => WasmAuthenticatorTransport::Ble,
+            AuthenticatorTransport::Hybrid => WasmAuthenticatorTransport::Hybrid,
+            AuthenticatorTransport::Internal => WasmAuthenticatorTransport::Internal,
+        }
+    }
+}
+
+#[derive(Tsify, Deserialize, Serialize)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct WasmGeneratePasskeyResponse {
-    pub response: String,
+    pub credential: WasmPublicKeyCredential,
     pub passkey: Vec<u8>,
     pub key_id: String,
     pub domain: String,
@@ -56,10 +179,10 @@ impl PasskeyManager {
             .handle()
             .block_on(async move { generate_passkey_for_domain(&url, &request).await })?;
 
-        let response = res.response()?;
+        let credential = WasmPublicKeyCredential::from(res.credential);
 
         Ok(WasmGeneratePasskeyResponse {
-            response,
+            credential,
             key_id: res.key_id,
             passkey: res.passkey,
             domain: res.domain,

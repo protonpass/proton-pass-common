@@ -1,0 +1,4 @@
+interface TwofaDomainCheck {
+    constructor();
+    TwofaDomainCheck twofa_domain_eligible(string domain);
+};

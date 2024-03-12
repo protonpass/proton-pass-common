@@ -6,6 +6,7 @@ pub mod login;
 pub mod passkey;
 pub mod password;
 pub mod totp;
+pub mod twofa;
 
 pub fn library_version() -> String {
     env!("CARGO_PKG_VERSION").to_string()

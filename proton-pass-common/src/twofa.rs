@@ -1,6 +1,5 @@
 use std::collections::HashSet;
 use std::env;
-// use std::io::{self, BufRead, BufReader};
 
 pub struct TwofaDomainChecker {
     set: HashSet<String>,

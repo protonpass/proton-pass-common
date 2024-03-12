@@ -13,6 +13,7 @@ async-trait = "0.1.74"
 coset = "0.3.5"
 email_address = "0.2.4"
 getrandom = { version = "0.2.10", features = ["js"] }
+lazy_static = "1.4.0"
 luhn = "1.0.1"
 passkey = { version = "0.2.0" }
 passkey-authenticator = { version = "0.2.0", features = ["testable"] }

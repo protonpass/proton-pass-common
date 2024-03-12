@@ -1,26 +1,22 @@
 use std::collections::HashSet;
 use std::env;
-use std::fs::File;
-use std::io::{self, BufRead, BufReader};
+// use std::io::{self, BufRead, BufReader};
 
 pub struct TwofaDomainChecker {
     set: HashSet<String>,
 }
 
-impl TwofaDomainChecker {
-    const DEFAULT_FILE_NAME: &'static str = "2faDomains.txt";
+include!(concat!(env!("OUT_DIR"), "/twofaDomains.rs"));
 
-    pub fn new() -> io::Result<Self> {
-        let mut default_path = env::current_dir()?;
-        default_path.push(Self::DEFAULT_FILE_NAME);
-
-        let file = File::open(default_path)?;
-        let lines = BufReader::new(file).lines();
-        let set: HashSet<String> = lines.map_while(Result::ok).collect();
-
-        Ok(TwofaDomainChecker { set })
+impl Default for TwofaDomainChecker {
+    fn default() -> Self {
+        Self {
+            set: TWOFA_DOMAINS.iter().map(|&s| s.to_string()).collect(),
+        }
     }
+}
 
+impl TwofaDomainChecker {
     pub fn twofa_domain_eligible(&self, term: &str) -> bool {
         self.set.contains(term)
     }

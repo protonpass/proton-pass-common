@@ -6,7 +6,7 @@ pub struct TwofaDomainChecker {
     set: HashSet<String>,
 }
 
-include!(concat!(env!("OUT_DIR"), "/twofaDomains.rs"));
+include!(concat!(env!("OUT_DIR"), "/twofa_domains.rs"));
 
 impl Default for TwofaDomainChecker {
     fn default() -> Self {

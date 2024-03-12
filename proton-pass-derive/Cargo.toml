@@ -1,6 +1,6 @@
 [package]
 name = "proton-pass-derive"
-version = "0.6.10"
+version = "0.6.11"
 edition = "2021"
 
 [lib]

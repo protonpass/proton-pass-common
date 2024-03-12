@@ -7,7 +7,7 @@ pub struct TwofaDomainChecker {
 impl TwofaDomainChecker {
     pub fn new() -> Self {
         Self {
-            inner: CommonTwofaDomainChecker::new().expect("Failed to initialize CommonTwofaDomainCheck"),
+            inner: CommonTwofaDomainChecker::default(),
         }
     }
 

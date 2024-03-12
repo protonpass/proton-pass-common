@@ -26,7 +26,7 @@ pub fn is_email_valid(email: String) -> bool {
 
 #[wasm_bindgen]
 pub fn twofa_domain_eligible(domain: String) -> bool {
-    let validator = proton_pass_common::twofa::TwofaDomainChecker::new().expect("Could not create domain checker");
+    let validator = proton_pass_common::twofa::TwofaDomainChecker::default();
     validator.twofa_domain_eligible(&domain)
 }
 

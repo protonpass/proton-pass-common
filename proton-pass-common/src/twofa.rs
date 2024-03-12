@@ -3,11 +3,11 @@ use std::env;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader};
 
-pub struct TwofaDomainCheck {
+pub struct TwofaDomainChecker {
     set: HashSet<String>,
 }
 
-impl TwofaDomainCheck {
+impl TwofaDomainChecker {
     const DEFAULT_FILE_NAME: &'static str = "2faDomains.txt";
 
     pub fn new() -> io::Result<Self> {
@@ -18,7 +18,7 @@ impl TwofaDomainCheck {
         let lines = BufReader::new(file).lines();
         let set: HashSet<String> = lines.map_while(Result::ok).collect();
 
-        Ok(TwofaDomainCheck { set })
+        Ok(TwofaDomainChecker { set })
     }
 
     pub fn twofa_domain_eligible(&self, term: &str) -> bool {

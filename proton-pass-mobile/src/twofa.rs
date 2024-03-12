@@ -1,13 +1,13 @@
-pub use proton_pass_common::twofa::TwofaDomainCheck as CommonTwofaDomainCheck;
+pub use proton_pass_common::twofa::TwofaDomainChecker as CommonTwofaDomainChecker;
 
-pub struct TwofaDomainCheck {
-    inner: CommonTwofaDomainCheck,
+pub struct TwofaDomainChecker {
+    inner: CommonTwofaDomainChecker,
 }
 
-impl TwofaDomainCheck {
+impl TwofaDomainChecker {
     pub fn new() -> Self {
         Self {
-            inner: CommonTwofaDomainCheck::new().expect("Failed to initialize CommonTwofaDomainCheck"),
+            inner: CommonTwofaDomainChecker::new().expect("Failed to initialize CommonTwofaDomainCheck"),
         }
     }
 

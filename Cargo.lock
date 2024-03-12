@@ -1313,6 +1313,7 @@ dependencies = [
  "criterion",
  "email_address",
  "getrandom",
+ "lazy_static",
  "luhn",
  "passkey",
  "passkey-authenticator",

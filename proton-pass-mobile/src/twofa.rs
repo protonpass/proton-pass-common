@@ -7,11 +7,11 @@ pub struct TwofaDomainCheck {
 impl TwofaDomainCheck {
     pub fn new() -> Self {
         Self {
-            inner: CommonCreditCardDetector::default()
+            inner: CommonTwofaDomainCheck::new().expect("Failed to initialize CommonTwofaDomainCheck"),
         }
     }
 
-    pub fn twofa_domain_eligible(&self, domain: String) -> Result<(), LoginError> {
+    pub fn twofa_domain_eligible(&self, domain: String) -> bool {
         self.inner.twofa_domain_eligible(&domain)
     }
 }

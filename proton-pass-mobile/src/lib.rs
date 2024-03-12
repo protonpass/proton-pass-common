@@ -8,6 +8,7 @@ mod login;
 mod passkey;
 mod password;
 mod totp;
+mod twofa;
 
 uniffi::include_scaffolding!("common");
 
@@ -23,3 +24,4 @@ pub use login::*;
 pub use passkey::*;
 pub use password::*;
 pub use totp::*;
+pub use twofa::*;

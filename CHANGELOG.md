@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.6.11
+
+### Features
+
+- Add a 2fa domain checker as part of the security center implementation
+
 ## 0.6.10
 
 ### Other

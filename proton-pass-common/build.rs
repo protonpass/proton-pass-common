@@ -26,7 +26,7 @@ fn build_common_password_list() {
 
 fn build_2fa_domains_lsit() {
     let out_dir = env::var("OUT_DIR").expect("OUT_DIR not set");
-    let dest_path = Path::new(&out_dir).join("twofaDomains.rs");
+    let dest_path = Path::new(&out_dir).join("twofa_domains.rs");
     let f = File::create(dest_path).expect("Could not create twofaDomains.rs");
     domain_2fa(&f, "TWOFA_DOMAINS", "2faDomains.txt");
 }

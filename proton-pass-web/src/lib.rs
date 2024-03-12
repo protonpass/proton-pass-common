@@ -25,6 +25,12 @@ pub fn is_email_valid(email: String) -> bool {
 }
 
 #[wasm_bindgen]
+pub fn twofa_domain_eligible(domain: String) -> bool {
+    let validator = proton_pass_common::twofa::TwofaDomainChecker::new().expect("Could not create domain checker");
+    validator.twofa_domain_eligible(&domain)
+}
+
+#[wasm_bindgen]
 pub fn validate_alias_prefix(prefix: String) -> Result<(), JsError> {
     match proton_pass_common::alias_prefix::validate_alias_prefix(&prefix) {
         Ok(_) => Ok(()),

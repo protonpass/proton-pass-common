@@ -11,6 +11,7 @@
 ### Features
 
 - Add a 2fa domain checker as part of the security center implementation
+- Improve web wasm API
 
 ## 0.6.10
 
@@ -158,7 +159,7 @@
 
 ### Features :tada:
 
-- Allow to create signature bodies for NewUserInvites. 
+- Allow to create signature bodies for NewUserInvites.
 
 ## 0.2.2 (2023-10-11)
 

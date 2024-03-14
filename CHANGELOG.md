@@ -8,10 +8,16 @@
 
 ## 0.7.0
 
+### Other
+
+- Use B64 representation for key id instead of hex one.
+
+## 0.7.0
+
 ### Features
 
-- Add a 2fa domain checker as part of the security center implementation
-- Improve web wasm API
+- Add a 2fa domain checker as part of the security center implementation.
+- Improve web wasm API.
 
 ## 0.6.10
 

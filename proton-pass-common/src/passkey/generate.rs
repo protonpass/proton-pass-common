@@ -3,7 +3,6 @@ use super::{PasskeyError, PasskeyResult, ProtonPassKey};
 use coset::iana;
 use coset::iana::EnumI64;
 use passkey::client::Client;
-use passkey_types::encoding::base64;
 use passkey_types::webauthn::{
     CreatedPublicKeyCredential, CredentialCreationOptions, PublicKeyCredentialCreationOptions,
     PublicKeyCredentialParameters, PublicKeyCredentialRpEntity, PublicKeyCredentialType, PublicKeyCredentialUserEntity,
@@ -59,7 +58,7 @@ async fn generate_passkey_response(
         .map_err(|e| PasskeyError::GenerationError(format!("failed to generate passkey: {:?}", e)))?;
     if let Some(pk) = my_client.authenticator().store() {
         let converted = ProtonPassKey::from(pk.clone());
-        let key_id = base64(&my_webauthn_credential.raw_id);
+        let key_id = my_webauthn_credential.id.clone();
         let serialized = serialize_passkey(&converted)?;
         let client_data_hash =
             passkey_types::crypto::sha256(my_webauthn_credential.response.client_data_json.as_slice()).to_vec();

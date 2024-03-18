@@ -14,7 +14,6 @@
 4cd.edu
 53.com
 7pass.de
-WOOTWOOT.com
 a2hosting.com
 aa.com
 aaiedu.hr
@@ -868,6 +867,7 @@ gog.com
 gogetssl.com
 golem.de
 goodreads.com
+google.com
 gopro.com
 gosquared.com
 gosuslugi.ru

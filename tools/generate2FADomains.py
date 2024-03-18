@@ -1,10 +1,12 @@
+#!/usr/bin/env python3
+
 import requests
-import json
 from os import path
 
 # URL to download the JSON data from
 url = "https://api.2fa.directory/v3/all.json"
 
+CUSTOM_DOMAINS_FILE = path.abspath(path.join(path.dirname(__file__), 'custom2faDomains.txt'))
 DEFAULT_DST = path.abspath(path.join(__file__, "../../proton-pass-common", "2faDomains.txt"))
 
 # Send a GET request to the URL
@@ -20,10 +22,10 @@ if response.status_code == 200:
     for item in data:  # Loop through the outer list
         if isinstance(item, list) and len(item) > 1 and 'domain' in item[1]:
             domains.append(item[1]['domain'])  # Access the 'domain' in the dictionary
-    
-    # Open the file in read mode
-    with open('Custom2faDomains.txt', 'r') as file:
-    # Iterate over each line in the file
+
+    # Open the custom domains file in read mode
+    with open(CUSTOM_DOMAINS_FILE, 'r') as file:
+        # Iterate over each line in the file
         for line in file:
         # Strip newline characters and append the line to the existing array
             domains.append(line.strip())

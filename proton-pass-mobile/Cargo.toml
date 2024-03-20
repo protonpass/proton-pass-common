@@ -19,10 +19,10 @@ name = "proton_pass_common_mobile"
 [dependencies]
 proton-pass-common = { path = "../proton-pass-common" }
 tokio = { version = "1.36", features = ["full"] }
-uniffi = { version = "0.24.1" }
+uniffi = { version = "0.26.1" }
 
 [build-dependencies]
-uniffi = { version = "0.24.1", features = [ "build" ] }
+uniffi = { version = "0.26.1", features = [ "build" ] }
 
 [[bin]]
 name = "uniffi-bindgen"

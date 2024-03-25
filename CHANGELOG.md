@@ -6,7 +6,13 @@
 
 ### Other
 
-## 0.7.0
+## 0.7.2
+
+### Other
+
+- Upgrade dependencies and `uniffi` for trying to avoid a memory leak.
+
+## 0.7.1
 
 ### Other
 

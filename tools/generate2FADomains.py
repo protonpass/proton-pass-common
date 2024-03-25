@@ -4,7 +4,7 @@ import requests
 from os import path
 
 # URL to download the JSON data from
-url = "https://api.2fa.directory/v3/all.json"
+url = "https://api.2fa.directory/v3/totp.json"
 
 CUSTOM_DOMAINS_FILE = path.abspath(path.join(path.dirname(__file__), 'custom2faDomains.txt'))
 DEFAULT_DST = path.abspath(path.join(__file__, "../../proton-pass-common", "2faDomains.txt"))

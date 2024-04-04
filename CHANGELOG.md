@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.7.3
+
+### Feature
+
+- Offer new API for challenge resolution on Android that makes use of the `clientDataHash`.
+
 ## 0.7.2
 
 ### Other

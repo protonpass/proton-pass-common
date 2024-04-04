@@ -1,9 +1,10 @@
 use proton_pass_common::passkey::{
-    generate_passkey_for_domain, generate_passkey_for_ios, parse_create_passkey_data, resolve_challenge_for_domain,
+    generate_passkey_for_domain, generate_passkey_for_ios, parse_create_passkey_data, resolve_challenge_for_android,
     resolve_challenge_for_ios, PasskeyResult,
 };
 pub use proton_pass_common::passkey::{
-    AuthenticateWithPasskeyIosRequest, AuthenticateWithPasskeyIosResponse, CreatePasskeyIosRequest, PasskeyError,
+    AuthenticateWithPasskeyAndroidRequest, AuthenticateWithPasskeyIosRequest, AuthenticateWithPasskeyIosResponse,
+    CreatePasskeyIosRequest, PasskeyError,
 };
 
 pub struct CreatePasskeyResponse {
@@ -110,18 +111,15 @@ impl PasskeyManager {
         })
     }
 
-    pub fn resolve_challenge(&self, url: String, passkey: Vec<u8>, request: String) -> PasskeyResult<String> {
+    pub fn resolve_challenge_for_android(
+        &self,
+        request: AuthenticateWithPasskeyAndroidRequest,
+    ) -> PasskeyResult<String> {
         self.rt.handle().block_on(async move {
-            match resolve_challenge_for_domain(&url, &passkey, &request).await {
-                Ok(r) => match r.response() {
-                    Ok(response) => Ok(response),
-                    Err(e) => {
-                        println!("Error in resolve_challenge: {:?}", e);
-                        Err(e)
-                    }
-                },
+            match resolve_challenge_for_android(request).await {
+                Ok(r) => Ok(r),
                 Err(e) => {
-                    println!("Error in resolve_challenge: {:?}", e);
+                    println!("Error in resolve_challenge_for_android: {:?}", e);
                     Err(e)
                 }
             }

@@ -35,6 +35,13 @@ async fn resolve_challenge(origin: Url, pk: &ProtonPassKey, request: &str) -> Pa
     Ok(ResolveChallengeResponse { response: res })
 }
 
+pub struct AuthenticateWithPasskeyAndroidRequest {
+    pub origin: String,
+    pub request: String,
+    pub passkey: Vec<u8>,
+    pub client_data_hash: Vec<u8>,
+}
+
 pub struct AuthenticateWithPasskeyIosRequest {
     pub service_identifier: String,
     pub passkey: Vec<u8>,
@@ -50,11 +57,27 @@ pub struct AuthenticateWithPasskeyIosResponse {
     pub credential_id: Vec<u8>,
 }
 
+async fn resolve_challenge_for_mobile(
+    request: CredentialRequestOptions,
+    passkey: &[u8],
+    url: &Url,
+    client_data_hash: Vec<u8>,
+) -> PasskeyResult<AuthenticatedPublicKeyCredential> {
+    let deserialized = deserialize_passkey(passkey)?;
+    let authenticator = get_authenticator(Some(deserialized));
+    let client = Client::new(authenticator);
+    let res = client
+        .authenticate(url, request, Some(client_data_hash))
+        .await
+        .map_err(|e| PasskeyError::ResolveChallengeError(format!("Error authenticating: {:?}", e)))?;
+
+    Ok(res)
+}
+
 pub async fn resolve_challenge_for_ios(
     request: AuthenticateWithPasskeyIosRequest,
 ) -> PasskeyResult<AuthenticateWithPasskeyIosResponse> {
     let url = parse_url(&request.service_identifier)?;
-    let deserialized = deserialize_passkey(&request.passkey)?;
     let credential_request = CredentialRequestOptions {
         public_key: PublicKeyCredentialRequestOptions {
             challenge: Default::default(),
@@ -69,12 +92,13 @@ pub async fn resolve_challenge_for_ios(
         },
     };
 
-    let authenticator = get_authenticator(Some(deserialized));
-    let client = Client::new(authenticator);
-    let res = client
-        .authenticate(&url, credential_request, Some(request.client_data_hash.clone()))
-        .await
-        .map_err(|e| PasskeyError::ResolveChallengeError(format!("Error authenticating: {:?}", e)))?;
+    let res = resolve_challenge_for_mobile(
+        credential_request,
+        &request.passkey,
+        &url,
+        request.client_data_hash.clone(),
+    )
+    .await?;
 
     let user_handle = res.response.user_handle.map(|h| h.to_vec()).unwrap_or_default();
 
@@ -87,6 +111,26 @@ pub async fn resolve_challenge_for_ios(
         credential_id: res.raw_id.to_vec(),
     };
     Ok(response)
+}
+
+pub async fn resolve_challenge_for_android(request: AuthenticateWithPasskeyAndroidRequest) -> PasskeyResult<String> {
+    let parsed: PublicKeyCredentialRequestOptions = serde_json::from_str(&request.request)
+        .map_err(|e| PasskeyError::SerializationError(format!("Error parsing request: {:?}", e)))?;
+
+    let url = parse_url(&request.origin)?;
+    let credential_request = CredentialRequestOptions { public_key: parsed };
+
+    let res = resolve_challenge_for_mobile(
+        credential_request,
+        &request.passkey,
+        &url,
+        request.client_data_hash.clone(),
+    )
+    .await?;
+
+    let string_response = serde_json::to_string(&res)
+        .map_err(|e| PasskeyError::SerializationError(format!("Error serializing response: {:?}", e)))?;
+    Ok(string_response)
 }
 
 pub async fn resolve_challenge_for_domain(

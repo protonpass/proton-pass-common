@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-import requests
+import json
+import urllib.request
 from os import path
 
 # URL to download the JSON data from
@@ -10,12 +11,17 @@ CUSTOM_DOMAINS_FILE = path.abspath(path.join(path.dirname(__file__), 'custom2faD
 DEFAULT_DST = path.abspath(path.join(__file__, "../../proton-pass-common", "2faDomains.txt"))
 
 # Send a GET request to the URL
-response = requests.get(url)
+req = urllib.request.Request(url, headers={'Accept': 'application/json', 'User-Agent': 'curl/7.81.0'})
+response = urllib.request.urlopen(req)
 
 # Check if the request was successful
-if response.status_code == 200:
+if response.status == 200:
     # Load JSON data from the response
-    data = response.json()
+
+    body = response.read()
+    text = body.decode('utf-8')
+
+    data = json.loads(text)
 
     # Extract domains
     domains = []

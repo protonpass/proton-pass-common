@@ -67,6 +67,13 @@ dictionary AuthenticateWithPasskeyIosResponse {
     bytes credential_id;
 };
 
+dictionary AuthenticateWithPasskeyAndroidRequest {
+    string origin;
+    string request;
+    bytes passkey;
+    bytes client_data_hash;
+};
+
 interface PasskeyManager {
     [Throws=PasskeyError]
     constructor();
@@ -78,7 +85,7 @@ interface PasskeyManager {
     CreatePasskeyIosResponse generate_ios_passkey(CreatePasskeyIosRequest request);
 
     [Throws=PasskeyError]
-    string resolve_challenge(string url, bytes passkey, string request);
+    string resolve_challenge_for_android(AuthenticateWithPasskeyAndroidRequest request);
 
     [Throws=PasskeyError]
     AuthenticateWithPasskeyIosResponse resolve_challenge_for_ios(AuthenticateWithPasskeyIosRequest request);

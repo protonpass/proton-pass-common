@@ -11,8 +11,9 @@ pub use generate::{
 };
 pub use protonpasskey::ProtonPassKey;
 pub use resolve::{
-    resolve_challenge_for_domain, resolve_challenge_for_ios, AuthenticateWithPasskeyIosRequest,
-    AuthenticateWithPasskeyIosResponse, ResolveChallengeResponse,
+    resolve_challenge_for_android, resolve_challenge_for_domain, resolve_challenge_for_ios,
+    AuthenticateWithPasskeyAndroidRequest, AuthenticateWithPasskeyIosRequest, AuthenticateWithPasskeyIosResponse,
+    ResolveChallengeResponse,
 };
 
 pub type PasskeyResult<T> = Result<T, PasskeyError>;

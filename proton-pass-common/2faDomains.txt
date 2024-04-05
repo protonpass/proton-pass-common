@@ -427,6 +427,7 @@ hackerone.com
 hackthebox.com
 happyfox.com
 hatchinvest.nz
+hatena.ne.jp
 he.net
 heap.io
 hello.vrchat.com
@@ -444,7 +445,6 @@ hint.com
 hitbtc.com
 hmrc.gov.uk
 home-assistant.io
-home.saxo
 home.sophos.com
 honeybadger.io
 hootsuite.com

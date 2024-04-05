@@ -13,7 +13,7 @@ mod twofa;
 uniffi::include_scaffolding!("common");
 
 pub fn library_version() -> String {
-    proton_pass_common::library_version()
+    format!("{} - DIRTY", proton_pass_common::library_version())
 }
 
 pub use alias::*;

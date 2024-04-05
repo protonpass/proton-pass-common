@@ -99,6 +99,7 @@ pub enum WasmPasswordPenalty {
     Consecutive,
     Progressive,
     ContainsCommonPassword,
+    ShortWordList,
 }
 
 impl From<PasswordPenalty> for WasmPasswordPenalty {
@@ -112,6 +113,7 @@ impl From<PasswordPenalty> for WasmPasswordPenalty {
             PasswordPenalty::Consecutive => WasmPasswordPenalty::Consecutive,
             PasswordPenalty::Progressive => WasmPasswordPenalty::Progressive,
             PasswordPenalty::ContainsCommonPassword => WasmPasswordPenalty::ContainsCommonPassword,
+            PasswordPenalty::ShortWordList => WasmPasswordPenalty::ShortWordList,
         }
     }
 }

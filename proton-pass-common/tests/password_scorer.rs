@@ -1,62 +1,62 @@
 use proton_pass_common::password::{check_score, PasswordScore};
 
-#[macro_export]
-macro_rules! map {
-    { $($key:expr => $value:expr),+, } => {
-        {
-            use std::collections::HashMap;
-            let mut m = HashMap::new();
-            $(
-                m.insert($key, $value);
-            )+
-            m
+macro_rules! score_test {
+    ($($name:ident: $value:expr,)*) => {
+    $(
+        #[test]
+        fn $name() {
+            let (input, expected) = $value;
+            let score = check_score(input);
+            assert_eq!(
+                score.password_score, expected,
+               "{} expected to be {:?} but was {:?} with score {} and penalties {:?}",
+                input, expected, &score.password_score, &score.numeric_score, &score.penalties
+            );
         }
-    };
+    )*
+    }
 }
 
-#[test]
-fn score_passwords() {
-    let cases = map!(
-        // Short passwords
-        "" => PasswordScore::Vulnerable,
-        "a" => PasswordScore::Vulnerable,
-        "abcde" => PasswordScore::Vulnerable,
+score_test! {
+    word1: ( "Correct", PasswordScore::Vulnerable),
+    word1n: ( "Correct4", PasswordScore::Vulnerable),
+    word1s: ( "Correct3-", PasswordScore::Vulnerable),
+    word2: ( "Correct3-horse", PasswordScore::Vulnerable),
+    word2sn: ( "Correct3-horse@", PasswordScore::Vulnerable),
+    word3nn: ( "Correct3-horse@Battery8", PasswordScore::Weak),
+    word3n: ( "Correct3horse3Battery8", PasswordScore::Weak),
+    word3sn: ( "Correct3-horse@Battery8.", PasswordScore::Weak),
+    word4sn: ( "Correct3-horse@Battery8.staple8_", PasswordScore::Weak),
+    word5: ( "Correct3-horse@Battery8.staple8_Moon", PasswordScore::Strong),
+}
 
-        "abcABC123" => PasswordScore::Vulnerable, // Lowercase, Uppercase and numbers (9)
-        "abcABC123pqj" => PasswordScore::Vulnerable, // Lowercase, Uppercase and numbers (12)
+score_test! {
+    empty: ("", PasswordScore::Vulnerable),
+    one_char: ("a", PasswordScore::Vulnerable),
+    short_lower: ("abcde", PasswordScore::Vulnerable),
+    lower_upper_num_9:("abcABC123" , PasswordScore::Vulnerable),
+    lower_upper_num_12:("abcABC123pqj", PasswordScore::Vulnerable),
 
-        "azK@BC123" => PasswordScore::Vulnerable, // Lowercase, Uppercase, numbers and symbol (9)
-        "azK@BC123pqj" => PasswordScore::Weak, // Lowercase, Uppercase, numbers and symbol (12)
+    lower_upper_num_sym_9: ("azK@BC123" , PasswordScore::Vulnerable),
+    lower_upper_num_sym_12: ("azK@BC123pqj", PasswordScore::Weak),
 
-        "apjq4n9b2kb2jhgj" => PasswordScore::Vulnerable, // only lowercase and numbers and mildly long (16)
-        "1847382519758729" => PasswordScore::Vulnerable, // only numbers and mildly long (16)
-        "apqkfjwuiwjkersg" => PasswordScore::Vulnerable, // only lowercase and mildly long (16)
-        "EFGUSHWEFUIAJKBE" => PasswordScore::Vulnerable, // only uppercase and mildly long (16)
+    lower_num_16: ("apjq4n9b2kb2jhgj",PasswordScore::Vulnerable),
+    num_16: ("1847382519758729" , PasswordScore::Vulnerable),
+    lower_16: ("apqkfjwuiwjkersg", PasswordScore::Vulnerable),
+    upper_16: ("EFGUSHWEFUIAJKBE", PasswordScore::Vulnerable),
 
-        "apJEhqCIkeVJpUhA" => PasswordScore::Weak, // only lowercase and uppercase and mildly long (16)
-        "apJEhqCIkeVJpUhAr" => PasswordScore::Strong, // only lowercase and uppercase (17)
+    lower_upper_16: ("apJEhqCIkeVJpUhA", PasswordScore::Weak),
+    lower_upper_17: ("apJEhqCIkeVJpUhAr", PasswordScore::Strong),
 
-        "apjq4n9b2kb2jhgjo1nd" => PasswordScore::Strong, // only lowercase and numbers but very long (20)
-        "34976128647294268053" => PasswordScore::Strong, // only numbers but very long (20)
-        "apqkfjwuiwjkersgyuih" => PasswordScore::Strong, // only lowercase but very long (20)
-        "EFGUSHWEFUIAJKBERNJS" => PasswordScore::Strong, // only uppercase but very long (20)
+    lower_num_20: ("apjq4n9b2kb2jhgjo1nd", PasswordScore::Strong),
+    num_20: ("34976128647294268053", PasswordScore::Strong),
+    lower_20: ("apqkfjwuiwjkersgyuih", PasswordScore::Strong),
+    upper_20: ("EFGUSHWEFUIAJKBERNJS", PasswordScore::Strong),
 
-        "_:^¿" => PasswordScore::Vulnerable, // only symbols - short(5)
-        "_:^¿=($#-@+/" => PasswordScore::Weak, // only symbols - medium(12)
-        "_:^¿=($#-@+/*-%)$!?-" => PasswordScore::Strong, // only symbols but long (20)
+    sym_5: ("_:^¿", PasswordScore::Vulnerable),
+    sym_12: ("_:^¿=($#-@+/" , PasswordScore::Weak),
+    sym_20: ("_:^¿=($#-@+/*-%)$!?-", PasswordScore::Strong),
 
-        // Appears in a common password list
-        "Qwerty12345678" => PasswordScore::Vulnerable,
-        "Zsfghj9128734" => PasswordScore::Weak,
-    );
-
-    for (input, expected) in cases {
-        let score = check_score(input);
-        let password_score = score.password_score;
-        assert_eq!(
-            password_score, expected,
-            "{} expected to be {:?} but was {:?}",
-            input, expected, password_score
-        );
-    }
+    wordlist_01 : ("Qwerty12345678", PasswordScore::Vulnerable),
+    wordlist_02 : ("Zsfghj9128734", PasswordScore::Weak),
 }

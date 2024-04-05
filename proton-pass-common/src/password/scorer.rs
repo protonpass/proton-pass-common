@@ -1,6 +1,28 @@
 use passwords::analyzer::analyze;
+use regex::Regex;
 
 include!(concat!(env!("OUT_DIR"), "/common_passwords.rs"));
+
+const SEPARATOR_SYMBOLS: &str = "[-,._@ ]";
+
+lazy_static::lazy_static! {
+    static ref WORDLIST_PASSPRHASE_REGEX : Regex = build_passphrase_regex();
+    static ref WORDLIST_PASSPHRASE_SEPARATOR_REGEX : Regex = build_passphrase_separator_regex();
+}
+
+fn build_passphrase_regex() -> Regex {
+    let separator = format!("(?:\\d|{}|\\d{})", SEPARATOR_SYMBOLS, SEPARATOR_SYMBOLS);
+    let regex_str = format!("^([A-Z]?[a-z]{{1,9}}{})+$", separator);
+    Regex::new(&regex_str).unwrap()
+}
+
+fn build_passphrase_separator_regex() -> Regex {
+    let separator_regex = format!("(?:\\d|{}|\\d{})", SEPARATOR_SYMBOLS, SEPARATOR_SYMBOLS);
+    Regex::new(&separator_regex).unwrap()
+}
+
+const VULNERABLE_MAX_SCORE: f64 = 60.;
+const WEAK_MAX_SCORE: f64 = 90.;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum PasswordScore {
@@ -19,6 +41,7 @@ pub enum PasswordPenalty {
     Consecutive,
     Progressive,
     ContainsCommonPassword,
+    ShortWordList,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -137,7 +160,7 @@ fn password_without_common(password: &str) -> (String, bool) {
     for common_password in COMMON_PASSWORDS {
         if password_as_lowercase.contains(common_password) {
             // Create a case-insensitive regex pattern
-            let pattern = match regex::Regex::new(&format!("(?i){}", common_password)) {
+            let pattern = match Regex::new(&format!("(?i){}", common_password)) {
                 Ok(r) => r,
                 Err(_) => continue,
             };
@@ -162,9 +185,27 @@ fn inner_score_password(password: &str) -> PasswordScoreResult {
     let (score, scoring_penalties) = score_password(&password_without_common);
     penalties.extend(scoring_penalties);
 
+    let final_score = if WORDLIST_PASSPRHASE_REGEX.is_match(password) {
+        let groups = WORDLIST_PASSPHRASE_SEPARATOR_REGEX.split(password);
+        let clean_groups: Vec<&str> = groups.filter(|str| !str.is_empty()).collect();
+        match clean_groups.len() {
+            1 | 2 => {
+                penalties.push(PasswordPenalty::ShortWordList);
+                score.min(VULNERABLE_MAX_SCORE - 1.)
+            }
+            3 | 4 => {
+                penalties.push(PasswordPenalty::ShortWordList);
+                score.min(WEAK_MAX_SCORE - 1.)
+            }
+            _ => score,
+        }
+    } else {
+        score
+    };
+
     PasswordScoreResult {
-        numeric_score: score,
-        password_score: password_score(score),
+        numeric_score: final_score,
+        password_score: password_score(final_score),
         penalties,
     }
 }
@@ -180,8 +221,8 @@ pub fn check_score(password: &str) -> PasswordScoreResult {
 
 pub fn password_score(score: f64) -> PasswordScore {
     match score {
-        s if s <= 60.0 => PasswordScore::Vulnerable,
-        s if (60.0..90.0).contains(&s) => PasswordScore::Weak,
+        s if s <= VULNERABLE_MAX_SCORE => PasswordScore::Vulnerable,
+        s if (VULNERABLE_MAX_SCORE..WEAK_MAX_SCORE).contains(&s) => PasswordScore::Weak,
         _ => PasswordScore::Strong,
     }
 }

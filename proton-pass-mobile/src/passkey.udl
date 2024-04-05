@@ -71,7 +71,7 @@ dictionary AuthenticateWithPasskeyAndroidRequest {
     string origin;
     string request;
     bytes passkey;
-    bytes client_data_hash;
+    bytes? client_data_hash;
 };
 
 interface PasskeyManager {

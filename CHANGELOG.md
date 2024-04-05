@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.7.4
+
+### Feature
+
+- Allow null `clientDataHash` for android passkey authentication.
+
 ## 0.7.3
 
 ### Feature

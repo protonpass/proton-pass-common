@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.7.5
+
+### Other
+
+- Improve password scorer.
+
 ## 0.7.4
 
 ### Feature

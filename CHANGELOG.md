@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.7.6
+
+### Fixes 🐛
+
+- Fix credProps and type formatting for web
+
 ## 0.7.5
 
 ### Other

@@ -53,6 +53,7 @@ impl From<PublicKeyCredentialType> for WasmPublicKeyCredentialType {
 #[derive(Tsify, Deserialize, Serialize)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct WasmAuthenticatorExtensionsClientOutputs {
+    #[serde(rename = "credProps")]
     pub cred_props: Option<WasmCredentialPropertiesOutput>,
 }
 
@@ -64,18 +65,22 @@ impl From<AuthenticatorExtensionsClientOutputs> for WasmAuthenticatorExtensionsC
     }
 }
 
+// Keep the serde macros in sync `webauthn/extensions.rs`
 #[derive(Tsify, Deserialize, Serialize)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
+#[serde(rename_all = "camelCase")]
 pub struct WasmCredentialPropertiesOutput {
+    #[serde(rename = "rk", default, skip_serializing_if = "Option::is_none")]
     pub discoverable: Option<bool>,
-    pub authenticator_display_name: Option<String>,
+    // #[serde(default, skip_serializing_if = "Option::is_none")]
+    // pub authenticator_display_name: Option<String>,
 }
 
 impl From<CredentialPropertiesOutput> for WasmCredentialPropertiesOutput {
     fn from(value: CredentialPropertiesOutput) -> Self {
         Self {
             discoverable: value.discoverable,
-            authenticator_display_name: value.authenticator_display_name,
+            // authenticator_display_name: value.authenticator_display_name,
         }
     }
 }

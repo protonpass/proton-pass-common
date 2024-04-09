@@ -34,8 +34,8 @@ In order to generate a new release, please follow these steps:
 
 1. Make sure the `CHANGELOG.md` document has been updated.
 2. Make sure you have `cargo-release` installed (`cargo install cargo-release`).
-3. Run `cargo release [major|minor|patch]`. It will do a dry-run, it won't actually change anything.
-4. If the steps look alright to you, run again `cargo release [major|minor|patch] --execute`.
+3. Run `cargo release [major|minor|patch] --workspace`. It will do a dry-run, it won't actually change anything.
+4. If the steps look alright to you, run again `cargo release [major|minor|patch] --workspace --execute`.
 5. Create a tag using `git tag <VERSION_NUMBER>`.
 6. Push the changes and the tag.
 
@@ -58,7 +58,7 @@ $ make lint
 ### Clean build artifacts
 
 ```
-$ make clean 
+$ make clean
 ```
 
 This command runs `cargo clean` and also removes all the artifacts generating when building the bindings / modules.
@@ -102,12 +102,15 @@ For generating the bindings, run `make kotlin-bindings`.
 Link to the UniFFI guide: https://mozilla.github.io/uniffi-rs/
 
 ### iOS
+
 In order to build the iOS modules, you'll need to add the following targets in rustup:
+
 ```bash
 rustup target add aarch64-apple-ios
 rustup target add aarch64-apple-ios-sim
 rustup target add aarch64-apple-darwin
 ```
+
 To use rust in iOS we are leveraging the power of `Swift Packages`.
 
 The **iOS** folder in **proton-pass-mobile** contains the scaffold of our package.
@@ -117,6 +120,7 @@ For now the update of this package must be done by hand.
 There is two ways to update the package either you call:
 `make ios-package` and wait for the process to finish to have an updated package
 or you can do it by hand
+
 - Calling `make clean`, cleans the project
 - Calling `make swift-bindings`, generates the bindings
 - Calling `make ios-xcframework`, create the xcframework and update the Package
@@ -130,7 +134,7 @@ Link to the UniFFI guide: https://mozilla.github.io/uniffi-rs/
 Before being able to build the web artifacts you'll need to follow these steps for setting up the required tools:
 
 1. Install `wasm-pack`: https://rustwasm.github.io/wasm-pack/installer/
-2. Add the wasm32-unknown-unknown target: `rustup target add wasm32-unknown-unknown` 
+2. Add the wasm32-unknown-unknown target: `rustup target add wasm32-unknown-unknown`
 
 Then run `make web` and if everything worked, you're good to go!
 

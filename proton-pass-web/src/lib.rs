@@ -133,6 +133,11 @@ pub fn parse_create_passkey_data(request: String) -> Result<WasmCreatePasskeyDat
     Ok(manager.parse_create_request(request)?)
 }
 
+#[wasm_bindgen]
+pub fn get_root_domain(input: String) -> Result<String, JsError> {
+    Ok(proton_pass_common::domain::get_root_domain(&input)?)
+}
+
 use crate::passkey::WasmCreatePasskeyData;
 pub use common::WasmStringList;
 pub use creditcard::WasmCreditCardType;

@@ -1,0 +1,12 @@
+[Error]
+enum GetRootDomainError {
+    "CannotGetDomain",
+    "EmptyLabel",
+    "InvalidPublicSuffix"
+};
+
+interface DomainManager {
+    constructor();
+    [Throws=GetRootDomainError]
+    string get_root_domain(string input);
+};

@@ -1323,6 +1323,7 @@ dependencies = [
  "passkey-types",
  "passwords",
  "proton-pass-derive",
+ "public-suffix",
  "rand",
  "regex",
  "rmp-serde",

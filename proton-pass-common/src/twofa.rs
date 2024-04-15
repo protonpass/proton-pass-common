@@ -1,3 +1,4 @@
+use public_suffix::{EffectiveTLDProvider, DEFAULT_PROVIDER};
 use std::collections::HashSet;
 use std::env;
 
@@ -17,6 +18,13 @@ pub struct TwofaDomainChecker;
 
 impl TwofaDomainChecker {
     pub fn twofa_domain_eligible(term: &str) -> bool {
-        DOMAINS.contains(term)
+        if DOMAINS.contains(term) {
+            true
+        } else {
+            match DEFAULT_PROVIDER.effective_tld_plus_one(term) {
+                Ok(d) => DOMAINS.contains(d),
+                Err(_) => false,
+            }
+        }
     }
 }

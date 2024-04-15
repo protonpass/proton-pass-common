@@ -193,7 +193,7 @@ fn inner_score_password(password: &str) -> PasswordScoreResult {
                 penalties.push(PasswordPenalty::ShortWordList);
                 score.min(VULNERABLE_MAX_SCORE - 1.)
             }
-            3 | 4 => {
+            3 => {
                 penalties.push(PasswordPenalty::ShortWordList);
                 score.min(WEAK_MAX_SCORE - 1.)
             }

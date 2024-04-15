@@ -26,7 +26,7 @@ score_test! {
     word3nn: ( "Correct3-horse@Battery8", PasswordScore::Weak),
     word3n: ( "Correct3horse3Battery8", PasswordScore::Weak),
     word3sn: ( "Correct3-horse@Battery8.", PasswordScore::Weak),
-    word4sn: ( "Correct3-horse@Battery8.staple8_", PasswordScore::Weak),
+    word4sn: ( "Correct3-horse@Battery8.staple8_", PasswordScore::Strong),
     word5: ( "Correct3-horse@Battery8.staple8_Moon", PasswordScore::Strong),
 }
 

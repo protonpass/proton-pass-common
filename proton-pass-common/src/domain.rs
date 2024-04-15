@@ -10,13 +10,11 @@ pub enum GetRootDomainError {
 pub fn get_root_domain(input: &str) -> Result<String, GetRootDomainError> {
     match DEFAULT_PROVIDER.effective_tld_plus_one(input) {
         Ok(d) => Ok(d.to_string()),
-        Err(e) => {
-            match e {
-                Error::CannotDeriveETldPlus1 => Err(GetRootDomainError::CannotGetDomain),
-                Error::EmptyLabel => Err(GetRootDomainError::EmptyLabel),
-                Error::InvalidPublicSuffix => Err(GetRootDomainError::InvalidPublicSuffix),
-                _ => Err(GetRootDomainError::CannotGetDomain),
-            }
-        }
+        Err(e) => match e {
+            Error::CannotDeriveETldPlus1 => Err(GetRootDomainError::CannotGetDomain),
+            Error::EmptyLabel => Err(GetRootDomainError::EmptyLabel),
+            Error::InvalidPublicSuffix => Err(GetRootDomainError::InvalidPublicSuffix),
+            _ => Err(GetRootDomainError::CannotGetDomain),
+        },
     }
 }

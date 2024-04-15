@@ -15,6 +15,7 @@
 ### Fixes :bug:
 
 - Parse domain using public suffix list for detecting missing 2FA.
+- Adjustments with the password scorer.
 
 ## 0.7.6
 

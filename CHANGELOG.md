@@ -6,11 +6,21 @@
 
 ### Other
 
+## 0.7.7
+
+### Features :tada:
+
+- Offer method for extracting root domain using public suffix list.
+
+### Fixes :bug:
+
+- Parse domain using public suffix list for detecting missing 2FA.
+
 ## 0.7.6
 
-### Fixes 🐛
+### Fixes :bug:
 
-- Fix credProps and type formatting for web
+- Fix credProps and type formatting for web.
 
 ## 0.7.5
 

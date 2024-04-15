@@ -19,6 +19,7 @@ passkey = { version = "0.2.0" }
 passkey-authenticator = { version = "0.2.0", features = ["testable"] }
 passkey-types = { version = "0.2.0", features = ["serialize_bytes_as_base64_string"] }
 passwords = "3.1.16"
+public-suffix = "0.1.1"
 rand = "0.8.5"
 regex = "1.10.2"
 rmp-serde = "1.1.2"

@@ -6,6 +6,16 @@
 
 ### Other
 
+## 0.7.8
+
+### Features :tada:
+
+- Offer method for extracting full domain from URL.
+
+### Fixes :bug:
+
+- Fix domain extraction and root domain extraction.
+
 ## 0.7.7
 
 ### Features :tada:

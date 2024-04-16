@@ -5,6 +5,7 @@ import {
   detect_credit_card_type,
   generate_passkey,
   generate_passphrase,
+  get_domain,
   get_root_domain,
   library_version,
   pass_common_set_panic_hook,
@@ -62,7 +63,12 @@ describe("ProtonPassWeb WASM", () => {
   });
 
   test("Can extract root domain", () => {
-    const response = get_root_domain("https://test.amazon.com");
-    expect(response).toEqual("amazon.com");
+    const response = get_root_domain("https://test.example.com");
+    expect(response).toEqual("example.com");
+  });
+
+  test("Can extract domain domain", () => {
+    const response = get_domain("https://test.example.com/path?key=value");
+    expect(response).toEqual("test.example.com");
   });
 });

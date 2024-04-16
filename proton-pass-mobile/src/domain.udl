@@ -5,8 +5,17 @@ enum GetRootDomainError {
     "InvalidPublicSuffix"
 };
 
+[Error]
+enum GetDomainError {
+    "ParseError",
+    "UrlHasNoDomain"
+};
+
 interface DomainManager {
     constructor();
     [Throws=GetRootDomainError]
     string get_root_domain(string input);
+
+    [Throws=GetDomainError]
+    string get_domain(string input);
 };

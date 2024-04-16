@@ -138,6 +138,11 @@ pub fn get_root_domain(input: String) -> Result<String, JsError> {
     Ok(proton_pass_common::domain::get_root_domain(&input)?)
 }
 
+#[wasm_bindgen]
+pub fn get_domain(input: String) -> Result<String, JsError> {
+    Ok(proton_pass_common::domain::get_domain(&input)?)
+}
+
 use crate::passkey::WasmCreatePasskeyData;
 pub use common::WasmStringList;
 pub use creditcard::WasmCreditCardType;

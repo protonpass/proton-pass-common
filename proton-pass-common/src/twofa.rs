@@ -21,8 +21,11 @@ impl TwofaDomainChecker {
         if DOMAINS.contains(term) {
             true
         } else {
-            match DEFAULT_PROVIDER.effective_tld_plus_one(term) {
-                Ok(d) => DOMAINS.contains(d),
+            match crate::domain::get_root_domain(term) {
+                Ok(domain) => match DEFAULT_PROVIDER.effective_tld_plus_one(&domain) {
+                    Ok(d) => DOMAINS.contains(d),
+                    Err(_) => false,
+                },
                 Err(_) => false,
             }
         }

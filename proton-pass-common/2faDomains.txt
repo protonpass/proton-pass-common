@@ -11,6 +11,7 @@
 a2hosting.com
 above.com
 accelo.com
+accountable.eu
 accounts.firefox.com
 accounts.nintendo.com
 acquia.com
@@ -608,6 +609,7 @@ metorik.com
 migadu.com
 migros.ch
 mimecast.com
+minds.com
 minecraft.net
 mint.intuit.com
 mintos.com

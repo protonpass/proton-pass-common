@@ -1,5 +1,5 @@
 use luhn::valid;
-use regex::Regex;
+use regex_lite::Regex;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum CreditCardType {

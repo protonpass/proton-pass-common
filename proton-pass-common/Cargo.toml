@@ -21,7 +21,7 @@ passkey-types = { version = "0.2.0", features = ["serialize_bytes_as_base64_stri
 passwords = "3.1.16"
 public-suffix = "0.1.1"
 rand = "0.8.5"
-regex = "1.10.2"
+regex-lite = "0.1.5"
 rmp-serde = "1.1.2"
 serde = { version = "1.0.188", features = ["derive"] }
 serde_json = "1.0.111"

@@ -53,21 +53,18 @@ pub fn generate_password(config: WasmRandomPasswordConfig) -> Result<String, JsE
 }
 
 #[wasm_bindgen]
-pub fn random_words(word_count: u32) -> Result<WasmStringList, JsError> {
+pub fn random_words(word_count: u32) -> Result<Vec<String>, JsError> {
     let mut generator = get_generator();
-    generator
-        .random_words(word_count as usize)
-        .map(WasmStringList)
-        .map_err(|e| e.into())
+    generator.random_words(word_count as usize).map_err(|e| e.into())
 }
 
 #[wasm_bindgen]
-pub fn generate_passphrase(words: WasmStringList, config: WasmPassphraseConfig) -> Result<String, JsError> {
+pub fn generate_passphrase(words: Vec<String>, config: WasmPassphraseConfig) -> Result<String, JsError> {
     let mut generator = get_generator();
     let cfg: PassphraseConfig = config.into();
 
     generator
-        .generate_passphrase_from_words(words.0, &cfg)
+        .generate_passphrase_from_words(words, &cfg)
         .map_err(|e| e.into())
 }
 

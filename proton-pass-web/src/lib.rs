@@ -5,9 +5,19 @@ mod passkey;
 mod password;
 mod utils;
 
-use crate::password::WasmPasswordScoreResult;
-use proton_pass_common::password::{get_generator, PassphraseConfig, RandomPasswordConfig};
+use std::collections::HashMap;
+use utils::set_panic_hook;
 use wasm_bindgen::prelude::*;
+
+use common::WasmBoolDict;
+use creditcard::WasmCreditCardType;
+use login::WasmLogin;
+use passkey::WasmCreatePasskeyData;
+use passkey::{PasskeyManager, WasmGeneratePasskeyResponse, WasmResolvePasskeyChallengeResponse};
+use password::{
+    WasmPassphraseConfig, WasmPasswordScore, WasmPasswordScoreList, WasmPasswordScoreResult, WasmRandomPasswordConfig,
+};
+use proton_pass_common::password::{get_generator, PassphraseConfig, RandomPasswordConfig};
 
 #[wasm_bindgen]
 pub fn pass_common_set_panic_hook() {
@@ -27,6 +37,18 @@ pub fn is_email_valid(email: String) -> bool {
 #[wasm_bindgen]
 pub fn twofa_domain_eligible(domain: String) -> bool {
     proton_pass_common::twofa::TwofaDomainChecker::twofa_domain_eligible(&domain)
+}
+
+#[wasm_bindgen]
+pub fn twofa_domains_eligible(domains: Vec<String>) -> WasmBoolDict {
+    let mut dict: HashMap<String, bool> = HashMap::new();
+
+    for domain in domains {
+        let elligible = proton_pass_common::twofa::TwofaDomainChecker::twofa_domain_eligible(&domain);
+        dict.insert(domain, elligible);
+    }
+
+    WasmBoolDict(dict)
 }
 
 #[wasm_bindgen]
@@ -77,6 +99,11 @@ pub fn generate_random_passphrase(config: WasmPassphraseConfig) -> Result<String
 }
 
 #[wasm_bindgen]
+pub fn analyze_password(password: String) -> WasmPasswordScoreResult {
+    proton_pass_common::password::check_score(&password).into()
+}
+
+#[wasm_bindgen]
 pub fn check_password_score(password: String) -> WasmPasswordScore {
     proton_pass_common::password::check_score(&password)
         .password_score
@@ -84,8 +111,17 @@ pub fn check_password_score(password: String) -> WasmPasswordScore {
 }
 
 #[wasm_bindgen]
-pub fn analyze_password(password: String) -> WasmPasswordScoreResult {
-    proton_pass_common::password::check_score(&password).into()
+pub fn check_password_scores(passwords: Vec<String>) -> WasmPasswordScoreList {
+    WasmPasswordScoreList(
+        passwords
+            .iter()
+            .map(|password| {
+                proton_pass_common::password::check_score(&password)
+                    .password_score
+                    .into()
+            })
+            .collect(),
+    )
 }
 
 #[wasm_bindgen]
@@ -139,11 +175,3 @@ pub fn get_root_domain(input: String) -> Result<String, JsError> {
 pub fn get_domain(input: String) -> Result<String, JsError> {
     Ok(proton_pass_common::domain::get_domain(&input)?)
 }
-
-use crate::passkey::WasmCreatePasskeyData;
-pub use common::WasmStringList;
-pub use creditcard::WasmCreditCardType;
-pub use login::WasmLogin;
-pub use passkey::{PasskeyManager, WasmGeneratePasskeyResponse, WasmResolvePasskeyChallengeResponse};
-pub use password::{WasmPassphraseConfig, WasmPasswordScore, WasmRandomPasswordConfig};
-pub use utils::set_panic_hook;

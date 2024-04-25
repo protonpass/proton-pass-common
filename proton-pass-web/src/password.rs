@@ -78,6 +78,10 @@ pub enum WasmPasswordScore {
     Strong,
 }
 
+#[derive(Tsify, Deserialize, Serialize)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct WasmPasswordScoreList(pub Vec<WasmPasswordScore>);
+
 impl From<PasswordScore> for WasmPasswordScore {
     fn from(value: PasswordScore) -> Self {
         match value {

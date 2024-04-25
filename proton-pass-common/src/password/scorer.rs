@@ -1,5 +1,5 @@
 use passwords::analyzer::analyze;
-use regex::Regex;
+use regex_lite::Regex;
 
 include!(concat!(env!("OUT_DIR"), "/common_passwords.rs"));
 

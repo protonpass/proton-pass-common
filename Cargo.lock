@@ -1325,7 +1325,7 @@ dependencies = [
  "proton-pass-derive",
  "public-suffix",
  "rand",
- "regex",
+ "regex-lite",
  "rmp-serde",
  "serde",
  "serde-querystring",
@@ -1493,6 +1493,12 @@ dependencies = [
  "memchr",
  "regex-syntax",
 ]
+
+[[package]]
+name = "regex-lite"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "30b661b2f27137bdbc16f00eda72866a92bb28af1753ffbd56744fb6e2e9cd8e"
 
 [[package]]
 name = "regex-syntax"

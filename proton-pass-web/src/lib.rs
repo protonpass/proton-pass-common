@@ -116,7 +116,7 @@ pub fn check_password_scores(passwords: Vec<String>) -> WasmPasswordScoreList {
         passwords
             .iter()
             .map(|password| {
-                proton_pass_common::password::check_score(&password)
+                proton_pass_common::password::check_score(password)
                     .password_score
                     .into()
             })

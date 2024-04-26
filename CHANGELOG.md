@@ -6,6 +6,14 @@
 
 ### Other
 
+## 0.7.10
+
+### Features :tada:
+
+- web: Remove `tokio` dependency.
+- web: Update from `tsify` to `tsify_next`.
+- web: WASM size reduction.
+
 ## 0.7.9
 
 ### Features :tada:

@@ -18,7 +18,6 @@ use password::{
 };
 use proton_pass_common::password::{get_generator, PassphraseConfig, RandomPasswordConfig};
 
-
 #[wasm_bindgen]
 pub fn library_version() -> String {
     proton_pass_common::library_version()

@@ -6,6 +6,14 @@
 
 ### Other
 
+## 0.7.9
+
+### Features :tada:
+
+- Migrate to regex_lite to reduce compiled wasm binary size
+- Expose `check_password_scores` to check multiple passwords (web)
+- Expose `twofa_domains_eligible` to check multiple 2fa eligible domains (web)
+
 ## 0.7.8
 
 ### Features :tada:

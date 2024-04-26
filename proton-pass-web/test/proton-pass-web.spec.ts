@@ -36,7 +36,7 @@ describe("ProtonPassWeb WASM", () => {
     expect(cardType).toEqual("Visa");
   });
 
-  test("Can generate passkey", () => {
+  test("Can generate passkey", async () => {
     const input = {
       attestation: "none",
       authenticatorSelection: {
@@ -55,7 +55,7 @@ describe("ProtonPassWeb WASM", () => {
       user: { displayName: "uyguyhj", id: "ZFhsbmRYbG9hZw", name: "uyguyhj" },
     };
     const inputString = JSON.stringify(input);
-    const response = generate_passkey("https://webauthn.io", inputString);
+    const response = await generate_passkey("https://webauthn.io", inputString);
     expect(response.credential).not.toBeEmpty();
     expect(response.passkey).not.toBeEmpty();
     expect(response.user_id).not.toBeEmpty();

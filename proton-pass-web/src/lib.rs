@@ -6,7 +6,6 @@ mod password;
 mod utils;
 
 use std::collections::HashMap;
-use utils::set_panic_hook;
 use wasm_bindgen::prelude::*;
 
 use common::WasmBoolDict;
@@ -19,10 +18,6 @@ use password::{
 };
 use proton_pass_common::password::{get_generator, PassphraseConfig, RandomPasswordConfig};
 
-#[wasm_bindgen]
-pub fn pass_common_set_panic_hook() {
-    set_panic_hook()
-}
 
 #[wasm_bindgen]
 pub fn library_version() -> String {
@@ -144,26 +139,23 @@ pub fn detect_credit_card_type(card_number: String) -> WasmCreditCardType {
 }
 
 #[wasm_bindgen]
-pub fn generate_passkey(domain: String, request: String) -> Result<WasmGeneratePasskeyResponse, JsError> {
-    let manager = PasskeyManager::new()?;
-    Ok(manager.generate_passkey(domain, request)?)
+pub async fn generate_passkey(domain: String, request: String) -> Result<WasmGeneratePasskeyResponse, JsError> {
+    Ok(PasskeyManager::generate_passkey(domain, request).await?)
 }
 
 #[wasm_bindgen]
-pub fn resolve_passkey_challenge(
+pub async fn resolve_passkey_challenge(
     domain: String,
     passkey: js_sys::Uint8Array,
     request: String,
 ) -> Result<WasmResolvePasskeyChallengeResponse, JsError> {
     let passkey_as_vec = passkey.to_vec();
-    let manager = PasskeyManager::new()?;
-    Ok(manager.resolve_challenge(domain, passkey_as_vec, request)?)
+    Ok(PasskeyManager::resolve_challenge(domain, passkey_as_vec, request).await?)
 }
 
 #[wasm_bindgen]
 pub fn parse_create_passkey_data(request: String) -> Result<WasmCreatePasskeyData, JsError> {
-    let manager = PasskeyManager::new()?;
-    Ok(manager.parse_create_request(request)?)
+    Ok(PasskeyManager::parse_create_request(request)?)
 }
 
 #[wasm_bindgen]

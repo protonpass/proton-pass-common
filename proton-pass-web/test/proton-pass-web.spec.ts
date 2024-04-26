@@ -8,11 +8,8 @@ import {
   get_domain,
   get_root_domain,
   library_version,
-  pass_common_set_panic_hook,
   random_words,
 } from "./pkg/proton_pass_web.js";
-
-pass_common_set_panic_hook();
 
 describe("ProtonPassWeb WASM", () => {
   test("Library version", () => {

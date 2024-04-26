@@ -1,5 +1,5 @@
 use proton_pass_common::passkey::{
-    generate_passkey_for_domain, parse_create_passkey_data, resolve_challenge_for_domain, PasskeyError, PasskeyResult,
+    generate_passkey_for_domain, parse_create_passkey_data, resolve_challenge_for_domain, PasskeyResult,
 };
 
 use proton_pass_common::passkey_types::webauthn::{
@@ -9,12 +9,8 @@ use proton_pass_common::passkey_types::webauthn::{
 };
 
 use serde::{Deserialize, Serialize};
-use tsify::Tsify;
+use tsify_next::Tsify;
 use wasm_bindgen::prelude::wasm_bindgen;
-
-pub struct PasskeyManager {
-    rt: tokio::runtime::Runtime,
-}
 
 #[derive(Tsify, Deserialize, Serialize)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
@@ -237,19 +233,11 @@ pub struct WasmCreatePasskeyData {
     pub user_display_name: String,
 }
 
-impl PasskeyManager {
-    pub fn new() -> PasskeyResult<Self> {
-        match tokio::runtime::Builder::new_current_thread().build() {
-            Ok(rt) => Ok(Self { rt }),
-            Err(e) => Err(PasskeyError::RuntimeError(format!("Error creating runtime: {:?}", e))),
-        }
-    }
+pub struct PasskeyManager;
 
-    pub fn generate_passkey(&self, url: String, request: String) -> PasskeyResult<WasmGeneratePasskeyResponse> {
-        let res = self
-            .rt
-            .handle()
-            .block_on(async move { generate_passkey_for_domain(&url, &request).await })?;
+impl PasskeyManager {
+    pub async fn generate_passkey(url: String, request: String) -> PasskeyResult<WasmGeneratePasskeyResponse> {
+        let res = generate_passkey_for_domain(&url, &request).await?;
 
         let credential = WasmPublicKeyCredentialAttestation::from(res.credential);
 
@@ -270,23 +258,19 @@ impl PasskeyManager {
         })
     }
 
-    pub fn resolve_challenge(
-        &self,
+    pub async fn resolve_challenge(
         url: String,
         passkey: Vec<u8>,
         request: String,
     ) -> PasskeyResult<WasmResolvePasskeyChallengeResponse> {
-        let res = self
-            .rt
-            .handle()
-            .block_on(async move { resolve_challenge_for_domain(&url, &passkey, &request).await })?;
+        let res = resolve_challenge_for_domain(&url, &passkey, &request).await?;
 
         let credential = WasmPublicKeyCredentialAssertion::from(res.response);
 
         Ok(WasmResolvePasskeyChallengeResponse { credential })
     }
 
-    pub fn parse_create_request(&self, request: String) -> PasskeyResult<WasmCreatePasskeyData> {
+    pub fn parse_create_request(request: String) -> PasskeyResult<WasmCreatePasskeyData> {
         parse_create_passkey_data(&request).map(|d| WasmCreatePasskeyData {
             rp_id: d.rp_id,
             rp_name: d.rp_name,

@@ -119,6 +119,7 @@ bittrex.com
 bitvavo.com
 bitwarden.com
 bkex.com
+blackbaud.com
 blacknight.com
 bladeandsoul.com
 blockchain.com
@@ -294,7 +295,6 @@ dnsfilter.com
 dnsimple.com
 docker.com
 docusign.com
-domains.google.com
 domeneshop.no
 dominodatalab.com
 doppler.com
@@ -905,6 +905,7 @@ shopify.com
 short.io
 shortcut.com
 shrimpy.io
+sign.plus
 signrequest.com
 simplelogin.io
 simplybook.me

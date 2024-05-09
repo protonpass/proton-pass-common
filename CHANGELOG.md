@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.7.11
+
+### Other
+
+- common: ignore `proton.me` domain for missing 2FA check.
+
 ## 0.7.10
 
 ### Features :tada:

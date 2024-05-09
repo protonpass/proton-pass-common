@@ -1,6 +1,6 @@
 [package]
 name = "proton-pass-mobile"
-version = "0.7.10"
+version = "0.7.11"
 edition = "2021"
 
 # Flags for cargo-release

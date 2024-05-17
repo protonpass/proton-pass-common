@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.7.12
+
+### Features
+
+- common: support empty `pubKeyCredParams` in passkey creation request.
+
 ## 0.7.11
 
 ### Other

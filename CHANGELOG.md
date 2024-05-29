@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.7.13
+
+### Fixes :bug:
+
+- common: fix password scoring regex to take into account optional symbols at the end.
+
 ## 0.7.12
 
 ### Features

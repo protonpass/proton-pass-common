@@ -12,7 +12,7 @@ lazy_static::lazy_static! {
 
 fn build_passphrase_regex() -> Regex {
     let separator = format!("(?:\\d|{}|\\d{})", SEPARATOR_SYMBOLS, SEPARATOR_SYMBOLS);
-    let regex_str = format!("^([A-Z]?[a-z]{{1,9}}{})+$", separator);
+    let regex_str = format!("^([A-Z]?[a-z]{{1,9}}{})+([A-Z]?[a-z]{{1,9}})?$", separator);
     Regex::new(&regex_str).unwrap()
 }
 

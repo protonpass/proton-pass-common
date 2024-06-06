@@ -28,10 +28,8 @@ if response.status != http.HTTPStatus.OK:
     print(f"Failed to download the JSON data. Status code: {response.status}")
     exit(1)
 
-# Load JSON data from the response
 body = response.read()
 text = body.decode("utf-8")
-
 data = json.loads(text)
 
 # Extract domains

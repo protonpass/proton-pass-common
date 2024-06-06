@@ -4,7 +4,7 @@ import json
 import urllib.request
 from os import path
 
-# URL to download the JSON data from
+# URL to download the JSON data from  TODO: What json data?
 url = "https://api.2fa.directory/v3/totp.json"
 
 CUSTOM_DOMAINS_FILE = path.abspath(
@@ -54,7 +54,7 @@ if response.status == 200:
     clean_domains = sorted(list(set(domains)))
 
     # Save domains to a text file
-    with open(DEFAULT_DST, "w") as file:
+    with open(DEFAULT_DESTINATION, "w") as file:
         for domain in clean_domains:
             file.write(domain + "\n")
 

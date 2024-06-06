@@ -32,7 +32,9 @@ def get_2fa_data() -> typing.List[typing.Tuple[str, Metadata]]:
     return data
 
 
-def generate_domains(data: typing.List[typing.Tuple[str, Metadata]]):
+def generate_domains(
+    data: typing.List[typing.Tuple[str, Metadata]],
+) -> typing.List[str]:
     domains = {metadata["domain"] for _, metadata in data}
     domains |= {
         domain.strip() for domain in CUSTOM_DOMAINS_FILE.read_text().split("\n")

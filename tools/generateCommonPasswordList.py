@@ -19,11 +19,11 @@ def download_wordlist(url: str) -> List[str]:
     response = urllib.request.urlopen(url)
     data = response.read()
     text = data.decode("utf-8")
-    lines = []
-    for line in text.split("\n"):
-        stripped = line.strip().replace("'", "")
-        if len(stripped) > 3:
-            lines.append(stripped.lower())
+    lines = [
+        stripped.lower()
+        for line in text.split("\n")
+        if len(stripped := line.strip().replace("'", "")) > 3
+    ]
     return lines
 
 

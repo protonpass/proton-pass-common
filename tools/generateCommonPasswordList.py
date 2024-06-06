@@ -28,16 +28,10 @@ def download_wordlist(url: str) -> List[str]:
 
 
 def main(password_destination_path: pathlib.Path) -> None:
-    # Download all the wordlists
     wordlists = map(download_wordlist, WORDLISTS_URLS)
-
-    # Combine all the words without duplicates
-    words = sorted(set(itertools.chain(*wordlists)))
-
+    words = sorted(set(itertools.chain(*wordlists)))  # no duplicates
     sorted_by_length = reversed(sorted(words, key=len))
-
     password_destination_path.write_text("\n".join(sorted_by_length))
-
     print(f"Wrote the passwords file to {password_destination_path}")
 
 

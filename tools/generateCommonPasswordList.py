@@ -34,7 +34,6 @@ def main(password_destination_path: str) -> None:
     # Combine all the words without duplicates
     words = sorted(set(itertools.chain(*wordlists)))
 
-    # Sort by length
     sorted_by_length = reversed(sorted(words, key=len))
 
     # Write

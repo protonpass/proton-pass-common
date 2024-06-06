@@ -25,7 +25,7 @@ excluded_domains = [
 ]
 
 if response.status != http.HTTPStatus.OK:
-    print(f"Failed to download the JSON data. Status code: {response.status_code}")
+    print(f"Failed to download the JSON data. Status code: {response.status}")
     exit(1)
 
 # Load JSON data from the response

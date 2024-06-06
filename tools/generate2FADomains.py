@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import http
+import http.client
 import json
 import pathlib
 import urllib.request
@@ -16,7 +16,7 @@ DEFAULT_DESTINATION = (
 request = urllib.request.Request(
     url, headers={"Accept": "application/json", "User-Agent": "curl/7.81.0"}
 )
-response = urllib.request.urlopen(request)
+response: http.client.HTTPResponse = urllib.request.urlopen(request)
 
 excluded_domains = [
     domain_

@@ -17,12 +17,12 @@ DEFAULT_DESTINATION = (
 
 def get_words(url: str) -> List[str]:
     response = urllib.request.urlopen(url)
-    data = response.read()
-    text = data.decode("utf-8")
+    body = response.read()
+    text = body.decode("utf-8")
     lines = [
-        stripped.lower()
+        word.lower()
         for line in text.split("\n")
-        if len(stripped := line.strip().replace("'", "")) > 3
+        if len(word := line.strip().replace("'", "")) > 3
     ]
     return lines
 

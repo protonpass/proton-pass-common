@@ -13,11 +13,10 @@ DEFAULT_DESTINATION = (
     pathlib.Path(__file__).parent.parent / "proton-pass-common" / "2faDomains.txt"
 )
 
-# Send a GET request to the URL
-req = urllib.request.Request(
+request = urllib.request.Request(
     url, headers={"Accept": "application/json", "User-Agent": "curl/7.81.0"}
 )
-response = urllib.request.urlopen(req)
+response = urllib.request.urlopen(request)
 
 excluded_domains = []
 with open(EXCLUDE_DOMAINS_FILE) as f:

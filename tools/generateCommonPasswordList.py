@@ -10,7 +10,7 @@ WORDLISTS_URLS = [
     "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/darkweb2017-top10000.txt",
 ]
 
-DEFAULT_DESTINATION = str(
+DEFAULT_DESTINATION = (
     pathlib.Path(__file__).parent.parent / "proton-pass-common" / "passwords.txt"
 )
 
@@ -27,7 +27,7 @@ def download_wordlist(url: str) -> List[str]:
     return lines
 
 
-def main(password_destination_path: str) -> None:
+def main(password_destination_path: pathlib.Path) -> None:
     # Download all the wordlists
     wordlists = map(download_wordlist, WORDLISTS_URLS)
 
@@ -36,9 +36,7 @@ def main(password_destination_path: str) -> None:
 
     sorted_by_length = reversed(sorted(words, key=len))
 
-    # Write
-    with open(password_destination_path, "w") as f:
-        f.write("\n".join(sorted_by_length))
+    password_destination_path.write_text("\n".join(sorted_by_length))
 
     print(f"Wrote the passwords file to {password_destination_path}")
 
@@ -53,4 +51,4 @@ if __name__ == "__main__":
         print(f"Bad usage:\n\t{sys.argv[0]} DST_FILE")
         sys.exit(1)
 
-    main(sys.argv[1] if len(sys.argv) == 2 else DEFAULT_DESTINATION)
+    main(pathlib.Path(sys.argv[1]) if len(sys.argv) == 2 else DEFAULT_DESTINATION)

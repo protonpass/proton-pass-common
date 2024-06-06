@@ -5,7 +5,7 @@ import urllib.request
 from os import path
 from typing import List
 
-WORDLISTS = [
+WORDLISTS_URLS = [
     "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/xato-net-10-million-passwords-1000.txt",
     "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/darkweb2017-top10000.txt",
 ]
@@ -15,7 +15,7 @@ DEFAULT_DESTINATION = path.abspath(
 )
 
 
-def download_list(url: str) -> List[str]:
+def download_wordlist(url: str) -> List[str]:
     response = urllib.request.urlopen(url)
     data = response.read()
     text = data.decode("utf-8")
@@ -29,7 +29,7 @@ def download_list(url: str) -> List[str]:
 
 def main(password_destination_path: str) -> None:
     # Download all the wordlists
-    wordlists = [download_list(l) for l in WORDLISTS]
+    wordlists = [download_wordlist(url) for url in WORDLISTS_URLS]
 
     # Combine all the words
     words = [word for wordlist in wordlists for word in wordlist]

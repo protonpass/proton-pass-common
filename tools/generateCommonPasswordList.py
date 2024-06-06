@@ -34,7 +34,7 @@ def main(password_destination_path: str) -> None:
     words = [word for wordlist in wordlists for word in wordlist]
 
     # Deduplication of words
-    deduplicated_words = sorted(list(set(words)))
+    deduplicated_words = sorted(set(words))
 
     # Sort by length
     sorted_by_length = reversed(sorted(deduplicated_words, key=len))

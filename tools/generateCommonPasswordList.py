@@ -33,11 +33,11 @@ def main(password_destination_path: str) -> None:
     # Combine all the words
     words = [word for wordlist in wordlists for word in wordlist]
 
-    # Dedup
-    deduped_words = sorted(list(set(words)))
+    # Deduplication of words
+    deduplicated_words = sorted(list(set(words)))
 
     # Sort by length
-    sorted_by_length = reversed(sorted(deduped_words, key=len))
+    sorted_by_length = reversed(sorted(deduplicated_words, key=len))
 
     # Write
     with open(password_destination_path, "w") as f:

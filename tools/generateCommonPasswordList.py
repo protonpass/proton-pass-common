@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import itertools
 import pathlib
 import sys
 import urllib.request
@@ -31,7 +32,7 @@ def main(password_destination_path: str) -> None:
     wordlists = map(download_wordlist, WORDLISTS_URLS)
 
     # Combine all the words without duplicates
-    words = sorted({word for wordlist in wordlists for word in wordlist})
+    words = sorted(set(itertools.chain(*wordlists)))
 
     # Sort by length
     sorted_by_length = reversed(sorted(words, key=len))

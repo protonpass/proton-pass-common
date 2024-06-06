@@ -18,10 +18,9 @@ request = urllib.request.Request(
 response: http.client.HTTPResponse = urllib.request.urlopen(request)
 
 excluded_domains = {
-    domain_
-    for domain in EXCLUDE_DOMAINS_FILE.read_text().split("\n")
-    if (domain_ := domain.strip())  # exclude empty lines
+    domain.strip() for domain in EXCLUDE_DOMAINS_FILE.read_text().split("\n")
 }
+excluded_domains -= {""}  # Remove empty lines
 
 if response.status != http.HTTPStatus.OK:
     print(f"Failed to download the JSON data. Status code: {response.status}")

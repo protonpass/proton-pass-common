@@ -38,7 +38,6 @@ domains = [
     if metadata["domain"] not in excluded_domains
 ]
 
-# Open the custom domains file in read mode
 with open(CUSTOM_DOMAINS_FILE) as file:
     for line in file.readlines():
         custom_domain = line.strip()

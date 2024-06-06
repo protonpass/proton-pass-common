@@ -32,17 +32,9 @@ body = response.read()
 text = body.decode("utf-8")
 data = json.loads(text)
 
-domains = [
-    metadata["domain"]
-    for _, metadata in data
-    if metadata["domain"] not in excluded_domains
-]
-
-with open(CUSTOM_DOMAINS_FILE) as file:
-    for line in file.readlines():
-        custom_domain = line.strip()
-        if custom_domain not in excluded_domains:
-            domains.append(custom_domain)
+domains = {metadata["domain"] for _, metadata in data}
+domains |= {domain.strip() for domain in CUSTOM_DOMAINS_FILE.read_text().split("\n")}
+domains -= excluded_domains
 
 clean_domains = sorted(list(set(domains)))
 

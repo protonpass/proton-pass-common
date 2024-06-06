@@ -4,9 +4,8 @@ import json
 import pathlib
 import urllib.request
 
-# URL to download the JSON data from  TODO: What json data?
-url = "https://api.2fa.directory/v3/totp.json"
-
+# https://2fa.directory/api/
+URL = "https://api.2fa.directory/v3/totp.json"
 CUSTOM_DOMAINS_FILE = pathlib.Path(__file__).parent / "custom2faDomains.txt"
 EXCLUDE_DOMAINS_FILE = pathlib.Path(__file__).parent / "excluded2faDomains.txt"
 DEFAULT_DESTINATION = (
@@ -14,7 +13,7 @@ DEFAULT_DESTINATION = (
 )
 
 request = urllib.request.Request(
-    url, headers={"Accept": "application/json", "User-Agent": "curl/7.81.0"}
+    URL, headers={"Accept": "application/json", "User-Agent": "curl/7.81.0"}
 )
 response: http.client.HTTPResponse = urllib.request.urlopen(request)
 

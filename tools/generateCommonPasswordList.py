@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-
+import pathlib
 import sys
 import urllib.request
-from os import path
 from typing import List
 
 WORDLISTS_URLS = [
@@ -10,8 +9,8 @@ WORDLISTS_URLS = [
     "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/darkweb2017-top10000.txt",
 ]
 
-DEFAULT_DESTINATION = path.abspath(
-    path.join(__file__, "../../proton-pass-common", "passwords.txt")
+DEFAULT_DESTINATION = str(
+    pathlib.Path(__file__).parent.parent / "proton-pass-common" / "passwords.txt"
 )
 
 

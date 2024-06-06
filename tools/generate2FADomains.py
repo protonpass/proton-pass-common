@@ -32,13 +32,11 @@ body = response.read()
 text = body.decode("utf-8")
 data = json.loads(text)
 
-# Extract domains
-domains = []
-for item in data:
-    if isinstance(item, list) and len(item) > 1 and "domain" in item[1]:
-        domain = item[1]["domain"]
-        if domain not in excluded_domains:
-            domains.append(domain)
+domains = [
+    metadata["domain"]
+    for _, metadata in data
+    if metadata["domain"] not in excluded_domains
+]
 
 # Open the custom domains file in read mode
 with open(CUSTOM_DOMAINS_FILE) as file:

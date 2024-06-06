@@ -18,11 +18,11 @@ request = urllib.request.Request(
 )
 response: http.client.HTTPResponse = urllib.request.urlopen(request)
 
-excluded_domains = [
+excluded_domains = {
     domain_
     for domain in EXCLUDE_DOMAINS_FILE.read_text().split("\n")
     if (domain_ := domain.strip())
-]
+}
 
 if response.status != http.HTTPStatus.OK:
     print(f"Failed to download the JSON data. Status code: {response.status}")

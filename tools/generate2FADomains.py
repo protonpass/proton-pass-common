@@ -35,12 +35,8 @@ data = json.loads(text)
 domains = {metadata["domain"] for _, metadata in data}
 domains |= {domain.strip() for domain in CUSTOM_DOMAINS_FILE.read_text().split("\n")}
 domains -= excluded_domains
+domains = sorted(domains)
 
-clean_domains = sorted(list(set(domains)))
-
-# Save domains to a text file
-with open(DEFAULT_DESTINATION, "w") as file:
-    for domain in clean_domains:
-        file.write(domain + "\n")
+DEFAULT_DESTINATION.write_text("\n".join(domains))
 
 print("Domains have been extracted and saved to domains.txt")

@@ -21,7 +21,7 @@ response: http.client.HTTPResponse = urllib.request.urlopen(request)
 excluded_domains = {
     domain_
     for domain in EXCLUDE_DOMAINS_FILE.read_text().split("\n")
-    if (domain_ := domain.strip())
+    if (domain_ := domain.strip())  # exclude empty lines
 }
 
 if response.status != http.HTTPStatus.OK:

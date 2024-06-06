@@ -18,8 +18,11 @@ request = urllib.request.Request(
 )
 response = urllib.request.urlopen(request)
 
-with open(EXCLUDE_DOMAINS_FILE) as f:
-    excluded_domains = [domain.strip() for domain in f.readlines() if domain.strip()]
+excluded_domains = [
+    domain_
+    for domain in EXCLUDE_DOMAINS_FILE.read_text().split("\n")
+    if (domain_ := domain.strip())
+]
 
 # Check if the request was successful
 if response.status == 200:

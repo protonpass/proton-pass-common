@@ -29,7 +29,7 @@ def download_wordlist(url: str) -> List[str]:
 
 def main(password_destination_path: str) -> None:
     # Download all the wordlists
-    wordlists = [download_wordlist(url) for url in WORDLISTS_URLS]
+    wordlists = map(download_wordlist, WORDLISTS_URLS)
 
     # Combine all the words
     words = [word for wordlist in wordlists for word in wordlist]

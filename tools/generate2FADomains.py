@@ -1,20 +1,16 @@
 #!/usr/bin/env python3
 
 import json
+import pathlib
 import urllib.request
-from os import path
 
 # URL to download the JSON data from  TODO: What json data?
 url = "https://api.2fa.directory/v3/totp.json"
 
-CUSTOM_DOMAINS_FILE = path.abspath(
-    path.join(path.dirname(__file__), "custom2faDomains.txt")
-)
-EXCLUDE_DOMAINS_FILE = path.abspath(
-    path.join(path.dirname(__file__), "excluded2faDomains.txt")
-)
-DEFAULT_DST = path.abspath(
-    path.join(__file__, "../../proton-pass-common", "2faDomains.txt")
+CUSTOM_DOMAINS_FILE = pathlib.Path(__file__).parent / "custom2faDomains.txt"
+EXCLUDE_DOMAINS_FILE = pathlib.Path(__file__).parent / "excluded2faDomains.txt"
+DEFAULT_DESTINATION = (
+    pathlib.Path(__file__).parent.parent / "proton-pass-common" / "2faDomains.txt"
 )
 
 # Send a GET request to the URL

@@ -8,22 +8,26 @@ import sys
 
 
 WORDLISTS = [
-  "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/xato-net-10-million-passwords-1000.txt",
-  "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/darkweb2017-top10000.txt"
+    "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/xato-net-10-million-passwords-1000.txt",
+    "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/darkweb2017-top10000.txt",
 ]
 
-DEFAULT_DST = path.abspath(path.join(__file__, "../../proton-pass-common", "passwords.txt"))
+DEFAULT_DST = path.abspath(
+    path.join(__file__, "../../proton-pass-common", "passwords.txt")
+)
+
 
 def download_list(url: str) -> List[str]:
-     response = urllib.request.urlopen(url)
-     data = response.read()
-     text = data.decode('utf-8')
-     lines = []
-     for line in text.split('\n'):
+    response = urllib.request.urlopen(url)
+    data = response.read()
+    text = data.decode("utf-8")
+    lines = []
+    for line in text.split("\n"):
         stripped = line.strip().replace("'", "")
         if len(stripped) > 3:
             lines.append(stripped.lower())
-     return lines
+    return lines
+
 
 def main(dst: str):
     # Download all the wordlists
@@ -39,12 +43,13 @@ def main(dst: str):
     sorted_by_length = reversed(sorted(deduped_words, key=len))
 
     # Write
-    with open(dst, 'w') as f:
+    with open(dst, "w") as f:
         f.write("\n".join(sorted_by_length))
 
     print(f"Wrote the passwords file to {dst}")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     dst = DEFAULT_DST
     if len(sys.argv) == 2:
         if sys.argv[1] in ["-h", "--help"]:

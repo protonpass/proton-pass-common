@@ -24,7 +24,6 @@ excluded_domains = [
     if (domain_ := domain.strip())
 ]
 
-# Check if the request was successful
 if response.status == 200:
     # Load JSON data from the response
 

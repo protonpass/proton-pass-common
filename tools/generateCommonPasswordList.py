@@ -35,7 +35,7 @@ def generate_password_file(destination_path: pathlib.Path) -> None:
     # this will keep the order of words equal in length over multiple runs.
     unique_words = sorted(set(itertools.chain(*word_lists)))
 
-    sorted_by_length = reversed(sorted(unique_words, key=len))
+    sorted_by_length = sorted(unique_words, key=len, reverse=True)
     destination_path.write_text("\n".join(sorted_by_length))
     print(f"Wrote the passwords file to {destination_path}")
 

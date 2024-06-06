@@ -10,7 +10,7 @@ WORDLISTS = [
     "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/darkweb2017-top10000.txt",
 ]
 
-DEFAULT_DST = path.abspath(
+DEFAULT_DESTINATION = path.abspath(
     path.join(__file__, "../../proton-pass-common", "passwords.txt")
 )
 
@@ -27,7 +27,7 @@ def download_list(url: str) -> List[str]:
     return lines
 
 
-def main(dst: str) -> None:
+def main(password_destination_path: str) -> None:
     # Download all the wordlists
     wordlists = [download_list(l) for l in WORDLISTS]
 
@@ -41,18 +41,18 @@ def main(dst: str) -> None:
     sorted_by_length = reversed(sorted(deduped_words, key=len))
 
     # Write
-    with open(dst, "w") as f:
+    with open(password_destination_path, "w") as f:
         f.write("\n".join(sorted_by_length))
 
-    print(f"Wrote the passwords file to {dst}")
+    print(f"Wrote the passwords file to {password_destination_path}")
 
 
 if __name__ == "__main__":
-    dst = DEFAULT_DST
+    dst = DEFAULT_DESTINATION
     if len(sys.argv) == 2:
         if sys.argv[1] in ["-h", "--help"]:
             print(f"{sys.argv[0]} DST_FILE")
-            print(f"(defaults to {DEFAULT_DST})")
+            print(f"(defaults to {DEFAULT_DESTINATION})")
             sys.exit(0)
         else:
             dst = sys.argv[1]

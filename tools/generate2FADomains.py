@@ -18,7 +18,6 @@ request = urllib.request.Request(
 )
 response = urllib.request.urlopen(request)
 
-excluded_domains = []
 with open(EXCLUDE_DOMAINS_FILE) as f:
     excluded_domains = [domain.strip() for domain in f.readlines() if domain.strip()]
 

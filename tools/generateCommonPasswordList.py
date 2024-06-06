@@ -30,14 +30,11 @@ def main(password_destination_path: str) -> None:
     # Download all the wordlists
     wordlists = map(download_wordlist, WORDLISTS_URLS)
 
-    # Combine all the words
-    words = [word for wordlist in wordlists for word in wordlist]
-
-    # Deduplication of words
-    deduplicated_words = sorted(set(words))
+    # Combine all the words without duplicates
+    words = sorted({word for wordlist in wordlists for word in wordlist})
 
     # Sort by length
-    sorted_by_length = reversed(sorted(deduplicated_words, key=len))
+    sorted_by_length = reversed(sorted(words, key=len))
 
     # Write
     with open(password_destination_path, "w") as f:

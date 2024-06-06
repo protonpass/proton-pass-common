@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 
+import sys
+import urllib.request
 from os import path
 from typing import List
-
-import urllib.request
-import sys
-
 
 WORDLISTS = [
     "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/xato-net-10-million-passwords-1000.txt",
@@ -29,7 +27,7 @@ def download_list(url: str) -> List[str]:
     return lines
 
 
-def main(dst: str):
+def main(dst: str) -> None:
     # Download all the wordlists
     wordlists = [download_list(l) for l in WORDLISTS]
 

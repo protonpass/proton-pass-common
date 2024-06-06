@@ -24,7 +24,7 @@ req = urllib.request.Request(
 response = urllib.request.urlopen(req)
 
 excluded_domains = []
-with open(EXCLUDE_DOMAINS_FILE, "r") as f:
+with open(EXCLUDE_DOMAINS_FILE) as f:
     excluded_domains = [domain.strip() for domain in f.readlines() if domain.strip()]
 
 # Check if the request was successful
@@ -45,7 +45,7 @@ if response.status == 200:
                 domains.append(domain)
 
     # Open the custom domains file in read mode
-    with open(CUSTOM_DOMAINS_FILE, "r") as file:
+    with open(CUSTOM_DOMAINS_FILE) as file:
         for line in file.readlines():
             custom_domain = line.strip()
             if custom_domain not in excluded_domains:

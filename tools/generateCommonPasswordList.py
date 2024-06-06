@@ -48,16 +48,13 @@ def main(password_destination_path: str) -> None:
 
 
 if __name__ == "__main__":
-    dst = DEFAULT_DESTINATION
-    if len(sys.argv) == 2:
-        if sys.argv[1] in ["-h", "--help"]:
-            print(f"{sys.argv[0]} DST_FILE")
-            print(f"(defaults to {DEFAULT_DESTINATION})")
-            sys.exit(0)
-        else:
-            dst = sys.argv[1]
+    if len(sys.argv) == 2 and sys.argv[1] in ["-h", "--help"]:
+        print(f"{sys.argv[0]} DST_FILE")
+        print(f"(defaults to {DEFAULT_DESTINATION})")
+        sys.exit(0)
+
     if len(sys.argv) > 2:
         print(f"Bad usage:\n\t{sys.argv[0]} DST_FILE")
         sys.exit(1)
 
-    main(dst)
+    main(sys.argv[1] if len(sys.argv) == 2 else DEFAULT_DESTINATION)

@@ -31,8 +31,10 @@ def generate_password_file(destination_path: pathlib.Path) -> None:
     word_lists = map(get_words, WORDS_URLS)
 
     # Sort unique because of later sort by length.
-    # Timsort being stable, and set being unordered,
+    # Timsort (and later Powersort (python 3.11)) being stable, and set being unordered,
     # this will keep the order of words equal in length over multiple runs.
+    # See: https://stackoverflow.com/a/9969709/6251742
+    # and https://www.wild-inter.net/posts/powersort-in-python-3.11
     unique_words = sorted(set(itertools.chain(*word_lists)))
 
     sorted_by_length = sorted(unique_words, key=len, reverse=True)

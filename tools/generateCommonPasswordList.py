@@ -18,10 +18,9 @@ DEFAULT_DESTINATION = (
 
 def get_passwords(url: str) -> List[str]:
     response: http.client.HTTPResponse = urllib.request.urlopen(url)
-    body = response.read()
-    text = body.decode("utf-8").replace("'", "")
-    passwords = [line.lower() for line in text.splitlines() if len(line) > 3]
-    return passwords
+    all_passwords = response.read().decode("utf-8").replace("'", "").splitlines()
+    clean_passwords = [line.lower() for line in all_passwords if len(line) > 3]
+    return clean_passwords
 
 
 def generate_password_file(destination_path: pathlib.Path) -> None:

@@ -23,7 +23,7 @@ def get_passwords(url: str) -> List[str]:
     passwords = [
         password.lower()
         for line in text.splitlines()
-        if len(password := line.strip().replace("'", "")) > 3
+        if len(password := line.replace("'", "")) > 3
     ]
     return passwords
 

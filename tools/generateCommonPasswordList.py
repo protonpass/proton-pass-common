@@ -19,12 +19,8 @@ DEFAULT_DESTINATION = (
 def get_passwords(url: str) -> List[str]:
     response: http.client.HTTPResponse = urllib.request.urlopen(url)
     body = response.read()
-    text = body.decode("utf-8")
-    passwords = [
-        password.lower()
-        for line in text.splitlines()
-        if len(password := line.replace("'", "")) > 3
-    ]
+    text = body.decode("utf-8").replace("'", "")
+    passwords = [line.lower() for line in text.splitlines() if len(line) > 3]
     return passwords
 
 

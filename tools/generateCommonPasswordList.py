@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import http.client
 import itertools
 import pathlib
 import sys
@@ -15,22 +16,22 @@ DEFAULT_DESTINATION = (
 )
 
 
-def get_words(url: str) -> List[str]:
-    response = urllib.request.urlopen(url)
+def get_passwords(url: str) -> List[str]:
+    response: http.client.HTTPResponse = urllib.request.urlopen(url)
     body = response.read()
     text = body.decode("utf-8")
-    lines = [
-        word.lower()
-        for line in text.split("\n")
-        if len(word := line.strip().replace("'", "")) > 3
+    passwords = [
+        password.lower()
+        for line in text.splitlines()
+        if len(password := line.strip().replace("'", "")) > 3
     ]
-    return lines
+    return passwords
 
 
 def generate_password_file(destination_path: pathlib.Path) -> None:
-    word_lists = map(get_words, WORDS_URLS)
-    unique_words = set(itertools.chain(*word_lists))
-    sorted_by_length = sorted(unique_words, key=lambda w: (len(w), w), reverse=True)
+    password_lists = map(get_passwords, WORDS_URLS)
+    unique_passwords = set(itertools.chain(*password_lists))
+    sorted_by_length = sorted(unique_passwords, key=lambda w: (len(w), w), reverse=True)
     destination_path.write_text("\n".join(sorted_by_length))
     print(f"Wrote the passwords file to {destination_path}")
 

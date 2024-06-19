@@ -16,3 +16,6 @@ tsify-next = { version = "0.5.2", features = ["wasm-bindgen", "js", "json"] }
 wasm-bindgen = "0.2.92"
 wasm-bindgen-futures = "0.4.42"
 
+[features]
+web_ui = []
+web_worker = []

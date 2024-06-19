@@ -1,6 +1,7 @@
 SHELL:=/bin/bash
 MAKEFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 PROJECT_ROOT := $(dir $(MAKEFILE_PATH))
+VERSION := $(shell cargo metadata --no-deps --format-version=1 | jq -r '.packages[0].version')
 
 MOBILE_LIB_NAME:=libproton_pass_common_mobile.so
 ANDROID_BINDINGS_DIR:=${PROJECT_ROOT}/proton-pass-mobile/android/lib/src/main/java/proton/android/pass/commonrust
@@ -11,9 +12,10 @@ IOS_LIB_DIR:=${PROJECT_ROOT}/proton-pass-mobile/iOS/libs
 IOS_LIB_NAME:=libproton_pass_common_mobile.a
 IOS_PACKAGE_DIR:=${PROJECT_ROOT}/proton-pass-mobile/iOS/PassRustCore
 IOS_XCFRAMEWORK_NAME:=RustFramework.xcframework
-WEB_BUILD_DIR:=${PROJECT_ROOT}/proton-pass-web/pkg
-WEB_TEST_DIR:=${PROJECT_ROOT}/proton-pass-web/test
-WEB_TEST_BUILD_DIR:=${PROJECT_ROOT}/proton-pass-web/test/pkg
+WEB_DIR:=${PROJECT_ROOT}/proton-pass-web
+WEB_BUILD_DIR:=${WEB_DIR}/dist
+WEB_TEST_DIR:=${WEB_DIR}/test
+WEB_TEST_BUILD_DIR:=${WEB_DIR}/test/pkg
 
 .PHONY: default
 default: help
@@ -132,11 +134,19 @@ android: android-lib-aarch64 android-lib-armv7 android-lib-x86_64 ## Build all t
 
 .PHONY: web
 web: ## Build the web artifacts
-	@wasm-pack build proton-pass-web --scope protontech
-	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "@protontech\/pass-rust-core",/g' "${WEB_BUILD_DIR}/package.json"
+	@rm -rf "${WEB_BUILD_DIR}" && mkdir "${WEB_BUILD_DIR}"
+	@wasm-pack build proton-pass-web --scope protontech --features web_worker
+	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "@protontech\/pass-rust-core-worker",/g' "${WEB_DIR}/pkg/package.json"
+	@mv "${WEB_DIR}/pkg" "${WEB_BUILD_DIR}/worker"
+	@wasm-pack build proton-pass-web --scope protontech --features web_ui
+	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "@protontech\/pass-rust-core-ui",/g' "${WEB_DIR}/pkg/package.json"
+	@mv "${WEB_DIR}/pkg" "${WEB_BUILD_DIR}/ui"
+	@cp "${WEB_DIR}/package.json" "${WEB_BUILD_DIR}/package.json"
+	@sed -i'' -e 's/<version>/'"${VERSION}"'/' "${WEB_BUILD_DIR}/package.json"
+
 
 .PHONY: web-test
 web-test: ## Test the web artifacts
-	@wasm-pack build proton-pass-web --scope protontech --target nodejs --out-dir ${WEB_TEST_BUILD_DIR}
+	@wasm-pack build proton-pass-web --scope protontech --target nodejs --out-dir ${WEB_TEST_BUILD_DIR} --features "web_worker,web_ui"
 	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "@protontech\/pass-rust-core",/g' "${WEB_TEST_BUILD_DIR}/package.json"
 	@cd ${WEB_TEST_DIR} && bun test

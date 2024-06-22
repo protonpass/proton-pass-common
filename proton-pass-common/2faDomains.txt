@@ -134,6 +134,7 @@ boursedirect.fr
 box.com
 braintreepayments.com
 brandwatch.com
+brevo.com
 brex.com
 btcbox.co.jp
 btcmarkets.net
@@ -159,6 +160,7 @@ byu.edu
 cal.com
 cam.ac.uk
 campaignmonitor.com
+canada.ca
 canva.com
 capcom.com
 capsulecrm.com
@@ -247,6 +249,7 @@ contabo.com
 contentful.com
 convertkit.com
 cordial.com
+corporatefinanceinstitute.com
 coursera.org
 cpp.edu
 cqu.edu.au
@@ -465,6 +468,7 @@ hp.com
 hrblock.com
 huaweicloud.com
 hubspot.com
+huggingface.co
 humblebundle.com
 huobi.com
 hushmail.com
@@ -484,6 +488,7 @@ independer.nl
 infomaniak.com
 inmotionhosting.com
 instagram.com
+instant-gaming.com
 instructure.com
 intelli.zoolz.com
 intercom.com
@@ -512,6 +517,7 @@ jitbit.com
 join-lemmy.org
 joinmastodon.org
 joker.com
+jotform.com
 jottacloud.com
 jovia.org
 joyent.com
@@ -734,6 +740,7 @@ parimatch.com
 parsec.app
 particle.io
 passpack.com
+patientaccess.com
 patreon.com
 paxful.com
 paxos.com
@@ -798,6 +805,7 @@ purse.io
 pusher.com
 pushover.net
 put.io
+puter.com
 putler.com
 pypi.org
 pythonanywhere.com
@@ -813,6 +821,7 @@ raisin.com
 ramnode.com
 ramp.com
 rapidapi.com
+rapidgator.net
 raspberrypi.com
 ravelin.com
 raygun.com
@@ -887,7 +896,6 @@ selfwealth.com.au
 sellix.io
 semaphoreci.com
 sendcloud.com
-sendinblue.com
 sendowl.com
 sendsafely.com
 sentry.io
@@ -1030,7 +1038,6 @@ tuta.com
 tweakers.net
 twilio.com
 twitch.tv
-twitter.com
 ubereats.com
 ubisoft.com
 ubt.com
@@ -1114,6 +1121,7 @@ wikipedia.org
 windscribe.com
 wirexapp.com
 wise.com
+withings.com
 wix.com
 wolf.bet
 woltlab.com
@@ -1128,6 +1136,7 @@ wpengine.com
 wrike.com
 wykop.pl
 wyze.com
+x.com
 xbox.com
 xero.com
 xing.com

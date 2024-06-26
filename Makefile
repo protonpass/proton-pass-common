@@ -132,18 +132,29 @@ android-lib-x86_64: android-dirs ## Build the android library for x86_64
 android: android-lib-aarch64 android-lib-armv7 android-lib-x86_64 ## Build all the android variants
 	@cd ${PROJECT_ROOT}/proton-pass-mobile/android && ./gradlew :lib:assembleRelease
 
-.PHONY: web
-web: ## Build the web artifacts
+# --- Web
+.PHONY: web-setup
+web-setup:
 	@rm -rf "${WEB_BUILD_DIR}" && mkdir "${WEB_BUILD_DIR}"
+
+.PHONY: web-worker
+web-worker: ## Build the web worker artifacts
+	@echo "--- Building web-worker"
 	@wasm-pack build proton-pass-web --scope protontech --features web_worker
 	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "@protontech\/pass-rust-core-worker",/g' "${WEB_DIR}/pkg/package.json"
 	@mv "${WEB_DIR}/pkg" "${WEB_BUILD_DIR}/worker"
+
+.PHONY: web-ui
+web-ui: ## Build the web ui artifacts
+	@echo "--- Building web-ui"
 	@wasm-pack build proton-pass-web --scope protontech --features web_ui
 	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "@protontech\/pass-rust-core-ui",/g' "${WEB_DIR}/pkg/package.json"
 	@mv "${WEB_DIR}/pkg" "${WEB_BUILD_DIR}/ui"
+
+.PHONY: web
+web: web-setup web-worker web-ui ## Build the web artifacts
 	@cp "${WEB_DIR}/package.json" "${WEB_BUILD_DIR}/package.json"
 	@sed -i'' -e 's/<version>/'"${VERSION}"'/' "${WEB_BUILD_DIR}/package.json"
-
 
 .PHONY: web-test
 web-test: ## Test the web artifacts

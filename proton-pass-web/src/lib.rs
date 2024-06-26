@@ -2,6 +2,9 @@ use wasm_bindgen::prelude::*;
 
 mod common;
 
+#[cfg(feature = "web_password")]
+mod password;
+
 #[cfg(feature = "web_ui")]
 mod ui;
 

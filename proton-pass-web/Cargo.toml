@@ -17,5 +17,6 @@ wasm-bindgen = "0.2.92"
 wasm-bindgen-futures = "0.4.42"
 
 [features]
+web_password = []
 web_ui = []
-web_worker = []
+web_worker = ["web_password"]

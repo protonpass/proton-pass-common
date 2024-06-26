@@ -1,18 +1,16 @@
-use crate::common;
-use crate::passkey;
-use crate::password;
-use crate::utils;
-
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 
-use common::WasmBoolDict;
+use crate::common::{vec_to_uint8_array, WasmBoolDict};
 use passkey::WasmCreatePasskeyData;
 use passkey::{PasskeyManager, WasmGeneratePasskeyResponse, WasmResolvePasskeyChallengeResponse};
 use password::{
     WasmPassphraseConfig, WasmPasswordScore, WasmPasswordScoreList, WasmPasswordScoreResult, WasmRandomPasswordConfig,
 };
 use proton_pass_common::password::{get_generator, PassphraseConfig, RandomPasswordConfig};
+
+mod passkey;
+mod password;
 
 #[wasm_bindgen]
 pub fn twofa_domain_eligible(domain: String) -> bool {
@@ -97,7 +95,7 @@ pub fn calculate_password_score(password: String) -> f64 {
 pub fn create_new_user_invite_signature_body(email: String, vault_key: js_sys::Uint8Array) -> js_sys::Uint8Array {
     let vault_key_as_vec = vault_key.to_vec();
     let res = proton_pass_common::invite::create_signature_body(&email, vault_key_as_vec);
-    utils::vec_to_uint8_array(res)
+    vec_to_uint8_array(res)
 }
 
 #[wasm_bindgen]

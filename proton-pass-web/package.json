@@ -2,10 +2,12 @@
   "name": "@protontech/pass-rust-core",
   "version": "<version>",
   "workspaces": [
+    "password",
     "ui",
     "worker"
   ],
   "dependencies": {
+    "@protontech/pass-rust-core-password": "file:password",
     "@protontech/pass-rust-core-ui": "file:ui",
     "@protontech/pass-rust-core-worker": "file:worker"
   }

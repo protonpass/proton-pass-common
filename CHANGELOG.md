@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.8.0
+
+### Other
+
+- web: Split the features into 3 different rust features and binaries, so they can be imported independently.
+
 ## 0.7.13
 
 ### Fixes :bug:

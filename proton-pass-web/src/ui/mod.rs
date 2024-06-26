@@ -1,8 +1,9 @@
-use proton_pass_common;
+use creditcard::*;
+use login::WasmLogin;
 use wasm_bindgen::prelude::*;
 
-use crate::creditcard::{CreditCardDetector, WasmCreditCardType};
-use crate::login::WasmLogin;
+mod creditcard;
+mod login;
 
 #[wasm_bindgen]
 pub fn is_email_valid(email: String) -> bool {

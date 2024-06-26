@@ -1,7 +1,6 @@
 SHELL:=/bin/bash
 MAKEFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 PROJECT_ROOT := $(dir $(MAKEFILE_PATH))
-VERSION := $(shell cargo metadata --no-deps --format-version=1 | jq -r '.packages[0].version')
 
 MOBILE_LIB_NAME:=libproton_pass_common_mobile.so
 ANDROID_BINDINGS_DIR:=${PROJECT_ROOT}/proton-pass-mobile/android/lib/src/main/java/proton/android/pass/commonrust
@@ -161,7 +160,6 @@ web-password: ## Build the web password artifacts
 .PHONY: web
 web: web-setup web-worker web-ui web-password ## Build the web artifacts
 	@cp "${WEB_DIR}/package.json" "${WEB_BUILD_DIR}/package.json"
-	@sed -i'' -e 's/<version>/'"${VERSION}"'/' "${WEB_BUILD_DIR}/package.json"
 
 .PHONY: web-test
 web-test: web-setup ## Test the web artifacts
@@ -179,5 +177,4 @@ web-test: web-setup ## Test the web artifacts
 	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "@protontech\/pass-rust-core-password",/g' "${WEB_TEST_BUILD_DIR}/password/package.json"
 
 	@cp "${WEB_DIR}/package.json" "${WEB_TEST_BUILD_DIR}/package.json"
-	@sed -i'' -e 's/<version>/'"${VERSION}"'/' "${WEB_TEST_BUILD_DIR}/package.json"
 	@cd ${WEB_TEST_DIR} && bun test

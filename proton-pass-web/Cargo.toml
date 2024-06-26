@@ -3,6 +3,12 @@ name = "proton-pass-web"
 version = "0.7.13"
 edition = "2021"
 
+# Flags for cargo-release
+[package.metadata.release]
+pre-release-replacements = [
+    {file="package.json", search="  \"version\":.*", replace="  \"version\": \"{{version}}\","}
+]
+
 [lib]
 doctest = false
 crate-type = ["cdylib", "rlib"]

@@ -1,6 +1,6 @@
 {
   "name": "@protontech/pass-rust-core",
-  "version": "<version>",
+  "version": "0.7.13",
   "workspaces": [
     "password",
     "ui",

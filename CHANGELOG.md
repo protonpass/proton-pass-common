@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.8.1
+
+### Fix
+
+- web: WASM build directory in publish stage.
+
 ## 0.8.0
 
 ### Other

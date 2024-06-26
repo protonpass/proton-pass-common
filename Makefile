@@ -157,7 +157,16 @@ web: web-setup web-worker web-ui ## Build the web artifacts
 	@sed -i'' -e 's/<version>/'"${VERSION}"'/' "${WEB_BUILD_DIR}/package.json"
 
 .PHONY: web-test
-web-test: ## Test the web artifacts
-	@wasm-pack build proton-pass-web --scope protontech --target nodejs --out-dir ${WEB_TEST_BUILD_DIR} --features "web_worker,web_ui"
-	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "@protontech\/pass-rust-core",/g' "${WEB_TEST_BUILD_DIR}/package.json"
+web-test: web-setup ## Test the web artifacts
+	@rm -rf "${WEB_TEST_BUILD_DIR}" && mkdir -p "${WEB_TEST_BUILD_DIR}"
+	@echo "--- Building web-worker"
+	@wasm-pack build proton-pass-web --scope protontech --target nodejs --out-dir "${WEB_TEST_BUILD_DIR}/worker" --features "web_worker"
+	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "@protontech\/pass-rust-core-worker",/g' "${WEB_TEST_BUILD_DIR}/worker/package.json"
+
+	@echo "--- Building web-ui"
+	@wasm-pack build proton-pass-web --scope protontech --target nodejs --out-dir "${WEB_TEST_BUILD_DIR}/ui" --features "web_ui"
+	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "@protontech\/pass-rust-core-ui",/g' "${WEB_TEST_BUILD_DIR}/ui/package.json"
+
+	@cp "${WEB_DIR}/package.json" "${WEB_TEST_BUILD_DIR}/package.json"
+	@sed -i'' -e 's/<version>/'"${VERSION}"'/' "${WEB_TEST_BUILD_DIR}/package.json"
 	@cd ${WEB_TEST_DIR} && bun test

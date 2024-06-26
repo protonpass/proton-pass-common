@@ -15,5 +15,5 @@ proton-pass-mobile/src/*.modulemap
 proton-pass-mobile/iOS/**/*.swift
 proton-pass-mobile/pkg
 
-proton-pass-web/pkg
+proton-pass-web/**/pkg
 proton-pass-web/dist

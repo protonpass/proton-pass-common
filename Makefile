@@ -12,7 +12,7 @@ IOS_LIB_NAME:=libproton_pass_common_mobile.a
 IOS_PACKAGE_DIR:=${PROJECT_ROOT}/proton-pass-mobile/iOS/PassRustCore
 IOS_XCFRAMEWORK_NAME:=RustFramework.xcframework
 WEB_DIR:=${PROJECT_ROOT}/proton-pass-web
-WEB_BUILD_DIR:=${WEB_DIR}/dist
+WEB_BUILD_DIR:=${WEB_DIR}/pkg
 WEB_TEST_DIR:=${WEB_DIR}/test
 WEB_TEST_BUILD_DIR:=${WEB_DIR}/test/pkg
 

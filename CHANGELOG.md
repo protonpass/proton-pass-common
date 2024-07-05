@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.8.2
+
+### Fix
+
+- web: support pnpm and yarn v1 installs for @protontech/pass-rust-core
+
 ## 0.8.1
 
 ### Fix

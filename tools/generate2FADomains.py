@@ -1,55 +1,59 @@
 #!/usr/bin/env python3
-
+import http.client
 import json
+import pathlib
+import typing
 import urllib.request
-from os import path
 
-# URL to download the JSON data from
-url = "https://api.2fa.directory/v3/totp.json"
+# https://2fa.directory/api/
+URL = "https://api.2fa.directory/v3/totp.json"
+CUSTOM_DOMAINS_FILE = pathlib.Path(__file__).parent / "custom2faDomains.txt"
+EXCLUDE_DOMAINS_FILE = pathlib.Path(__file__).parent / "excluded2faDomains.txt"
+DEFAULT_DESTINATION = (
+    pathlib.Path(__file__).parent.parent / "proton-pass-common" / "2faDomains.txt"
+)
 
-CUSTOM_DOMAINS_FILE = path.abspath(path.join(path.dirname(__file__), 'custom2faDomains.txt'))
-EXCLUDE_DOMAINS_FILE = path.abspath(path.join(path.dirname(__file__), 'excluded2faDomains.txt'))
-DEFAULT_DST = path.abspath(path.join(__file__, "../../proton-pass-common", "2faDomains.txt"))
 
-# Send a GET request to the URL
-req = urllib.request.Request(url, headers={'Accept': 'application/json', 'User-Agent': 'curl/7.81.0'})
-response = urllib.request.urlopen(req)
+class Metadata(typing.TypedDict):
+    domain: str
 
-excluded_domains = []
-with open(EXCLUDE_DOMAINS_FILE, 'r') as f:
-    excluded_domains = [domain.strip() for domain in f.readlines() if domain.strip()]
 
-# Check if the request was successful
-if response.status == 200:
-    # Load JSON data from the response
-
+def get_2fa_data() -> typing.List[typing.Tuple[str, Metadata]]:
+    request = urllib.request.Request(
+        URL, headers={"Accept": "application/json", "User-Agent": "curl/7.81.0"}
+    )
+    response: http.client.HTTPResponse = urllib.request.urlopen(request)
+    if response.status != http.HTTPStatus.OK:
+        print(f"Failed to download the JSON data. Status code: {response.status}")
+        exit(1)
     body = response.read()
-    text = body.decode('utf-8')
-
+    text = body.decode("utf-8")
     data = json.loads(text)
+    return data
 
-    # Extract domains
-    domains = []
-    for item in data:
-        if isinstance(item, list) and len(item) > 1 and 'domain' in item[1]:
-            domain = item[1]['domain']
-            if domain not in excluded_domains:
-                domains.append(domain)
 
-    # Open the custom domains file in read mode
-    with open(CUSTOM_DOMAINS_FILE, 'r') as file:
-        for line in file.readlines():
-            custom_domain = line.strip()
-            if custom_domain not in excluded_domains:
-                domains.append(custom_domain)
+def generate_domains(
+    data: typing.List[typing.Tuple[str, Metadata]],
+) -> typing.List[str]:
+    domains = {metadata["domain"] for _, metadata in data}
+    domains |= {
+        domain.strip() for domain in CUSTOM_DOMAINS_FILE.read_text().split("\n")
+    }
+    excluded_domains = {
+        domain.strip() for domain in EXCLUDE_DOMAINS_FILE.read_text().split("\n")
+    }
+    excluded_domains -= {""}  # Remove empty lines
+    domains -= excluded_domains
+    domains = sorted(domains)
+    return domains
 
-    clean_domains = sorted(list(set(domains)))
 
-    # Save domains to a text file
-    with open(DEFAULT_DST, 'w') as file:
-        for domain in clean_domains:
-            file.write(domain + '\n')
-
+def generate_domains_file() -> None:
+    data = get_2fa_data()
+    domains = generate_domains(data)
+    DEFAULT_DESTINATION.write_text("\n".join(domains))
     print("Domains have been extracted and saved to domains.txt")
-else:
-    print(f"Failed to download the JSON data. Status code: {response.status_code}")
+
+
+if __name__ == "__main__":
+    generate_domains_file()

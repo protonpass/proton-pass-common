@@ -1,60 +1,46 @@
 #!/usr/bin/env python3
-
-from os import path
+import http.client
+import itertools
+import pathlib
+import sys
+import urllib.request
 from typing import List
 
-import urllib.request
-import sys
-
-
-WORDLISTS = [
-  "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/xato-net-10-million-passwords-1000.txt",
-  "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/darkweb2017-top10000.txt"
+WORDS_URLS = [
+    "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/xato-net-10-million-passwords-1000.txt",
+    "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/darkweb2017-top10000.txt",
 ]
 
-DEFAULT_DST = path.abspath(path.join(__file__, "../../proton-pass-common", "passwords.txt"))
+DEFAULT_DESTINATION = (
+    pathlib.Path(__file__).parent.parent / "proton-pass-common" / "passwords.txt"
+)
 
-def download_list(url: str) -> List[str]:
-     response = urllib.request.urlopen(url)
-     data = response.read()
-     text = data.decode('utf-8')
-     lines = []
-     for line in text.split('\n'):
-        stripped = line.strip().replace("'", "")
-        if len(stripped) > 3:
-            lines.append(stripped.lower())
-     return lines
 
-def main(dst: str):
-    # Download all the wordlists
-    wordlists = [download_list(l) for l in WORDLISTS]
+def get_passwords(url: str) -> List[str]:
+    response: http.client.HTTPResponse = urllib.request.urlopen(url)
+    all_passwords = response.read().decode("utf-8").replace("'", "").splitlines()
+    clean_passwords = [line.lower() for line in all_passwords if len(line) > 3]
+    return clean_passwords
 
-    # Combine all the words
-    words = [word for wordlist in wordlists for word in wordlist]
 
-    # Dedup
-    deduped_words = sorted(list(set(words)))
+def generate_password_file(destination_path: pathlib.Path) -> None:
+    password_lists = map(get_passwords, WORDS_URLS)
+    unique_passwords = set(itertools.chain(*password_lists))
+    sorted_by_length = sorted(unique_passwords, key=lambda w: (len(w), w), reverse=True)
+    destination_path.write_text("\n".join(sorted_by_length))
+    print(f"Wrote the passwords file to {destination_path}")
 
-    # Sort by length
-    sorted_by_length = reversed(sorted(deduped_words, key=len))
 
-    # Write
-    with open(dst, 'w') as f:
-        f.write("\n".join(sorted_by_length))
+if __name__ == "__main__":
+    if len(sys.argv) == 2 and sys.argv[1] in ["-h", "--help"]:
+        print(f"{sys.argv[0]} DST_FILE")
+        print(f"(defaults to {DEFAULT_DESTINATION})")
+        sys.exit(0)
 
-    print(f"Wrote the passwords file to {dst}")
-
-if __name__ == '__main__':
-    dst = DEFAULT_DST
-    if len(sys.argv) == 2:
-        if sys.argv[1] in ["-h", "--help"]:
-            print(f"{sys.argv[0]} DST_FILE")
-            print(f"(defaults to {DEFAULT_DST})")
-            sys.exit(0)
-        else:
-            dst = sys.argv[1]
     if len(sys.argv) > 2:
         print(f"Bad usage:\n\t{sys.argv[0]} DST_FILE")
         sys.exit(1)
 
-    main(dst)
+    generate_password_file(
+        pathlib.Path(sys.argv[1]) if len(sys.argv) == 2 else DEFAULT_DESTINATION
+    )

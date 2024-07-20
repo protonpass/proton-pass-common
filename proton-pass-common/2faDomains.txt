@@ -570,7 +570,6 @@ litebit.eu
 lnk.bio
 lobste.rs
 localizejs.com
-localmonero.co
 login.gov
 logitech.com
 lokalise.com
@@ -740,6 +739,7 @@ parimatch.com
 parsec.app
 particle.io
 passpack.com
+patient.labcorp.com
 patientaccess.com
 patreon.com
 paxful.com
@@ -921,7 +921,6 @@ sipgate.de
 sisense.com
 siteground.com
 sketch.com
-skiff.com
 skinport.com
 skype.com
 slack.com

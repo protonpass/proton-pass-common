@@ -74,7 +74,13 @@ where
             }
             _ => {
                 let mut password = String::new();
-                for _ in 0..spec.length - 3 {
+                for _ in 0..spec.length - 4 {
+                    password.push(self.get_char(&dictionary)?);
+                }
+
+                if !contains_lowercase_letters(&password) {
+                    password.push(self.get_char(LOWERCASE_LETTERS)?);
+                } else {
                     password.push(self.get_char(&dictionary)?);
                 }
 
@@ -176,6 +182,10 @@ where
     }
 }
 
+fn contains_lowercase_letters(haystack: &str) -> bool {
+    contains_list(LOWERCASE_LETTERS, haystack)
+}
+
 fn contains_capital_letters(haystack: &str) -> bool {
     contains_list(CAPITAL_LETTERS, haystack)
 }
@@ -228,6 +238,10 @@ mod test {
 
     fn seeded_rng() -> impl Rng {
         StdRng::seed_from_u64(SEED)
+    }
+
+    fn random_seeded_rng() -> impl Rng {
+        StdRng::from_entropy()
     }
 
     mod random {
@@ -309,7 +323,7 @@ mod test {
 
         #[test]
         fn generate_password_with_length_4_contains_everything() {
-            let mut generator = PasswordGenerator::new(seeded_rng());
+            let mut generator = PasswordGenerator::new(random_seeded_rng());
             let res = generator
                 .generate_random(&RandomPasswordConfig {
                     length: 4,
@@ -319,7 +333,26 @@ mod test {
                 })
                 .unwrap();
 
-            assert_eq!("xE6#", res);
+            assert!(
+                contains_lowercase_letters(&res),
+                "Password should contain lowercase letters: {}",
+                res
+            );
+            assert!(
+                contains_capital_letters(&res),
+                "Password should contain uppercase letters: {}",
+                res
+            );
+            assert!(
+                contains_numbers(&res),
+                "Password should contain numbers: {}",
+                res
+            );
+            assert!(
+                contains_symbols(&res),
+                "Password should contain symbols: {}",
+                res
+            );
         }
     }
 

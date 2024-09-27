@@ -263,6 +263,19 @@ mod test {
     }
 
     #[test]
+    fn deserialize_v2_matches_all_v1_fields() {
+        let expected = get_sample_passkey_v1();
+
+        let deserialized_v2 = deserialize_passkey(&SERIALIZED_V2).expect("should be able to deserialize");
+
+        assert_eq!(expected.key, deserialized_v2.key);
+        assert_eq!(expected.credential_id, deserialized_v2.credential_id);
+        assert_eq!(expected.rp_id, deserialized_v2.rp_id);
+        assert_eq!(expected.user_handle, deserialized_v2.user_handle);
+        assert_eq!(expected.counter, deserialized_v2.counter);
+    }
+
+    #[test]
     fn serialization_regression_test_v2() {
         let expected = get_sample_passkey_v2();
 

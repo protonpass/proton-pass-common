@@ -1,11 +1,11 @@
 101domain.com
+123-reg.co.uk
 123formbuilder.com
 15five.com
 1password.com
 20i.com
 23andme.com
 2checkout.com
-34SP.com
 3commas.io
 4cd.edu
 a2hosting.com
@@ -49,6 +49,7 @@ app.flexera.com
 app.terraform.io
 app.vagrantup.com
 appfolio.com
+appodeal.com
 appsignal.com
 appveyor.com
 appwrite.io
@@ -111,7 +112,6 @@ bitpanda.com
 bitpay.com
 bitrise.io
 bitrix24.com
-bitsight.com
 bitskins.com
 bitso.com
 bitstamp.net
@@ -130,12 +130,14 @@ bnktothefuture.com
 bohemia.net
 bokio.se
 bonus.ly
+booking.com
 boursedirect.fr
 box.com
 braintreepayments.com
 brandwatch.com
 brevo.com
 brex.com
+broadcom.com
 btcbox.co.jp
 btcmarkets.net
 btcpop.co
@@ -279,6 +281,7 @@ deployhq.com
 deputy.com
 detectify.com
 deutschepost.de
+deviantart.com
 dext.com
 digicert.com
 digitalcombatsimulator.com
@@ -367,6 +370,7 @@ favro.com
 fax.plus
 fi.google.com
 fiber.google.com
+fidelity.com
 figma.com
 filen.io
 files.com
@@ -557,6 +561,7 @@ launchpad.net
 lcn.com
 leaseweb.com
 lenovo.com
+letsdothis.com
 letterboxd.com
 lexoffice.de
 lichess.org
@@ -660,6 +665,7 @@ nd.edu
 ndax.io
 neolo.com
 nest.com
+netacad.com
 netcorecloud.com
 netcup.eu
 neteller.com
@@ -800,6 +806,7 @@ product.gree.net
 profitwell.com
 prostocash.com
 protolabs.com
+psnprofiles.com
 publishers.basicattentiontoken.org
 purse.io
 pusher.com
@@ -816,6 +823,7 @@ quickbooks.intuit.com
 quickfile.co.uk
 quidax.com
 rackspace.com
+railway.app
 raindrop.io
 raisin.com
 ramnode.com
@@ -899,6 +907,7 @@ sendcloud.com
 sendowl.com
 sendsafely.com
 sentry.io
+serif.com
 server.nitrado.net
 server.pro
 serverpilot.io
@@ -913,6 +922,7 @@ shopify.com
 short.io
 shortcut.com
 shrimpy.io
+sidequestvr.com
 sign.plus
 signrequest.com
 simplelogin.io
@@ -934,6 +944,7 @@ snapchat.com
 socalgas.com
 socialclub.rockstargames.com
 socketlabs.com
+sofi.com
 solarwinds.com
 sonic.com
 sonix.ai
@@ -966,6 +977,7 @@ stubhub.com
 studentaid.gov
 studioninja.co
 substack.com
+sucuri.net
 sumologic.com
 supabase.com
 surfshark.com
@@ -1074,6 +1086,7 @@ va.gov
 valr.com
 vancity.com
 vapor.laravel.com
+vaultcord.com
 veem.com
 ventraip.com.au
 veracode.com
@@ -1087,7 +1100,6 @@ visualstudio.microsoft.com
 vivaldi.com
 vivup.co.uk
 vk.com
-vmware.com
 voip.ms
 vpsserver.com
 vse.cz
@@ -1095,6 +1107,7 @@ vultr.com
 wargaming.net
 warnerbrosgames.com
 wasabi.com
+waveapps.com
 wazirx.com
 wealthfront.com
 wealthify.com
@@ -1147,6 +1160,7 @@ youinvest.co.uk
 youneedabudget.com
 youtube.com
 zapier.com
+zapsplat.com
 zendesk.com
 zeplin.io
 zerodha.com

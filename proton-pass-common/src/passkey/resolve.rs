@@ -25,7 +25,7 @@ async fn resolve_challenge(origin: Url, pk: &ProtonPassKey, request: &str) -> Pa
     let credential_request = CredentialRequestOptions { public_key: parsed };
 
     let authenticator = get_authenticator(Some(pk.clone()));
-    let client = Client::new(authenticator);
+    let mut client = Client::new(authenticator);
 
     let res = client
         .authenticate(&origin, credential_request, None)
@@ -65,7 +65,7 @@ async fn resolve_challenge_for_mobile(
 ) -> PasskeyResult<AuthenticatedPublicKeyCredential> {
     let deserialized = deserialize_passkey(passkey)?;
     let authenticator = get_authenticator(Some(deserialized));
-    let client = Client::new(authenticator);
+    let mut client = Client::new(authenticator);
     let res = client
         .authenticate(url, request, client_data_hash)
         .await

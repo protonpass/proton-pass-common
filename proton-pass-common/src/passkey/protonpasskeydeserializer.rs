@@ -1,13 +1,14 @@
 use super::protonpasskey::{
-    ProtonAlgorithm, ProtonInteger, ProtonKey, ProtonKeyOperation, ProtonKeyType, ProtonLabel, ProtonPassKey,
-    ProtonRegisteredLabelKeyOperation, ProtonRegisteredLabelKeyType, ProtonRegisteredLabelWithPrivateAlgorithm,
-    ProtonValue,
+    ProtonAlgorithm, ProtonInteger, ProtonKey, ProtonKeyOperation, ProtonKeyType, ProtonLabel,
+    ProtonPassCredentialExtensions, ProtonPassKey, ProtonPassStoredHmacSecret, ProtonRegisteredLabelKeyOperation,
+    ProtonRegisteredLabelKeyType, ProtonRegisteredLabelWithPrivateAlgorithm, ProtonValue,
 };
 use coset::cbor::value::Integer;
 use coset::cbor::Value;
 use coset::iana::KeyOperation;
 use coset::{CoseKey, KeyType, Label, RegisteredLabel, RegisteredLabelWithPrivate};
 use passkey::types::{Bytes, Passkey};
+use passkey_types::{CredentialExtensions, StoredHmacSecret};
 use std::collections::BTreeSet;
 use std::ops::Deref;
 
@@ -19,6 +20,7 @@ impl From<ProtonPassKey> for Passkey {
             rp_id: value.rp_id,
             user_handle: value.user_handle.map(Bytes::from),
             counter: value.counter,
+            extensions: CredentialExtensions::from(value.extensions),
         }
     }
 }
@@ -217,6 +219,23 @@ impl From<ProtonRegisteredLabelWithPrivateAlgorithm> for coset::Algorithm {
                 RegisteredLabelWithPrivate::Assigned(coset::iana::Algorithm::from(t))
             }
             ProtonRegisteredLabelWithPrivateAlgorithm::Text(t) => RegisteredLabelWithPrivate::Text(t),
+        }
+    }
+}
+
+impl From<ProtonPassCredentialExtensions> for CredentialExtensions {
+    fn from(value: ProtonPassCredentialExtensions) -> Self {
+        CredentialExtensions {
+            hmac_secret: value.hmac_secret.map(StoredHmacSecret::from),
+        }
+    }
+}
+
+impl From<ProtonPassStoredHmacSecret> for StoredHmacSecret {
+    fn from(value: ProtonPassStoredHmacSecret) -> Self {
+        Self {
+            cred_with_uv: value.cred_with_uv,
+            cred_without_uv: value.cred_without_uv,
         }
     }
 }

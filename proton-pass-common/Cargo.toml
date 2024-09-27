@@ -15,11 +15,11 @@ email_address = "0.2.4"
 getrandom = { version = "0.2.10", features = ["js"] }
 lazy_static = "1.4.0"
 luhn = "1.0.1"
-passkey = { git = "https://github.com/1Password/passkey-rs.git", rev = "a4fa30f62b299faa33ae8d8f05aacd48240cf8f1" }
-passkey-authenticator = {  git = "https://github.com/1Password/passkey-rs.git", rev = "a4fa30f62b299faa33ae8d8f05aacd48240cf8f1", features = ["testable"] }
-passkey-types = {  git = "https://github.com/1Password/passkey-rs.git", rev = "a4fa30f62b299faa33ae8d8f05aacd48240cf8f1", features = ["serialize_bytes_as_base64_string"] }
+passkey = "0.3.0"
+passkey-authenticator = { version = "0.3.0", features = ["testable"] }
+passkey-types = { version = "0.3.0", features = ["serialize_bytes_as_base64_string"] }
 passwords = "3.1.16"
-public-suffix = {  git = "https://github.com/1Password/passkey-rs.git", rev = "a4fa30f62b299faa33ae8d8f05aacd48240cf8f1" }
+public-suffix = "0.1.2"
 rand = "0.8.5"
 regex-lite = "0.1.5"
 rmp-serde = "1.1.2"

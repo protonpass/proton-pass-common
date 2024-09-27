@@ -12,6 +12,9 @@ pub struct ProtonPassKey {
     pub user_handle: Option<Vec<u8>>,
     #[serde(rename = "cnt")]
     pub counter: Option<u32>,
+    #[serde(rename = "ext")]
+    #[serde(default)]
+    pub extensions: ProtonPassCredentialExtensions,
 }
 
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -207,4 +210,15 @@ impl From<ProtonInteger> for i128 {
         }
         i128::from_le_bytes(as_bytes)
     }
+}
+
+#[derive(Clone, Debug, Default, PartialEq, serde::Deserialize, serde::Serialize)]
+pub struct ProtonPassCredentialExtensions {
+    pub hmac_secret: Option<ProtonPassStoredHmacSecret>,
+}
+
+#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+pub struct ProtonPassStoredHmacSecret {
+    pub cred_with_uv: Vec<u8>,
+    pub cred_without_uv: Option<Vec<u8>>,
 }

@@ -1,13 +1,14 @@
 use super::protonpasskey::{
-    ProtonAlgorithm, ProtonInteger, ProtonKey, ProtonKeyOperation, ProtonKeyType, ProtonLabel, ProtonPassKey,
-    ProtonRegisteredLabelKeyOperation, ProtonRegisteredLabelKeyType, ProtonRegisteredLabelWithPrivateAlgorithm,
-    ProtonValue,
+    ProtonAlgorithm, ProtonInteger, ProtonKey, ProtonKeyOperation, ProtonKeyType, ProtonLabel,
+    ProtonPassCredentialExtensions, ProtonPassKey, ProtonPassStoredHmacSecret, ProtonRegisteredLabelKeyOperation,
+    ProtonRegisteredLabelKeyType, ProtonRegisteredLabelWithPrivateAlgorithm, ProtonValue,
 };
 use coset::cbor::value::Integer;
 use coset::cbor::Value;
 use coset::iana::KeyOperation;
 use coset::{CoseKey, KeyType, Label, RegisteredLabel, RegisteredLabelWithPrivate};
 use passkey::types::Passkey;
+use passkey_types::{CredentialExtensions, StoredHmacSecret};
 use std::ops::Deref;
 
 impl From<Passkey> for ProtonPassKey {
@@ -18,6 +19,7 @@ impl From<Passkey> for ProtonPassKey {
             rp_id: value.rp_id,
             user_handle: value.user_handle.map(|v| v.to_vec()),
             counter: value.counter,
+            extensions: ProtonPassCredentialExtensions::from(value.extensions),
         }
     }
 }
@@ -229,6 +231,26 @@ impl From<coset::Algorithm> for ProtonRegisteredLabelWithPrivateAlgorithm {
                 ProtonRegisteredLabelWithPrivateAlgorithm::Assigned(ProtonAlgorithm::from(t))
             }
             RegisteredLabelWithPrivate::Text(t) => ProtonRegisteredLabelWithPrivateAlgorithm::Text(t),
+        }
+    }
+}
+
+impl From<CredentialExtensions> for ProtonPassCredentialExtensions {
+    fn from(value: CredentialExtensions) -> Self {
+        ProtonPassCredentialExtensions {
+            hmac_secret: value
+                .hmac_secret
+                .as_ref()
+                .map(|secret| ProtonPassStoredHmacSecret::from(secret.clone())),
+        }
+    }
+}
+
+impl From<StoredHmacSecret> for ProtonPassStoredHmacSecret {
+    fn from(value: StoredHmacSecret) -> Self {
+        Self {
+            cred_without_uv: value.cred_without_uv.clone(),
+            cred_with_uv: value.cred_with_uv.clone(),
         }
     }
 }

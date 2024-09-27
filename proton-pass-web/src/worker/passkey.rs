@@ -3,9 +3,9 @@ use proton_pass_common::passkey::{
 };
 
 use proton_pass_common::passkey_types::webauthn::{
-    AuthenticatedPublicKeyCredential, AuthenticatorAssertionResponse, AuthenticatorAttachment,
-    AuthenticatorAttestationResponse, AuthenticatorExtensionsClientOutputs, AuthenticatorTransport,
-    CreatedPublicKeyCredential, CredentialPropertiesOutput, PublicKeyCredentialType,
+    AuthenticatedPublicKeyCredential, AuthenticationExtensionsClientOutputs, AuthenticatorAssertionResponse,
+    AuthenticatorAttachment, AuthenticatorAttestationResponse, AuthenticatorTransport, CreatedPublicKeyCredential,
+    CredentialPropertiesOutput, PublicKeyCredentialType,
 };
 
 use serde::{Deserialize, Serialize};
@@ -53,8 +53,8 @@ pub struct WasmAuthenticatorExtensionsClientOutputs {
     pub cred_props: Option<WasmCredentialPropertiesOutput>,
 }
 
-impl From<AuthenticatorExtensionsClientOutputs> for WasmAuthenticatorExtensionsClientOutputs {
-    fn from(value: AuthenticatorExtensionsClientOutputs) -> Self {
+impl From<AuthenticationExtensionsClientOutputs> for WasmAuthenticatorExtensionsClientOutputs {
+    fn from(value: AuthenticationExtensionsClientOutputs) -> Self {
         Self {
             cred_props: value.cred_props.map(WasmCredentialPropertiesOutput::from),
         }

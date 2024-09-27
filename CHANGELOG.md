@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.8.3
+
+### Other
+
+- common: upgrade `passkeys` dependency.
+
 ## 0.8.2
 
 ### Fix

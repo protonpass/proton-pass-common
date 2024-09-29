@@ -1,0 +1,40 @@
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "pypackages",
+    "venv",
+]
+indent-width = 4
+line-length = 88
+target-version = "py38"
+
+[format]
+docstring-code-format = true
+docstring-code-line-length = "dynamic"
+
+[lint]
+select = ["ANN", "C90", "D2", "D3", "D4", "E", "F", "I", "N", "RUF", "UP", "W"]
+
+[lint.flake8-annotations]
+suppress-dummy-args = true
+
+[lint.pydocstyle]
+convention = "pep257"
+ignore-decorators = ["typing.overload"]

@@ -528,6 +528,7 @@ joyent.com
 jumpcloud.com
 justhost.com
 justworks.com
+kagi.com
 kajabi.com
 kanka.io
 kaspersky.com

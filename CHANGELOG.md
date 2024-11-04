@@ -12,6 +12,7 @@
 
 - common: offer `HostParser` to unify host parsing.
 - mobile: offer `HostParser` to unify host parsing.
+- web: offer TOTP generator to web.
 
 ### Other
 

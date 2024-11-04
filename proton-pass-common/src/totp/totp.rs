@@ -14,12 +14,6 @@ pub struct TOTP {
     pub period: Option<u16>,
 }
 
-pub struct TotpTokenResult {
-    pub totp: TOTP,
-    pub token: String,
-    pub timestamp: u64,
-}
-
 pub const OTP_SCHEME: &str = "otpauth";
 pub const TOTP_HOST: &str = "totp";
 pub const QUERY_SECRET: &str = "secret";

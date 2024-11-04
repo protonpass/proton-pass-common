@@ -6,6 +6,7 @@ use passkey::WasmCreatePasskeyData;
 use passkey::{PasskeyManager, WasmGeneratePasskeyResponse, WasmResolvePasskeyChallengeResponse};
 
 mod passkey;
+mod totp;
 
 #[wasm_bindgen]
 pub fn twofa_domain_eligible(domain: String) -> bool {

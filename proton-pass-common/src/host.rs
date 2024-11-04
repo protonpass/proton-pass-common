@@ -434,4 +434,20 @@ mod test {
             _ => panic!("Expected Host variant"),
         }
     }
+
+    #[test]
+    fn is_able_to_parse_domain_with_invalid_tld() {
+        let url = "https://ra.ndo.mtld";
+        let result = parse(url).unwrap();
+        match result {
+            HostInfo::Host {
+                subdomain, domain, tld, ..
+            } => {
+                assert_eq!(subdomain, Some("ra".to_string()));
+                assert_eq!(domain, "ndo".to_string());
+                assert_eq!(tld, Some("mtld".to_string()));
+            }
+            _ => panic!("Expected Host variant"),
+        }
+    }
 }

@@ -1,9 +1,14 @@
 pub use proton_pass_common::totp::error::TOTPError;
 use proton_pass_common::totp::sanitizer::{uri_for_editing, uri_for_saving};
-pub use proton_pass_common::totp::totp::TotpTokenResult;
 pub use proton_pass_common::totp::totp::TOTP;
 
 pub type TOTPAlgorithm = proton_pass_common::totp::algorithm::Algorithm;
+
+pub struct TotpTokenResult {
+    pub totp: TOTP,
+    pub token: String,
+    pub timestamp: u64,
+}
 
 pub struct TotpHandler;
 

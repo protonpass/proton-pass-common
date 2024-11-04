@@ -57,10 +57,7 @@ fn sanitize(url: &str) -> Result<String> {
     };
 
     let mut parsed = Url::parse(&url_with_scheme).map_err(|_| ParseHostError::ParseUrlError)?;
-    let host = parsed
-        .host_str()
-        .ok_or_else(|| ParseHostError::ParseUrlError)?
-        .to_string();
+    let host = parsed.host_str().ok_or(ParseHostError::ParseUrlError)?.to_string();
 
     if host.ends_with('.') {
         let host_without_trailing_dot = Some(host.trim_end_matches('.'));
@@ -88,7 +85,7 @@ fn get_domain(url: &str) -> Result<String> {
     let domain = parsed
         .host_str()
         .map(|host| host.to_string())
-        .ok_or_else(|| ParseHostError::InvalidUrlError)?;
+        .ok_or(ParseHostError::InvalidUrlError)?;
 
     let allowed_chars = ['.', '-', '_'];
     for c in domain.chars() {

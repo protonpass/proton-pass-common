@@ -1,4 +1,4 @@
-pub use proton_pass_common::host::{HostInfo, ParseHostError, parse};
+pub use proton_pass_common::host::{parse, HostInfo, ParseHostError};
 
 pub struct HostParser;
 

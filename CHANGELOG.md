@@ -6,6 +6,18 @@
 
 ### Other
 
+## 0.9.0
+
+### Feature
+
+- common: offer `HostParser` to unify host parsing.
+- mobile: offer `HostParser` to unify host parsing.
+
+### Other
+
+- mobile: upgrade `uniffi` dependency.
+- mobile(android): upgrade `jna` dependency.
+
 ## 0.8.3
 
 ### Other

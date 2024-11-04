@@ -1,0 +1,22 @@
+[Enum]
+interface HostInfo {
+    Host(string protocol, string? subdomain, string domain, string? tld);
+    Ip(string ip);
+};
+
+[Error]
+enum ParseHostError {
+    "CannotGetDomainFromUrl",
+    "EmptyHost",
+    "EmptyUrl",
+    "HostIsTld",
+    "ParseUrlError",
+    "InvalidUrlError"
+};
+
+interface HostParser {
+    constructor();
+
+    [Throws=ParseHostError]
+    HostInfo parse(string url);
+};

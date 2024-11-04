@@ -6,6 +6,7 @@ import {
     generate_passphrase,
     library_version,
     random_words,
+    generate_totp,
 } from "./pkg/worker";
 
 describe("ProtonPassWeb WASM", () => {
@@ -49,5 +50,47 @@ describe("ProtonPassWeb WASM", () => {
         expect(response.passkey).not.toBeEmpty();
         expect(response.user_id).not.toBeEmpty();
         expect(response.key_id).not.toBeEmpty();
+    });
+
+    test("Can generate TOTP (full uri default params)", async () => {
+        const uri = "otpauth://totp/some_label?secret=ABCDEFG&algorithm=SHA1&digits=6&period=30";
+        // @ts-ignore
+        const timestamp = 1730721205;
+        const res = generate_totp(uri, BigInt(timestamp));
+        expect(res.token).toEqual("103847");
+        expect(res.timestamp).toEqual(timestamp);
+        expect(res.totp.digits).toEqual(6);
+        expect(res.totp.secret).toEqual("ABCDEFG");
+        expect(res.totp.algorithm).toEqual("SHA1");
+        expect(res.totp.issuer).toBeUndefined();
+        expect(res.totp.label).toEqual("some_label");
+        expect(res.totp.period).toEqual(30);
+
+    });
+
+    test("Can generate TOTP (only secret)", async () => {
+        const uri = "ABCDEFG";
+        // @ts-ignore
+        const timestamp = 1730721205;
+        const res = generate_totp(uri, BigInt(timestamp));
+        expect(res.token).toEqual("103847");
+        expect(res.timestamp).toEqual(timestamp);
+    });
+
+    test("Can generate TOTP (other params)", async () => {
+        const uri = "otpauth://totp/some_label?secret=ABCDEFG&algorithm=SHA256&digits=8&period=10";
+        // @ts-ignore
+        const timestamp = 1730721205;
+        const res = generate_totp(uri, BigInt(timestamp));
+
+        expect(res.token).toEqual("72710637");
+        expect(res.timestamp).toEqual(timestamp);
+        expect(res.totp.digits).toEqual(8);
+        expect(res.totp.secret).toEqual("ABCDEFG");
+        expect(res.totp.algorithm).toEqual("SHA256");
+        expect(res.totp.issuer).toBeUndefined();
+        expect(res.totp.label).toEqual("some_label");
+        expect(res.totp.period).toEqual(10);
+
     });
 });

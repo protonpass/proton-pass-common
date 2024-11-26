@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.10.0
+
+### Feature
+
+- common: offer functions for determining file types and MIME types based on content.
+
 ## 0.9.0
 
 ### Feature

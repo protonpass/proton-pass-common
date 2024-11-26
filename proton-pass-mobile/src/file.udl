@@ -1,0 +1,22 @@
+enum FileGroup {
+    "Image",
+    "Photo",
+    "VectorImage",
+    "Video",
+    "Audio",
+    "Key",
+    "Text",
+    "Calendar",
+    "Pdf",
+    "Word",
+    "PowerPoint",
+    "Excel",
+    "Document",
+    "Unknown",
+};
+
+interface FileDecoder {
+    constructor();
+    string get_mimetype_from_content(bytes content);
+    FileGroup get_filegroup_from_mimetype(string mimetype);
+};

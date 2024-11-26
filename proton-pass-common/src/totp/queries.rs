@@ -1,7 +1,7 @@
 use crate::totp::algorithm::Algorithm;
 use crate::totp::error::TOTPError;
 use serde::Deserialize;
-use serde_querystring::{from_str, Error, ParseMode};
+use serde_querystring::{from_str, ParseMode};
 
 #[derive(Debug, Deserialize, Default, PartialEq)]
 pub struct Queries {
@@ -14,11 +14,7 @@ pub struct Queries {
 
 impl Queries {
     pub fn new(queries_string: &str) -> Self {
-        let parsed: Result<Self, Error> = from_str(queries_string, ParseMode::UrlEncoded);
-        match parsed {
-            Ok(value) => value,
-            _ => Self::default(),
-        }
+        from_str::<Self>(queries_string, ParseMode::UrlEncoded).unwrap_or_default()
     }
 
     pub fn get_secret(&self) -> Result<String, TOTPError> {

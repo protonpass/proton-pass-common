@@ -580,6 +580,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "file-format"
+version = "0.26.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e7ef3d5e8ae27277c8285ac43ed153158178ef0f79567f32024ca8140a0c7cd8"
+
+[[package]]
 name = "float-cmp"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1462,6 +1468,7 @@ dependencies = [
  "coset",
  "criterion",
  "email_address",
+ "file-format",
  "getrandom",
  "lazy_static",
  "luhn",

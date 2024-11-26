@@ -1462,7 +1462,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-common"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "async-trait",
  "coset",
@@ -1491,7 +1491,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-derive"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "quote",
  "syn 2.0.87",
@@ -1499,7 +1499,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-mobile"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "proton-pass-common",
  "tokio",
@@ -1508,7 +1508,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-web"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "js-sys",
  "proton-pass-common",

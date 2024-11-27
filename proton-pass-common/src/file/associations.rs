@@ -42,6 +42,10 @@ fn initialize_file_group_map() -> HashMap<String, FileGroup> {
         FileFormat::WindowsMediaAudio => FileGroup::Audio,
 
         // Photo
+        FileFormat::HighEfficiencyImageCoding => FileGroup::Photo,
+        FileFormat::HighEfficiencyImageCodingSequence => FileGroup::Photo,
+        FileFormat::HighEfficiencyImageFileFormat => FileGroup::Photo,
+        FileFormat::HighEfficiencyImageFileFormatSequence => FileGroup::Photo,
         FileFormat::JointPhotographicExpertsGroup => FileGroup::Photo,
         FileFormat::Jpeg2000Codestream => FileGroup::Photo,
         FileFormat::Jpeg2000Part1 => FileGroup::Photo,

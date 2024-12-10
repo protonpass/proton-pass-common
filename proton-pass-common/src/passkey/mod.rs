@@ -1,4 +1,5 @@
 mod generate;
+mod parser;
 mod passkey_handling;
 mod protonpasskey;
 mod protonpasskeydeserializer;

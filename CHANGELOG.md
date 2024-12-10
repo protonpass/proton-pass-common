@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.11.0
+
+### Feature
+
+- common: add sanitization functions for known sites/requests that may have malformed passkey creation JSON requests.
+
 ## 0.10.0
 
 ### Feature

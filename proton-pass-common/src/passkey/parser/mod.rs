@@ -9,10 +9,15 @@ mod paypal;
 mod sanitize;
 
 pub fn parse_create_request(request: &str, url: Option<&str>) -> PasskeyResult<PublicKeyCredentialCreationOptions> {
-    let sanitized = sanitize_request(request, url);
-    let parsed: PublicKeyCredentialCreationOptions = serde_json::from_str(&sanitized)
-        .map_err(|e| PasskeyError::SerializationError(format!("Error parsing request: {:?}", e)))?;
-    Ok(parsed)
+    match serde_json::from_str(request) {
+        Ok(parsed) => Ok(parsed),
+        Err(_) => {
+            let sanitized = sanitize_request(request, url);
+            let parsed: PublicKeyCredentialCreationOptions = serde_json::from_str(&sanitized)
+                .map_err(|e| PasskeyError::SerializationError(format!("Error parsing request: {:?}", e)))?;
+            Ok(parsed)
+        }
+    }
 }
 
 #[cfg(test)]

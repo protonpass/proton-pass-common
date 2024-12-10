@@ -1,3 +1,4 @@
+use super::parser::parse_create_request;
 use super::passkey_handling::{get_authenticator, parse_url, serialize_passkey};
 use super::{PasskeyError, PasskeyResult, ProtonPassKey};
 use coset::iana;
@@ -97,8 +98,7 @@ async fn generate_passkey(
 pub async fn generate_passkey_for_domain(url: &str, request: &str) -> PasskeyResult<CreatePasskeyResponse> {
     let origin = parse_url(url)?;
 
-    let parsed: PublicKeyCredentialCreationOptions = serde_json::from_str(request)
-        .map_err(|e| PasskeyError::SerializationError(format!("Error parsing request: {:?}", e)))?;
+    let parsed = parse_create_request(request, Some(url))?;
     generate_passkey(origin, parsed).await
 }
 
@@ -158,8 +158,7 @@ pub struct CreatePasskeyData {
 }
 
 pub fn parse_create_passkey_data(request: &str) -> PasskeyResult<CreatePasskeyData> {
-    let parsed: PublicKeyCredentialCreationOptions = serde_json::from_str(request)
-        .map_err(|e| PasskeyError::SerializationError(format!("Error parsing request: {:?}", e)))?;
+    let parsed = parse_create_request(request, None)?;
 
     Ok(CreatePasskeyData {
         rp_id: parsed.rp.id,

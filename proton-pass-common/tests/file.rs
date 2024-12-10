@@ -1,16 +1,19 @@
 use proton_pass_common::file::get_mime_type_from_content;
 
+fn get_file_contents(name: &str) -> Vec<u8> {
+    let crate_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let file_path = crate_path.join("test_data").join(name);
+
+    std::fs::read(&file_path).unwrap_or_else(|_| panic!("cannot open {}", file_path.display()))
+}
+
 macro_rules! mime_type_test {
     ($($name:ident: $value:expr,)*) => {
     $(
         #[test]
         fn $name() {
             let (path, expected) = $value;
-            let crate_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-            let file_path = crate_path.join("test_data").join(path);
-
-            let contents = std::fs::read(&file_path).expect(&format!("cannot open {}", file_path.display()));
-
+            let contents = get_file_contents(path);
             let res = get_mime_type_from_content(&contents);
             assert_eq!(res, expected);
         }

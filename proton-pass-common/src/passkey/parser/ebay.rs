@@ -1,6 +1,9 @@
 use super::PasskeySanitizer;
 use serde_json::Value;
 
+/// Ebay has the following special cases:
+/// 1. Sends the algorithm as a string instead of a number. We convert it to a number.
+/// 2. Sends a -1 algorithm while is not defined in the spec. We remove it.
 pub struct EbaySanitizer;
 
 impl PasskeySanitizer for EbaySanitizer {

@@ -1,6 +1,8 @@
 use super::PasskeySanitizer;
 use serde_json::Value;
 
+/// PayPal has the following special cases:
+/// 1. Sends the timeout as a float instead of an integer. We convert it to an integer.
 pub struct PaypalSanitizer;
 
 impl PasskeySanitizer for PaypalSanitizer {

@@ -1,4 +1,4 @@
-use super::{cvs, ebay, equal_sign, paypal};
+use super::{cvs, ebay, equal_sign, paypal, swissid};
 
 pub trait PasskeySanitizer {
     fn should_sanitize(&self, url: Option<&str>, request: &str) -> bool;
@@ -10,7 +10,8 @@ lazy_static::lazy_static! {
         Box::new(equal_sign::EqualSignSanitizer),
         Box::new(paypal::PaypalSanitizer),
         Box::new(ebay::EbaySanitizer),
-        Box::new(cvs::CvsSanitizer)
+        Box::new(cvs::CvsSanitizer),
+        Box::new(swissid::SwissIdSanitizer)
     ];
 }
 

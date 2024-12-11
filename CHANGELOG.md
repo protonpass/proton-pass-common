@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.11.1
+
+### Fix
+
+- common: return penalties in long passwords.
+
 ## 0.11.0
 
 ### Feature

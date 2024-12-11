@@ -53,26 +53,29 @@ pub struct PasswordScoreResult {
 
 fn score_password(password: &str) -> (f64, Vec<PasswordPenalty>) {
     let analyzed_password = analyze(password);
-    let max_score = match analyzed_password.length() - analyzed_password.other_characters_count() {
-        0 => 0f64,
-        1 => 2f64,
-        2 => 5f64,
-        3 => 9f64,
-        4 => 16f64,
-        5 => 24f64,
-        6 => 30f64,
-        7 => 45f64,
-        8 => 51f64,
-        9 => 60f64,
-        10 => 69f64,
-        11 => 75f64,
-        12 => 80f64,
-        13 => 86f64,
-        14 => 91f64,
-        15 => 95f64,
-        16 => 100f64,
-        _ => return (100f64, vec![]),
+    let length_minus_other_chars = analyzed_password.length() - analyzed_password.other_characters_count();
+    let (max_score, return_original_score) = match length_minus_other_chars {
+        0 => (0f64, false),
+        1 => (2f64, false),
+        2 => (5f64, false),
+        3 => (9f64, false),
+        4 => (16f64, false),
+        5 => (24f64, false),
+        6 => (30f64, false),
+        7 => (45f64, false),
+        8 => (51f64, false),
+        9 => (60f64, false),
+        10 => (69f64, false),
+        11 => (75f64, false),
+        12 => (80f64, false),
+        13 => (86f64, false),
+        14 => (91f64, false),
+        15 => (95f64, false),
+        16 => (100f64, false),
+        _ => (100f64, true),
     };
+
+    let initial_max_score = max_score;
 
     let mut penalties = vec![];
     let mut score = max_score;
@@ -152,7 +155,11 @@ fn score_password(password: &str) -> (f64, Vec<PasswordPenalty>) {
         score = 100f64;
     }
 
-    (score, penalties)
+    if return_original_score {
+        (initial_max_score, penalties)
+    } else {
+        (score, penalties)
+    }
 }
 
 fn password_without_common(password: &str) -> (String, bool) {

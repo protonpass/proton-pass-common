@@ -25,6 +25,7 @@ addiko.hr
 adguard.com
 adyen.com
 aeza.net
+afternic.com
 airbrake.io
 airship.com
 airtable.com
@@ -105,6 +106,7 @@ bitdefender.com
 bitfinex.com
 bitflyer.com
 bitforex.com
+bitget.com
 bitgo.com
 bithumb.com
 bitmex.com
@@ -137,6 +139,7 @@ braintreepayments.com
 brandwatch.com
 brevo.com
 brex.com
+britishairways.com
 broadcom.com
 btcbox.co.jp
 btcmarkets.net
@@ -160,6 +163,7 @@ buymeacoffee.com
 bybit.com
 byu.edu
 cal.com
+calendly.com
 cam.ac.uk
 campaignmonitor.com
 canada.ca
@@ -171,6 +175,7 @@ carrd.co
 carta.com
 cash.app
 caspio.com
+cat.com
 cdn77.com
 cdnsun.com
 central.sophos.com
@@ -214,6 +219,7 @@ cobalt.io
 coda.io
 codebasehq.com
 codeberg.org
+cognitoforms.com
 cohost.org
 coinbase.com
 coinberry.com
@@ -250,6 +256,7 @@ constellix.com
 contabo.com
 contentful.com
 convertkit.com
+cookieyes.com
 cordial.com
 corporatefinanceinstitute.com
 coursera.org
@@ -266,6 +273,7 @@ cryptonator.com
 current-rms.com
 customer.io
 cyon.ch
+dan.com
 dashlane.com
 databox.com
 datadoghq.com
@@ -293,6 +301,7 @@ directadmin.com
 directnic.com
 discogs.com
 discord.com
+disqus.com
 dmarcanalyzer.com
 dmarcian.com
 dmm.com
@@ -304,6 +313,7 @@ docusign.com
 domeneshop.no
 dominodatalab.com
 doppler.com
+dotloop.com
 dreamhost.com
 drift.com
 drive.google.com
@@ -332,6 +342,7 @@ emplifi.io
 eneba.com
 engineyard.com
 enom.com
+ente.io
 envato.com
 envoyer.io
 eon.de
@@ -378,7 +389,9 @@ finary.com
 findmyshift.com
 finnair.com
 firmex.com
+firsttechfed.com
 fit.google.com
+flipsnack.com
 floatplane.com
 flourish.studio
 fly.io
@@ -407,10 +420,12 @@ gatehub.net
 geforce.com
 getflywheel.com
 getpocket.com
+getresponse.com
 getscreen.me
 github.com
 gitlab.com
 glassdoor.com
+gleam.io
 gm.com
 gmx.com
 gmx.net
@@ -423,6 +438,7 @@ gosquared.com
 gosuslugi.ru
 goteleport.com
 goto.com
+gov.uk
 gradintel.com
 grammarly.com
 greengeeks.com
@@ -487,6 +503,7 @@ ifttt.com
 immobilienscout24.de
 imperva.com
 improvmx.com
+inbox.lv
 independentreserve.com
 independer.nl
 infomaniak.com
@@ -582,7 +599,7 @@ lokalise.com
 looker.com
 lunchmoney.app
 luno.com
-m1finance.com
+m1.com
 macstadium.com
 macu.com
 magnet.me
@@ -598,6 +615,7 @@ mailbox.org
 mailchimp.com
 mailfence.com
 mailgun.com
+mailjet.com
 mailo.com
 make.com
 mangadex.org
@@ -617,7 +635,10 @@ mercury.cash
 mercury.com
 meta.com
 metal.equinix.com
+metamask.io
 metorik.com
+mexc.com
+microworkers.com
 migadu.com
 migros.ch
 mimecast.com
@@ -640,6 +661,7 @@ moniker.com
 moqups.com
 morganstanley.com
 mos.ru
+mulesoft.com
 muni.cz
 mural.co
 mxtoolbox.com
@@ -665,6 +687,7 @@ ncsu.edu
 nd.edu
 ndax.io
 neolo.com
+neopets.com
 nest.com
 netacad.com
 netcorecloud.com
@@ -680,6 +703,7 @@ nexcess.net
 nexon.com
 nextdns.io
 nexusmods.com
+ngpvan.com
 ngrok.com
 niagahoster.co.id
 nic.ru
@@ -687,6 +711,7 @@ nicehash.com
 nicovideo.jp
 niftypm.com
 nimbusweb.me
+nitrotype.com
 noip.com
 nominet.uk
 nordlayer.com
@@ -741,6 +766,7 @@ packagist.org
 paddle.com
 pairdomains.com
 panic.com
+panorama9.com
 parallels.com
 parimatch.com
 parsec.app
@@ -772,6 +798,7 @@ plaid.com
 plan.io
 planethoster.com
 planetscale.com
+planfix.com
 planningcenter.com
 platform360.io
 plausible.io
@@ -932,6 +959,7 @@ sipgate.de
 sisense.com
 siteground.com
 sketch.com
+sketchup.com
 skinport.com
 skype.com
 slack.com
@@ -941,6 +969,7 @@ smartsimple.com
 smartsurvey.co.uk
 smartthings.com
 smspool.net
+smugmug.com
 snapchat.com
 socalgas.com
 socialclub.rockstargames.com
@@ -957,6 +986,7 @@ spaceship.com
 sparkpost.com
 spectrocoin.com
 splashtop.com
+split.io
 spreedly.com
 spri.ng
 sproutsocial.com
@@ -977,6 +1007,7 @@ stripe.com
 stubhub.com
 studentaid.gov
 studioninja.co
+subscribestar.com
 substack.com
 sucuri.net
 sumologic.com
@@ -1043,13 +1074,16 @@ trimble.com
 trovo.live
 troweprice.com
 tryhackme.com
+tu-darmstadt.de
 tu.berlin
 tumblr.com
 turbotax.intuit.com
 tuta.com
 tweakers.net
 twilio.com
+twingate.com
 twitch.tv
+uber.com
 ubereats.com
 ubisoft.com
 ubt.com
@@ -1080,6 +1114,7 @@ uq.edu.au
 usabilla.com
 uscis.gov
 usefathom.com
+userway.org
 usmobile.com
 uspto.gov
 uwcu.org
@@ -1088,6 +1123,7 @@ valr.com
 vancity.com
 vapor.laravel.com
 vaultcord.com
+veeam.com
 veem.com
 ventraip.com.au
 veracode.com
@@ -1165,6 +1201,7 @@ zapsplat.com
 zendesk.com
 zeplin.io
 zerodha.com
+zerotier.com
 zimbra.com
 zoho.com
 zondaglobal.com

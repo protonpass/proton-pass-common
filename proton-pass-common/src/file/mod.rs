@@ -22,7 +22,7 @@ pub enum FileGroup {
 
 pub fn get_mime_type_from_content(input: &[u8]) -> String {
     let format = FileFormat::from_bytes(input);
-    format.media_type().to_string()
+    adapt(format.media_type())
 }
 
 pub fn get_file_group_from_mime_type(mime_type: &str) -> FileGroup {
@@ -37,6 +37,14 @@ pub fn get_file_group_from_mime_type(mime_type: &str) -> FileGroup {
     } else {
         decoded
     }
+}
+
+fn adapt(media_type: &str) -> String {
+    match media_type {
+        "application/mp4" => "video/mp4",
+        _ => media_type,
+    }
+    .to_string()
 }
 
 fn get_file_group_from_heuristics(mime_type: &str) -> FileGroup {

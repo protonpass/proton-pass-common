@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.11.2
+
+### Other
+
+- common: adapt known issues of the MP4 file type on the file detector.
+
 ## 0.11.1
 
 ### Fix

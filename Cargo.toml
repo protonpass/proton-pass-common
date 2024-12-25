@@ -9,3 +9,17 @@ members = [
 
 [profile.release]
 opt-level = "s" # Tell `rustc` to optimize for small code size.
+strip = true  # Comment out if using Rust <1.82
+#
+# Background: Rust 1.82 enabled reference type transformations by default.
+# This changes table encoding and adds additional tables to the WASM
+# output. While wasm2js supports reference types via --reference-types,
+# it cannot handle (yet) multiple tables with the new encoding.
+#
+# The strip flag removes debug tables from the WASM binary, leaving
+# only essential tables that wasm2js can process. This allows support
+# for legacy browsers that require ASM.js fallback.
+#
+# See:
+# https://github.com/rustwasm/wasm-bindgen/issues/4211
+# https://rustwasm.github.io/wasm-bindgen/reference/reference-types.html

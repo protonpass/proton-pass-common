@@ -18,13 +18,19 @@ name = "proton_pass_common_mobile"
 
 [dependencies]
 proton-pass-common = { path = "../proton-pass-common" }
-tokio = { version = "1.36", features = ["full"] }
-uniffi = { version = "0.28.2" }
+tokio = { version = "1.43", features = ["full"] }
+uniffi = { version = "0.28.3" }
 
 [build-dependencies]
-uniffi = { version = "0.28.2", features = [ "build" ] }
+uniffi = { version = "0.28.3", features = [ "build" ] }
 
 [[bin]]
 name = "uniffi-bindgen"
 path = "./bindgen.rs"
 required-features = [ "uniffi/cli" ]
+
+
+# Comes from https://github.com/mozilla/uniffi-rs/issues/2346
+# Needed until a new uniffi release is made
+[lints.clippy]
+empty-line-after-doc-comments = "allow"

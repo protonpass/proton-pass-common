@@ -39,7 +39,7 @@ fn scan_udl_files() -> Result<Vec<String>, IOError> {
         .filter_map(|file| {
             let file = file.ok()?;
             let path = file.path();
-            if path.is_file() && path.extension().map_or(false, |ext| ext == "udl") {
+            if path.is_file() && path.extension().is_some_and(|ext| ext == "udl") {
                 match path.file_name() {
                     Some(file_name) => match file_name.to_str() {
                         Some(value) => {

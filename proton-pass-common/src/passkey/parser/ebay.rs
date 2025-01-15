@@ -8,7 +8,7 @@ pub struct EbaySanitizer;
 
 impl PasskeySanitizer for EbaySanitizer {
     fn should_sanitize(&self, url: Option<&str>, request: &str) -> bool {
-        let url_matches = url.map_or(false, |u| u.contains("ebay."));
+        let url_matches = url.is_some_and(|u| u.contains("ebay."));
         url_matches || request.contains("ebay.")
     }
 

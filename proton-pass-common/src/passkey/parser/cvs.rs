@@ -5,7 +5,7 @@ pub struct CvsSanitizer;
 
 impl PasskeySanitizer for CvsSanitizer {
     fn should_sanitize(&self, url: Option<&str>, request: &str) -> bool {
-        let url_matches = url.map_or(false, |u| u.contains("cvs.com"));
+        let url_matches = url.is_some_and(|u| u.contains("cvs.com"));
         url_matches || request.contains("cvs.com")
     }
 

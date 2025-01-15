@@ -55,7 +55,7 @@ impl SwissIdSanitizer {
 
 impl PasskeySanitizer for SwissIdSanitizer {
     fn should_sanitize(&self, url: Option<&str>, request: &str) -> bool {
-        let url_matches = url.map_or(false, |u| u.contains("swissid.ch"));
+        let url_matches = url.is_some_and(|u| u.contains("swissid.ch"));
         url_matches || request.contains("swissid.ch")
     }
 

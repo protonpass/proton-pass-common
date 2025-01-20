@@ -16,9 +16,9 @@ file-format = { version = "0.26.0", features = ["reader"] }
 getrandom = { version = "0.2.10", features = ["js"] }
 lazy_static = "1.4.0"
 luhn = "1.0.1"
-passkey = "0.3.0"
-passkey-authenticator = { version = "0.3.0", features = ["testable"] }
-passkey-types = { version = "0.3.0", features = ["serialize_bytes_as_base64_string"] }
+passkey = "0.4.0"
+passkey-authenticator = { version = "0.4.0", features = ["testable"] }
+passkey-types = { version = "0.4.0", features = ["serialize_bytes_as_base64_string"] }
 passwords = "3.1.16"
 public-suffix = "0.1.2"
 rand = "0.8.5"

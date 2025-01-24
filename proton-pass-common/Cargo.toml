@@ -10,16 +10,19 @@ doctest = false
 proton-pass-derive = { path = "../proton-pass-derive" }
 
 async-trait = "0.1.74"
-coset = "0.3.5"
-email_address = "0.2.4"
+base32 = "0.5.1"
+base64 = "0.22.0"
+coset = "0.3.8"
+email_address = "0.2.9"
 file-format = { version = "0.26.0", features = ["reader"] }
 getrandom = { version = "0.2.10", features = ["js"] }
-lazy_static = "1.4.0"
+lazy_static = "1.5.0"
 luhn = "1.0.1"
 passkey = "0.4.0"
 passkey-authenticator = { version = "0.4.0", features = ["testable"] }
 passkey-types = { version = "0.4.0", features = ["serialize_bytes_as_base64_string"] }
 passwords = "3.1.16"
+protobuf = "3.7.1"
 public-suffix = "0.1.2"
 rand = "0.8.5"
 regex-lite = "0.1.5"
@@ -27,12 +30,17 @@ rmp-serde = "1.1.2"
 serde = { version = "1.0.188", features = ["derive"] }
 serde_json = "1.0.111"
 serde-querystring = "0.2.1"
-totp-rs = "5.4.0"
-url = "2.4.1"
+totp-rs = "5.6.0"
+url = "2.5.4"
 
 [dev-dependencies]
 criterion = { version = "0.4", features = ["html_reports"] }
 tokio = { version = "1.36", features = ["rt"]}
+
+[build-dependencies]
+protobuf-codegen = "3.7.1"
+protoc-bin-vendored = "3.1.0"
+
 
 [[bench]]
 name = "card_detector"

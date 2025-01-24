@@ -11,6 +11,8 @@ pub mod password;
 pub mod totp;
 pub mod twofa;
 
+pub mod authenticator;
+
 pub fn library_version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
 }

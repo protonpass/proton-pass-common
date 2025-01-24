@@ -7,7 +7,8 @@ use std::path::Path;
 fn main() {
     build_eff_wordlist();
     build_common_password_list();
-    build_2fa_domains_lsit();
+    build_2fa_domains_list();
+    generate_google_authenticator_proto();
 }
 
 fn build_eff_wordlist() {
@@ -24,7 +25,7 @@ fn build_common_password_list() {
     common_passwords(&f, "COMMON_PASSWORDS", "passwords.txt");
 }
 
-fn build_2fa_domains_lsit() {
+fn build_2fa_domains_list() {
     let out_dir = env::var("OUT_DIR").expect("OUT_DIR not set");
     let dest_path = Path::new(&out_dir).join("twofa_domains.rs");
     let f = File::create(dest_path).expect("Could not create twofaDomains.rs");
@@ -90,4 +91,30 @@ fn eff_wordlist(mut f_dest: &File, const_name: &str, fname_src: &str) {
     }
 
     f_dest.write_all(b"];").expect("Error writing wordlist");
+}
+
+fn generate_google_authenticator_proto() {
+    let proto_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("proto");
+    let proto_path = proto_dir.join("google_authenticator.proto");
+    let out_dir = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("src")
+        .join("authenticator")
+        .join("parser")
+        .join("google")
+        .join("gen");
+    if !out_dir.exists() {
+        std::fs::DirBuilder::new()
+            .recursive(true)
+            .create(&out_dir)
+            .expect("error creating out dir");
+    }
+
+    protobuf_codegen::Codegen::new()
+        .protoc()
+        .protoc_path(&protoc_bin_vendored::protoc_bin_path().unwrap())
+        .include(proto_dir)
+        .input(proto_path)
+        .out_dir(out_dir)
+        .run()
+        .expect("failed to generate rust from proto");
 }

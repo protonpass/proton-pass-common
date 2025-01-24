@@ -7,4 +7,4 @@ pub struct AuthenticatorEntry {
     pub totp: TOTP,
 }
 
-pub use parser::parse_google_authenticator_totp;
+pub use parser::google::parse_google_authenticator_totp;

@@ -4,7 +4,7 @@ use crate::totp::queries::Queries;
 use crate::totp::sanitizer::sanitize_secret;
 use url::Url;
 
-#[derive(Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct TOTP {
     pub label: Option<String>,
     pub secret: String,

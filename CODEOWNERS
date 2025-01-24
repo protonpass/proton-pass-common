@@ -1,0 +1,9 @@
+# ownership: loose
+*	@pass 
+/ci/	@pass 
+/docker/	@pass 
+/proton-pass-common/	@pass 
+/proton-pass-derive/	@pass 
+/proton-pass-mobile/	@pass 
+/proton-pass-web/	@pass 
+/tools/	@pass 

@@ -385,6 +385,7 @@ faucetpay.io
 fauna.com
 favro.com
 fax.plus
+feedly.com
 fi.google.com
 fiber.google.com
 fidelity.com
@@ -417,7 +418,7 @@ freehostia.com
 freetaxusa.com
 freewallet.org
 freshworks.com
-frontapp.com
+front.com
 frontify.com
 gaijin.net
 galaxus.ch
@@ -955,6 +956,7 @@ server.nitrado.net
 server.pro
 serverpilot.io
 serverspace.io
+servus.ca
 seznam.cz
 sffirecu.org
 sfu.ca
@@ -1077,11 +1079,13 @@ toontownrewritten.com
 torguard.net
 torontomu.ca
 toshl.com
+towerfcu.org
 trading212.com
 tradingview.com
 transifex.com
 transip.nl
 travala.com
+travelers.com
 trello.com
 trendmicro.com
 tresorit.com
@@ -1098,6 +1102,7 @@ tweakers.net
 twilio.com
 twingate.com
 twitch.tv
+ub.edu
 uber.com
 ubereats.com
 ubisoft.com
@@ -1206,9 +1211,9 @@ xing.com
 xink.io
 xplenty.com
 yclas.com
+ynab.com
 youhodler.com
 youinvest.co.uk
-youneedabudget.com
 youtube.com
 zapier.com
 zapsplat.com

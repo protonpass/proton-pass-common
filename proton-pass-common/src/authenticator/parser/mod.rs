@@ -1,2 +1,2 @@
-mod bitwarden;
+pub mod bitwarden;
 pub mod google;

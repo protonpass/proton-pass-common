@@ -1,6 +1,6 @@
 pub mod gen;
 
-use crate::authenticator::AuthenticatorEntry;
+use crate::authenticator::{AuthenticatorEntry, AuthenticatorEntryContent};
 use crate::totp::algorithm::Algorithm;
 use crate::totp::totp::TOTP;
 use base64::Engine;
@@ -39,7 +39,7 @@ impl TryFrom<google::OtpParameters> for AuthenticatorEntry {
             .try_into()?;
 
         Ok(Self {
-            totp: TOTP {
+            content: AuthenticatorEntryContent::Totp(TOTP {
                 label: Some(parameters.name),
                 secret: base32::encode(base32::Alphabet::Rfc4648 { padding: false }, &parameters.secret),
                 issuer: Some(parameters.issuer),
@@ -50,7 +50,7 @@ impl TryFrom<google::OtpParameters> for AuthenticatorEntry {
                     google::DigitCount::DIGIT_COUNT_SIX => Some(6),
                 },
                 period: Some(30), // Google always uses period=30
-            },
+            }),
         })
     }
 }
@@ -108,7 +108,10 @@ mod test {
         let res = parse_google_authenticator_totp(input, false).expect("should be able to parse");
         assert_eq!(res.len(), 1);
 
-        let entry = res[0].totp.clone();
+        let entry = match &res[0].content {
+            AuthenticatorEntryContent::Totp(entry) => entry.clone(),
+            _ => panic!("should be a TOTP entry"),
+        };
 
         assert_eq!("MYLABEL", entry.label.expect("should contain a label"));
         assert_eq!("MYISSUER", entry.issuer.expect("should contain an issuer"));

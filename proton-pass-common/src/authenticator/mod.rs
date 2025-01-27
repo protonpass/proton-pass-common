@@ -1,10 +1,7 @@
-use crate::totp::totp::TOTP;
-
+pub mod entry;
 pub mod parser;
+pub mod steam;
 
-#[derive(Clone, Debug)]
-pub struct AuthenticatorEntry {
-    pub totp: TOTP,
-}
-
+pub use entry::{AuthenticatorEntry, AuthenticatorEntryContent};
+pub use parser::bitwarden::parse_bitwarden_json;
 pub use parser::google::parse_google_authenticator_totp;

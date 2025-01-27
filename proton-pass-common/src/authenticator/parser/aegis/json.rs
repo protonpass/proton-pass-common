@@ -41,11 +41,8 @@ pub fn parse_aegis_json(
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::authenticator::parser::aegis::test::check_export_matches;
     use crate::authenticator::test_utils::get_file_contents;
-
-    fn check_export_matches(entries: Vec<AuthenticatorEntry>) {
-        assert_eq!(entries.len(), 3);
-    }
 
     #[test]
     fn can_import_unencrypted_json() {

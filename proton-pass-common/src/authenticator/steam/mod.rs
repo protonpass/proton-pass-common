@@ -45,6 +45,21 @@ impl SteamTotp {
         }
     }
 
+    pub fn new_from_otp_uri(uri: &Url) -> Result<SteamTotp, SteamTotpError> {
+        if uri.scheme() != "otpauth" {
+            return Err(SteamTotpError::BadUrl);
+        }
+
+        let secret = uri
+            .query_pairs()
+            .filter(|(k, _)| k == "secret")
+            .map(|(_, v)| v.to_string())
+            .next()
+            .ok_or(SteamTotpError::BadUrl)?;
+
+        Self::new(&secret)
+    }
+
     pub fn new_from_raw(secret: Vec<u8>) -> Self {
         SteamTotp { secret }
     }

@@ -1,0 +1,62 @@
+{
+    "version": 1,
+    "header": {
+        "slots": null,
+        "params": null
+    },
+    "db": {
+        "version": 3,
+        "entries": [
+            {
+                "type": "totp",
+                "uuid": "641e6db3-296a-49ad-ab75-9f4069ba0e53",
+                "name": "mylabel815256",
+                "issuer": "myissuer",
+                "note": "",
+                "favorite": false,
+                "icon": null,
+                "info": {
+                    "secret": "MYSECRET",
+                    "algo": "SHA256",
+                    "digits": 8,
+                    "period": 15
+                },
+                "groups": []
+            },
+            {
+                "type": "totp",
+                "uuid": "c3d22748-1cd9-4a3e-a655-23a872e3eee2",
+                "name": "mylabeldefault",
+                "issuer": "myissuer",
+                "note": "",
+                "favorite": false,
+                "icon": null,
+                "info": {
+                    "secret": "MYSECRET",
+                    "algo": "SHA1",
+                    "digits": 6,
+                    "period": 30
+                },
+                "groups": []
+            },
+            {
+                "type": "steam",
+                "uuid": "776e9abf-a0b5-4d60-98ae-6e06664e5b1e",
+                "name": "Steam",
+                "issuer": "Steam",
+                "note": "",
+                "favorite": false,
+                "icon": null,
+                "info": {
+                    "secret": "STEAMKEY",
+                    "algo": "SHA1",
+                    "digits": 5,
+                    "period": 30
+                },
+                "groups": []
+            }
+        ],
+        "groups": [],
+        "icons_optimized": true
+    }
+}

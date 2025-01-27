@@ -31,11 +31,11 @@ impl SteamTotp {
     }
     pub fn new_from_uri(uri: &str) -> Result<SteamTotp, SteamTotpError> {
         let parsed = Url::parse(uri).map_err(|_| SteamTotpError::BadUrl)?;
-        Self::new_from_parsed_uri(&parsed)
+        Self::new_from_parsed_uri(&parsed, true)
     }
 
-    pub fn new_from_parsed_uri(uri: &Url) -> Result<SteamTotp, SteamTotpError> {
-        if uri.scheme() != "steam" {
+    pub fn new_from_parsed_uri(uri: &Url, check_scheme: bool) -> Result<SteamTotp, SteamTotpError> {
+        if uri.scheme() != "steam" && check_scheme {
             return Err(SteamTotpError::BadUrl);
         }
 

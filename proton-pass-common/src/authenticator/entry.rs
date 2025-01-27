@@ -23,12 +23,18 @@ impl AuthenticatorEntry {
         let parsed = url::Url::parse(uri).map_err(|_| AuthenticatorEntryError::UnsupportedUri)?;
         let content = match parsed.scheme() {
             "otpauth" => {
-                let totp = TOTP::from_uri(uri).map_err(|_| AuthenticatorEntryError::ParseError)?;
-                AuthenticatorEntryContent::Totp(totp)
+                if parsed.scheme() == "steam" {
+                    let steam_parsed = SteamTotp::new_from_parsed_uri(&parsed, false)
+                        .map_err(|_| AuthenticatorEntryError::ParseError)?;
+                    AuthenticatorEntryContent::Steam(steam_parsed)
+                } else {
+                    let totp = TOTP::from_uri(uri).map_err(|_| AuthenticatorEntryError::ParseError)?;
+                    AuthenticatorEntryContent::Totp(totp)
+                }
             }
             "steam" => {
                 let steam_parsed =
-                    SteamTotp::new_from_parsed_uri(&parsed).map_err(|_| AuthenticatorEntryError::ParseError)?;
+                    SteamTotp::new_from_parsed_uri(&parsed, true).map_err(|_| AuthenticatorEntryError::ParseError)?;
                 AuthenticatorEntryContent::Steam(steam_parsed)
             }
             _ => return Err(AuthenticatorEntryError::UnsupportedUri),

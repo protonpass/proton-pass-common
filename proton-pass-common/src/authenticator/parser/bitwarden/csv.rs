@@ -57,6 +57,7 @@ pub fn parse_bitwarden_csv(input: &str, fail_on_error: bool) -> Result<Vec<Authe
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::authenticator::test_utils::get_file_contents;
     use crate::authenticator::AuthenticatorEntryContent;
     use crate::totp::algorithm::Algorithm;
     use crate::totp::totp::TOTP;
@@ -69,14 +70,9 @@ mod test {
 
     #[test]
     fn can_parse_bitwarden_csv() {
-        let input = r#"folder,favorite,type,name,login_uri,login_totp
-,,1,ISSUER,,otpauth://totp/ISSUER%3ALABEL_256_8_15?secret=SECRETDATA&algorithm=SHA256&digits=8&period=15&issuer=ISSUER,ISSUER,15,8
-,,1,ISSUER_DEFAULT,,otpauth://totp/ISSUER_DEFAULT%3ALABEL_DEFAULT?secret=SOMESECRET&algorithm=SHA1&digits=6&period=30&issuer=ISSUER_DEFAULT,ISSUER_DEFAULT,30,6
-,,1,SteamName,,steam://STEAMKEY,SteamName,30,6
-,,1,SevenDigits,,otpauth://totp/SevenDigits%3ASeven%20digit%20username?secret=SEVENDIGITSECRET&algorithm=SHA1&digits=7&period=30&issuer=SevenDigits,SevenDigits,30,7
-        "#;
+        let input = get_file_contents("bitwarden/bitwarden.csv");
 
-        let res = parse_bitwarden_csv(input, false).expect("Should be able to parse the CSV");
+        let res = parse_bitwarden_csv(&input, false).expect("Should be able to parse the CSV");
         assert_eq!(res.len(), 4);
 
         match &res[0].content {

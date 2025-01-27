@@ -54,6 +54,7 @@ pub fn parse_bitwarden_json(input: &str, fail_on_error: bool) -> Result<Vec<Auth
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::authenticator::test_utils::get_file_contents;
     use crate::authenticator::AuthenticatorEntryContent;
     use crate::totp::algorithm::Algorithm;
     use crate::totp::totp::TOTP;
@@ -66,11 +67,9 @@ mod test {
 
     #[test]
     fn can_parse_content() {
-        let input = r#"
-        {"encrypted":false,"items":[{"id":"37bf650d-2154-4d92-9547-d96b75a5317e","name":"ISSUER","folderId":null,"organizationId":null,"collectionIds":null,"notes":null,"type":1,"login":{"totp":"otpauth://totp/ISSUER%3ALABEL_256_8_15?secret=SECRETDATA&algorithm=SHA256&digits=8&period=15&issuer=ISSUER"},"favorite":false},{"id":"847dd7e4-22f5-4206-babb-4769539ec8ff","name":"ISSUER_DEFAULT","folderId":null,"organizationId":null,"collectionIds":null,"notes":null,"type":1,"login":{"totp":"otpauth://totp/ISSUER_DEFAULT%3ALABEL_DEFAULT?secret=SOMESECRET&algorithm=SHA1&digits=6&period=30&issuer=ISSUER_DEFAULT"},"favorite":false},{"id":"b1315dd9-28f8-4fd2-afa4-37aed632c90e","name":"SteamName","folderId":null,"organizationId":null,"collectionIds":null,"notes":null,"type":1,"login":{"totp":"steam://STEAMKEY"},"favorite":false},{"id":"72bb3758-174a-40c3-a9ea-c82cae9f5c22","name":"SevenDigits","folderId":null,"organizationId":null,"collectionIds":null,"notes":null,"type":1,"login":{"totp":"otpauth://totp/SevenDigits%3ASeven%20digit%20username?secret=SEVENDIGITSECRET&algorithm=SHA1&digits=7&period=30&issuer=SevenDigits"},"favorite":false}]}
-        "#;
+        let input = get_file_contents("bitwarden/bitwarden.json");
 
-        let res = parse_bitwarden_json(input, false).expect("should be able to parse");
+        let res = parse_bitwarden_json(&input, false).expect("should be able to parse");
         assert_eq!(res.len(), 4);
 
         match &res[0].content {

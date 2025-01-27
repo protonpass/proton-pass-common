@@ -1,0 +1,27 @@
+{
+    "version": 1,
+    "header": {
+        "slots": [
+            {
+                "type": 1,
+                "uuid": "12dc9537-e949-4a74-81ed-9a9d1dd627a1",
+                "key": "4b12b03b214c6a50fbdecf29463f43e3b68f9d14536ceba418f65f6d03a25e31",
+                "key_params": {
+                    "nonce": "e5c83664c38a64175b021edb",
+                    "tag": "847f4dd400614f21cd81c9b9793f89ea"
+                },
+                "n": 32768,
+                "r": 8,
+                "p": 1,
+                "salt": "133b37b6b6ce7e8bbd7980e520a94bf9ba041ac5dfbf8bb6df07728c5f57f0d7",
+                "repaired": true,
+                "is_backup": false
+            }
+        ],
+        "params": {
+            "nonce": "795324d644a585e5ff6d11a1",
+            "tag": "8097bfbb663b97bbaca30912df65cbe4"
+        }
+    },
+    "db": "IvZKCAJ69YeNwkMtNEDXP2jfsTdLkYz3QU+wiXrcOyXTKumGySOlm987eQNnNVxpXcKkRNJwOFVZOk\/8dYCDYYYjmFwpWwlmBwJ8oa1GyXw+hhY0V6x22a\/yHrEnfsibJxnI27w8Rl2ThjRi68+ts43jpoR72VVCDb559m5Xb5cOWdTX2hE0Doj73OanKV2hlXY6kE2CWR41oA4l17MRiv\/iCBvHszMd2Xkt7q8gjG17\/zvvuM4Vrn2zDFnE\/OPUSm3NBx0fOk+PjDvfHLPFqPSbRh6+ozj8NTFZrsi8QNPjKSvhjjnH56DOoSOm7bZ\/9BsCHd+n6sZegtC50atOo5Ar5Q3x9Ssb3jwXtkYGU1uxYnbUrHz+eBlCuZrt1dVoy3Y4XWWN7ti2F0TwMPWECqwytxHDqIAFFWsQUDoUNMDFdJX7n0U7IlRfCm5DUGyo2UlSSViIKlDTSXGFuzvz5Kag4fDVYi2oxvCef4LiS5our4+48kcj8ZomW\/dt5F5HtnlydxhiLlrKeOfl9jKPuTSp2Z2vnAPjBh9dt9gElQxEQHUfh6XjAZIV8sAV0kbp8O5DtHidi9iB1JgsJ+YgX6ii9XIqWBiEOxf0iUUZZmFstFptcfCu2gbvRaXxNHp378B5PyAmXThYVEjOAL\/Nr8Kx3UQrg2Eu+YTT5hzCNoEXLnzoSRPWzj77OilWRLWL4Bc\/46F1OE+wJUWlx+bVov80G5mzSE7TSRl5xGZTXwzQ7m+A2m6sTByhi6U2DxX1pyuqOVzom5GIXvxW7TEwUDp5bxAzP\/Y\/MV1Lor+HhDoVdTScuwXeFIadRJBzwkPh+d++UYajomgEsoOpSF3iak54vM\/V54mCF8Lk4OE5vh7LPyJTls4fECGbpR0WSX8ummkbeNqZ6FVbuh+BvMN+U4An4+22HxGGgaLAIfqsxZnvOnis9lQa54zFd9i0XhiBylfC33hcmRbPBZAiApvjkrnvwA\/fnH3XGz\/zcCxbdjmQFGAwXdRbJhSKPjsEQB0F7LlAbjeHmTDOXUYgbhEyFqo3Qn0EIQr4jn9wjyyJz7oll0iA+wyugT\/\/o1I33R+wYL5xYPMqueriQ1U0Zifrf7vyGrF6LBDsoy+0f2qVDZo1NpEJntWcmNBJ1FciO9+xvuJnfOXBTEflbK5439qBPzn6Zr5bWaUopqwUChzSqrEQjIRzHsGXsr5FxXkMRlQKm\/w1B+juywe\/LlbVzots2XPPPq\/aW90Rl149GrXL5H6qDKISEbwCXreEp\/Hw0MvYLux29piMo+NBy6SrY3WoSBAvKeqFaOdtO+Ci5oU6ri\/QhjtHqABgybudZItcjHK1iPDI+d5TZtiIjHoWyLv1UTdNxDBYNXTa80oS0aWYDJtF+eIt6Fzr\/vzfQQ1p5kD8idAAGFX8buP0zo9hQClHUDFvEDyEetL4KujAOz3YBIfAlyocBozusdFwbAf7uGC6uQrWWiDVeBf3OAxmjHm9Vp9QYFjTAT8wwZKsjNKxPswTPKjCrcQMOeuc+6VjM6TAv4vHdUsTOBt0FCkaFREpsMSnep3WiKdcS7aXX91YuM8CWm\/\/mc1oGzMHHt9jNGC1le4M\/QiPJRSL4fpcbhHCoiFuuj9PhgG6fs41dt6LMuaqfUJoRkjraCPIKWbcYjMzbwp3B1YkPdjJ681JNCw4Hx63mFl7Uc9hoiyY3GRHolVccsJL0SivUtYEsYnsLomdTBVcQ1KhHpDAYpHuWNw57RY25XnewLMrkNHe\/xMKkEy6qbvq+Y2izALgD+VUvN\/s9BFpLt3w9iCz9+DaJT4dTkGvI19FclXzCYxGWobU2WgFNkcGeCI\/ljhuVcg0m17q5H24r4fpeD0uqWoGmeYV37JWefxxJBhnfDrZwaWIc0c5OU4EohW8xqob9JE="
+}

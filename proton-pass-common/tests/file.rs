@@ -2,7 +2,7 @@ use proton_pass_common::file::get_mime_type_from_content;
 
 fn get_file_contents(name: &str) -> Vec<u8> {
     let crate_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-    let file_path = crate_path.join("test_data").join(name);
+    let file_path = crate_path.join("test_data").join("file_format").join(name);
 
     std::fs::read(&file_path).unwrap_or_else(|_| panic!("cannot open {}", file_path.display()))
 }

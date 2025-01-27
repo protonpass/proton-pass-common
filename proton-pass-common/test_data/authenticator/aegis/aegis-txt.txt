@@ -1,0 +1,3 @@
+otpauth://totp/myissuer%3Amylabel815256?period=15&digits=8&algorithm=SHA256&secret=MYSECRET&issuer=myissuer
+otpauth://totp/myissuer%3Amylabeldefault?period=30&digits=6&algorithm=SHA1&secret=MYSECRET&issuer=myissuer
+otpauth://steam/Steam%3ASteam?period=30&digits=5&algorithm=SHA1&secret=STEAMKEY&issuer=Steam

@@ -30,7 +30,7 @@ lint: ## Lint the project
 
 .PHONY: test
 test: ## Run the library tests
-	@cargo test -p proton-pass-common
+	@command_exists() { command -v $1 >/dev/null 2>&1; }; if command_exists cargo-nextest; then cargo nextest run -p proton-pass-common; else cargo test -p proton-pass-common; fi
 
 .PHONY: bench
 bench: ## Run the benchmarks

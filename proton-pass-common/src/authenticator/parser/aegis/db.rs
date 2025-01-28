@@ -21,7 +21,7 @@ pub struct DbEntry {
     pub issuer: String,
     pub note: String,
     pub favorite: bool,
-    pub icon: Option<()>,
+    pub icon: Option<String>,
     pub info: Info,
 }
 

@@ -1,0 +1,83 @@
+{
+  "deviceId": "",
+  "deviceSecret": "",
+  "localDeviceId": "9dae8be5-83f1-4600-aefb-d50bafb071d1",
+  "deviceName": "Google Pixel 6a",
+  "version": 3,
+  "accounts": [
+    {
+      "accountID": "c9ebcb42-6d85-4bf0-8bb4-414138c4660d",
+      "lmiUserId": "",
+      "issuerName": "issuer",
+      "originalIssuerName": "kekdj",
+      "userName": "account name default",
+      "originalUserName": "didjsbbidjdbdusj",
+      "pushNotification": false,
+      "secret": "BDKSIEHWBDBBDBDZBZJ",
+      "timeStep": 30,
+      "digits": 6,
+      "creationTimestamp": 1738075355820,
+      "isFavorite": false,
+      "algorithm": "SHA1",
+      "folderData": {
+        "folderId": 0,
+        "position": 0
+      }
+    },
+    {
+      "accountID": "de8cb856-d13a-4b75-a44e-2347300d7c54",
+      "lmiUserId": "",
+      "issuerName": "other",
+      "originalIssuerName": "other",
+      "userName": "",
+      "originalUserName": "sha256",
+      "pushNotification": false,
+      "secret": "JDJSKDKDKDKDKDKDK",
+      "timeStep": 20,
+      "digits": 8,
+      "creationTimestamp": 1738083300789,
+      "isFavorite": false,
+      "algorithm": "SHA256",
+      "folderData": {
+        "folderId": 0,
+        "position": 1
+      }
+    },
+    {
+      "accountID": "80cb78ed-46a2-4fca-bd2c-11523b1eb647",
+      "lmiUserId": "",
+      "issuerName": "",
+      "originalIssuerName": "",
+      "userName": "sha512 name",
+      "originalUserName": "sha512 name",
+      "pushNotification": false,
+      "secret": "JDJDDJDJUEJEBDBFNF",
+      "timeStep": 30,
+      "digits": 6,
+      "creationTimestamp": 1738083337090,
+      "isFavorite": false,
+      "algorithm": "SHA512",
+      "folderData": {
+        "folderId": 0,
+        "position": 2
+      }
+    }
+  ],
+  "folders": [
+    {
+      "id": 1,
+      "name": "Favorites",
+      "isOpened": true
+    },
+    {
+      "id": 0,
+      "name": "Other accounts",
+      "isOpened": true
+    }
+  ],
+  "backupInfo": {
+    "creationDate": "2025-01-28T16:55:54.040",
+    "deviceOS": "android",
+    "appVersion": "2.21.3"
+  }
+}

@@ -139,14 +139,14 @@ web-setup:
 .PHONY: web-worker
 web-worker: ## Build the web worker artifacts
 	@echo "--- Building web-worker"
-	@wasm-pack build proton-pass-web --scope protontech --features web_worker
+	@RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build proton-pass-web --scope protontech --features web_worker
 	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "worker",/g' "${WEB_DIR}/pkg/package.json"
 	@mv "${WEB_DIR}/pkg" "${WEB_BUILD_DIR}/worker"
 
 .PHONY: web-ui
 web-ui: ## Build the web ui artifacts
 	@echo "--- Building web-ui"
-	@wasm-pack build proton-pass-web --scope protontech --features web_ui
+	@RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build proton-pass-web --scope protontech --features web_ui
 	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "ui",/g' "${WEB_DIR}/pkg/package.json"
 	@echo "--- Compiling web-ui to ASM.js"
 	@echo -n "export default " > "${WEB_DIR}/pkg/proton_pass_web_bg.asm.js"
@@ -157,7 +157,7 @@ web-ui: ## Build the web ui artifacts
 .PHONY: web-password
 web-password: ## Build the web password artifacts
 	@echo "--- Building web-password"
-	@wasm-pack build proton-pass-web --scope protontech --features web_password
+	@RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build proton-pass-web --scope protontech --features web_password
 	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "password",/g' "${WEB_DIR}/pkg/package.json"
 	@mv "${WEB_DIR}/pkg" "${WEB_BUILD_DIR}/password"
 
@@ -169,15 +169,15 @@ web: web-setup web-worker web-ui web-password ## Build the web artifacts
 web-test: web-setup ## Test the web artifacts
 	@rm -rf "${WEB_TEST_BUILD_DIR}" && mkdir -p "${WEB_TEST_BUILD_DIR}"
 	@echo "--- Building web-worker"
-	@wasm-pack build proton-pass-web --scope protontech --target nodejs --out-dir "${WEB_TEST_BUILD_DIR}/worker" --features "web_worker"
+	@RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build proton-pass-web --scope protontech --target nodejs --out-dir "${WEB_TEST_BUILD_DIR}/worker" --features "web_worker"
 	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "worker",/g' "${WEB_TEST_BUILD_DIR}/worker/package.json"
 
 	@echo "--- Building web-ui"
-	@wasm-pack build proton-pass-web --scope protontech --target nodejs --out-dir "${WEB_TEST_BUILD_DIR}/ui" --features "web_ui"
+	@RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build proton-pass-web --scope protontech --target nodejs --out-dir "${WEB_TEST_BUILD_DIR}/ui" --features "web_ui"
 	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "ui",/g' "${WEB_TEST_BUILD_DIR}/ui/package.json"
 
 	@echo "--- Building web-password"
-	@wasm-pack build proton-pass-web --scope protontech --target nodejs --out-dir "${WEB_TEST_BUILD_DIR}/password" --features "web_password"
+	@RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build proton-pass-web --scope protontech --target nodejs --out-dir "${WEB_TEST_BUILD_DIR}/password" --features "web_password"
 	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "password",/g' "${WEB_TEST_BUILD_DIR}/password/package.json"
 
 	@cp "${WEB_DIR}/package.json" "${WEB_TEST_BUILD_DIR}/package.json"

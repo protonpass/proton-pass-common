@@ -3,7 +3,7 @@ mod scorer;
 
 use password_generator::PasswordGenerator;
 use proton_pass_derive::Error;
-use rand::{rngs::ThreadRng, thread_rng};
+use rand::{rng, rngs::ThreadRng};
 pub use scorer::*;
 
 type ProductionPasswordGenerator = PasswordGenerator<ThreadRng>;
@@ -52,5 +52,5 @@ impl WordSeparator {
 }
 
 pub fn get_generator() -> ProductionPasswordGenerator {
-    PasswordGenerator::new(thread_rng())
+    PasswordGenerator::new(rng())
 }

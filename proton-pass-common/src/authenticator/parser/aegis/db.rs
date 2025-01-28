@@ -57,6 +57,13 @@ impl TryFrom<DbEntry> for AuthenticatorEntry {
     type Error = AegisImportError;
 
     fn try_from(entry: DbEntry) -> Result<Self, Self::Error> {
+        let trimmed_note = entry.note.trim();
+        let note = if trimmed_note.is_empty() {
+            None
+        } else {
+            Some(trimmed_note.to_string())
+        };
+
         let content = match entry.entry_type.as_str() {
             "steam" => {
                 let steam = SteamTotp::new(&entry.info.secret).map_err(|_| AegisImportError::BadContent)?;
@@ -69,7 +76,7 @@ impl TryFrom<DbEntry> for AuthenticatorEntry {
             _ => return Err(AegisImportError::Unsupported),
         };
 
-        Ok(AuthenticatorEntry { content })
+        Ok(AuthenticatorEntry { content, note })
     }
 }
 

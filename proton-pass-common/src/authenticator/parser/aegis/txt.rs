@@ -6,7 +6,7 @@ pub fn parse_aegis_txt(input: &str, fail_on_error: bool) -> Result<Vec<Authentic
     for line in input.lines() {
         let trimmed = line.trim();
         if !trimmed.is_empty() {
-            match AuthenticatorEntry::from_uri(trimmed) {
+            match AuthenticatorEntry::from_uri(trimmed, None) {
                 Ok(entry) => entries.push(entry),
                 Err(_) => {
                     if fail_on_error {

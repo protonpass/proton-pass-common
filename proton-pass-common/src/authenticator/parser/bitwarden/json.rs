@@ -27,7 +27,7 @@ impl TryFrom<Struct> for AuthenticatorEntry {
     type Error = BitwardenImportError;
 
     fn try_from(value: Struct) -> Result<Self, Self::Error> {
-        AuthenticatorEntry::from_uri(&value.login.totp).map_err(|_| BitwardenImportError::Unsupported)
+        AuthenticatorEntry::from_uri(&value.login.totp, None).map_err(|_| BitwardenImportError::Unsupported)
     }
 }
 

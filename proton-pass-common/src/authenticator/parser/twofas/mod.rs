@@ -1,4 +1,4 @@
-mod encrypted;
+mod parser;
 
 #[derive(Clone, Debug)]
 pub enum TwoFasImportError {
@@ -8,4 +8,4 @@ pub enum TwoFasImportError {
     WrongPassword,
 }
 
-pub use encrypted::parse_2fas_file;
+pub use parser::parse_2fas_file;

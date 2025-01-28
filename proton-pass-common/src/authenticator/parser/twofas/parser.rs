@@ -100,13 +100,21 @@ fn parse_2fas_export(json_data: &str) -> Result<TwoFasState, TwoFasImportError> 
 }
 
 /// Decrypt the `Encrypted` variant using AES-GCM with a PBKDF2-derived key.
-fn decrypt_2fas_encrypted_state(state: &TwoFasState, password: &str) -> Result<Vec<TwoFasEntry>, TwoFasImportError> {
+fn decrypt_2fas_encrypted_state(
+    state: &TwoFasState,
+    password: Option<String>,
+) -> Result<Vec<TwoFasEntry>, TwoFasImportError> {
     // We expect the Encrypted state
     let (data, salt, iv) = match state {
         TwoFasState::Encrypted { data, salt, iv } => (data, salt, iv),
         TwoFasState::Decrypted(_) => {
             return Err(TwoFasImportError::BadContent);
         }
+    };
+
+    let password = match password {
+        Some(password) => password,
+        None => return Err(TwoFasImportError::WrongPassword),
     };
 
     // 1. Derive the 256-bit AES key
@@ -168,7 +176,7 @@ fn parse_entry(obj: TwoFasEntry) -> Result<AuthenticatorEntry, TwoFasImportError
 
 pub fn parse_2fas_file(
     json_data: &str,
-    password: &str,
+    password: Option<String>,
     fail_on_error: bool,
 ) -> Result<Vec<AuthenticatorEntry>, TwoFasImportError> {
     let state = parse_2fas_export(json_data)?;
@@ -200,14 +208,14 @@ mod test {
     #[test]
     fn can_import_encrypted() {
         let contents = get_file_contents("2fas/encrypted.2fas");
-        let res = parse_2fas_file(&contents, "test", false).expect("error parsing");
+        let res = parse_2fas_file(&contents, Some("test".to_string()), false).expect("error parsing");
         assert_eq!(res.len(), 2);
     }
 
     #[test]
     fn can_import_unencrypted() {
         let contents = get_file_contents("2fas/decrypted.2fas");
-        let res = parse_2fas_file(&contents, "test", false).expect("error parsing");
+        let res = parse_2fas_file(&contents, None, false).expect("error parsing");
         assert_eq!(res.len(), 2);
     }
 }

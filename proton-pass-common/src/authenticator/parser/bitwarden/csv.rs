@@ -26,7 +26,7 @@ pub fn parse_bitwarden_csv(input: &str, fail_on_error: bool) -> Result<Vec<Authe
     for result in csv_reader.records() {
         match result {
             Ok(record) => match record.get(5) {
-                Some(r) => match AuthenticatorEntry::from_uri(r) {
+                Some(r) => match AuthenticatorEntry::from_uri(r, None) {
                     Ok(entry) => entries.push(entry),
                     Err(e) => {
                         if fail_on_error {

@@ -16,10 +16,11 @@ pub enum AuthenticatorEntryContent {
 #[derive(Clone, Debug)]
 pub struct AuthenticatorEntry {
     pub content: AuthenticatorEntryContent,
+    pub note: Option<String>,
 }
 
 impl AuthenticatorEntry {
-    pub fn from_uri(uri: &str) -> Result<Self, AuthenticatorEntryError> {
+    pub fn from_uri(uri: &str, note: Option<String>) -> Result<Self, AuthenticatorEntryError> {
         let parsed = url::Url::parse(uri).map_err(|_| AuthenticatorEntryError::UnsupportedUri)?;
         let content = match parsed.scheme() {
             "otpauth" => {
@@ -40,6 +41,6 @@ impl AuthenticatorEntry {
             _ => return Err(AuthenticatorEntryError::UnsupportedUri),
         };
 
-        Ok(AuthenticatorEntry { content })
+        Ok(AuthenticatorEntry { content, note })
     }
 }

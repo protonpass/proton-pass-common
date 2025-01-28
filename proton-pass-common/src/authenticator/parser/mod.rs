@@ -3,3 +3,5 @@ pub mod bitwarden;
 pub mod ente;
 pub mod google;
 pub mod twofas;
+
+pub mod lastpass;

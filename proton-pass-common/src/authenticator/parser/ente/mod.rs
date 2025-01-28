@@ -7,7 +7,7 @@ pub enum EnteImportError {
     UnableToDecrypt,
 }
 
-pub use txt::import_ente_txt;
+pub use txt::parse_ente_txt;
 
 #[cfg(test)]
 mod test {

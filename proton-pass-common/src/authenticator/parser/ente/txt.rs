@@ -1,7 +1,7 @@
 use super::EnteImportError;
 use crate::authenticator::{AuthenticatorEntry, AuthenticatorEntryContent};
 
-pub fn import_ente_txt(input: &str, fail_on_error: bool) -> Result<Vec<AuthenticatorEntry>, EnteImportError> {
+pub fn parse_ente_txt(input: &str, fail_on_error: bool) -> Result<Vec<AuthenticatorEntry>, EnteImportError> {
     let mut entries = Vec::new();
     for line in input.lines() {
         let trimmed = line.trim();
@@ -53,7 +53,7 @@ mod tests {
     #[test]
     fn can_import_txt_file() {
         let content = get_file_contents("ente/plain.txt");
-        let imported = import_ente_txt(content.as_str(), false).expect("should be able to import");
+        let imported = parse_ente_txt(content.as_str(), false).expect("should be able to import");
         check_ente_entries(imported);
     }
 }

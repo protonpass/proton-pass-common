@@ -1,0 +1,61 @@
+{
+  "services": [
+    {
+      "name": "myissuer",
+      "secret": "MYSECRET",
+      "updatedAt": 1738059994570,
+      "otp": {
+        "label": "mylabeldefault",
+        "account": "mylabeldefault",
+        "issuer": "myissuer",
+        "digits": 6,
+        "period": 30,
+        "algorithm": "SHA1",
+        "tokenType": "TOTP",
+        "source": "Link"
+      },
+      "order": {
+        "position": 0
+      },
+      "icon": {
+        "selected": "Label",
+        "label": {
+          "text": "MY",
+          "backgroundColor": "Indigo"
+        },
+        "iconCollection": {
+          "id": "a5b3fb65-4ec5-43e6-8ec1-49e24ca9e7ad"
+        }
+      }
+    },
+    {
+      "name": "Steam",
+      "secret": "STEAMKEY",
+      "updatedAt": 1738059994575,
+      "serviceTypeID": "d241edff-480f-4201-840a-5a1c1d1323c2",
+      "otp": {
+        "issuer": "Steam",
+        "digits": 5,
+        "period": 30,
+        "algorithm": "SHA1",
+        "tokenType": "STEAM",
+        "source": "Link"
+      },
+      "order": {
+        "position": 1
+      },
+      "icon": {
+        "selected": "IconCollection",
+        "iconCollection": {
+          "id": "d5fd5765-bc30-407a-923f-e1dfd5cec49f"
+        }
+      }
+    }
+  ],
+  "groups": [],
+  "updatedAt": 1738060509269,
+  "schemaVersion": 4,
+  "appVersionCode": 5000029,
+  "appVersionName": "5.4.8",
+  "appOrigin": "android"
+}

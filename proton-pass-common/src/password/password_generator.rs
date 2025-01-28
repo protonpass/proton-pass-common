@@ -112,7 +112,7 @@ where
             let word = if spec.capitalise { capitalize(word) } else { word };
 
             let word = if spec.include_numbers {
-                let number = self.rng.gen_range(0..=9);
+                let number = self.rng.random_range(0..=9);
                 format!("{word}{number}")
             } else {
                 word
@@ -126,7 +126,7 @@ where
 
     fn get_char(&mut self, dictionary: &str) -> Result<char> {
         let range = 0..dictionary.len();
-        let idx = self.rng.gen_range(range);
+        let idx = self.rng.random_range(range);
         let char: char = dictionary
             .chars()
             .nth(idx)
@@ -136,7 +136,7 @@ where
 
     fn get_word(&mut self) -> Result<String> {
         let range = 0..EFF_LARGE_WORDLIST.len();
-        let idx = self.rng.gen_range(range);
+        let idx = self.rng.random_range(range);
         let word = EFF_LARGE_WORDLIST
             .get(idx)
             .ok_or_else(|| PasswordGeneratorError::FailToGenerate("Could not get word from wordlist".to_string()))?;
@@ -160,7 +160,7 @@ where
     fn get_separator(&mut self, separator: &WordSeparator) -> Result<String> {
         match separator {
             WordSeparator::Numbers => {
-                let num = self.rng.gen_range(0..=9);
+                let num = self.rng.random_range(0..=9);
                 Ok(format!("{num}"))
             }
             WordSeparator::NumbersAndSymbols => {
@@ -259,7 +259,7 @@ mod test {
                 })
                 .unwrap();
 
-            assert_eq!("18mgs", res);
+            assert_eq!("91d8n", res);
         }
 
         #[test]
@@ -274,7 +274,7 @@ mod test {
                 })
                 .unwrap();
 
-            assert_eq!("rkRky", res);
+            assert_eq!("ZMeXt", res);
         }
 
         #[test]
@@ -289,7 +289,7 @@ mod test {
                 })
                 .unwrap();
 
-            assert_eq!("z&kgw", res);
+            assert_eq!("*zd&n", res);
         }
 
         #[test]
@@ -304,7 +304,7 @@ mod test {
                 })
                 .unwrap();
 
-            assert_eq!("xUG9&", res);
+            assert_eq!("*0C%z", res);
         }
 
         #[test]
@@ -319,7 +319,7 @@ mod test {
                 })
                 .unwrap();
 
-            assert_eq!("xE6#", res);
+            assert_eq!("*T0%", res);
         }
     }
 
@@ -351,7 +351,7 @@ mod test {
                     count: 1,
                 })
                 .unwrap();
-            assert_eq!("scrambled", res);
+            assert_eq!("wireless", res);
         }
 
         #[test]
@@ -365,7 +365,7 @@ mod test {
                     count: 2,
                 })
                 .unwrap();
-            assert_eq!("scrambled-extent", res);
+            assert_eq!("wireless-scrambled", res);
         }
 
         #[test]
@@ -379,7 +379,7 @@ mod test {
                     count: 2,
                 })
                 .unwrap();
-            assert_eq!("Scrambled-Extent", res);
+            assert_eq!("Wireless-Scrambled", res);
         }
 
         #[test]
@@ -393,7 +393,7 @@ mod test {
                     count: 2,
                 })
                 .unwrap();
-            assert_eq!("Scrambled9-Extent1", res);
+            assert_eq!("Wireless7-Bungee9", res);
         }
     }
 
@@ -480,7 +480,7 @@ mod test {
                 )
                 .unwrap();
 
-            assert_eq!("lorem7_ipsum9_dolor3", res);
+            assert_eq!("lorem9_ipsum7_dolor0", res);
         }
 
         #[test]

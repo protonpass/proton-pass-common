@@ -1,26 +1,8 @@
 use crate::authenticator::parser::lastpass::LastPassImportError;
 use crate::authenticator::AuthenticatorEntry;
 use crate::authenticator::AuthenticatorEntryContent::Totp;
-use crate::totp::algorithm::Algorithm as TotpAlgorithm;
+use crate::totp::algorithm::Algorithm;
 use crate::totp::totp::TOTP;
-use std::ops::Not;
-
-#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
-enum Algorithm {
-    SHA1,
-    SHA256,
-    SHA512,
-}
-
-impl Into<TotpAlgorithm> for Algorithm {
-    fn into(self) -> crate::totp::algorithm::Algorithm {
-        match self {
-            Algorithm::SHA1 => TotpAlgorithm::SHA1,
-            Algorithm::SHA256 => TotpAlgorithm::SHA256,
-            Algorithm::SHA512 => TotpAlgorithm::SHA512,
-        }
-    }
-}
 
 #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
 struct Account {
@@ -46,7 +28,7 @@ struct Account {
     pub creation_timestamp: u64,
     #[serde(rename = "isFavorite")]
     pub is_favorite: bool,
-    pub algorithm: Algorithm,
+    pub algorithm: String,
 }
 
 #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
@@ -70,14 +52,30 @@ impl TryFrom<Account> for AuthenticatorEntry {
         Ok(AuthenticatorEntry {
             note: None,
             content: Totp(TOTP {
-                label: value.user_name.is_empty().not().then(|| value.user_name),
+                label: string_option_if_not_empty(value.user_name),
                 secret: value.secret,
-                issuer: value.issuer_name.is_empty().not().then(|| value.issuer_name),
-                algorithm: Some(value.algorithm.into()),
+                issuer: string_option_if_not_empty(value.issuer_name),
+                algorithm: match Algorithm::try_from(value.algorithm.as_str()) {
+                    Ok(a) => Some(a),
+                    Err(_) => {
+                        return Err(LastPassImportError::BadContent(format!(
+                            "Unknown algorithm: {}",
+                            value.algorithm
+                        )))
+                    }
+                },
                 digits: Some(value.digits),
                 period: Some(value.time_step),
             }),
         })
+    }
+}
+
+fn string_option_if_not_empty(s: String) -> Option<String> {
+    if s.is_empty() {
+        None
+    } else {
+        Some(s)
     }
 }
 

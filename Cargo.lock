@@ -1830,7 +1830,7 @@ checksum = "7dc55d7dec32ecaf61e0bd90b3d2392d721a28b95cfd23c3e176eccefbeab2f2"
 
 [[package]]
 name = "proton-pass-common"
-version = "0.11.2"
+version = "0.12.0"
 dependencies = [
  "aes 0.7.5",
  "aes-gcm",
@@ -1875,7 +1875,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-derive"
-version = "0.11.2"
+version = "0.12.0"
 dependencies = [
  "quote",
  "syn 2.0.96",
@@ -1883,7 +1883,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-mobile"
-version = "0.11.2"
+version = "0.12.0"
 dependencies = [
  "proton-pass-common",
  "tokio",
@@ -1892,7 +1892,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-web"
-version = "0.11.2"
+version = "0.12.0"
 dependencies = [
  "js-sys",
  "proton-pass-common",

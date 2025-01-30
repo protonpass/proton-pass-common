@@ -135,6 +135,7 @@ Before being able to build the web artifacts you'll need to follow these steps f
 
 1. Install `wasm-pack`: https://rustwasm.github.io/wasm-pack/installer/
 2. Add the wasm32-unknown-unknown target: `rustup target add wasm32-unknown-unknown`
+3. Add wasm2js with `brew install binaryen`
 
 Then run `make web` and if everything worked, you're good to go!
 

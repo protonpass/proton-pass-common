@@ -51,7 +51,7 @@ pub struct PasswordScoreResult {
     pub penalties: Vec<PasswordPenalty>,
 }
 
-fn score_password(password: &str) -> (f64, Vec<PasswordPenalty>) {
+fn score_password(password: &str) -> f64 {
     let analyzed_password = analyze(password);
     let length_minus_other_chars = analyzed_password.length() - analyzed_password.other_characters_count();
     let (max_score, return_original_score) = match length_minus_other_chars {
@@ -77,7 +77,6 @@ fn score_password(password: &str) -> (f64, Vec<PasswordPenalty>) {
 
     let initial_max_score = max_score;
 
-    let mut penalties = vec![];
     let mut score = max_score;
 
     if score > 0f64 {
@@ -87,16 +86,13 @@ fn score_password(password: &str) -> (f64, Vec<PasswordPenalty>) {
 
         if analyzed_password.numbers_count() == 0 {
             score -= max_score * 0.05;
-            penalties.push(PasswordPenalty::NoNumbers);
         }
 
         if analyzed_password.lowercase_letters_count() == 0 {
             score -= max_score * 0.1;
-            penalties.push(PasswordPenalty::NoLowercase);
         }
         if analyzed_password.uppercase_letters_count() == 0 {
             score -= max_score * 0.1;
-            penalties.push(PasswordPenalty::NoUppercase);
         }
         if analyzed_password.lowercase_letters_count() >= 1 && analyzed_password.uppercase_letters_count() >= 1 {
             score += 1f64;
@@ -108,14 +104,10 @@ fn score_password(password: &str) -> (f64, Vec<PasswordPenalty>) {
         // Penalties
         if analyzed_password.symbols_count() == 0 {
             score -= max_score * 0.2;
-            penalties.push(PasswordPenalty::NoSymbols);
         }
 
         let is_considered_strong = match analyzed_password.length() {
-            s if (0..13).contains(&s) => {
-                penalties.push(PasswordPenalty::Short);
-                false
-            }
+            s if (0..13).contains(&s) => false,
             s if (13..20).contains(&s) => analyzed_password.symbols_count() > 0,
             _ => true,
         };
@@ -134,13 +126,11 @@ fn score_password(password: &str) -> (f64, Vec<PasswordPenalty>) {
         if analyzed_password.consecutive_count() > 0 {
             score -=
                 max_score * (analyzed_password.consecutive_count() as f64 / analyzed_password.length() as f64 / 5f64);
-            penalties.push(PasswordPenalty::Consecutive);
         }
 
         if analyzed_password.progressive_count() > 0 {
             score -=
                 max_score * (analyzed_password.progressive_count() as f64 / analyzed_password.length() as f64 / 5f64);
-            penalties.push(PasswordPenalty::Progressive);
         }
 
         score -=
@@ -156,10 +146,46 @@ fn score_password(password: &str) -> (f64, Vec<PasswordPenalty>) {
     }
 
     if return_original_score {
-        (initial_max_score, penalties)
+        initial_max_score
     } else {
-        (score, penalties)
+        score
     }
+}
+
+fn penalties_password(password: &str) -> Vec<PasswordPenalty> {
+    let analyzed_password = analyze(password);
+    let mut penalties = vec![];
+
+    if analyzed_password.numbers_count() == 0 {
+        penalties.push(PasswordPenalty::NoNumbers);
+    }
+
+    if analyzed_password.lowercase_letters_count() == 0 {
+        penalties.push(PasswordPenalty::NoLowercase);
+    }
+    if analyzed_password.uppercase_letters_count() == 0 {
+        penalties.push(PasswordPenalty::NoUppercase);
+    }
+
+    // Penalties
+    if analyzed_password.symbols_count() == 0 {
+        penalties.push(PasswordPenalty::NoSymbols);
+    }
+
+    if (0..13).contains(&analyzed_password.length()) {
+        penalties.push(PasswordPenalty::Short);
+    }
+
+    // Final adjustments
+    if analyzed_password.consecutive_count() > 0 {
+        penalties.push(PasswordPenalty::Consecutive);
+    }
+
+    if analyzed_password.progressive_count() > 0 {
+        penalties.push(PasswordPenalty::Progressive);
+    }
+
+    penalties
 }
 
 fn password_without_common(password: &str) -> (String, bool) {
@@ -189,7 +215,8 @@ fn inner_score_password(password: &str) -> PasswordScoreResult {
         penalties.push(PasswordPenalty::ContainsCommonPassword);
     }
 
-    let (score, scoring_penalties) = score_password(&password_without_common);
+    let score = score_password(&password_without_common);
+    let scoring_penalties = penalties_password(password);
     penalties.extend(scoring_penalties);
 
     let final_score = if WORDLIST_PASSPRHASE_REGEX.is_match(password) {

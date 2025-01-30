@@ -6,6 +6,21 @@
 
 ### Other
 
+## 0.12.0
+
+### Features :tada:
+
+- web: cross-compile proton-pass-web/ui to ASM.js.
+- authenticator: start implementing third-party authenticator importers.
+
+### Fixes :bug:
+
+- common: on the password scorer, publish the penalties regardless of the common password replacements (thanks Mattias Svanström). 
+
+### Other
+
+- common: update dependencies.
+
 ## 0.11.2
 
 ### Other

@@ -1,8 +1,8 @@
 use base64::Engine;
 use url::Url;
 
+pub static PERIOD: u64 = 30;
 static CODE_DIGITS: usize = 5;
-static PERIOD: u64 = 30;
 static STEAM_CHARS: [char; 26] = [
     '2', '3', '4', '5', '6', '7', '8', '9', 'B', 'C', 'D', 'F', 'G', 'H', 'J', 'K', 'M', 'N', 'P', 'Q', 'R', 'T', 'V',
     'W', 'X', 'Y',
@@ -29,6 +29,7 @@ impl SteamTotp {
             Err(_) => Err(SteamTotpError::BadSecret),
         }
     }
+
     pub fn new_from_uri(uri: &str) -> Result<SteamTotp, SteamTotpError> {
         let parsed = Url::parse(uri).map_err(|_| SteamTotpError::BadUrl)?;
         Self::new_from_parsed_uri(&parsed, true)
@@ -64,7 +65,7 @@ impl SteamTotp {
         SteamTotp { secret }
     }
 
-    pub fn generate(&self, time: i64) -> Result<String, SteamTotpError> {
+    pub fn generate(&self, time: i64) -> String {
         // 8-byte big-endian representation of the current interval
         let interval = Self::code_interval(time).to_be_bytes();
 
@@ -87,7 +88,12 @@ impl SteamTotp {
             code.push(STEAM_CHARS[idx]);
             temp_code /= STEAM_CHARS.len() as u32;
         }
-        Ok(code)
+        code
+    }
+
+    pub fn uri(&self) -> String {
+        let encoded_secret = base64::engine::general_purpose::STANDARD.encode(&self.secret);
+        format!("steam://{encoded_secret}")
     }
 
     fn code_interval(time: i64) -> u64 {
@@ -117,14 +123,14 @@ mod tests {
     fn generates_correct_code() {
         let secret ="5Mmi0hvgpxaToJ3qcRG7ErLgMAXbWLYBYNm8MjLpHV4wIfiLRnwi1oEsZYBMk5GcmEBDlSCRueibOtHJP7t9DOJv7JDXY5kH12KIF0HHTnE=";
         let totp = SteamTotp::new(secret).expect("should be able to create");
-        let result = totp.generate(1737960861).expect("should be able to generate");
+        let result = totp.generate(1737960861);
         assert_eq!("X45DW", result);
     }
 
     #[test]
     fn generate_generates_correct_format() {
         let totp = SteamTotp::new_from_raw(generate_code());
-        let result = totp.generate(1737960861).expect("should be able to generate");
+        let result = totp.generate(1737960861);
 
         // Check it outputs the correct length
         assert_eq!(result.len(), CODE_DIGITS);
@@ -147,8 +153,8 @@ mod tests {
         let totp1 = SteamTotp::new_from_raw(secret.clone());
         let totp2 = SteamTotp::new_from_raw(secret);
 
-        let code1 = totp1.generate(1737960861).expect("should be able to generate");
-        let code2 = totp2.generate(1737960861).expect("should be able to generate");
+        let code1 = totp1.generate(1737960861);
+        let code2 = totp2.generate(1737960861);
         assert_eq!(code1, code2, "Code should be deterministic for the same interval");
     }
 }

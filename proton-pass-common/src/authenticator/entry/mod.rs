@@ -1,10 +1,17 @@
+mod exporter;
+mod gen;
+mod serializer;
+
 use crate::authenticator::steam::SteamTotp;
 use crate::totp::totp::TOTP;
+
+pub use exporter::{export_entries, import_authenticator_entries};
 
 #[derive(Clone, Debug)]
 pub enum AuthenticatorEntryError {
     UnsupportedUri,
     ParseError,
+    SerializationError(String),
 }
 
 #[derive(Clone, Debug)]
@@ -47,5 +54,15 @@ impl AuthenticatorEntry {
     pub fn from_uri(uri: &str, note: Option<String>) -> Result<Self, AuthenticatorEntryError> {
         let content = AuthenticatorEntryContent::from_uri(uri)?;
         Ok(AuthenticatorEntry { content, note })
+    }
+
+    pub fn serialize(self) -> Result<Vec<u8>, AuthenticatorEntryError> {
+        serializer::serialize_entry(self)
+            .map_err(|e| AuthenticatorEntryError::SerializationError(format!("error serializing entry: {}", e)))
+    }
+
+    pub fn deserialize(data: &[u8]) -> Result<Self, AuthenticatorEntryError> {
+        serializer::deserialize_entry(data)
+            .map_err(|e| AuthenticatorEntryError::SerializationError(format!("error deserializing entry: {:?}", e)))
     }
 }

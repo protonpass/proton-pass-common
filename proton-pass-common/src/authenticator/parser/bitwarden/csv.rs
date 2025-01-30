@@ -1,6 +1,5 @@
 use super::BitwardenImportError;
-use crate::authenticator::entry::AuthenticatorEntryError;
-use crate::authenticator::AuthenticatorEntry;
+use crate::authenticator::{AuthenticatorEntry, AuthenticatorEntryError};
 
 fn process_string(input: &str) -> String {
     let mut lines = Vec::new();
@@ -33,6 +32,7 @@ pub fn parse_bitwarden_csv(input: &str, fail_on_error: bool) -> Result<Vec<Authe
                             return match e {
                                 AuthenticatorEntryError::ParseError => Err(BitwardenImportError::BadContent),
                                 AuthenticatorEntryError::UnsupportedUri => Err(BitwardenImportError::Unsupported),
+                                AuthenticatorEntryError::SerializationError(_) => Err(BitwardenImportError::BadContent),
                             };
                         }
                     }

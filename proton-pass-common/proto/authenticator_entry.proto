@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+enum AuthenticatorEntryType {
+  TOTP = 0;
+  STEAM = 2;
+}
+
+message AuthenticatorEntryContent {
+  AuthenticatorEntryType entry_type = 1;
+  string uri = 2;
+}
+
+message AuthenticatorEntry {
+  AuthenticatorEntryContent content = 1;
+  string note = 2;
+}

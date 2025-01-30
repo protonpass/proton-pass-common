@@ -1,4 +1,4 @@
-use proton_pass_common::password::{check_score, PasswordScore};
+use proton_pass_common::password::{check_score, PasswordPenalty, PasswordScore};
 
 macro_rules! score_test {
     ($($name:ident: $value:expr,)*) => {
@@ -61,4 +61,28 @@ score_test! {
 
     wordlist_01 : ("Qwerty12345678", PasswordScore::Vulnerable),
     wordlist_02 : ("Zsfghj9128734", PasswordScore::Weak),
+}
+
+macro_rules! penalties_test {
+    ($($name:ident: $value:expr,)*) => {
+    $(
+        #[test]
+        fn $name() {
+            let (input, expected) = $value;
+            let score = check_score(input);
+            assert_eq!(
+                score.penalties, expected,
+               "{} expected to have penalties {:?} but had penalties {:?}",
+                input, expected, &score.penalties
+            );
+        }
+    )*
+    }
+}
+
+penalties_test! {
+    common_and_others: ( "asdf", vec![PasswordPenalty::ContainsCommonPassword, PasswordPenalty::NoNumbers, PasswordPenalty::NoUppercase, PasswordPenalty::NoSymbols, PasswordPenalty::Short]),
+    common_and_others_plus_one_digit: ( "asdf1", vec![PasswordPenalty::ContainsCommonPassword, PasswordPenalty::NoUppercase, PasswordPenalty::NoSymbols, PasswordPenalty::Short, PasswordPenalty::ShortWordList]),
+    upper_only: ("SECUREWORD", vec![PasswordPenalty::NoNumbers, PasswordPenalty::NoLowercase, PasswordPenalty::NoSymbols, PasswordPenalty::Short]),
+    symbol_no_upper_num: ("P@ssw0rd!", vec![PasswordPenalty::ContainsCommonPassword, PasswordPenalty::Short, PasswordPenalty::Consecutive]),
 }

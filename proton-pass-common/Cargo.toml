@@ -14,6 +14,7 @@ async-trait = "0.1.74"
 coset = "0.3.8"
 email_address = "0.2.9"
 file-format = { version = "0.26.0", features = ["reader"] }
+getrandom = { version = "0.3.1", features = ["wasm_js"] }
 lazy_static = "1.5.0"
 luhn = "1.0.1"
 passkey = "0.4.0"

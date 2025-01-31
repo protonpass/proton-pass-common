@@ -10,14 +10,10 @@ doctest = false
 proton-pass-derive = { path = "../proton-pass-derive" }
 proton-pass-totp = { path = "../proton-pass-totp" }
 
-aes = "0.7.5"
 aes-gcm = "0.10.3"
 base32 = "0.5.1"
 base64 = "0.22.0"
-block-modes = "0.8.1"
-block-padding = "0.3"
 csv = "1.3.1"
-file-format = { version = "0.26.0", features = ["reader"] }
 getrandom = { version = "0.3.1", features = ["wasm_js"] }
 hex = "0.4.3"
 hmac-sha1 = "0.2.2"

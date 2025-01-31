@@ -19,8 +19,8 @@ proton-pass-common = { path = "../proton-pass-common" }
 js-sys = "0.3.67"
 serde = { version = "1.0", features = ["derive"] }
 tsify-next = { version = "0.5.2", features = ["wasm-bindgen", "js", "json"] }
-wasm-bindgen = "0.2.92"
-wasm-bindgen-futures = "0.4.42"
+wasm-bindgen = "0.2.100"
+wasm-bindgen-futures = "0.4.50"
 
 [features]
 web_password = []

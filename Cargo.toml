@@ -1,10 +1,12 @@
 [workspace]
 resolver = "1"
 members = [
+    "proton-authenticator",
     "proton-pass-common",
     "proton-pass-mobile",
     "proton-pass-web",
-    "proton-pass-derive"
+    "proton-pass-derive",
+    "proton-pass-totp"
 ]
 
 [profile.release]

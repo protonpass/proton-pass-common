@@ -1,14 +1,13 @@
 use std::env;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 // https://doc.rust-lang.org/cargo/reference/build-scripts.html#case-study-code-generation
 fn main() {
     build_eff_wordlist();
     build_common_password_list();
     build_2fa_domains_list();
-    generate_protos();
 }
 
 fn build_eff_wordlist() {
@@ -94,49 +93,4 @@ fn eff_wordlist(mut f_dest: &File, const_name: &str, fname_src: &str) {
     }
 
     f_dest.write_all(b"];").expect("Error writing wordlist");
-}
-
-fn generate_protos() {
-    generate_google_authenticator_proto();
-    generate_authenticator_entry_proto();
-}
-
-fn generate_google_authenticator_proto() {
-    let out_dir = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("src")
-        .join("authenticator")
-        .join("parser")
-        .join("google")
-        .join("gen");
-    generate_proto("google_authenticator.proto", out_dir)
-}
-
-fn generate_authenticator_entry_proto() {
-    let out_dir = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("src")
-        .join("authenticator")
-        .join("entry")
-        .join("gen");
-    generate_proto("authenticator_entry.proto", out_dir)
-}
-
-fn generate_proto(filename: &str, out_dir: PathBuf) {
-    println!("cargo:rerun-if-changed=proto/{filename}");
-    let proto_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("proto");
-    let proto_path = proto_dir.join(filename);
-    if !out_dir.exists() {
-        std::fs::DirBuilder::new()
-            .recursive(true)
-            .create(&out_dir)
-            .expect("error creating out dir");
-    }
-
-    protobuf_codegen::Codegen::new()
-        .protoc()
-        .protoc_path(&protoc_bin_vendored::protoc_bin_path().unwrap())
-        .include(proto_dir)
-        .input(proto_path)
-        .out_dir(out_dir)
-        .run()
-        .expect("failed to generate rust from proto");
 }

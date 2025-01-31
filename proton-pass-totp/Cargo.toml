@@ -1,0 +1,15 @@
+[package]
+name = "proton-pass-totp"
+version = "0.12.0"
+edition = "2021"
+
+[lib]
+doctest = false
+
+[dependencies]
+proton-pass-derive = { path = "../proton-pass-derive" }
+
+serde = { version = "1.0.188", features = ["derive"] }
+serde-querystring = "0.2.1"
+totp-rs = "5.6.0"
+url = "2.5.4"

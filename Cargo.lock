@@ -1829,47 +1829,59 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7dc55d7dec32ecaf61e0bd90b3d2392d721a28b95cfd23c3e176eccefbeab2f2"
 
 [[package]]
-name = "proton-pass-common"
+name = "proton-authenticator"
 version = "0.12.0"
 dependencies = [
  "aes 0.7.5",
  "aes-gcm",
- "async-trait",
  "base32 0.5.1",
  "base64",
  "block-modes",
  "block-padding 0.3.3",
- "coset",
- "criterion",
  "csv",
- "email_address",
  "file-format",
  "getrandom 0.3.1",
  "hex",
  "hmac",
  "hmac-sha1",
+ "pbkdf2 0.11.0",
+ "protobuf",
+ "protobuf-codegen",
+ "protoc-bin-vendored",
+ "proton-pass-derive",
+ "proton-pass-totp",
+ "rand 0.9.0",
+ "scrypt",
+ "serde",
+ "serde_json",
+ "sha2",
+ "url",
+]
+
+[[package]]
+name = "proton-pass-common"
+version = "0.12.0"
+dependencies = [
+ "async-trait",
+ "coset",
+ "criterion",
+ "email_address",
+ "file-format",
  "lazy_static",
  "luhn",
  "passkey",
  "passkey-authenticator",
  "passkey-types",
  "passwords",
- "pbkdf2 0.11.0",
- "protobuf",
- "protobuf-codegen",
- "protoc-bin-vendored",
  "proton-pass-derive",
+ "proton-pass-totp",
  "public-suffix",
  "rand 0.9.0",
  "regex-lite",
  "rmp-serde",
- "scrypt",
  "serde",
- "serde-querystring",
  "serde_json",
- "sha2",
  "tokio",
- "totp-rs",
  "url",
 ]
 
@@ -1888,6 +1900,17 @@ dependencies = [
  "proton-pass-common",
  "tokio",
  "uniffi",
+]
+
+[[package]]
+name = "proton-pass-totp"
+version = "0.12.0"
+dependencies = [
+ "proton-pass-derive",
+ "serde",
+ "serde-querystring",
+ "totp-rs",
+ "url",
 ]
 
 [[package]]

@@ -611,6 +611,7 @@ looker.com
 lunchmoney.app
 luno.com
 m1.com
+m365.cloud.microsoft
 macstadium.com
 macu.com
 magnet.me
@@ -744,7 +745,6 @@ nutmeg.com
 o2switch.fr
 obsidian.md
 odoo.com
-office.com
 okta.com
 okx.com
 olg.ca

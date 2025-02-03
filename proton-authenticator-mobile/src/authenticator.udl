@@ -1,0 +1,46 @@
+[Traits=(Debug)]
+interface AuthenticatorError {
+  string message();
+};
+
+dictionary AuthenticatorCodeResponse {
+  string current_code;
+  string next_code;
+};
+
+interface AuthenticatorEntryActions {
+  string entry_type();
+
+  [Throws=AuthenticatorError]
+  AuthenticatorCodeResponse generate_code(u64 time);
+
+  [Throws=AuthenticatorError]
+  bytes serialize();
+};
+
+dictionary AuthenticatorEntryModel {
+  string name;
+  string uri;
+  u16 period;
+  string? note;
+  AuthenticatorEntryActions actions;
+};
+
+interface AuthenticatorMobileClient {
+  constructor();
+
+  [Throws=AuthenticatorError]
+  AuthenticatorEntryModel entry_from_uri(string uri);
+
+  [Throws=AuthenticatorError]
+  sequence<AuthenticatorCodeResponse> generate_codes(sequence<AuthenticatorEntryModel> entries, u64 time);
+
+  [Throws=AuthenticatorError]
+  sequence<bytes> serialize_entries(sequence<AuthenticatorEntryModel> entries);
+
+  [Throws=AuthenticatorError]
+  sequence<AuthenticatorEntryModel> deserialize_entries(sequence<bytes> serialized);
+
+  [Throws=AuthenticatorError]
+  string export_entries(sequence<AuthenticatorEntryModel> entries);
+};

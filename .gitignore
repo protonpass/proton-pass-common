@@ -3,6 +3,7 @@
 /target
 .cargo/
 
+# Pass mobile
 proton-pass-mobile/android/lib/**/*.kt
 proton-pass-mobile/iOS/headers
 proton-pass-mobile/iOS/frameworks
@@ -17,3 +18,18 @@ proton-pass-mobile/pkg
 
 proton-pass-web/**/pkg
 proton-pass-web/dist
+
+# Authenticator
+proton-authenticator-mobile/android/lib/**/*.kt
+proton-authenticator-mobile/iOS/headers
+proton-authenticator-mobile/iOS/frameworks
+proton-authenticator-mobile/iOS/AuthenticatorRustCore/*.xcframework
+proton-authenticator-mobile/src/proton
+proton-authenticator-mobile/src/common.udl
+proton-authenticator-mobile/src/*.h
+proton-authenticator-mobile/src/*.swift
+proton-authenticator-mobile/src/*.modulemap
+proton-authenticator-mobile/iOS/**/*.swift
+proton-authenticator-mobile/pkg
+
+

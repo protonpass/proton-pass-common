@@ -19,6 +19,15 @@ pub struct AuthenticatorCodeResponse {
 pub struct AuthenticatorClient;
 
 impl AuthenticatorClient {
+    pub fn new() -> Self {
+        Self
+    }
+
+    pub fn entry_from_uri(&self, uri: String) -> Result<AuthenticatorEntry> {
+        AuthenticatorEntry::from_uri(&uri, None)
+            .map_err(|e| AuthenticatorError::Unknown(format!("cannot parse uri: {:?}", e)))
+    }
+
     pub fn generate_codes(&self, entries: &[AuthenticatorEntry], time: u64) -> Result<Vec<AuthenticatorCodeResponse>> {
         let mut result = Vec::new();
         for entry in entries {
@@ -82,7 +91,7 @@ impl AuthenticatorClient {
             }
             AuthenticatorEntryContent::Steam(steam) => {
                 let current = steam.generate(time as i64);
-                let next = steam.generate((time + STEAM_PERIOD) as i64);
+                let next = steam.generate((time + STEAM_PERIOD as u64) as i64);
                 Ok(AuthenticatorCodeResponse {
                     current_code: current,
                     next_code: next,

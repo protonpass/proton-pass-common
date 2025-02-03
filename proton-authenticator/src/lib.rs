@@ -15,3 +15,7 @@ pub use parser::google::parse_google_authenticator_totp;
 pub use parser::lastpass::parse_lastpass_json;
 pub use parser::proton_authenticator::parse_proton_authenticator_export;
 pub use parser::twofas::parse_2fas_file;
+
+pub fn library_version() -> String {
+    env!("CARGO_PKG_VERSION").to_string()
+}

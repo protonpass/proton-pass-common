@@ -2,6 +2,7 @@ SHELL:=/bin/bash
 MAKEFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 PROJECT_ROOT := $(dir $(MAKEFILE_PATH))
 
+# Pass
 MOBILE_LIB_NAME:=libproton_pass_common_mobile.so
 ANDROID_BINDINGS_DIR:=${PROJECT_ROOT}/proton-pass-mobile/android/lib/src/main/java/proton/android/pass/commonrust
 ANDROID_JNI_DIR:=${PROJECT_ROOT}/proton-pass-mobile/android/lib/src/main/jniLibs
@@ -182,3 +183,95 @@ web-test: web-setup ## Test the web artifacts
 
 	@cp "${WEB_DIR}/package.json" "${WEB_TEST_BUILD_DIR}/package.json"
 	@cd ${WEB_TEST_DIR} && bun test
+
+
+# Authenticator
+AUTHENTICATOR_MOBILE_LIB_NAME:=libproton_authenticator_common_mobile.so
+AUTHENTICATOR_ANDROID_BINDINGS_DIR:=${PROJECT_ROOT}/proton-authenticator-mobile/android/lib/src/main/java/proton/android/authenticator/commonrust
+AUTHENTICATOR_ANDROID_JNI_DIR:=${PROJECT_ROOT}/proton-authenticator-mobile/android/lib/src/main/jniLibs
+AUTHENTICATOR_IOS_HEADER_DIR:=${PROJECT_ROOT}/proton-authenticator-mobile/iOS/headers
+AUTHENTICATOR_IOS_FRAMEWORK_DIR:=${PROJECT_ROOT}/proton-authenticator-mobile/iOS/frameworks
+AUTHENTICATOR_IOS_LIB_DIR:=${PROJECT_ROOT}/proton-authenticator-mobile/iOS/libs
+AUTHENTICATOR_IOS_LIB_NAME:=libproton_authenticator_common_mobile.a
+AUTHENTICATOR_IOS_PACKAGE_DIR:=${PROJECT_ROOT}/proton-authenticator-mobile/iOS/AuthenticatorRustCore
+AUTHENTICATOR_IOS_XCFRAMEWORK_NAME:=RustFramework.xcframework
+AUTHENTICATOR_WEB_DIR:=${PROJECT_ROOT}/proton-authenticator-web
+AUTHENTICATOR_WEB_BUILD_DIR:=${AUTHENTICATOR_WEB_DIR}/dist
+AUTHENTICATOR_WEB_TEST_DIR:=${AUTHENTICATOR_WEB_DIR}/test
+AUTHENTICATOR_WEB_TEST_BUILD_DIR:=${AUTHENTICATOR_WEB_DIR}/test/pkg
+
+
+.PHONY: authenticator-kotlin-bindings
+authenticator-kotlin-bindings: ## Generate the kotlin bindings
+	@cargo run -p proton-authenticator-mobile --features=uniffi/cli --bin uniffi-bindgen generate proton-authenticator-mobile/src/common.udl --language kotlin
+	@mkdir -p ${AUTHENTICATOR_ANDROID_BINDINGS_DIR}
+	@cp proton-authenticator-mobile/src/proton/android/authenticator/commonrust/proton_authenticator_common_mobile.kt ${AUTHENTICATOR_ANDROID_BINDINGS_DIR}/proton_authenticator_common_mobile.kt
+
+.PHONY: authenticator-swift-bindings
+authenticator-swift-bindings: authenticator-swift-dirs ## Generate the swift bindings
+	@cargo run -p proton-authenticator-mobile --features=uniffi/cli --bin uniffi-bindgen generate proton-authenticator-mobile/src/common.udl --language swift
+	@cp proton-authenticator-mobile/src/RustFrameworkFFI.h ${AUTHENTICATOR_IOS_HEADER_DIR}/RustFrameworkFFI.h
+	@cp proton-authenticator-mobile/src/RustFrameworkFFI.modulemap ${AUTHENTICATOR_IOS_HEADER_DIR}/module.modulemap
+	@cp proton-authenticator-mobile/src/RustFramework.swift ${AUTHENTICATOR_IOS_PACKAGE_DIR}/Sources/AuthenticatorRustCore/AuthenticatorRustCore.swift
+
+
+.PHONY: authenticator-swift-dirs
+authenticator-swift-dirs: ## Build the dir structure for swift libs
+	@mkdir -p ${AUTHENTICATOR_IOS_HEADER_DIR}
+	@mkdir -p ${AUTHENTICATOR_IOS_FRAMEWORK_DIR}
+	@mkdir -p ${AUTHENTICATOR_IOS_PACKAGE_DIR}/Sources/AuthenticatorRustCore
+
+
+.PHONY: authenticator-ios-lib-macos
+authenticator-ios-lib-macos: ## Build the iOS library for macOS arm
+	@cargo build -p proton-authenticator-mobile --release --target aarch64-apple-darwin
+
+.PHONY: authenticator-ios-lib-ios
+authenticator-ios-lib-ios: ## Build the iOS library for iOS
+	@cargo build -p proton-authenticator-mobile --release --target aarch64-apple-ios
+
+.PHONY: authenticator-ios-lib-ios-sim
+authenticator-ios-lib-ios-sim: ## Build the iOS library for iOS arm simulators
+	@cargo build -p proton-authenticator-mobile --release --target aarch64-apple-ios-sim
+
+.PHONY: authenticator-ios-xcframework
+authenticator-ios-xcframework: authenticator-ios-lib-macos authenticator-ios-lib-ios authenticator-ios-lib-ios-sim ## Build the iOS xcframework
+	@xcodebuild -create-xcframework \
+               -library "target/aarch64-apple-ios/release/${AUTHENTICATOR_IOS_LIB_NAME}" \
+               -headers proton-authenticator-mobile/iOS/headers \
+               -library "target/aarch64-apple-ios-sim/release/${AUTHENTICATOR_IOS_LIB_NAME}" \
+               -headers proton-authenticator-mobile/iOS/headers \
+               -library "target/aarch64-apple-darwin/release/${AUTHENTICATOR_IOS_LIB_NAME}" \
+               -headers proton-authenticator-mobile/iOS/headers \
+               -output "${AUTHENTICATOR_IOS_FRAMEWORK_DIR}/${AUTHENTICATOR_IOS_XCFRAMEWORK_NAME}"
+	@cp -R "${AUTHENTICATOR_IOS_FRAMEWORK_DIR}/${AUTHENTICATOR_IOS_XCFRAMEWORK_NAME}" "${AUTHENTICATOR_IOS_PACKAGE_DIR}/${AUTHENTICATOR_IOS_XCFRAMEWORK_NAME}"
+
+.PHONY: authenticator-ios-package
+authenticator-ios-package: clean authenticator-swift-bindings authenticator-ios-xcframework ## Update the iOS package
+
+
+.PHONY: authenticator-android-dirs
+authenticator-android-dirs: ## Build the dir structure for android libs
+	@mkdir -p ${AUTHENTICATOR_ANDROID_JNI_DIR}/{armeabi-v7a,arm64-v8a,x86_64}
+
+.PHONY: authenticator-android-lib-armv7
+authenticator-android-lib-armv7: authenticator-android-dirs ## Build the android library for armv7
+	@cargo build -p proton-authenticator-mobile --release --target armv7-linux-androideabi
+	@arm-none-eabi-strip "target/armv7-linux-androideabi/release/${AUTHENTICATOR_MOBILE_LIB_NAME}" || arm-linux-gnueabihf-strip "target/armv7-linux-androideabi/release/${AUTHENTICATOR_MOBILE_LIB_NAME}" || echo "Could not strip armv7 shared library"
+	@cp "target/armv7-linux-androideabi/release/${AUTHENTICATOR_MOBILE_LIB_NAME}" "${AUTHENTICATOR_ANDROID_JNI_DIR}/armeabi-v7a/${AUTHENTICATOR_MOBILE_LIB_NAME}"
+
+.PHONY: authenticator-android-lib-aarch64
+authenticator-android-lib-aarch64: authenticator-android-dirs ## Build the android library for aarch64
+	@cargo build -p proton-authenticator-mobile --release --target aarch64-linux-android
+	@aarch64-linux-gnu-strip "target/aarch64-linux-android/release/${AUTHENTICATOR_MOBILE_LIB_NAME}" || echo "Could not strip aarch64 shared library"
+	@cp "target/aarch64-linux-android/release/${AUTHENTICATOR_MOBILE_LIB_NAME}" "${AUTHENTICATOR_ANDROID_JNI_DIR}/arm64-v8a/${AUTHENTICATOR_MOBILE_LIB_NAME}"
+
+.PHONY: authenticator-android-lib-x86_64
+authenticator-android-lib-x86_64: authenticator-android-dirs ## Build the android library for x86_64
+	@cargo build -p proton-authenticator-mobile --release --target x86_64-linux-android
+	@strip "target/x86_64-linux-android/release/${AUTHENTICATOR_MOBILE_LIB_NAME}" || echo "Could not strip x86_64 shared library"
+	@cp "target/x86_64-linux-android/release/${AUTHENTICATOR_MOBILE_LIB_NAME}" "${AUTHENTICATOR_ANDROID_JNI_DIR}/x86_64/${AUTHENTICATOR_MOBILE_LIB_NAME}"
+
+.PHONY: authenticator-android
+authenticator-android: authenticator-android-lib-aarch64 authenticator-android-lib-armv7 authenticator-android-lib-x86_64 ## Build all the android variants
+	@cd ${PROJECT_ROOT}/proton-authenticator-mobile/android && ./gradlew :lib:assembleRelease

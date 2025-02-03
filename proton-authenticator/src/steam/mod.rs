@@ -1,7 +1,7 @@
 use base64::Engine;
 use url::Url;
 
-pub static PERIOD: u64 = 30;
+pub static PERIOD: u16 = 30;
 static CODE_DIGITS: usize = 5;
 static STEAM_CHARS: [char; 26] = [
     '2', '3', '4', '5', '6', '7', '8', '9', 'B', 'C', 'D', 'F', 'G', 'H', 'J', 'K', 'M', 'N', 'P', 'Q', 'R', 'T', 'V',

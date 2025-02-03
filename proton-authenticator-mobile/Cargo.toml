@@ -1,0 +1,37 @@
+[package]
+name = "proton-authenticator-mobile"
+version = "0.12.0"
+edition = "2021"
+
+# Flags for cargo-release
+[package.metadata.release]
+pre-release-replacements = [
+    # Yes, we are relying on the number of whitespaces
+    {file="android/lib/build.gradle.kts", search="    version = .*", replace="    version = \"{{version}}\""}
+]
+
+
+[lib]
+doctest = false
+crate-type = ["cdylib", "staticlib"]
+name = "proton_authenticator_common_mobile"
+
+[dependencies]
+proton-authenticator = { path = "../proton-authenticator" }
+proton-pass-derive = { path = "../proton-pass-derive" }
+
+uniffi = { version = "0.28.3" }
+
+[build-dependencies]
+uniffi = { version = "0.28.3", features = [ "build" ] }
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "./bindgen.rs"
+required-features = [ "uniffi/cli" ]
+
+
+# Comes from https://github.com/mozilla/uniffi-rs/issues/2346
+# Needed until a new uniffi release is made
+[lints.clippy]
+empty-line-after-doc-comments = "allow"

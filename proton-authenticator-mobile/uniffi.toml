@@ -1,0 +1,7 @@
+[bindings.kotlin]
+package_name = "proton.android.authenticator.commonrust"
+cdylib_name = "proton_authenticator_common_mobile"
+
+[bindings.swift]
+module_name = "RustFramework"
+cdylib_name = "proton_authenticator_common_mobile"

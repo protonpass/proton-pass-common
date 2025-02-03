@@ -2,7 +2,7 @@ mod exporter;
 mod gen;
 mod serializer;
 
-use crate::steam::SteamTotp;
+use crate::steam::{SteamTotp, PERIOD as STEAM_PERIOD};
 use proton_pass_totp::totp::TOTP;
 
 pub use exporter::{export_entries, import_authenticator_entries};
@@ -64,5 +64,29 @@ impl AuthenticatorEntry {
     pub fn deserialize(data: &[u8]) -> Result<Self, AuthenticatorEntryError> {
         serializer::deserialize_entry(data)
             .map_err(|e| AuthenticatorEntryError::SerializationError(format!("error deserializing entry: {:?}", e)))
+    }
+
+    pub fn uri(&self) -> String {
+        match &self.content {
+            AuthenticatorEntryContent::Totp(totp) => totp.to_uri(None, None),
+            AuthenticatorEntryContent::Steam(steam_totp) => steam_totp.uri(),
+        }
+    }
+
+    pub fn period(&self) -> u16 {
+        match &self.content {
+            AuthenticatorEntryContent::Totp(totp) => totp.get_period(),
+            AuthenticatorEntryContent::Steam(_) => STEAM_PERIOD,
+        }
+    }
+}
+
+// public API
+impl AuthenticatorEntry {
+    pub fn entry_type(&self) -> String {
+        match &self.content {
+            AuthenticatorEntryContent::Totp(_) => "totp".to_string(),
+            AuthenticatorEntryContent::Steam(_) => "steam".to_string(),
+        }
     }
 }

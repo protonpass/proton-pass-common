@@ -2,6 +2,7 @@
 resolver = "1"
 members = [
     "proton-authenticator",
+    "proton-authenticator-mobile",
     "proton-pass-common",
     "proton-pass-mobile",
     "proton-pass-web",

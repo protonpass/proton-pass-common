@@ -22,10 +22,8 @@ pub struct ImportResult {
 
 #[derive(Clone, Debug)]
 pub enum ThirdPartyImportError {
-    Aegis(aegis::AegisImportError),
-    Bitwarden(bitwarden::BitwardenImportError),
-    Ente(ente::EnteImportError),
-    Google(google::GoogleAuthenticatorParseError),
-    LastPass(lastpass::LastPassImportError),
-    TwoFas(twofas::TwoFasImportError),
+    BadContent,
+    BadPassword,
+    MissingPassword,
+    DecryptionFailed,
 }

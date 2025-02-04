@@ -15,7 +15,14 @@ pub enum AegisImportError {
 
 impl From<AegisImportError> for ThirdPartyImportError {
     fn from(value: AegisImportError) -> Self {
-        Self::Aegis(value)
+        match value {
+            AegisImportError::Unsupported(_) => Self::BadContent,
+            AegisImportError::BadContent => Self::BadContent,
+            AegisImportError::BadPassword => Self::BadPassword,
+            AegisImportError::NotEncryptedBackupWithPassword => Self::BadPassword,
+            AegisImportError::EncryptedBackupWithNoPassword => Self::BadPassword,
+            AegisImportError::UnableToDecrypt => Self::DecryptionFailed,
+        }
     }
 }
 

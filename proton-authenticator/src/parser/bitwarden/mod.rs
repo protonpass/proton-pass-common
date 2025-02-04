@@ -7,12 +7,16 @@ mod json;
 pub enum BitwardenImportError {
     BadContent,
     Unsupported,
-    EncryptedBackup(String),
+    MissingPassword,
 }
 
 impl From<BitwardenImportError> for ThirdPartyImportError {
     fn from(value: BitwardenImportError) -> Self {
-        Self::Bitwarden(value)
+        match value {
+            BitwardenImportError::BadContent => Self::BadContent,
+            BitwardenImportError::Unsupported => Self::BadContent,
+            BitwardenImportError::MissingPassword => Self::MissingPassword,
+        }
     }
 }
 

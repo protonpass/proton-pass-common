@@ -12,7 +12,12 @@ pub enum TwoFasImportError {
 
 impl From<TwoFasImportError> for ThirdPartyImportError {
     fn from(e: TwoFasImportError) -> Self {
-        Self::TwoFas(e)
+        match e {
+            TwoFasImportError::BadContent => Self::BadContent,
+            TwoFasImportError::Unsupported => Self::BadContent,
+            TwoFasImportError::UnableToDecrypt => Self::DecryptionFailed,
+            TwoFasImportError::WrongPassword => Self::BadPassword,
+        }
     }
 }
 

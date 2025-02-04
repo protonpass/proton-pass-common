@@ -16,17 +16,22 @@ pub fn parse_ente_txt(input: &str) -> Result<ImportResult, EnteImportError> {
                     }),
                     Err(e) => errors.push(ImportError {
                         context: format!("Error in line {idx}"),
-                        message: format!("{:?}", e),
+                        message: format!("Could not process [{line}]: {:?}", e),
                     }),
                 },
                 Err(e) => errors.push(ImportError {
                     context: format!("Error in line {idx}"),
-                    message: format!("{:?}", e),
+                    message: format!("Could not process [{line}]: {:?}", e),
                 }),
             };
         }
     }
-    Ok(ImportResult { entries, errors })
+
+    if entries.is_empty() && !errors.is_empty() {
+        Err(EnteImportError::BadContent)
+    } else {
+        Ok(ImportResult { entries, errors })
+    }
 }
 
 // Ente sometimes adds the issuer as a prefix to the label. MAke sure to remove it

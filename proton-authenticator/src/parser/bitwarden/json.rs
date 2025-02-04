@@ -35,9 +35,7 @@ impl TryFrom<Struct> for AuthenticatorEntry {
 pub fn parse_bitwarden_json(input: &str) -> Result<ImportResult, BitwardenImportError> {
     let parsed = serde_json::from_str::<Root>(input).map_err(|_| BitwardenImportError::BadContent)?;
     if parsed.encrypted {
-        return Err(BitwardenImportError::EncryptedBackup(
-            "The backup is encrypted and password is not provided".to_string(),
-        ));
+        return Err(BitwardenImportError::MissingPassword);
     }
 
     let mut entries = Vec::new();

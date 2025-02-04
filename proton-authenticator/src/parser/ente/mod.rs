@@ -6,12 +6,14 @@ mod txt;
 pub enum EnteImportError {
     BadContent,
     Unsupported,
-    UnableToDecrypt,
 }
 
 impl From<EnteImportError> for ThirdPartyImportError {
     fn from(value: EnteImportError) -> Self {
-        Self::Ente(value)
+        match value {
+            EnteImportError::BadContent => Self::BadContent,
+            EnteImportError::Unsupported => Self::BadContent,
+        }
     }
 }
 

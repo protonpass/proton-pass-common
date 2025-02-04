@@ -17,7 +17,11 @@ pub enum GoogleAuthenticatorParseError {
 
 impl From<GoogleAuthenticatorParseError> for ThirdPartyImportError {
     fn from(err: GoogleAuthenticatorParseError) -> Self {
-        Self::Google(err)
+        match err {
+            GoogleAuthenticatorParseError::BadUri => Self::BadContent,
+            GoogleAuthenticatorParseError::BadContent => Self::BadContent,
+            GoogleAuthenticatorParseError::Unsupported => Self::BadContent,
+        }
     }
 }
 

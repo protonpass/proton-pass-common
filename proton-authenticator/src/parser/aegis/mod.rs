@@ -5,7 +5,7 @@ mod txt;
 
 #[derive(Clone, Debug)]
 pub enum AegisImportError {
-    Unsupported,
+    Unsupported(String),
     BadContent,
     BadPassword,
     NotEncryptedBackupWithPassword,
@@ -13,6 +13,13 @@ pub enum AegisImportError {
     UnableToDecrypt,
 }
 
+impl From<AegisImportError> for ThirdPartyImportError {
+    fn from(value: AegisImportError) -> Self {
+        Self::Aegis(value)
+    }
+}
+
+use crate::parser::ThirdPartyImportError;
 pub use json::parse_aegis_json;
 pub use txt::parse_aegis_txt;
 

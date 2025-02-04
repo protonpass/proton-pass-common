@@ -1,3 +1,5 @@
+use crate::parser::ThirdPartyImportError;
+
 mod txt;
 
 #[derive(Clone, Debug)]
@@ -5,6 +7,12 @@ pub enum EnteImportError {
     BadContent,
     Unsupported,
     UnableToDecrypt,
+}
+
+impl From<EnteImportError> for ThirdPartyImportError {
+    fn from(value: EnteImportError) -> Self {
+        Self::Ente(value)
+    }
 }
 
 pub use txt::parse_ente_txt;

@@ -3,6 +3,7 @@ use crate::{AuthenticatorEntry, AuthenticatorEntryContent};
 
 use base64::{engine::general_purpose, Engine as _};
 
+use crate::parser::{ImportError, ImportResult};
 use crate::steam::SteamTotp;
 use aes_gcm::aead::{Aead, KeyInit};
 use aes_gcm::{Aes256Gcm, Nonce};
@@ -174,30 +175,28 @@ fn parse_entry(obj: TwoFasEntry) -> Result<AuthenticatorEntry, TwoFasImportError
     Ok(AuthenticatorEntry { content, note: None })
 }
 
-pub fn parse_2fas_file(
-    json_data: &str,
-    password: Option<String>,
-    fail_on_error: bool,
-) -> Result<Vec<AuthenticatorEntry>, TwoFasImportError> {
+pub fn parse_2fas_file(json_data: &str, password: Option<String>) -> Result<ImportResult, TwoFasImportError> {
     let state = parse_2fas_export(json_data)?;
 
-    let entries = match state {
+    let parsed = match state {
         TwoFasState::Decrypted(entries) => entries,
         TwoFasState::Encrypted { .. } => decrypt_2fas_encrypted_state(&state, password)?,
     };
 
-    let mut res = Vec::new();
-    for entry in entries {
-        match parse_entry(entry) {
-            Ok(e) => res.push(e),
-            Err(_) => {
-                if fail_on_error {
-                    return Err(TwoFasImportError::BadContent);
-                }
+    let mut entries = Vec::new();
+    let mut errors = Vec::new();
+    for (idx, entry) in parsed.into_iter().enumerate() {
+        match parse_entry(entry.clone()) {
+            Ok(e) => entries.push(e),
+            Err(e) => {
+                errors.push(ImportError {
+                    context: format!("Error parsing entry {idx}"),
+                    message: format!("Error parsing entry {:?}: {:?}", entry, e),
+                });
             }
         }
     }
-    Ok(res)
+    Ok(ImportResult { entries, errors })
 }
 
 #[cfg(test)]
@@ -208,14 +207,16 @@ mod test {
     #[test]
     fn can_import_encrypted() {
         let contents = get_file_contents("2fas/encrypted.2fas");
-        let res = parse_2fas_file(&contents, Some("test".to_string()), false).expect("error parsing");
-        assert_eq!(res.len(), 2);
+        let res = parse_2fas_file(&contents, Some("test".to_string())).expect("error parsing");
+        assert!(res.errors.is_empty());
+        assert_eq!(res.entries.len(), 2);
     }
 
     #[test]
     fn can_import_unencrypted() {
         let contents = get_file_contents("2fas/decrypted.2fas");
-        let res = parse_2fas_file(&contents, None, false).expect("error parsing");
-        assert_eq!(res.len(), 2);
+        let res = parse_2fas_file(&contents, None).expect("error parsing");
+        assert!(res.errors.is_empty());
+        assert_eq!(res.entries.len(), 2);
     }
 }

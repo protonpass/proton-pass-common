@@ -1,23 +1,26 @@
 use crate::parser::aegis::AegisImportError;
+use crate::parser::{ImportError, ImportResult};
 use crate::AuthenticatorEntry;
 
-pub fn parse_aegis_txt(input: &str, fail_on_error: bool) -> Result<Vec<AuthenticatorEntry>, AegisImportError> {
+pub fn parse_aegis_txt(input: &str) -> Result<ImportResult, AegisImportError> {
     let mut entries = Vec::new();
-    for line in input.lines() {
+    let mut errors = Vec::new();
+    for (idx, line) in input.lines().enumerate() {
         let trimmed = line.trim();
         if !trimmed.is_empty() {
             match AuthenticatorEntry::from_uri(trimmed, None) {
                 Ok(entry) => entries.push(entry),
-                Err(_) => {
-                    if fail_on_error {
-                        return Err(AegisImportError::Unsupported);
-                    }
+                Err(e) => {
+                    errors.push(ImportError {
+                        context: format!("Error in line {idx}"),
+                        message: format!("Error in line [{}] : {:?}", trimmed, e),
+                    });
                 }
             }
         }
     }
 
-    Ok(entries)
+    Ok(ImportResult { entries, errors })
 }
 
 #[cfg(test)]
@@ -29,7 +32,8 @@ mod tests {
     #[test]
     fn can_parse_aegis_txt() {
         let content = get_file_contents("aegis/aegis-txt.txt");
-        let parsed = parse_aegis_txt(&content, false).expect("should be able to parse");
-        check_export_matches(parsed)
+        let parsed = parse_aegis_txt(&content).expect("should be able to parse");
+        check_export_matches(parsed.entries);
+        assert!(parsed.errors.is_empty());
     }
 }

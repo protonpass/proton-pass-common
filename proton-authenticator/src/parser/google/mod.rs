@@ -1,5 +1,6 @@
 pub mod gen;
 
+use crate::parser::{ImportError, ImportResult, ThirdPartyImportError};
 use crate::{AuthenticatorEntry, AuthenticatorEntryContent};
 use base64::Engine;
 use gen::google_authenticator::migration_payload as google;
@@ -12,6 +13,12 @@ pub enum GoogleAuthenticatorParseError {
     BadUri,
     BadContent,
     Unsupported,
+}
+
+impl From<GoogleAuthenticatorParseError> for ThirdPartyImportError {
+    fn from(err: GoogleAuthenticatorParseError) -> Self {
+        Self::Google(err)
+    }
 }
 
 impl TryFrom<google::Algorithm> for Algorithm {
@@ -56,10 +63,7 @@ impl TryFrom<google::OtpParameters> for AuthenticatorEntry {
     }
 }
 
-pub fn parse_google_authenticator_totp(
-    input: &str,
-    fail_on_error: bool,
-) -> Result<Vec<AuthenticatorEntry>, GoogleAuthenticatorParseError> {
+pub fn parse_google_authenticator_totp(input: &str) -> Result<ImportResult, GoogleAuthenticatorParseError> {
     let uri = url::Url::parse(input).map_err(|_| GoogleAuthenticatorParseError::BadUri)?;
     if uri.scheme() != "otpauth-migration" {
         return Err(GoogleAuthenticatorParseError::BadUri);
@@ -78,24 +82,23 @@ pub fn parse_google_authenticator_totp(
     let parsed = gen::google_authenticator::MigrationPayload::parse_from_bytes(&decoded)
         .map_err(|_| GoogleAuthenticatorParseError::BadContent)?;
 
-    let mut entries = vec![];
-
-    for param in parsed.otp_parameters {
+    let mut entries = Vec::new();
+    let mut errors = Vec::new();
+    for (idx, param) in parsed.otp_parameters.into_iter().enumerate() {
         if let Ok(v) = param.type_.enum_value() {
             if v == google::OtpType::OTP_TYPE_TOTP {
-                match AuthenticatorEntry::try_from(param) {
+                match AuthenticatorEntry::try_from(param.clone()) {
                     Ok(entry) => entries.push(entry),
-                    Err(_) => {
-                        if fail_on_error {
-                            return Err(GoogleAuthenticatorParseError::Unsupported);
-                        }
-                    }
+                    Err(e) => errors.push(ImportError {
+                        context: format!("Error in entry {idx}"),
+                        message: format!("param: {:?} | error: {:?}", param, e),
+                    }),
                 }
             }
         }
     }
 
-    Ok(entries)
+    Ok(ImportResult { entries, errors })
 }
 
 #[cfg(test)]
@@ -106,10 +109,13 @@ mod test {
     fn it_can_import() {
         let input = "otpauth-migration://offline?data=CjUKBWYkQUSTEgdNWUxBQkVMGghNWUlTU1VFUiACKAIwAkITNjE5NGJjMTczNzcyNzc5ODc5MxACGAEgAA%3D%3D";
 
-        let res = parse_google_authenticator_totp(input, false).expect("should be able to parse");
-        assert_eq!(res.len(), 1);
+        let res = parse_google_authenticator_totp(input).expect("should be able to parse");
+        assert!(res.errors.is_empty());
 
-        let entry = match &res[0].content {
+        let entries = res.entries;
+        assert_eq!(entries.len(), 1);
+
+        let entry = match &entries[0].content {
             AuthenticatorEntryContent::Totp(entry) => entry.clone(),
             _ => panic!("should be a TOTP entry"),
         };
@@ -125,7 +131,7 @@ mod test {
 
     #[test]
     fn fails_on_empty_input() {
-        let res = parse_google_authenticator_totp("", false).expect_err("should fail");
+        let res = parse_google_authenticator_totp("").expect_err("should fail");
         assert_eq!(res, GoogleAuthenticatorParseError::BadUri);
     }
 
@@ -133,21 +139,21 @@ mod test {
     fn fails_on_bad_scheme() {
         let input = "totp://offline?data=CjUKBWYkQUSTEgdNWUxBQkVMGghNWUlTU1VFUiACKAIwAkITNjE5NGJjMTczNzcyNzc5ODc5MxACGAEgAA%3D%3D";
 
-        let res = parse_google_authenticator_totp(input, false).expect_err("should fail");
+        let res = parse_google_authenticator_totp(input).expect_err("should fail");
         assert_eq!(res, GoogleAuthenticatorParseError::BadUri);
     }
 
     #[test]
     fn fails_on_missing_data() {
         let input = "otpauth-migration://offline?datafail=CjUKBWYkQUSTEgdNWUxBQkVMGghNWUlTU1VFUiACKAIwAkITNjE5NGJjMTczNzcyNzc5ODc5MxACGAEgAA%3D%3D";
-        let res = parse_google_authenticator_totp(input, false).expect_err("should fail");
+        let res = parse_google_authenticator_totp(input).expect_err("should fail");
         assert_eq!(res, GoogleAuthenticatorParseError::BadUri);
     }
 
     #[test]
     fn fails_on_malformed_content() {
         let input = "otpauth-migration://offline?data=invaliddata";
-        let res = parse_google_authenticator_totp(input, false).expect_err("should fail");
+        let res = parse_google_authenticator_totp(input).expect_err("should fail");
         assert_eq!(res, GoogleAuthenticatorParseError::BadContent);
     }
 
@@ -155,7 +161,7 @@ mod test {
     fn fails_on_invalid_content_data() {
         let input = "otpauth-migration://offline?data=rSQ04U9PcneFhvjOxzmevg%3D%3D";
 
-        let res = parse_google_authenticator_totp(input, false).expect_err("should fail");
+        let res = parse_google_authenticator_totp(input).expect_err("should fail");
         assert_eq!(res, GoogleAuthenticatorParseError::BadContent);
     }
 }

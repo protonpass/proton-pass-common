@@ -1,3 +1,4 @@
+use crate::parser::{ImportError, ImportResult};
 use crate::steam::SteamTotp;
 use crate::{AuthenticatorEntry, AuthenticatorEntryContent, AuthenticatorError};
 use proton_pass_totp::totp::TOTP;
@@ -94,31 +95,25 @@ pub fn export_entries(entries: Vec<AuthenticatorEntry>) -> Result<String, Authen
         .map_err(|e| AuthenticatorError::SerializationError(format!("Error exporting entries: {:?}", e)))
 }
 
-fn import_authenticator_entries_v1(
-    input: &str,
-    fail_on_error: bool,
-) -> Result<Vec<AuthenticatorEntry>, AuthenticatorError> {
+fn import_authenticator_entries_v1(input: &str) -> Result<ImportResult, AuthenticatorError> {
     let parsed: AuthenticatorEntriesExport = serde_json::from_str(input)
         .map_err(|e| AuthenticatorError::SerializationError(format!("Error importing entries: {:?}", e)))?;
 
     let mut entries = Vec::new();
-    for entry in parsed.entries {
-        match AuthenticatorEntry::try_from(entry) {
+    let mut errors = Vec::new();
+    for (idx, entry) in parsed.entries.into_iter().enumerate() {
+        match AuthenticatorEntry::try_from(entry.clone()) {
             Ok(entry) => entries.push(entry),
-            Err(e) => {
-                if fail_on_error {
-                    return Err(e);
-                }
-            }
+            Err(e) => errors.push(ImportError {
+                context: format!("Error in entry {idx}"),
+                message: format!("Error importing entry {:?}: {:?}", entry, e),
+            }),
         }
     }
-    Ok(entries)
+    Ok(ImportResult { entries, errors })
 }
 
-pub fn import_authenticator_entries(
-    input: &str,
-    fail_on_error: bool,
-) -> Result<Vec<AuthenticatorEntry>, AuthenticatorError> {
+pub fn import_authenticator_entries(input: &str) -> Result<ImportResult, AuthenticatorError> {
     let header: AuthenticatorEntriesExportHeader = serde_json::from_str(input).map_err(|e| {
         AuthenticatorError::SerializationError(format!(
             "Error importing authenticator entries, could not detect header: {:?}",
@@ -127,7 +122,7 @@ pub fn import_authenticator_entries(
     })?;
 
     match header.version {
-        1 => import_authenticator_entries_v1(input, fail_on_error),
+        1 => import_authenticator_entries_v1(input),
         _ => Err(AuthenticatorError::SerializationError(format!(
             "Unsupported version: {}",
             header.version

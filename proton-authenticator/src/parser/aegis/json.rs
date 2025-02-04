@@ -1,5 +1,5 @@
 use crate::parser::aegis::{db, encrypted, AegisImportError};
-use crate::AuthenticatorEntry;
+use crate::parser::ImportResult;
 
 #[derive(Clone, Debug, serde::Deserialize)]
 pub struct CommonHeader {
@@ -12,11 +12,7 @@ pub struct CommonRoot {
     pub header: CommonHeader,
 }
 
-pub fn parse_aegis_json(
-    input: &str,
-    password: Option<String>,
-    fail_on_error: bool,
-) -> Result<Vec<AuthenticatorEntry>, AegisImportError> {
+pub fn parse_aegis_json(input: &str, password: Option<String>) -> Result<ImportResult, AegisImportError> {
     let root_parsed: CommonRoot = serde_json::from_str(input).map_err(|_| AegisImportError::BadContent)?;
     let db_root = match password {
         Some(p) => {
@@ -35,7 +31,7 @@ pub fn parse_aegis_json(
         }
     };
 
-    db::parse_aegis_db(db_root, fail_on_error)
+    db::parse_aegis_db(db_root)
 }
 
 #[cfg(test)]
@@ -47,21 +43,23 @@ mod test {
     #[test]
     fn can_import_unencrypted_json() {
         let contents = get_file_contents("aegis/aegis-json-unencrypted.json");
-        let res = parse_aegis_json(&contents, None, true).expect("should be able to parse");
-        check_export_matches(res)
+        let res = parse_aegis_json(&contents, None).expect("should be able to parse");
+        check_export_matches(res.entries);
+        assert_eq!(res.errors.len(), 0);
     }
 
     #[test]
     fn can_import_encrypted_json() {
         let contents = get_file_contents("aegis/aegis-json-encrypted-test.json");
-        let res = parse_aegis_json(&contents, Some("test".to_string()), true).expect("should be able to parse");
-        check_export_matches(res)
+        let res = parse_aegis_json(&contents, Some("test".to_string())).expect("should be able to parse");
+        check_export_matches(res.entries);
+        assert_eq!(res.errors.len(), 0);
     }
 
     #[test]
     fn encrypted_backup_with_no_password_returns_error() {
         let encrypted = get_file_contents("aegis/aegis-json-encrypted-test.json");
-        let err = parse_aegis_json(&encrypted, None, true).expect_err("should return an error");
+        let err = parse_aegis_json(&encrypted, None).expect_err("should return an error");
 
         assert!(matches!(err, AegisImportError::EncryptedBackupWithNoPassword));
     }
@@ -69,7 +67,7 @@ mod test {
     #[test]
     fn unencrypted_backup_with_password_returns_error() {
         let encrypted = get_file_contents("aegis/aegis-json-unencrypted.json");
-        let err = parse_aegis_json(&encrypted, Some("test".to_string()), true).expect_err("should return an error");
+        let err = parse_aegis_json(&encrypted, Some("test".to_string())).expect_err("should return an error");
 
         assert!(matches!(err, AegisImportError::NotEncryptedBackupWithPassword));
     }

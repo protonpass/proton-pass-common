@@ -1,29 +1,32 @@
 use super::EnteImportError;
+use crate::parser::{ImportError, ImportResult};
 use crate::{AuthenticatorEntry, AuthenticatorEntryContent};
 
-pub fn parse_ente_txt(input: &str, fail_on_error: bool) -> Result<Vec<AuthenticatorEntry>, EnteImportError> {
+pub fn parse_ente_txt(input: &str) -> Result<ImportResult, EnteImportError> {
     let mut entries = Vec::new();
-    for line in input.lines() {
+    let mut errors = Vec::new();
+    for (idx, line) in input.lines().enumerate() {
         let trimmed = line.trim();
         if !trimmed.is_empty() {
-            let res = match AuthenticatorEntryContent::from_uri(trimmed) {
-                Ok(content) => sanitize_content(content),
-                Err(_) => Err(EnteImportError::BadContent),
+            match AuthenticatorEntryContent::from_uri(trimmed) {
+                Ok(content) => match sanitize_content(content) {
+                    Ok(sanitized) => entries.push(AuthenticatorEntry {
+                        content: sanitized,
+                        note: None,
+                    }),
+                    Err(e) => errors.push(ImportError {
+                        context: format!("Error in line {idx}"),
+                        message: format!("{:?}", e),
+                    }),
+                },
+                Err(e) => errors.push(ImportError {
+                    context: format!("Error in line {idx}"),
+                    message: format!("{:?}", e),
+                }),
             };
-
-            match res {
-                Ok(content) => entries.push(AuthenticatorEntry { content, note: None }),
-                Err(e) => {
-                    if fail_on_error {
-                        return Err(e);
-                    } else {
-                        continue;
-                    }
-                }
-            }
         }
     }
-    Ok(entries)
+    Ok(ImportResult { entries, errors })
 }
 
 // Ente sometimes adds the issuer as a prefix to the label. MAke sure to remove it
@@ -53,7 +56,7 @@ mod tests {
     #[test]
     fn can_import_txt_file() {
         let content = get_file_contents("ente/plain.txt");
-        let imported = parse_ente_txt(content.as_str(), false).expect("should be able to import");
-        check_ente_entries(imported);
+        let imported = parse_ente_txt(content.as_str()).expect("should be able to import");
+        check_ente_entries(imported.entries);
     }
 }

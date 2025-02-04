@@ -1,4 +1,5 @@
 use crate::parser::lastpass::LastPassImportError;
+use crate::parser::{ImportError, ImportResult};
 use crate::AuthenticatorEntry;
 use crate::AuthenticatorEntryContent::Totp;
 use proton_pass_totp::algorithm::Algorithm;
@@ -79,21 +80,23 @@ fn string_option_if_not_empty(s: String) -> Option<String> {
     }
 }
 
-pub fn parse_lastpass_json(input: &str, fail_on_error: bool) -> Result<Vec<AuthenticatorEntry>, LastPassImportError> {
+pub fn parse_lastpass_json(input: &str) -> Result<ImportResult, LastPassImportError> {
     let parsed = serde_json::from_str::<Root>(input).map_err(|e| LastPassImportError::BadContent(e.to_string()))?;
 
-    let mut items = Vec::new();
-    for accounts in parsed.accounts {
-        match AuthenticatorEntry::try_from(accounts) {
-            Ok(entry) => items.push(entry),
+    let mut entries = Vec::new();
+    let mut errors = Vec::new();
+    for (idx, account) in parsed.accounts.into_iter().enumerate() {
+        match AuthenticatorEntry::try_from(account.clone()) {
+            Ok(entry) => entries.push(entry),
             Err(e) => {
-                if fail_on_error {
-                    return Err(e);
-                }
+                errors.push(ImportError {
+                    context: format!("Errir in entry {idx}"),
+                    message: format!("Error parsing account {:?}: {:?}", account, e),
+                });
             }
         }
     }
-    Ok(items)
+    Ok(ImportResult { entries, errors })
 }
 
 #[cfg(test)]
@@ -123,10 +126,13 @@ mod test {
     fn can_parse_content() {
         let input = get_file_contents("lastpass/lastpass.json");
 
-        let res = parse_lastpass_json(&input, false).expect("should be able to parse");
-        assert_eq!(res.len(), 3);
+        let res = parse_lastpass_json(&input).expect("should be able to parse");
+        assert!(res.errors.is_empty());
 
-        match &res[0].content {
+        let entries = res.entries;
+        assert_eq!(entries.len(), 3);
+
+        match &entries[0].content {
             AuthenticatorEntryContent::Totp(totp) => {
                 check_totp(
                     totp,
@@ -139,13 +145,13 @@ mod test {
             }
             _ => panic!("Should be a TOTP"),
         }
-        match &res[1].content {
+        match &entries[1].content {
             AuthenticatorEntryContent::Totp(totp) => {
                 check_totp(totp, Algorithm::SHA256, 8, 20, Some("other".to_string()), None);
             }
             _ => panic!("Should be a TOTP"),
         }
-        match &res[2].content {
+        match &entries[2].content {
             AuthenticatorEntryContent::Totp(totp) => {
                 check_totp(totp, Algorithm::SHA512, 6, 30, None, Some("sha512 name".to_string()));
             }

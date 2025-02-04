@@ -1,4 +1,5 @@
 use crate::parser::aegis::AegisImportError;
+use crate::parser::{ImportError, ImportResult};
 use crate::steam::SteamTotp;
 use crate::{AuthenticatorEntry, AuthenticatorEntryContent};
 use proton_pass_totp::algorithm::Algorithm;
@@ -45,7 +46,12 @@ impl TryFrom<DbEntry> for TOTP {
             issuer: Some(entry.issuer),
             algorithm: match Algorithm::try_from(entry.info.algo.as_str()) {
                 Ok(a) => Some(a),
-                Err(_) => return Err(AegisImportError::Unsupported),
+                Err(_) => {
+                    return Err(AegisImportError::Unsupported(format!(
+                        "unsupported algorithm: {:?}",
+                        entry.info.algo
+                    )))
+                }
             },
             digits: Some(entry.info.digits as u8),
             period: Some(entry.info.period as u16),
@@ -73,24 +79,29 @@ impl TryFrom<DbEntry> for AuthenticatorEntry {
                 let totp = TOTP::try_from(entry)?;
                 AuthenticatorEntryContent::Totp(totp)
             }
-            _ => return Err(AegisImportError::Unsupported),
+            _ => {
+                return Err(AegisImportError::Unsupported(format!(
+                    "unsupported entry type: {:?}",
+                    entry.entry_type
+                )))
+            }
         };
 
         Ok(AuthenticatorEntry { content, note })
     }
 }
 
-pub fn parse_aegis_db(db: AegisDbRoot, fail_on_error: bool) -> Result<Vec<AuthenticatorEntry>, AegisImportError> {
+pub fn parse_aegis_db(db: AegisDbRoot) -> Result<ImportResult, AegisImportError> {
     let mut entries = Vec::new();
-    for entry in db.entries {
-        match AuthenticatorEntry::try_from(entry) {
+    let mut errors = Vec::new();
+    for (idx, entry) in db.entries.into_iter().enumerate() {
+        match AuthenticatorEntry::try_from(entry.clone()) {
             Ok(entry) => entries.push(entry),
-            Err(_) => {
-                if fail_on_error {
-                    return Err(AegisImportError::BadContent);
-                }
-            }
+            Err(e) => errors.push(ImportError {
+                context: format!("Error importing entry {idx}"),
+                message: format!("Error importing entry {:?}, {:?}", entry, e),
+            }),
         }
     }
-    Ok(entries)
+    Ok(ImportResult { entries, errors })
 }

@@ -41,18 +41,29 @@ bench: ## Run the benchmarks
 clean: ## Remove compile artifacts
 	@cargo clean
 	@rm -rf proton-pass-mobile/src/uniffi
-	@rm -f proton-pass-mobile/src/*.swift
-	@rm -f proton-pass-mobile/src/*.h
-	@rm -f proton-pass-mobile/src/*.modulemap
+	@rm -rf proton-pass-mobile/src/*.swift
+	@rm -rf proton-pass-mobile/src/*.h
+	@rm -rf proton-pass-mobile/src/*.modulemap
 	@rm -rf proton-pass-mobile/android/lib/build
 	@rm -rf proton-pass-mobile/android/lib/src/main/jniLibs
 	@rm -rf proton-pass-mobile/src/proton/android/pass/commonrust/proton_pass_common_mobile.kt
-	@rm -rf ${WEB_BUILD_DIR}
-	@rm -rf ${WEB_TEST_BUILD_DIR}
 	@rm -rf proton-pass-mobile/iOS/frameworks
 	@rm -rf proton-pass-mobile/iOS/headers
 	@rm -rf proton-pass-mobile/iOS/PassRustCore/Sources/PassRustCore/PassRustCore.swift
 	@rm -rf proton-pass-mobile/iOS/PassRustCore/*.xcframework
+	@rm -rf ${WEB_BUILD_DIR}
+	@rm -rf ${WEB_TEST_BUILD_DIR}
+	@rm -rf proton-authenticator-mobile/src/uniffi
+	@rm -rf proton-authenticator-mobile/src/*.swift
+	@rm -rf proton-authenticator-mobile/src/*.h
+	@rm -rf proton-authenticator-mobile/src/*.modulemap
+	@rm -rf proton-authenticator-mobile/android/lib/build
+	@rm -rf proton-authenticator-mobile/android/lib/src/main/jniLibs
+	@rm -rf proton-authenticator-mobile/src/proton/android/authenticator/commonrust/proton_authenticator_common_mobile.kt
+	@rm -rf proton-authenticator-mobile/iOS/frameworks
+	@rm -rf proton-authenticator-mobile/iOS/headers
+	@rm -rf proton-authenticator-mobile/iOS/AuthenticatorRustCore/Sources/AuthenticatorRustCore/AuthenticatorRustCore.swift
+	@rm -rf proton-authenticator-mobile/iOS/AuthenticatorRustCore/*.xcframework
 
 .PHONY: help
 help: ## Display this help screen

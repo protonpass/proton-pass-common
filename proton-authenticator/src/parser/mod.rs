@@ -1,3 +1,5 @@
+use crate::AuthenticatorEntry;
+
 pub mod aegis;
 pub mod bitwarden;
 pub mod ente;
@@ -5,3 +7,25 @@ pub mod google;
 pub mod lastpass;
 pub mod proton_authenticator;
 pub mod twofas;
+
+#[derive(Clone, Debug)]
+pub struct ImportError {
+    pub context: String,
+    pub message: String,
+}
+
+#[derive(Clone, Debug)]
+pub struct ImportResult {
+    pub entries: Vec<AuthenticatorEntry>,
+    pub errors: Vec<ImportError>,
+}
+
+#[derive(Clone, Debug)]
+pub enum ThirdPartyImportError {
+    Aegis(aegis::AegisImportError),
+    Bitwarden(bitwarden::BitwardenImportError),
+    Ente(ente::EnteImportError),
+    Google(google::GoogleAuthenticatorParseError),
+    LastPass(lastpass::LastPassImportError),
+    TwoFas(twofas::TwoFasImportError),
+}

@@ -1,0 +1,40 @@
+dictionary AuthenticatorImportError {
+  string context;
+  string message;
+};
+
+dictionary AuthenticatorImportResult {
+  sequence<AuthenticatorEntryModel> entries;
+  sequence<AuthenticatorImportError> errors;
+};
+
+interface AuthenticatorImporter {
+  constructor();
+
+  [Throws=AuthenticatorError]
+  AuthenticatorImportResult import_from_aegis_json(string contents, string? password);
+
+  [Throws=AuthenticatorError]
+  AuthenticatorImportResult import_from_aegis_txt(string contents);
+
+  [Throws=AuthenticatorError]
+  AuthenticatorImportResult import_from_bitwarden_json(string contents);
+
+  [Throws=AuthenticatorError]
+  AuthenticatorImportResult import_from_bitwarden_csv(string contents);
+
+  [Throws=AuthenticatorError]
+  AuthenticatorImportResult import_from_ente_txt(string contents);
+
+  [Throws=AuthenticatorError]
+  AuthenticatorImportResult import_from_google_qr(string contents);
+
+  [Throws=AuthenticatorError]
+  AuthenticatorImportResult import_from_lastpass_json(string contents);
+
+  [Throws=AuthenticatorError]
+  AuthenticatorImportResult import_from_proton_authenticator(string contents);
+
+  [Throws=AuthenticatorError]
+  AuthenticatorImportResult import_from_2fas(string contents, string? password);
+};

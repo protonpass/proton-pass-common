@@ -1,4 +1,5 @@
 use crate::parser::bitwarden::BitwardenImportError;
+use crate::parser::{ImportError, ImportResult};
 use crate::AuthenticatorEntry;
 
 #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
@@ -31,24 +32,26 @@ impl TryFrom<Struct> for AuthenticatorEntry {
     }
 }
 
-pub fn parse_bitwarden_json(input: &str, fail_on_error: bool) -> Result<Vec<AuthenticatorEntry>, BitwardenImportError> {
+pub fn parse_bitwarden_json(input: &str) -> Result<ImportResult, BitwardenImportError> {
     let parsed = serde_json::from_str::<Root>(input).map_err(|_| BitwardenImportError::BadContent)?;
     if parsed.encrypted {
-        return Ok(vec![]);
+        return Err(BitwardenImportError::EncryptedBackup(
+            "The backup is encrypted and password is not provided".to_string(),
+        ));
     }
 
-    let mut items = Vec::new();
-    for item in parsed.items {
+    let mut entries = Vec::new();
+    let mut errors = Vec::new();
+    for (idx, item) in parsed.items.into_iter().enumerate() {
         match AuthenticatorEntry::try_from(item) {
-            Ok(entry) => items.push(entry),
-            Err(e) => {
-                if fail_on_error {
-                    return Err(e);
-                }
-            }
+            Ok(entry) => entries.push(entry),
+            Err(e) => errors.push(ImportError {
+                context: format!("Error in entry {idx}"),
+                message: format!("{:?}", e),
+            }),
         }
     }
-    Ok(items)
+    Ok(ImportResult { entries, errors })
 }
 
 #[cfg(test)]
@@ -69,26 +72,27 @@ mod test {
     fn can_parse_content() {
         let input = get_file_contents("bitwarden/bitwarden.json");
 
-        let res = parse_bitwarden_json(&input, false).expect("should be able to parse");
-        assert_eq!(res.len(), 4);
+        let res = parse_bitwarden_json(&input).expect("should be able to parse");
+        let entries = res.entries;
+        assert_eq!(entries.len(), 4);
 
-        match &res[0].content {
+        match &entries[0].content {
             AuthenticatorEntryContent::Totp(totp) => {
                 check_totp(totp, Algorithm::SHA256, 8, 15);
             }
             _ => panic!("Should be a TOTP"),
         }
-        match &res[1].content {
+        match &entries[1].content {
             AuthenticatorEntryContent::Totp(totp) => {
                 check_totp(totp, Algorithm::SHA1, 6, 30);
             }
             _ => panic!("Should be a TOTP"),
         }
-        match &res[2].content {
+        match &entries[2].content {
             AuthenticatorEntryContent::Steam(_) => {}
             _ => panic!("Should be STEAM"),
         }
-        match &res[3].content {
+        match &entries[3].content {
             AuthenticatorEntryContent::Totp(totp) => {
                 check_totp(totp, Algorithm::SHA1, 7, 30);
             }

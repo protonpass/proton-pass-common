@@ -1,5 +1,6 @@
 use super::BitwardenImportError;
-use crate::{AuthenticatorEntry, AuthenticatorEntryError};
+use crate::parser::{ImportError, ImportResult};
+use crate::AuthenticatorEntry;
 
 fn process_string(input: &str) -> String {
     let mut lines = Vec::new();
@@ -15,43 +16,39 @@ fn process_string(input: &str) -> String {
     lines.join("\n")
 }
 
-pub fn parse_bitwarden_csv(input: &str, fail_on_error: bool) -> Result<Vec<AuthenticatorEntry>, BitwardenImportError> {
+pub fn parse_bitwarden_csv(input: &str) -> Result<ImportResult, BitwardenImportError> {
     let processed = process_string(input);
     let mut csv_reader = csv::ReaderBuilder::new()
         .has_headers(false)
         .from_reader(processed.as_bytes());
 
     let mut entries = Vec::new();
-    for result in csv_reader.records() {
+    let mut errors = Vec::new();
+    for (idx, result) in csv_reader.records().enumerate() {
         match result {
             Ok(record) => match record.get(5) {
                 Some(r) => match AuthenticatorEntry::from_uri(r, None) {
                     Ok(entry) => entries.push(entry),
                     Err(e) => {
-                        if fail_on_error {
-                            return match e {
-                                AuthenticatorEntryError::ParseError => Err(BitwardenImportError::BadContent),
-                                AuthenticatorEntryError::UnsupportedUri => Err(BitwardenImportError::Unsupported),
-                                AuthenticatorEntryError::SerializationError(_) => Err(BitwardenImportError::BadContent),
-                            };
-                        }
+                        errors.push(ImportError {
+                            context: format!("Error in record {idx}"),
+                            message: format!("Error parsing entry: {:?}", e),
+                        });
                     }
                 },
-                None => {
-                    if fail_on_error {
-                        return Err(BitwardenImportError::BadContent);
-                    }
-                }
+                None => errors.push(ImportError {
+                    context: format!("Error in record {idx}"),
+                    message: format!("Malformed line: {:?}", record),
+                }),
             },
-            Err(_) => {
-                if fail_on_error {
-                    return Err(BitwardenImportError::BadContent);
-                }
-            }
+            Err(e) => errors.push(ImportError {
+                context: format!("Error in record {idx}"),
+                message: format!("Malformed line: {:?}", e),
+            }),
         }
     }
 
-    Ok(entries)
+    Ok(ImportResult { entries, errors })
 }
 
 #[cfg(test)]
@@ -72,26 +69,27 @@ mod test {
     fn can_parse_bitwarden_csv() {
         let input = get_file_contents("bitwarden/bitwarden.csv");
 
-        let res = parse_bitwarden_csv(&input, false).expect("Should be able to parse the CSV");
-        assert_eq!(res.len(), 4);
+        let res = parse_bitwarden_csv(&input).expect("Should be able to parse the CSV");
+        let entries = res.entries;
+        assert_eq!(entries.len(), 4);
 
-        match &res[0].content {
+        match &entries[0].content {
             AuthenticatorEntryContent::Totp(totp) => {
                 check_totp(totp, Algorithm::SHA256, 8, 15);
             }
             _ => panic!("Should be a TOTP"),
         }
-        match &res[1].content {
+        match &entries[1].content {
             AuthenticatorEntryContent::Totp(totp) => {
                 check_totp(totp, Algorithm::SHA1, 6, 30);
             }
             _ => panic!("Should be a TOTP"),
         }
-        match &res[2].content {
+        match &entries[2].content {
             AuthenticatorEntryContent::Steam(_) => {}
             _ => panic!("Should be STEAM"),
         }
-        match &res[3].content {
+        match &entries[3].content {
             AuthenticatorEntryContent::Totp(totp) => {
                 check_totp(totp, Algorithm::SHA1, 7, 30);
             }

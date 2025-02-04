@@ -1,11 +1,12 @@
 use crate::steam::PERIOD as STEAM_PERIOD;
-use crate::{entry, AuthenticatorEntry, AuthenticatorEntryContent};
+use crate::{entry, AuthenticatorEntry, AuthenticatorEntryContent, ThirdPartyImportError};
 
 #[derive(Clone, Debug)]
 pub enum AuthenticatorError {
     CodeGenerationError(String),
     SerializationError(String),
     Unknown(String),
+    Import(ThirdPartyImportError),
 }
 
 type Result<T> = std::result::Result<T, AuthenticatorError>;

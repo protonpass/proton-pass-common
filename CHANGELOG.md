@@ -6,6 +6,14 @@
 
 ### Other
 
+## 0.13.0
+
+### Features :tada:
+
+- totp: improve label parsing from TOTP URI.
+- authenticator: more importers.
+- authenticator: first version of the mobile bindings.
+
 ## 0.12.0
 
 ### Features :tada:

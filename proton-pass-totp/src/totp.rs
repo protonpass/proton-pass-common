@@ -94,7 +94,16 @@ impl TOTP {
             Some(segments) => {
                 if let Some(label) = segments.last() {
                     if !label.is_empty() {
-                        Some(label.to_string())
+                        match urlencoding::decode(label) {
+                            Ok(decoded) => {
+                                let split: Vec<&str> = decoded.split(":").collect();
+                                match split.last() {
+                                    Some(label) => Some(label.to_string()),
+                                    None => Some(decoded.to_string()),
+                                }
+                            }
+                            Err(_) => Some(label.to_string()),
+                        }
                     } else {
                         None
                     }
@@ -317,7 +326,30 @@ mod test_from_uri {
         // Then
         match sut {
             Ok(components) => {
-                assert_eq!(components.label, Some("john.doe%40example.com".to_string()));
+                assert_eq!(components.label, Some("john.doe@example.com".to_string()));
+                assert_eq!(components.secret, "somesecret");
+                assert_eq!(components.issuer, Some("ProtonMail".to_string()));
+                assert_eq!(components.algorithm, Some(Algorithm::SHA512));
+                assert_eq!(components.digits, Some(8));
+                assert_eq!(components.period, Some(45));
+            }
+            _ => panic!("Should be able to parse"),
+        }
+    }
+
+    #[test]
+    fn can_parse_label() {
+        // Given
+        let uri =
+            "otpauth://totp/issuer%3Alabel?secret=somesecret&issuer=ProtonMail&algorithm=SHA512&digits=8&period=45";
+
+        // When
+        let sut = make_sut(uri);
+
+        // Then
+        match sut {
+            Ok(components) => {
+                assert_eq!(components.label, Some("label".to_string()));
                 assert_eq!(components.secret, "somesecret");
                 assert_eq!(components.issuer, Some("ProtonMail".to_string()));
                 assert_eq!(components.algorithm, Some(Algorithm::SHA512));

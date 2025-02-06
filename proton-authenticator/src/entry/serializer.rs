@@ -8,13 +8,21 @@ impl From<AuthenticatorEntryContent> for proto::AuthenticatorEntryContent {
     fn from(content: AuthenticatorEntryContent) -> Self {
         match content {
             AuthenticatorEntryContent::Steam(steam) => proto::AuthenticatorEntryContent {
-                entry_type: protobuf::EnumOrUnknown::new(proto::AuthenticatorEntryType::STEAM),
-                uri: steam.uri(),
+                content: Some(proto::authenticator_entry_content::Content::Steam(
+                    proto::AuthenticatorEntryContentSteam {
+                        secret: steam.secret(),
+                        ..Default::default()
+                    },
+                )),
                 ..Default::default()
             },
             AuthenticatorEntryContent::Totp(totp) => proto::AuthenticatorEntryContent {
-                entry_type: protobuf::EnumOrUnknown::new(proto::AuthenticatorEntryType::TOTP),
-                uri: totp.to_uri(totp.label.clone(), totp.issuer.clone()),
+                content: Some(proto::authenticator_entry_content::Content::Totp(
+                    proto::AuthenticatorEntryContentTotp {
+                        uri: totp.to_uri(totp.label.clone(), totp.issuer.clone()),
+                        ..Default::default()
+                    },
+                )),
                 ..Default::default()
             },
         }
@@ -24,11 +32,15 @@ impl From<AuthenticatorEntryContent> for proto::AuthenticatorEntryContent {
 impl From<AuthenticatorEntry> for proto::AuthenticatorEntry {
     fn from(entry: AuthenticatorEntry) -> Self {
         Self {
+            metadata: protobuf::MessageField::some(proto::AuthenticatorEntryMetadata {
+                note: match entry.note {
+                    Some(ref n) => n.to_string(),
+                    None => "".to_string(),
+                },
+                name: entry.name(),
+                ..Default::default()
+            }),
             content: protobuf::MessageField::some(entry.content.into()),
-            note: match entry.note {
-                Some(ref n) => n.to_string(),
-                None => "".to_string(),
-            },
             ..Default::default()
         }
     }
@@ -37,35 +49,46 @@ impl From<AuthenticatorEntry> for proto::AuthenticatorEntry {
 impl TryFrom<proto::AuthenticatorEntry> for AuthenticatorEntry {
     type Error = AuthenticatorEntryError;
     fn try_from(entry: proto::AuthenticatorEntry) -> Result<Self, Self::Error> {
+        let metadata = entry.metadata;
         Ok(Self {
-            content: match entry.content.entry_type.enum_value() {
-                Ok(entry_type) => match entry_type {
-                    proto::AuthenticatorEntryType::TOTP => match TOTP::from_uri(entry.content.uri.as_str()) {
+            content: match entry.content.content {
+                Some(ref content) => match content {
+                    proto::authenticator_entry_content::Content::Totp(totp) => match TOTP::from_uri(&totp.uri) {
                         Ok(totp) => AuthenticatorEntryContent::Totp(totp),
                         Err(e) => {
                             return Err(AuthenticatorEntryError::SerializationError(format!(
-                                "cannot parse totp uri: {:?}",
-                                e
-                            )))
+                                "error parsing TOTP uri [{}]: {:?}",
+                                totp.uri, e
+                            )));
                         }
                     },
-                    proto::AuthenticatorEntryType::STEAM => match SteamTotp::new_from_uri(&entry.content.uri) {
-                        Ok(steam) => AuthenticatorEntryContent::Steam(steam),
+                    proto::authenticator_entry_content::Content::Steam(steam) => match SteamTotp::new(&steam.secret) {
+                        Ok(mut steam) => {
+                            if !metadata.name.is_empty() {
+                                steam.name = Some(metadata.name.to_string())
+                            }
+
+                            AuthenticatorEntryContent::Steam(steam)
+                        }
                         Err(e) => {
                             return Err(AuthenticatorEntryError::SerializationError(format!(
-                                "cannot parse steam uri: {:?}",
+                                "error parsing Steam uri: {:?}",
                                 e
-                            )))
+                            )));
                         }
                     },
                 },
-                Err(e) => {
-                    return Err(AuthenticatorEntryError::SerializationError(format!(
-                        "unknown AuthenticatorEntryContent.value {e}"
-                    )))
+                None => {
+                    return Err(AuthenticatorEntryError::SerializationError(
+                        "Entry content has no value".to_string(),
+                    ));
                 }
             },
-            note: if entry.note.is_empty() { None } else { Some(entry.note) },
+            note: if metadata.note.is_empty() {
+                None
+            } else {
+                Some(metadata.note.to_string())
+            },
         })
     }
 }

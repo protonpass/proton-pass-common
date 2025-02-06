@@ -1,6 +1,6 @@
 use crate::parser::bitwarden::BitwardenImportError;
 use crate::parser::{ImportError, ImportResult};
-use crate::AuthenticatorEntry;
+use crate::{AuthenticatorEntry, AuthenticatorEntryContent};
 
 #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
 struct Login {
@@ -28,7 +28,30 @@ impl TryFrom<Struct> for AuthenticatorEntry {
     type Error = BitwardenImportError;
 
     fn try_from(value: Struct) -> Result<Self, Self::Error> {
-        AuthenticatorEntry::from_uri(&value.login.totp, None).map_err(|_| BitwardenImportError::Unsupported)
+        let content =
+            AuthenticatorEntryContent::from_uri(&value.login.totp).map_err(|_| BitwardenImportError::Unsupported)?;
+
+        let content_with_label = match content {
+            AuthenticatorEntryContent::Totp(mut totp) => {
+                if totp.label.is_none() && !value.name.is_empty() {
+                    totp.label = Some(value.name);
+                }
+
+                AuthenticatorEntryContent::Totp(totp)
+            }
+            AuthenticatorEntryContent::Steam(mut steam) => {
+                if steam.name.is_none() && !value.name.is_empty() {
+                    steam.name = Some(value.name);
+                }
+
+                AuthenticatorEntryContent::Steam(steam)
+            }
+        };
+
+        Ok(AuthenticatorEntry {
+            content: content_with_label,
+            note: value.notes,
+        })
     }
 }
 
@@ -60,10 +83,11 @@ mod test {
     use proton_pass_totp::algorithm::Algorithm;
     use proton_pass_totp::totp::TOTP;
 
-    fn check_totp(entry: &TOTP, algorithm: Algorithm, digits: u8, period: u16) {
+    fn check_totp(entry: &TOTP, algorithm: Algorithm, digits: u8, period: u16, name: &str) {
         assert_eq!(algorithm, entry.algorithm.expect("Should have an algorithm"));
         assert_eq!(digits, entry.digits.expect("Should have digits"));
         assert_eq!(period, entry.period.expect("Should have period"));
+        assert_eq!(name, entry.label.clone().expect("Should have label"));
     }
 
     #[test]
@@ -76,23 +100,25 @@ mod test {
 
         match &entries[0].content {
             AuthenticatorEntryContent::Totp(totp) => {
-                check_totp(totp, Algorithm::SHA256, 8, 15);
+                check_totp(totp, Algorithm::SHA256, 8, 15, "LABEL_256_8_15");
             }
             _ => panic!("Should be a TOTP"),
         }
         match &entries[1].content {
             AuthenticatorEntryContent::Totp(totp) => {
-                check_totp(totp, Algorithm::SHA1, 6, 30);
+                check_totp(totp, Algorithm::SHA1, 6, 30, "LABEL_DEFAULT");
             }
             _ => panic!("Should be a TOTP"),
         }
         match &entries[2].content {
-            AuthenticatorEntryContent::Steam(_) => {}
+            AuthenticatorEntryContent::Steam(steam) => {
+                assert_eq!(steam.name(), "SteamName")
+            }
             _ => panic!("Should be STEAM"),
         }
         match &entries[3].content {
             AuthenticatorEntryContent::Totp(totp) => {
-                check_totp(totp, Algorithm::SHA1, 7, 30);
+                check_totp(totp, Algorithm::SHA1, 7, 30, "Seven digit username");
             }
             _ => panic!("Should be a TOTP"),
         }

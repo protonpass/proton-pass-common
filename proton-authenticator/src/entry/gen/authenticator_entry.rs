@@ -24,14 +24,255 @@
 /// of protobuf runtime.
 const _PROTOBUF_VERSION_CHECK: () = ::protobuf::VERSION_3_7_1;
 
+// @@protoc_insertion_point(message:AuthenticatorEntryContentTotp)
+#[derive(PartialEq,Clone,Default,Debug)]
+pub struct AuthenticatorEntryContentTotp {
+    // message fields
+    // @@protoc_insertion_point(field:AuthenticatorEntryContentTotp.uri)
+    pub uri: ::std::string::String,
+    // special fields
+    // @@protoc_insertion_point(special_field:AuthenticatorEntryContentTotp.special_fields)
+    pub special_fields: ::protobuf::SpecialFields,
+}
+
+impl<'a> ::std::default::Default for &'a AuthenticatorEntryContentTotp {
+    fn default() -> &'a AuthenticatorEntryContentTotp {
+        <AuthenticatorEntryContentTotp as ::protobuf::Message>::default_instance()
+    }
+}
+
+impl AuthenticatorEntryContentTotp {
+    pub fn new() -> AuthenticatorEntryContentTotp {
+        ::std::default::Default::default()
+    }
+
+    fn generated_message_descriptor_data() -> ::protobuf::reflect::GeneratedMessageDescriptorData {
+        let mut fields = ::std::vec::Vec::with_capacity(1);
+        let mut oneofs = ::std::vec::Vec::with_capacity(0);
+        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
+            "uri",
+            |m: &AuthenticatorEntryContentTotp| { &m.uri },
+            |m: &mut AuthenticatorEntryContentTotp| { &mut m.uri },
+        ));
+        ::protobuf::reflect::GeneratedMessageDescriptorData::new_2::<AuthenticatorEntryContentTotp>(
+            "AuthenticatorEntryContentTotp",
+            fields,
+            oneofs,
+        )
+    }
+}
+
+impl ::protobuf::Message for AuthenticatorEntryContentTotp {
+    const NAME: &'static str = "AuthenticatorEntryContentTotp";
+
+    fn is_initialized(&self) -> bool {
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
+        while let Some(tag) = is.read_raw_tag_or_eof()? {
+            match tag {
+                10 => {
+                    self.uri = is.read_string()?;
+                },
+                tag => {
+                    ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u64 {
+        let mut my_size = 0;
+        if !self.uri.is_empty() {
+            my_size += ::protobuf::rt::string_size(1, &self.uri);
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
+        self.special_fields.cached_size().set(my_size as u32);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
+        if !self.uri.is_empty() {
+            os.write_string(1, &self.uri)?;
+        }
+        os.write_unknown_fields(self.special_fields.unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn special_fields(&self) -> &::protobuf::SpecialFields {
+        &self.special_fields
+    }
+
+    fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
+        &mut self.special_fields
+    }
+
+    fn new() -> AuthenticatorEntryContentTotp {
+        AuthenticatorEntryContentTotp::new()
+    }
+
+    fn clear(&mut self) {
+        self.uri.clear();
+        self.special_fields.clear();
+    }
+
+    fn default_instance() -> &'static AuthenticatorEntryContentTotp {
+        static instance: AuthenticatorEntryContentTotp = AuthenticatorEntryContentTotp {
+            uri: ::std::string::String::new(),
+            special_fields: ::protobuf::SpecialFields::new(),
+        };
+        &instance
+    }
+}
+
+impl ::protobuf::MessageFull for AuthenticatorEntryContentTotp {
+    fn descriptor() -> ::protobuf::reflect::MessageDescriptor {
+        static descriptor: ::protobuf::rt::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::rt::Lazy::new();
+        descriptor.get(|| file_descriptor().message_by_package_relative_name("AuthenticatorEntryContentTotp").unwrap()).clone()
+    }
+}
+
+impl ::std::fmt::Display for AuthenticatorEntryContentTotp {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for AuthenticatorEntryContentTotp {
+    type RuntimeType = ::protobuf::reflect::rt::RuntimeTypeMessage<Self>;
+}
+
+// @@protoc_insertion_point(message:AuthenticatorEntryContentSteam)
+#[derive(PartialEq,Clone,Default,Debug)]
+pub struct AuthenticatorEntryContentSteam {
+    // message fields
+    // @@protoc_insertion_point(field:AuthenticatorEntryContentSteam.secret)
+    pub secret: ::std::string::String,
+    // special fields
+    // @@protoc_insertion_point(special_field:AuthenticatorEntryContentSteam.special_fields)
+    pub special_fields: ::protobuf::SpecialFields,
+}
+
+impl<'a> ::std::default::Default for &'a AuthenticatorEntryContentSteam {
+    fn default() -> &'a AuthenticatorEntryContentSteam {
+        <AuthenticatorEntryContentSteam as ::protobuf::Message>::default_instance()
+    }
+}
+
+impl AuthenticatorEntryContentSteam {
+    pub fn new() -> AuthenticatorEntryContentSteam {
+        ::std::default::Default::default()
+    }
+
+    fn generated_message_descriptor_data() -> ::protobuf::reflect::GeneratedMessageDescriptorData {
+        let mut fields = ::std::vec::Vec::with_capacity(1);
+        let mut oneofs = ::std::vec::Vec::with_capacity(0);
+        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
+            "secret",
+            |m: &AuthenticatorEntryContentSteam| { &m.secret },
+            |m: &mut AuthenticatorEntryContentSteam| { &mut m.secret },
+        ));
+        ::protobuf::reflect::GeneratedMessageDescriptorData::new_2::<AuthenticatorEntryContentSteam>(
+            "AuthenticatorEntryContentSteam",
+            fields,
+            oneofs,
+        )
+    }
+}
+
+impl ::protobuf::Message for AuthenticatorEntryContentSteam {
+    const NAME: &'static str = "AuthenticatorEntryContentSteam";
+
+    fn is_initialized(&self) -> bool {
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
+        while let Some(tag) = is.read_raw_tag_or_eof()? {
+            match tag {
+                10 => {
+                    self.secret = is.read_string()?;
+                },
+                tag => {
+                    ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u64 {
+        let mut my_size = 0;
+        if !self.secret.is_empty() {
+            my_size += ::protobuf::rt::string_size(1, &self.secret);
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
+        self.special_fields.cached_size().set(my_size as u32);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
+        if !self.secret.is_empty() {
+            os.write_string(1, &self.secret)?;
+        }
+        os.write_unknown_fields(self.special_fields.unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn special_fields(&self) -> &::protobuf::SpecialFields {
+        &self.special_fields
+    }
+
+    fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
+        &mut self.special_fields
+    }
+
+    fn new() -> AuthenticatorEntryContentSteam {
+        AuthenticatorEntryContentSteam::new()
+    }
+
+    fn clear(&mut self) {
+        self.secret.clear();
+        self.special_fields.clear();
+    }
+
+    fn default_instance() -> &'static AuthenticatorEntryContentSteam {
+        static instance: AuthenticatorEntryContentSteam = AuthenticatorEntryContentSteam {
+            secret: ::std::string::String::new(),
+            special_fields: ::protobuf::SpecialFields::new(),
+        };
+        &instance
+    }
+}
+
+impl ::protobuf::MessageFull for AuthenticatorEntryContentSteam {
+    fn descriptor() -> ::protobuf::reflect::MessageDescriptor {
+        static descriptor: ::protobuf::rt::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::rt::Lazy::new();
+        descriptor.get(|| file_descriptor().message_by_package_relative_name("AuthenticatorEntryContentSteam").unwrap()).clone()
+    }
+}
+
+impl ::std::fmt::Display for AuthenticatorEntryContentSteam {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for AuthenticatorEntryContentSteam {
+    type RuntimeType = ::protobuf::reflect::rt::RuntimeTypeMessage<Self>;
+}
+
 // @@protoc_insertion_point(message:AuthenticatorEntryContent)
 #[derive(PartialEq,Clone,Default,Debug)]
 pub struct AuthenticatorEntryContent {
-    // message fields
-    // @@protoc_insertion_point(field:AuthenticatorEntryContent.entry_type)
-    pub entry_type: ::protobuf::EnumOrUnknown<AuthenticatorEntryType>,
-    // @@protoc_insertion_point(field:AuthenticatorEntryContent.uri)
-    pub uri: ::std::string::String,
+    // message oneof groups
+    pub content: ::std::option::Option<authenticator_entry_content::Content>,
     // special fields
     // @@protoc_insertion_point(special_field:AuthenticatorEntryContent.special_fields)
     pub special_fields: ::protobuf::SpecialFields,
@@ -48,19 +289,122 @@ impl AuthenticatorEntryContent {
         ::std::default::Default::default()
     }
 
+    // .AuthenticatorEntryContentTotp totp = 1;
+
+    pub fn totp(&self) -> &AuthenticatorEntryContentTotp {
+        match self.content {
+            ::std::option::Option::Some(authenticator_entry_content::Content::Totp(ref v)) => v,
+            _ => <AuthenticatorEntryContentTotp as ::protobuf::Message>::default_instance(),
+        }
+    }
+
+    pub fn clear_totp(&mut self) {
+        self.content = ::std::option::Option::None;
+    }
+
+    pub fn has_totp(&self) -> bool {
+        match self.content {
+            ::std::option::Option::Some(authenticator_entry_content::Content::Totp(..)) => true,
+            _ => false,
+        }
+    }
+
+    // Param is passed by value, moved
+    pub fn set_totp(&mut self, v: AuthenticatorEntryContentTotp) {
+        self.content = ::std::option::Option::Some(authenticator_entry_content::Content::Totp(v))
+    }
+
+    // Mutable pointer to the field.
+    pub fn mut_totp(&mut self) -> &mut AuthenticatorEntryContentTotp {
+        if let ::std::option::Option::Some(authenticator_entry_content::Content::Totp(_)) = self.content {
+        } else {
+            self.content = ::std::option::Option::Some(authenticator_entry_content::Content::Totp(AuthenticatorEntryContentTotp::new()));
+        }
+        match self.content {
+            ::std::option::Option::Some(authenticator_entry_content::Content::Totp(ref mut v)) => v,
+            _ => panic!(),
+        }
+    }
+
+    // Take field
+    pub fn take_totp(&mut self) -> AuthenticatorEntryContentTotp {
+        if self.has_totp() {
+            match self.content.take() {
+                ::std::option::Option::Some(authenticator_entry_content::Content::Totp(v)) => v,
+                _ => panic!(),
+            }
+        } else {
+            AuthenticatorEntryContentTotp::new()
+        }
+    }
+
+    // .AuthenticatorEntryContentSteam steam = 2;
+
+    pub fn steam(&self) -> &AuthenticatorEntryContentSteam {
+        match self.content {
+            ::std::option::Option::Some(authenticator_entry_content::Content::Steam(ref v)) => v,
+            _ => <AuthenticatorEntryContentSteam as ::protobuf::Message>::default_instance(),
+        }
+    }
+
+    pub fn clear_steam(&mut self) {
+        self.content = ::std::option::Option::None;
+    }
+
+    pub fn has_steam(&self) -> bool {
+        match self.content {
+            ::std::option::Option::Some(authenticator_entry_content::Content::Steam(..)) => true,
+            _ => false,
+        }
+    }
+
+    // Param is passed by value, moved
+    pub fn set_steam(&mut self, v: AuthenticatorEntryContentSteam) {
+        self.content = ::std::option::Option::Some(authenticator_entry_content::Content::Steam(v))
+    }
+
+    // Mutable pointer to the field.
+    pub fn mut_steam(&mut self) -> &mut AuthenticatorEntryContentSteam {
+        if let ::std::option::Option::Some(authenticator_entry_content::Content::Steam(_)) = self.content {
+        } else {
+            self.content = ::std::option::Option::Some(authenticator_entry_content::Content::Steam(AuthenticatorEntryContentSteam::new()));
+        }
+        match self.content {
+            ::std::option::Option::Some(authenticator_entry_content::Content::Steam(ref mut v)) => v,
+            _ => panic!(),
+        }
+    }
+
+    // Take field
+    pub fn take_steam(&mut self) -> AuthenticatorEntryContentSteam {
+        if self.has_steam() {
+            match self.content.take() {
+                ::std::option::Option::Some(authenticator_entry_content::Content::Steam(v)) => v,
+                _ => panic!(),
+            }
+        } else {
+            AuthenticatorEntryContentSteam::new()
+        }
+    }
+
     fn generated_message_descriptor_data() -> ::protobuf::reflect::GeneratedMessageDescriptorData {
         let mut fields = ::std::vec::Vec::with_capacity(2);
-        let mut oneofs = ::std::vec::Vec::with_capacity(0);
-        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
-            "entry_type",
-            |m: &AuthenticatorEntryContent| { &m.entry_type },
-            |m: &mut AuthenticatorEntryContent| { &mut m.entry_type },
+        let mut oneofs = ::std::vec::Vec::with_capacity(1);
+        fields.push(::protobuf::reflect::rt::v2::make_oneof_message_has_get_mut_set_accessor::<_, AuthenticatorEntryContentTotp>(
+            "totp",
+            AuthenticatorEntryContent::has_totp,
+            AuthenticatorEntryContent::totp,
+            AuthenticatorEntryContent::mut_totp,
+            AuthenticatorEntryContent::set_totp,
         ));
-        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
-            "uri",
-            |m: &AuthenticatorEntryContent| { &m.uri },
-            |m: &mut AuthenticatorEntryContent| { &mut m.uri },
+        fields.push(::protobuf::reflect::rt::v2::make_oneof_message_has_get_mut_set_accessor::<_, AuthenticatorEntryContentSteam>(
+            "steam",
+            AuthenticatorEntryContent::has_steam,
+            AuthenticatorEntryContent::steam,
+            AuthenticatorEntryContent::mut_steam,
+            AuthenticatorEntryContent::set_steam,
         ));
+        oneofs.push(authenticator_entry_content::Content::generated_oneof_descriptor_data());
         ::protobuf::reflect::GeneratedMessageDescriptorData::new_2::<AuthenticatorEntryContent>(
             "AuthenticatorEntryContent",
             fields,
@@ -79,11 +423,11 @@ impl ::protobuf::Message for AuthenticatorEntryContent {
     fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
         while let Some(tag) = is.read_raw_tag_or_eof()? {
             match tag {
-                8 => {
-                    self.entry_type = is.read_enum_or_unknown()?;
+                10 => {
+                    self.content = ::std::option::Option::Some(authenticator_entry_content::Content::Totp(is.read_message()?));
                 },
                 18 => {
-                    self.uri = is.read_string()?;
+                    self.content = ::std::option::Option::Some(authenticator_entry_content::Content::Steam(is.read_message()?));
                 },
                 tag => {
                     ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
@@ -97,11 +441,17 @@ impl ::protobuf::Message for AuthenticatorEntryContent {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u64 {
         let mut my_size = 0;
-        if self.entry_type != ::protobuf::EnumOrUnknown::new(AuthenticatorEntryType::TOTP) {
-            my_size += ::protobuf::rt::int32_size(1, self.entry_type.value());
-        }
-        if !self.uri.is_empty() {
-            my_size += ::protobuf::rt::string_size(2, &self.uri);
+        if let ::std::option::Option::Some(ref v) = self.content {
+            match v {
+                &authenticator_entry_content::Content::Totp(ref v) => {
+                    let len = v.compute_size();
+                    my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
+                },
+                &authenticator_entry_content::Content::Steam(ref v) => {
+                    let len = v.compute_size();
+                    my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
+                },
+            };
         }
         my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
         self.special_fields.cached_size().set(my_size as u32);
@@ -109,11 +459,15 @@ impl ::protobuf::Message for AuthenticatorEntryContent {
     }
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
-        if self.entry_type != ::protobuf::EnumOrUnknown::new(AuthenticatorEntryType::TOTP) {
-            os.write_enum(1, ::protobuf::EnumOrUnknown::value(&self.entry_type))?;
-        }
-        if !self.uri.is_empty() {
-            os.write_string(2, &self.uri)?;
+        if let ::std::option::Option::Some(ref v) = self.content {
+            match v {
+                &authenticator_entry_content::Content::Totp(ref v) => {
+                    ::protobuf::rt::write_message_field_with_cached_size(1, v, os)?;
+                },
+                &authenticator_entry_content::Content::Steam(ref v) => {
+                    ::protobuf::rt::write_message_field_with_cached_size(2, v, os)?;
+                },
+            };
         }
         os.write_unknown_fields(self.special_fields.unknown_fields())?;
         ::std::result::Result::Ok(())
@@ -132,15 +486,14 @@ impl ::protobuf::Message for AuthenticatorEntryContent {
     }
 
     fn clear(&mut self) {
-        self.entry_type = ::protobuf::EnumOrUnknown::new(AuthenticatorEntryType::TOTP);
-        self.uri.clear();
+        self.content = ::std::option::Option::None;
+        self.content = ::std::option::Option::None;
         self.special_fields.clear();
     }
 
     fn default_instance() -> &'static AuthenticatorEntryContent {
         static instance: AuthenticatorEntryContent = AuthenticatorEntryContent {
-            entry_type: ::protobuf::EnumOrUnknown::from_i32(0),
-            uri: ::std::string::String::new(),
+            content: ::std::option::Option::None,
             special_fields: ::protobuf::SpecialFields::new(),
         };
         &instance
@@ -164,14 +517,184 @@ impl ::protobuf::reflect::ProtobufValue for AuthenticatorEntryContent {
     type RuntimeType = ::protobuf::reflect::rt::RuntimeTypeMessage<Self>;
 }
 
+/// Nested message and enums of message `AuthenticatorEntryContent`
+pub mod authenticator_entry_content {
+
+    #[derive(Clone,PartialEq,Debug)]
+    #[non_exhaustive]
+    // @@protoc_insertion_point(oneof:AuthenticatorEntryContent.content)
+    pub enum Content {
+        // @@protoc_insertion_point(oneof_field:AuthenticatorEntryContent.totp)
+        Totp(super::AuthenticatorEntryContentTotp),
+        // @@protoc_insertion_point(oneof_field:AuthenticatorEntryContent.steam)
+        Steam(super::AuthenticatorEntryContentSteam),
+    }
+
+    impl ::protobuf::Oneof for Content {
+    }
+
+    impl ::protobuf::OneofFull for Content {
+        fn descriptor() -> ::protobuf::reflect::OneofDescriptor {
+            static descriptor: ::protobuf::rt::Lazy<::protobuf::reflect::OneofDescriptor> = ::protobuf::rt::Lazy::new();
+            descriptor.get(|| <super::AuthenticatorEntryContent as ::protobuf::MessageFull>::descriptor().oneof_by_name("content").unwrap()).clone()
+        }
+    }
+
+    impl Content {
+        pub(in super) fn generated_oneof_descriptor_data() -> ::protobuf::reflect::GeneratedOneofDescriptorData {
+            ::protobuf::reflect::GeneratedOneofDescriptorData::new::<Content>("content")
+        }
+    }
+}
+
+// @@protoc_insertion_point(message:AuthenticatorEntryMetadata)
+#[derive(PartialEq,Clone,Default,Debug)]
+pub struct AuthenticatorEntryMetadata {
+    // message fields
+    // @@protoc_insertion_point(field:AuthenticatorEntryMetadata.name)
+    pub name: ::std::string::String,
+    // @@protoc_insertion_point(field:AuthenticatorEntryMetadata.note)
+    pub note: ::std::string::String,
+    // special fields
+    // @@protoc_insertion_point(special_field:AuthenticatorEntryMetadata.special_fields)
+    pub special_fields: ::protobuf::SpecialFields,
+}
+
+impl<'a> ::std::default::Default for &'a AuthenticatorEntryMetadata {
+    fn default() -> &'a AuthenticatorEntryMetadata {
+        <AuthenticatorEntryMetadata as ::protobuf::Message>::default_instance()
+    }
+}
+
+impl AuthenticatorEntryMetadata {
+    pub fn new() -> AuthenticatorEntryMetadata {
+        ::std::default::Default::default()
+    }
+
+    fn generated_message_descriptor_data() -> ::protobuf::reflect::GeneratedMessageDescriptorData {
+        let mut fields = ::std::vec::Vec::with_capacity(2);
+        let mut oneofs = ::std::vec::Vec::with_capacity(0);
+        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
+            "name",
+            |m: &AuthenticatorEntryMetadata| { &m.name },
+            |m: &mut AuthenticatorEntryMetadata| { &mut m.name },
+        ));
+        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
+            "note",
+            |m: &AuthenticatorEntryMetadata| { &m.note },
+            |m: &mut AuthenticatorEntryMetadata| { &mut m.note },
+        ));
+        ::protobuf::reflect::GeneratedMessageDescriptorData::new_2::<AuthenticatorEntryMetadata>(
+            "AuthenticatorEntryMetadata",
+            fields,
+            oneofs,
+        )
+    }
+}
+
+impl ::protobuf::Message for AuthenticatorEntryMetadata {
+    const NAME: &'static str = "AuthenticatorEntryMetadata";
+
+    fn is_initialized(&self) -> bool {
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
+        while let Some(tag) = is.read_raw_tag_or_eof()? {
+            match tag {
+                10 => {
+                    self.name = is.read_string()?;
+                },
+                18 => {
+                    self.note = is.read_string()?;
+                },
+                tag => {
+                    ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u64 {
+        let mut my_size = 0;
+        if !self.name.is_empty() {
+            my_size += ::protobuf::rt::string_size(1, &self.name);
+        }
+        if !self.note.is_empty() {
+            my_size += ::protobuf::rt::string_size(2, &self.note);
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
+        self.special_fields.cached_size().set(my_size as u32);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
+        if !self.name.is_empty() {
+            os.write_string(1, &self.name)?;
+        }
+        if !self.note.is_empty() {
+            os.write_string(2, &self.note)?;
+        }
+        os.write_unknown_fields(self.special_fields.unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn special_fields(&self) -> &::protobuf::SpecialFields {
+        &self.special_fields
+    }
+
+    fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
+        &mut self.special_fields
+    }
+
+    fn new() -> AuthenticatorEntryMetadata {
+        AuthenticatorEntryMetadata::new()
+    }
+
+    fn clear(&mut self) {
+        self.name.clear();
+        self.note.clear();
+        self.special_fields.clear();
+    }
+
+    fn default_instance() -> &'static AuthenticatorEntryMetadata {
+        static instance: AuthenticatorEntryMetadata = AuthenticatorEntryMetadata {
+            name: ::std::string::String::new(),
+            note: ::std::string::String::new(),
+            special_fields: ::protobuf::SpecialFields::new(),
+        };
+        &instance
+    }
+}
+
+impl ::protobuf::MessageFull for AuthenticatorEntryMetadata {
+    fn descriptor() -> ::protobuf::reflect::MessageDescriptor {
+        static descriptor: ::protobuf::rt::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::rt::Lazy::new();
+        descriptor.get(|| file_descriptor().message_by_package_relative_name("AuthenticatorEntryMetadata").unwrap()).clone()
+    }
+}
+
+impl ::std::fmt::Display for AuthenticatorEntryMetadata {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for AuthenticatorEntryMetadata {
+    type RuntimeType = ::protobuf::reflect::rt::RuntimeTypeMessage<Self>;
+}
+
 // @@protoc_insertion_point(message:AuthenticatorEntry)
 #[derive(PartialEq,Clone,Default,Debug)]
 pub struct AuthenticatorEntry {
     // message fields
+    // @@protoc_insertion_point(field:AuthenticatorEntry.metadata)
+    pub metadata: ::protobuf::MessageField<AuthenticatorEntryMetadata>,
     // @@protoc_insertion_point(field:AuthenticatorEntry.content)
     pub content: ::protobuf::MessageField<AuthenticatorEntryContent>,
-    // @@protoc_insertion_point(field:AuthenticatorEntry.note)
-    pub note: ::std::string::String,
     // special fields
     // @@protoc_insertion_point(special_field:AuthenticatorEntry.special_fields)
     pub special_fields: ::protobuf::SpecialFields,
@@ -191,15 +714,15 @@ impl AuthenticatorEntry {
     fn generated_message_descriptor_data() -> ::protobuf::reflect::GeneratedMessageDescriptorData {
         let mut fields = ::std::vec::Vec::with_capacity(2);
         let mut oneofs = ::std::vec::Vec::with_capacity(0);
+        fields.push(::protobuf::reflect::rt::v2::make_message_field_accessor::<_, AuthenticatorEntryMetadata>(
+            "metadata",
+            |m: &AuthenticatorEntry| { &m.metadata },
+            |m: &mut AuthenticatorEntry| { &mut m.metadata },
+        ));
         fields.push(::protobuf::reflect::rt::v2::make_message_field_accessor::<_, AuthenticatorEntryContent>(
             "content",
             |m: &AuthenticatorEntry| { &m.content },
             |m: &mut AuthenticatorEntry| { &mut m.content },
-        ));
-        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
-            "note",
-            |m: &AuthenticatorEntry| { &m.note },
-            |m: &mut AuthenticatorEntry| { &mut m.note },
         ));
         ::protobuf::reflect::GeneratedMessageDescriptorData::new_2::<AuthenticatorEntry>(
             "AuthenticatorEntry",
@@ -220,10 +743,10 @@ impl ::protobuf::Message for AuthenticatorEntry {
         while let Some(tag) = is.read_raw_tag_or_eof()? {
             match tag {
                 10 => {
-                    ::protobuf::rt::read_singular_message_into_field(is, &mut self.content)?;
+                    ::protobuf::rt::read_singular_message_into_field(is, &mut self.metadata)?;
                 },
                 18 => {
-                    self.note = is.read_string()?;
+                    ::protobuf::rt::read_singular_message_into_field(is, &mut self.content)?;
                 },
                 tag => {
                     ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
@@ -237,12 +760,13 @@ impl ::protobuf::Message for AuthenticatorEntry {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u64 {
         let mut my_size = 0;
-        if let Some(v) = self.content.as_ref() {
+        if let Some(v) = self.metadata.as_ref() {
             let len = v.compute_size();
             my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
         }
-        if !self.note.is_empty() {
-            my_size += ::protobuf::rt::string_size(2, &self.note);
+        if let Some(v) = self.content.as_ref() {
+            let len = v.compute_size();
+            my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
         }
         my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
         self.special_fields.cached_size().set(my_size as u32);
@@ -250,11 +774,11 @@ impl ::protobuf::Message for AuthenticatorEntry {
     }
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
-        if let Some(v) = self.content.as_ref() {
+        if let Some(v) = self.metadata.as_ref() {
             ::protobuf::rt::write_message_field_with_cached_size(1, v, os)?;
         }
-        if !self.note.is_empty() {
-            os.write_string(2, &self.note)?;
+        if let Some(v) = self.content.as_ref() {
+            ::protobuf::rt::write_message_field_with_cached_size(2, v, os)?;
         }
         os.write_unknown_fields(self.special_fields.unknown_fields())?;
         ::std::result::Result::Ok(())
@@ -273,15 +797,15 @@ impl ::protobuf::Message for AuthenticatorEntry {
     }
 
     fn clear(&mut self) {
+        self.metadata.clear();
         self.content.clear();
-        self.note.clear();
         self.special_fields.clear();
     }
 
     fn default_instance() -> &'static AuthenticatorEntry {
         static instance: AuthenticatorEntry = AuthenticatorEntry {
+            metadata: ::protobuf::MessageField::none(),
             content: ::protobuf::MessageField::none(),
-            note: ::std::string::String::new(),
             special_fields: ::protobuf::SpecialFields::new(),
         };
         &instance
@@ -305,79 +829,18 @@ impl ::protobuf::reflect::ProtobufValue for AuthenticatorEntry {
     type RuntimeType = ::protobuf::reflect::rt::RuntimeTypeMessage<Self>;
 }
 
-#[derive(Clone,Copy,PartialEq,Eq,Debug,Hash)]
-// @@protoc_insertion_point(enum:AuthenticatorEntryType)
-pub enum AuthenticatorEntryType {
-    // @@protoc_insertion_point(enum_value:AuthenticatorEntryType.TOTP)
-    TOTP = 0,
-    // @@protoc_insertion_point(enum_value:AuthenticatorEntryType.STEAM)
-    STEAM = 2,
-}
-
-impl ::protobuf::Enum for AuthenticatorEntryType {
-    const NAME: &'static str = "AuthenticatorEntryType";
-
-    fn value(&self) -> i32 {
-        *self as i32
-    }
-
-    fn from_i32(value: i32) -> ::std::option::Option<AuthenticatorEntryType> {
-        match value {
-            0 => ::std::option::Option::Some(AuthenticatorEntryType::TOTP),
-            2 => ::std::option::Option::Some(AuthenticatorEntryType::STEAM),
-            _ => ::std::option::Option::None
-        }
-    }
-
-    fn from_str(str: &str) -> ::std::option::Option<AuthenticatorEntryType> {
-        match str {
-            "TOTP" => ::std::option::Option::Some(AuthenticatorEntryType::TOTP),
-            "STEAM" => ::std::option::Option::Some(AuthenticatorEntryType::STEAM),
-            _ => ::std::option::Option::None
-        }
-    }
-
-    const VALUES: &'static [AuthenticatorEntryType] = &[
-        AuthenticatorEntryType::TOTP,
-        AuthenticatorEntryType::STEAM,
-    ];
-}
-
-impl ::protobuf::EnumFull for AuthenticatorEntryType {
-    fn enum_descriptor() -> ::protobuf::reflect::EnumDescriptor {
-        static descriptor: ::protobuf::rt::Lazy<::protobuf::reflect::EnumDescriptor> = ::protobuf::rt::Lazy::new();
-        descriptor.get(|| file_descriptor().enum_by_package_relative_name("AuthenticatorEntryType").unwrap()).clone()
-    }
-
-    fn descriptor(&self) -> ::protobuf::reflect::EnumValueDescriptor {
-        let index = match self {
-            AuthenticatorEntryType::TOTP => 0,
-            AuthenticatorEntryType::STEAM => 1,
-        };
-        Self::enum_descriptor().value_by_index(index)
-    }
-}
-
-impl ::std::default::Default for AuthenticatorEntryType {
-    fn default() -> Self {
-        AuthenticatorEntryType::TOTP
-    }
-}
-
-impl AuthenticatorEntryType {
-    fn generated_enum_descriptor_data() -> ::protobuf::reflect::GeneratedEnumDescriptorData {
-        ::protobuf::reflect::GeneratedEnumDescriptorData::new::<AuthenticatorEntryType>("AuthenticatorEntryType")
-    }
-}
-
 static file_descriptor_proto_data: &'static [u8] = b"\
-    \n\x19authenticator_entry.proto\"e\n\x19AuthenticatorEntryContent\x126\n\
-    \nentry_type\x18\x01\x20\x01(\x0e2\x17.AuthenticatorEntryTypeR\tentryTyp\
-    e\x12\x10\n\x03uri\x18\x02\x20\x01(\tR\x03uri\"^\n\x12AuthenticatorEntry\
-    \x124\n\x07content\x18\x01\x20\x01(\x0b2\x1a.AuthenticatorEntryContentR\
-    \x07content\x12\x12\n\x04note\x18\x02\x20\x01(\tR\x04note*-\n\x16Authent\
-    icatorEntryType\x12\x08\n\x04TOTP\x10\0\x12\t\n\x05STEAM\x10\x02b\x06pro\
-    to3\
+    \n\x19authenticator_entry.proto\"1\n\x1dAuthenticatorEntryContentTotp\
+    \x12\x10\n\x03uri\x18\x01\x20\x01(\tR\x03uri\"8\n\x1eAuthenticatorEntryC\
+    ontentSteam\x12\x16\n\x06secret\x18\x01\x20\x01(\tR\x06secret\"\x95\x01\
+    \n\x19AuthenticatorEntryContent\x124\n\x04totp\x18\x01\x20\x01(\x0b2\x1e\
+    .AuthenticatorEntryContentTotpH\0R\x04totp\x127\n\x05steam\x18\x02\x20\
+    \x01(\x0b2\x1f.AuthenticatorEntryContentSteamH\0R\x05steamB\t\n\x07conte\
+    nt\"D\n\x1aAuthenticatorEntryMetadata\x12\x12\n\x04name\x18\x01\x20\x01(\
+    \tR\x04name\x12\x12\n\x04note\x18\x02\x20\x01(\tR\x04note\"\x83\x01\n\
+    \x12AuthenticatorEntry\x127\n\x08metadata\x18\x01\x20\x01(\x0b2\x1b.Auth\
+    enticatorEntryMetadataR\x08metadata\x124\n\x07content\x18\x02\x20\x01(\
+    \x0b2\x1a.AuthenticatorEntryContentR\x07contentb\x06proto3\
 ";
 
 /// `FileDescriptorProto` object which was a source for this generated file
@@ -395,11 +858,13 @@ pub fn file_descriptor() -> &'static ::protobuf::reflect::FileDescriptor {
     file_descriptor.get(|| {
         let generated_file_descriptor = generated_file_descriptor_lazy.get(|| {
             let mut deps = ::std::vec::Vec::with_capacity(0);
-            let mut messages = ::std::vec::Vec::with_capacity(2);
+            let mut messages = ::std::vec::Vec::with_capacity(5);
+            messages.push(AuthenticatorEntryContentTotp::generated_message_descriptor_data());
+            messages.push(AuthenticatorEntryContentSteam::generated_message_descriptor_data());
             messages.push(AuthenticatorEntryContent::generated_message_descriptor_data());
+            messages.push(AuthenticatorEntryMetadata::generated_message_descriptor_data());
             messages.push(AuthenticatorEntry::generated_message_descriptor_data());
-            let mut enums = ::std::vec::Vec::with_capacity(1);
-            enums.push(AuthenticatorEntryType::generated_enum_descriptor_data());
+            let mut enums = ::std::vec::Vec::with_capacity(0);
             ::protobuf::reflect::GeneratedFileDescriptor::new_generated(
                 file_descriptor_proto(),
                 deps,

@@ -24,7 +24,7 @@ impl From<proton_authenticator::AuthenticatorError> for AuthenticatorError {
 impl From<AuthenticatorEntry> for AuthenticatorEntryModel {
     fn from(entry: AuthenticatorEntry) -> Self {
         Self {
-            name: "".to_string(),
+            name: entry.name(),
             note: entry.note.clone(),
             uri: entry.uri(),
             period: entry.period(),

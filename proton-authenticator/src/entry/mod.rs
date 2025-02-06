@@ -79,6 +79,16 @@ impl AuthenticatorEntry {
             AuthenticatorEntryContent::Steam(_) => STEAM_PERIOD,
         }
     }
+
+    pub fn name(&self) -> String {
+        match &self.content {
+            AuthenticatorEntryContent::Totp(totp) => match &totp.label {
+                Some(label) => label.to_string(),
+                None => "".to_string(),
+            },
+            AuthenticatorEntryContent::Steam(steam) => steam.name(),
+        }
+    }
 }
 
 // public API

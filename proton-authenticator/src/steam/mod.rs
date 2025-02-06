@@ -16,7 +16,8 @@ pub enum SteamTotpError {
 
 #[derive(Clone, Debug)]
 pub struct SteamTotp {
-    secret: Vec<u8>,
+    pub(crate) secret: Vec<u8>,
+    pub(crate) name: Option<String>,
 }
 
 impl SteamTotp {
@@ -25,7 +26,7 @@ impl SteamTotp {
             return Err(SteamTotpError::BadSecret);
         }
         match base64::engine::general_purpose::STANDARD.decode(secret) {
-            Ok(secret) => Ok(SteamTotp { secret }),
+            Ok(secret) => Ok(SteamTotp { secret, name: None }),
             Err(_) => Err(SteamTotpError::BadSecret),
         }
     }
@@ -62,7 +63,7 @@ impl SteamTotp {
     }
 
     pub fn new_from_raw(secret: Vec<u8>) -> Self {
-        SteamTotp { secret }
+        SteamTotp { secret, name: None }
     }
 
     pub fn generate(&self, time: i64) -> String {
@@ -94,6 +95,17 @@ impl SteamTotp {
     pub fn uri(&self) -> String {
         let encoded_secret = base64::engine::general_purpose::STANDARD.encode(&self.secret);
         format!("steam://{encoded_secret}")
+    }
+
+    pub fn name(&self) -> String {
+        match &self.name {
+            Some(name) => name.to_string(),
+            None => "".to_string(),
+        }
+    }
+
+    pub fn secret(&self) -> String {
+        base64::engine::general_purpose::STANDARD.encode(&self.secret)
     }
 
     fn code_interval(time: i64) -> u64 {

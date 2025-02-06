@@ -1,3 +1,4 @@
+mod analyzer;
 mod password_generator;
 mod scorer;
 

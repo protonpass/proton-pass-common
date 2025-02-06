@@ -1,4 +1,4 @@
-use passwords::analyzer::analyze;
+use super::analyzer::analyze;
 use regex_lite::Regex;
 
 include!(concat!(env!("OUT_DIR"), "/common_passwords.rs"));

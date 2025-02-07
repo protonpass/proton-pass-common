@@ -10,6 +10,16 @@
 
 ### Features :tada:
 
+- authenticator: offer methods for creating entries manually.
+
+### Fixes :bug:
+
+- authenticator: add missing file for swift library.
+
+## 0.13.0
+
+### Features :tada:
+
 - totp: improve label parsing from TOTP URI.
 - authenticator: more importers.
 - authenticator: first version of the mobile bindings.

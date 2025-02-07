@@ -1,5 +1,7 @@
 use crate::AuthenticatorError;
-use proton_authenticator::{AuthenticatorClient, AuthenticatorCodeResponse, AuthenticatorEntry};
+use proton_authenticator::{
+    AuthenticatorClient, AuthenticatorCodeResponse, AuthenticatorEntry, AuthenticatorEntryContent,
+};
 use std::sync::Arc;
 
 #[derive(Clone, Debug)]
@@ -12,6 +14,12 @@ pub struct AuthenticatorEntryModel {
 }
 
 #[derive(Clone, Debug)]
+pub enum AuthenticatorEntryType {
+    TOTP,
+    Steam,
+}
+
+#[derive(Clone, Debug)]
 pub struct AuthenticatorEntryActions {
     inner: AuthenticatorEntry,
 }
@@ -21,8 +29,11 @@ impl AuthenticatorEntryActions {
         Self { inner: entry }
     }
 
-    pub fn entry_type(&self) -> String {
-        self.inner.entry_type()
+    pub fn entry_type(&self) -> AuthenticatorEntryType {
+        match &self.inner.content {
+            AuthenticatorEntryContent::Totp(_) => AuthenticatorEntryType::TOTP,
+            AuthenticatorEntryContent::Steam(_) => AuthenticatorEntryType::Steam,
+        }
     }
 
     pub(crate) fn entry(&self) -> AuthenticatorEntry {

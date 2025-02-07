@@ -8,8 +8,13 @@ dictionary AuthenticatorCodeResponse {
   string next_code;
 };
 
+enum AuthenticatorEntryType {
+  "TOTP",
+  "Steam"
+};
+
 interface AuthenticatorEntryActions {
-  string entry_type();
+  AuthenticatorEntryType entry_type();
 
   [Throws=AuthenticatorError]
   AuthenticatorCodeResponse generate_code(u64 time);

@@ -55,10 +55,10 @@ impl From<AuthenticatorTotpAlgorithm> for proton_authenticator::Algorithm {
 pub struct AuthenticatorEntryTotpCreateParameters {
     pub name: String,
     pub secret: String,
-    pub issuer: String,
-    pub period: u16,
-    pub digits: u8,
-    pub algorithm: AuthenticatorTotpAlgorithm,
+    pub issuer: Option<String>,
+    pub period: Option<u16>,
+    pub digits: Option<u8>,
+    pub algorithm: Option<AuthenticatorTotpAlgorithm>,
     pub note: Option<String>,
 }
 
@@ -93,10 +93,10 @@ impl AuthenticatorMobileClient {
             content: AuthenticatorEntryContent::Totp(proton_authenticator::TOTP {
                 label: Some(params.name),
                 secret: params.secret,
-                issuer: Some(params.issuer),
-                algorithm: Some(proton_authenticator::Algorithm::from(params.algorithm)),
-                digits: Some(params.digits),
-                period: Some(params.period),
+                issuer: params.issuer,
+                algorithm: params.algorithm.map(proton_authenticator::Algorithm::from),
+                digits: params.digits,
+                period: params.period,
             }),
             note: params.note,
         };

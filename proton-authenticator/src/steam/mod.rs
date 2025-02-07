@@ -66,6 +66,12 @@ impl SteamTotp {
         SteamTotp { secret, name: None }
     }
 
+    // Offered as a method instead of constructor, so we are always certain about it being an
+    // already validated instance
+    pub fn set_name(&mut self, name: Option<String>) {
+        self.name = name;
+    }
+
     pub fn generate(&self, time: i64) -> String {
         // 8-byte big-endian representation of the current interval
         let interval = Self::code_interval(time).to_be_bytes();

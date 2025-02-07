@@ -26,11 +26,39 @@ dictionary AuthenticatorEntryModel {
   AuthenticatorEntryActions actions;
 };
 
+enum AuthenticatorTotpAlgorithm {
+  "SHA1",
+  "SHA256",
+  "SHA512"
+};
+
+dictionary AuthenticatorEntryTotpCreateParameters {
+  string name;
+  string secret;
+  string issuer;
+  u16 period;
+  u8 digits;
+  AuthenticatorTotpAlgorithm algorithm;
+  string? note;
+};
+
+dictionary AuthenticatorEntrySteamCreateParameters {
+  string name;
+  string secret;
+  string? note;
+};
+
 interface AuthenticatorMobileClient {
   constructor();
 
   [Throws=AuthenticatorError]
   AuthenticatorEntryModel entry_from_uri(string uri);
+
+  [Throws=AuthenticatorError]
+  AuthenticatorEntryModel new_totp_entry_from_params(AuthenticatorEntryTotpCreateParameters params);
+
+  [Throws=AuthenticatorError]
+  AuthenticatorEntryModel new_steam_entry_from_params(AuthenticatorEntrySteamCreateParameters params);
 
   [Throws=AuthenticatorError]
   sequence<AuthenticatorCodeResponse> generate_codes(sequence<AuthenticatorEntryModel> entries, u64 time);

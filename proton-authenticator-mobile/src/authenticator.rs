@@ -1,6 +1,7 @@
 use crate::{AuthenticatorEntryActions, AuthenticatorEntryModel};
+use proton_authenticator::steam::SteamTotp;
 pub use proton_authenticator::AuthenticatorCodeResponse;
-use proton_authenticator::{AuthenticatorClient, AuthenticatorEntry};
+use proton_authenticator::{AuthenticatorClient, AuthenticatorEntry, AuthenticatorEntryContent};
 use proton_pass_derive::Error;
 use std::sync::Arc;
 
@@ -33,6 +34,41 @@ impl From<AuthenticatorEntry> for AuthenticatorEntryModel {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum AuthenticatorTotpAlgorithm {
+    SHA1,
+    SHA256,
+    SHA512,
+}
+
+impl From<AuthenticatorTotpAlgorithm> for proton_authenticator::Algorithm {
+    fn from(value: AuthenticatorTotpAlgorithm) -> Self {
+        match value {
+            AuthenticatorTotpAlgorithm::SHA1 => proton_authenticator::Algorithm::SHA1,
+            AuthenticatorTotpAlgorithm::SHA256 => proton_authenticator::Algorithm::SHA256,
+            AuthenticatorTotpAlgorithm::SHA512 => proton_authenticator::Algorithm::SHA512,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct AuthenticatorEntryTotpCreateParameters {
+    pub name: String,
+    pub secret: String,
+    pub issuer: String,
+    pub period: u16,
+    pub digits: u8,
+    pub algorithm: AuthenticatorTotpAlgorithm,
+    pub note: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct AuthenticatorEntrySteamCreateParameters {
+    pub name: String,
+    pub secret: String,
+    pub note: Option<String>,
+}
+
 pub struct AuthenticatorMobileClient {
     inner: AuthenticatorClient,
 }
@@ -46,6 +82,40 @@ impl AuthenticatorMobileClient {
 
     pub fn entry_from_uri(&self, uri: String) -> Result<AuthenticatorEntryModel, AuthenticatorError> {
         let entry = self.inner.entry_from_uri(uri)?;
+        Ok(entry.into())
+    }
+
+    pub fn new_totp_entry_from_params(
+        &self,
+        params: AuthenticatorEntryTotpCreateParameters,
+    ) -> Result<AuthenticatorEntryModel, AuthenticatorError> {
+        let entry = AuthenticatorEntry {
+            content: AuthenticatorEntryContent::Totp(proton_authenticator::TOTP {
+                label: Some(params.name),
+                secret: params.secret,
+                issuer: Some(params.issuer),
+                algorithm: Some(proton_authenticator::Algorithm::from(params.algorithm)),
+                digits: Some(params.digits),
+                period: Some(params.period),
+            }),
+            note: params.note,
+        };
+        Ok(entry.into())
+    }
+
+    pub fn new_steam_entry_from_params(
+        &self,
+        params: AuthenticatorEntrySteamCreateParameters,
+    ) -> Result<AuthenticatorEntryModel, AuthenticatorError> {
+        let mut steam = SteamTotp::new(&params.secret).map_err(|_| AuthenticatorError {
+            e: proton_authenticator::AuthenticatorError::Unknown("Invalid secret".to_string()),
+        })?;
+
+        steam.set_name(Some(params.name));
+        let entry = AuthenticatorEntry {
+            content: AuthenticatorEntryContent::Steam(steam),
+            note: params.note,
+        };
         Ok(entry.into())
     }
 

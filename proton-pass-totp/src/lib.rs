@@ -5,3 +5,6 @@ pub mod sanitizer;
 
 #[allow(clippy::module_inception)]
 pub mod totp;
+
+pub use algorithm::Algorithm;
+pub use totp::TOTP;

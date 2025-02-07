@@ -20,3 +20,5 @@ pub use parser::{ImportError, ImportResult, ThirdPartyImportError};
 pub fn library_version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
 }
+
+pub use proton_pass_totp::{Algorithm, TOTP};

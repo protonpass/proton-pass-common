@@ -1,0 +1,22 @@
+[Error]
+enum AuthenticatorCryptoError {
+  "CryptoError"
+};
+
+interface AuthenticatorCrypto {
+  constructor();
+
+  bytes generate_key();
+
+  [Throws=AuthenticatorCryptoError]
+  bytes encrypt(bytes plaintext, bytes key, string? tag);
+
+  [Throws=AuthenticatorCryptoError]
+  sequence<bytes> encrypt_many(sequence<bytes> plaintexts, bytes key, string? tag);
+
+  [Throws=AuthenticatorCryptoError]
+  bytes decrypt(bytes ciphertext, bytes key, string? tag);
+
+  [Throws=AuthenticatorCryptoError]
+  sequence<bytes> decrypt_many(sequence<bytes> ciphertexts, bytes key, string? tag);
+};

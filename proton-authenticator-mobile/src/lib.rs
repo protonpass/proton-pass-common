@@ -1,6 +1,7 @@
 #![allow(clippy::new_without_default)]
 
 mod authenticator;
+mod crypto;
 mod entry;
 mod import;
 
@@ -11,5 +12,6 @@ pub fn library_version() -> String {
 }
 
 pub use authenticator::*;
+pub use crypto::*;
 pub use entry::*;
 pub use import::*;

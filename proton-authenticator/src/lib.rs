@@ -1,3 +1,4 @@
+pub mod crypto;
 pub mod entry;
 pub mod parser;
 pub mod steam;

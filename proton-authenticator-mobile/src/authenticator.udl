@@ -13,22 +13,12 @@ enum AuthenticatorEntryType {
   "Steam"
 };
 
-interface AuthenticatorEntryActions {
-  AuthenticatorEntryType entry_type();
-
-  [Throws=AuthenticatorError]
-  AuthenticatorCodeResponse generate_code(u64 time);
-
-  [Throws=AuthenticatorError]
-  bytes serialize();
-};
-
 dictionary AuthenticatorEntryModel {
   string name;
   string uri;
   u16 period;
   string? note;
-  AuthenticatorEntryActions actions;
+  AuthenticatorEntryType entry_type;
 };
 
 enum AuthenticatorTotpAlgorithm {

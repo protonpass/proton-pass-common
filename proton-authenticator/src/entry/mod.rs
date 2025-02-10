@@ -90,13 +90,3 @@ impl AuthenticatorEntry {
         }
     }
 }
-
-// public API
-impl AuthenticatorEntry {
-    pub fn entry_type(&self) -> String {
-        match &self.content {
-            AuthenticatorEntryContent::Totp(_) => "totp".to_string(),
-            AuthenticatorEntryContent::Steam(_) => "steam".to_string(),
-        }
-    }
-}

@@ -1,9 +1,8 @@
-use crate::{AuthenticatorEntryActions, AuthenticatorEntryModel};
+use crate::{AuthenticatorEntryModel, AuthenticatorEntryType};
 use proton_authenticator::steam::SteamTotp;
 pub use proton_authenticator::AuthenticatorCodeResponse;
 use proton_authenticator::{AuthenticatorClient, AuthenticatorEntry, AuthenticatorEntryContent};
 use proton_pass_derive::Error;
-use std::sync::Arc;
 
 #[derive(Debug, Error)]
 pub struct AuthenticatorError {
@@ -29,7 +28,10 @@ impl From<AuthenticatorEntry> for AuthenticatorEntryModel {
             note: entry.note.clone(),
             uri: entry.uri(),
             period: entry.period(),
-            actions: Arc::new(AuthenticatorEntryActions::new(entry)),
+            entry_type: match entry.content {
+                AuthenticatorEntryContent::Totp(_) => AuthenticatorEntryType::TOTP,
+                AuthenticatorEntryContent::Steam(_) => AuthenticatorEntryType::Steam,
+            },
         }
     }
 }
@@ -124,13 +126,19 @@ impl AuthenticatorMobileClient {
         entries: Vec<AuthenticatorEntryModel>,
         time: u64,
     ) -> Result<Vec<AuthenticatorCodeResponse>, AuthenticatorError> {
-        let as_entries: Vec<AuthenticatorEntry> = entries.iter().map(|m| m.actions.entry()).collect();
-        Ok(self.inner.generate_codes(&as_entries, time)?)
+        let mut mapped = vec![];
+        for entry in entries {
+            mapped.push(entry.to_entry()?);
+        }
+        Ok(self.inner.generate_codes(&mapped, time)?)
     }
 
     pub fn serialize_entries(&self, entries: Vec<AuthenticatorEntryModel>) -> Result<Vec<Vec<u8>>, AuthenticatorError> {
-        let as_entries: Vec<AuthenticatorEntry> = entries.iter().map(|m| m.actions.entry()).collect();
-        Ok(self.inner.serialize_entries(as_entries)?)
+        let mut mapped = vec![];
+        for entry in entries {
+            mapped.push(entry.to_entry()?);
+        }
+        Ok(self.inner.serialize_entries(mapped)?)
     }
 
     pub fn deserialize_entries(
@@ -142,7 +150,10 @@ impl AuthenticatorMobileClient {
     }
 
     pub fn export_entries(&self, entries: Vec<AuthenticatorEntryModel>) -> Result<String, AuthenticatorError> {
-        let as_entries: Vec<AuthenticatorEntry> = entries.iter().map(|m| m.actions.entry()).collect();
-        Ok(self.inner.export_entries(as_entries)?)
+        let mut mapped = vec![];
+        for entry in entries {
+            mapped.push(entry.to_entry()?);
+        }
+        Ok(self.inner.export_entries(mapped)?)
     }
 }

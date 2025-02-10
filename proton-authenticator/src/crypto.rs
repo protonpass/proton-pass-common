@@ -3,13 +3,28 @@ use aes_gcm::{Aes256Gcm, KeyInit, Nonce};
 use rand::rngs::StdRng;
 use rand::{RngCore, SeedableRng};
 
+#[derive(Clone, Debug)]
+pub enum EncryptionTag {
+    Entry,
+    Unknown,
+}
+
+impl EncryptionTag {
+    pub fn aad(&self) -> Vec<u8> {
+        match self {
+            EncryptionTag::Entry => b"authenticatorentry".to_vec(),
+            EncryptionTag::Unknown => vec![],
+        }
+    }
+}
+
 const KEY_LENGTH: usize = 32;
 
 pub fn generate_encryption_key() -> Vec<u8> {
     random_bytes(KEY_LENGTH)
 }
 
-pub fn encrypt(data: &[u8], key: &[u8], tag: Option<String>) -> Result<Vec<u8>, aes_gcm::Error> {
+pub fn encrypt(data: &[u8], key: &[u8], tag: EncryptionTag) -> Result<Vec<u8>, aes_gcm::Error> {
     // Initialize cipher from the 32-byte key.
     let cipher = Aes256Gcm::new(key.into());
 
@@ -18,10 +33,7 @@ pub fn encrypt(data: &[u8], key: &[u8], tag: Option<String>) -> Result<Vec<u8>, 
     let nonce = Nonce::from_slice(&nonce_bytes);
 
     // Encrypt the data with the given AAD (or empty slice if None).
-    let aad = match tag {
-        Some(tag) => tag.as_bytes().to_vec(),
-        None => vec![],
-    };
+    let aad = tag.aad();
     let payload = Payload { msg: data, aad: &aad };
     let ciphertext = cipher.encrypt(nonce, payload)?;
 
@@ -31,7 +43,7 @@ pub fn encrypt(data: &[u8], key: &[u8], tag: Option<String>) -> Result<Vec<u8>, 
     Ok(result)
 }
 
-pub fn decrypt(ciphertext: &[u8], key: &[u8], tag: Option<String>) -> Result<Vec<u8>, aes_gcm::Error> {
+pub fn decrypt(ciphertext: &[u8], key: &[u8], tag: EncryptionTag) -> Result<Vec<u8>, aes_gcm::Error> {
     // Check that the ciphertext is at least large enough to contain the nonce.
     if ciphertext.len() < 12 {
         return Err(aes_gcm::Error);
@@ -41,10 +53,7 @@ pub fn decrypt(ciphertext: &[u8], key: &[u8], tag: Option<String>) -> Result<Vec
     let (nonce_bytes, cipherdata) = ciphertext.split_at(12);
     let cipher = Aes256Gcm::new(key.into());
     let nonce = Nonce::from_slice(nonce_bytes);
-    let aad = match tag {
-        Some(tag) => tag.as_bytes().to_vec(),
-        None => vec![],
-    };
+    let aad = tag.aad();
     let payload = Payload {
         msg: cipherdata,
         aad: &aad,
@@ -80,18 +89,9 @@ mod tests {
         fn test_encrypt_decrypt_with_aad() {
             let key = generate_encryption_key();
             let data = b"Secret message!";
-            let aad = Some("extra authenticated data".to_string());
+            let aad = EncryptionTag::Entry;
             let ciphertext = encrypt(data, &key, aad.clone()).expect("encryption failed");
             let plaintext = decrypt(&ciphertext, &key, aad).expect("decryption failed");
-            assert_eq!(data.to_vec(), plaintext);
-        }
-
-        #[test]
-        fn test_encrypt_decrypt_without_aad() {
-            let key = generate_encryption_key();
-            let data = b"Another secret message!";
-            let ciphertext = encrypt(data, &key, None).expect("encryption failed");
-            let plaintext = decrypt(&ciphertext, &key, None).expect("decryption failed");
             assert_eq!(data.to_vec(), plaintext);
         }
 
@@ -100,7 +100,7 @@ mod tests {
             let key = generate_encryption_key();
             let wrong_key = generate_encryption_key();
             let data = b"Message to protect";
-            let aad = Some("aad".to_string());
+            let aad = EncryptionTag::Entry;
             let ciphertext = encrypt(data, &key, aad.clone()).expect("encryption failed");
             assert!(decrypt(&ciphertext, &wrong_key, aad).is_err());
         }
@@ -109,16 +109,15 @@ mod tests {
         fn test_wrong_aad() {
             let key = generate_encryption_key();
             let data = b"Message to protect";
-            let aad = Some("aad".to_string());
-            let ciphertext = encrypt(data, &key, aad.clone()).expect("encryption failed");
-            assert!(decrypt(&ciphertext, &key, None).is_err());
+            let ciphertext = encrypt(data, &key, EncryptionTag::Entry).expect("encryption failed");
+            assert!(decrypt(&ciphertext, &key, EncryptionTag::Unknown).is_err());
         }
 
         #[test]
         fn test_tampered_ciphertext() {
             let key = generate_encryption_key();
             let data = b"Tamper me if you can";
-            let aad = Some("aad".to_string());
+            let aad = EncryptionTag::Entry;
             let mut ciphertext = encrypt(data, &key, aad.clone()).expect("encryption failed");
             // Flip one byte in the ciphertext (do not tamper with the nonce).
             if ciphertext.len() > 12 {
@@ -131,7 +130,7 @@ mod tests {
         fn test_invalid_ciphertext_length() {
             let key = generate_encryption_key();
             let invalid_ciphertext = b"short";
-            assert!(decrypt(invalid_ciphertext, &key, None).is_err());
+            assert!(decrypt(invalid_ciphertext, &key, EncryptionTag::Entry).is_err());
         }
     }
 }

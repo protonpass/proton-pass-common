@@ -29,9 +29,3 @@ uniffi = { version = "0.29.0", features = [ "build" ] }
 name = "uniffi-bindgen"
 path = "./bindgen.rs"
 required-features = [ "uniffi/cli" ]
-
-
-# Comes from https://github.com/mozilla/uniffi-rs/issues/2346
-# Needed until a new uniffi release is made
-[lints.clippy]
-empty-line-after-doc-comments = "allow"

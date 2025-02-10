@@ -120,7 +120,8 @@ fn decrypt_2fas_encrypted_state(
 
     // 1. Derive the 256-bit AES key
     let mut derived_key = [0u8; KEY_SIZE];
-    pbkdf2::<Hmac<Sha256>>(password.as_bytes(), salt, ITERATION_COUNT, &mut derived_key);
+    pbkdf2::<Hmac<Sha256>>(password.as_bytes(), salt, ITERATION_COUNT, &mut derived_key)
+        .map_err(|_| TwoFasImportError::UnableToDecrypt)?;
 
     // 2. Decrypt with AES-GCM. Nonce must be 12 bytes.
     //    If iv.len() != 12, you'll get an error. That means your data is not GCM or your IV is truncated.

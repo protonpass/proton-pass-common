@@ -18,7 +18,7 @@ getrandom = { version = "0.3.1", features = ["wasm_js"] }
 hex = "0.4.3"
 hmac-sha1 = "0.2.2"
 hmac = "0.12"
-pbkdf2 = "0.11"
+pbkdf2 = "0.12.2"
 protobuf = "3.7.1"
 rand = "0.9.0"
 scrypt = "0.11.0"

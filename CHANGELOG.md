@@ -6,7 +6,18 @@
 
 ### Other
 
-## 0.13.0
+## 0.13.2
+
+### Features :tada:
+
+- pass-mobile and authenticator-mobile: update to uniffi 0.29.0.
+- authenticator: offer crypto methods for encrypting and decrypting entries.
+
+### Other
+
+- BREAKING: authenticator: removal of `entry.actions` in favour of methods exposed in the `AuthenticatorMobileClient`.
+
+## 0.13.1
 
 ### Features :tada:
 

@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.13.3
+
+### Fixes :bug:
+
+- authenticator: use proper encryption AAD for EntryContent.
+
 ## 0.13.2
 
 ### Features :tada:

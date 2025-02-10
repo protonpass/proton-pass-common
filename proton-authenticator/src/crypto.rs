@@ -12,7 +12,7 @@ pub enum EncryptionTag {
 impl EncryptionTag {
     pub fn aad(&self) -> Vec<u8> {
         match self {
-            EncryptionTag::Entry => b"authenticatorentry".to_vec(),
+            EncryptionTag::Entry => b"entrycontent".to_vec(),
             EncryptionTag::Unknown => vec![],
         }
     }

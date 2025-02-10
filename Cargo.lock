@@ -1719,7 +1719,7 @@ checksum = "7dc55d7dec32ecaf61e0bd90b3d2392d721a28b95cfd23c3e176eccefbeab2f2"
 
 [[package]]
 name = "proton-authenticator"
-version = "0.13.1"
+version = "0.13.2"
 dependencies = [
  "aes-gcm",
  "base32 0.5.1",
@@ -1745,7 +1745,7 @@ dependencies = [
 
 [[package]]
 name = "proton-authenticator-mobile"
-version = "0.13.1"
+version = "0.13.2"
 dependencies = [
  "proton-authenticator",
  "proton-pass-derive",
@@ -1754,7 +1754,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-common"
-version = "0.13.1"
+version = "0.13.2"
 dependencies = [
  "async-trait",
  "coset",
@@ -1781,7 +1781,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-derive"
-version = "0.13.1"
+version = "0.13.2"
 dependencies = [
  "quote",
  "syn 2.0.98",
@@ -1789,7 +1789,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-mobile"
-version = "0.13.1"
+version = "0.13.2"
 dependencies = [
  "proton-pass-common",
  "proton-pass-derive",
@@ -1799,7 +1799,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-totp"
-version = "0.13.1"
+version = "0.13.2"
 dependencies = [
  "proton-pass-derive",
  "serde",
@@ -1811,7 +1811,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-web"
-version = "0.13.1"
+version = "0.13.2"
 dependencies = [
  "js-sys",
  "proton-pass-common",

@@ -1,5 +1,38 @@
-use proton_pass_common::domain::{get_domain, get_root_domain};
-pub use proton_pass_common::domain::{GetDomainError, GetRootDomainError};
+use proton_pass_common::domain::{
+    get_domain, get_root_domain, GetDomainError as CommonGetDomainError, GetRootDomainError as CommonGetRootDomainError,
+};
+
+#[derive(Debug, proton_pass_derive::Error, PartialEq, Eq)]
+pub enum GetRootDomainError {
+    CannotGetDomain,
+    EmptyLabel,
+    InvalidPublicSuffix,
+}
+
+impl From<CommonGetRootDomainError> for GetRootDomainError {
+    fn from(e: CommonGetRootDomainError) -> Self {
+        match e {
+            CommonGetRootDomainError::CannotGetDomain => Self::CannotGetDomain,
+            CommonGetRootDomainError::EmptyLabel => Self::EmptyLabel,
+            CommonGetRootDomainError::InvalidPublicSuffix => Self::InvalidPublicSuffix,
+        }
+    }
+}
+
+#[derive(Debug, proton_pass_derive::Error, PartialEq, Eq)]
+pub enum GetDomainError {
+    ParseError,
+    UrlHasNoDomain,
+}
+
+impl From<CommonGetDomainError> for GetDomainError {
+    fn from(e: CommonGetDomainError) -> Self {
+        match e {
+            CommonGetDomainError::ParseError => Self::ParseError,
+            CommonGetDomainError::UrlHasNoDomain => Self::UrlHasNoDomain,
+        }
+    }
+}
 
 pub struct DomainManager;
 
@@ -9,10 +42,10 @@ impl DomainManager {
     }
 
     pub fn get_root_domain(&self, input: String) -> Result<String, GetRootDomainError> {
-        get_root_domain(&input)
+        Ok(get_root_domain(&input)?)
     }
 
     pub fn get_domain(&self, input: String) -> Result<String, GetDomainError> {
-        get_domain(&input)
+        Ok(get_domain(&input)?)
     }
 }

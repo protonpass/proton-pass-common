@@ -1,7 +1,9 @@
 use crate::{AuthenticatorEntryModel, AuthenticatorEntryType};
 use proton_authenticator::steam::SteamTotp;
-pub use proton_authenticator::AuthenticatorCodeResponse;
-use proton_authenticator::{AuthenticatorClient, AuthenticatorEntry, AuthenticatorEntryContent};
+use proton_authenticator::{
+    AuthenticatorClient, AuthenticatorCodeResponse as CommonAuthenticatorCodeResponse, AuthenticatorEntry,
+    AuthenticatorEntryContent,
+};
 use proton_pass_derive::Error;
 
 #[derive(Debug, Error)]
@@ -71,6 +73,20 @@ pub struct AuthenticatorEntrySteamCreateParameters {
     pub note: Option<String>,
 }
 
+pub struct AuthenticatorCodeResponse {
+    pub current_code: String,
+    pub next_code: String,
+}
+
+impl From<CommonAuthenticatorCodeResponse> for AuthenticatorCodeResponse {
+    fn from(value: CommonAuthenticatorCodeResponse) -> Self {
+        Self {
+            current_code: value.current_code,
+            next_code: value.next_code,
+        }
+    }
+}
+
 pub struct AuthenticatorMobileClient {
     inner: AuthenticatorClient,
 }
@@ -130,7 +146,9 @@ impl AuthenticatorMobileClient {
         for entry in entries {
             mapped.push(entry.to_entry()?);
         }
-        Ok(self.inner.generate_codes(&mapped, time)?)
+        let codes = self.inner.generate_codes(&mapped, time)?;
+        let mapped = codes.into_iter().map(AuthenticatorCodeResponse::from).collect();
+        Ok(mapped)
     }
 
     pub fn serialize_entries(&self, entries: Vec<AuthenticatorEntryModel>) -> Result<Vec<Vec<u8>>, AuthenticatorError> {

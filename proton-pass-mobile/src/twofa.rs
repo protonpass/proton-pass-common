@@ -1,4 +1,4 @@
-pub use proton_pass_common::twofa::TwofaDomainChecker as CommonTwofaDomainChecker;
+use proton_pass_common::twofa::TwofaDomainChecker as CommonTwofaDomainChecker;
 
 pub struct TwofaDomainChecker;
 

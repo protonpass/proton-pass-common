@@ -16,3 +16,4 @@ pub fn library_version() -> String {
 }
 
 pub use proton_pass_totp as totp;
+pub use url;

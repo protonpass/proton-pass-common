@@ -1,3 +1,4 @@
 namespace proton_authenticator_common_mobile {
     string library_version();
+    void register_authenticator_logger(AuthenticatorLogger logger);
 };

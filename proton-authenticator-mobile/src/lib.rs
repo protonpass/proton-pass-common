@@ -4,6 +4,7 @@ mod authenticator;
 mod crypto;
 mod entry;
 mod import;
+mod log;
 
 uniffi::include_scaffolding!("common");
 
@@ -15,3 +16,4 @@ pub use authenticator::*;
 pub use crypto::*;
 pub use entry::*;
 pub use import::*;
+pub use log::*;

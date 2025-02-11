@@ -1,14 +1,20 @@
+#[macro_use]
+#[allow(unused_macros)]
+mod log;
+
 pub mod crypto;
 pub mod entry;
 pub mod parser;
 pub mod steam;
 
 mod client;
+
 #[cfg(test)]
 pub mod test_utils;
 
 pub use client::{AuthenticatorClient, AuthenticatorCodeResponse, AuthenticatorError};
 pub use entry::{AuthenticatorEntry, AuthenticatorEntryContent, AuthenticatorEntryError};
+pub use log::{register_authenticator_logger, LogLevel, Logger};
 pub use parser::aegis::{parse_aegis_json, parse_aegis_txt};
 pub use parser::bitwarden::{parse_bitwarden_csv, parse_bitwarden_json};
 pub use parser::ente::parse_ente_txt;

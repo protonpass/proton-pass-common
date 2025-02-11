@@ -1,0 +1,12 @@
+enum AuthenticatorLogLevel {
+  "Trace",
+  "Debug",
+  "Info",
+  "Warn",
+  "Error",
+};
+
+[Trait]
+interface AuthenticatorLogger {
+    void log(AuthenticatorLogLevel level, string message);
+};

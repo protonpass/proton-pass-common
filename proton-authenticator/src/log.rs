@@ -35,28 +35,28 @@ where
 
 macro_rules! trace {
     ($($args:tt)*) => {
-        with_logger(|logger| logger.log(LogLevel::Trace, format_args!($($args)*),))?;
+        $crate::log::with_logger(|logger| logger.log($crate::log::LogLevel::Trace, format_args!($($args)*).to_string(),));
     }
 }
 
 macro_rules! debug {
     ($($args:tt)*) => {
-        with_logger(|logger| logger.log(LogLevel::Debug, format_args!($($args)*),))?;
+        $crate::log::with_logger(|logger| logger.log($crate::log::LogLevel::Debug, format_args!($($args)*).to_string(),));
     }
 }
 macro_rules! info {
     ($($args:tt)*) => {
-        with_logger(|logger| logger.log(LogLevel::Info, format_args!($($args)*),))?;
+        $crate::log::with_logger(|logger| logger.log($crate::log::LogLevel::Info, format_args!($($args)*).to_string(),));
     }
 }
 
 macro_rules! warn {
     ($($args:tt)*) => {
-        with_logger(|logger| logger.log(LogLevel::Warn, format_args!($($args)*),))?;
+        $crate::log::with_logger(|logger| logger.log($crate::log::LogLevel::Warn, format_args!($($args)*).to_string(),));
     }
 }
 macro_rules! error {
     ($($args:tt)*) => {
-        with_logger(|logger| logger.log(LogLevel::Error, format_args!($($args)*),))?;
+        $crate::log::with_logger(|logger| logger.log($crate::log::LogLevel::Error, format_args!($($args)*).to_string(),));
     }
 }

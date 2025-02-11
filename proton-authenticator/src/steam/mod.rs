@@ -32,7 +32,10 @@ impl SteamTotp {
     }
 
     pub fn new_from_uri(uri: &str) -> Result<SteamTotp, SteamTotpError> {
-        let parsed = Url::parse(uri).map_err(|_| SteamTotpError::BadUrl)?;
+        let parsed = Url::parse(uri).map_err(|e| {
+            warn!("Invalid steam url [{uri}]: {:?}", e);
+            SteamTotpError::BadUrl
+        })?;
         Self::new_from_parsed_uri(&parsed, true)
     }
 
@@ -49,6 +52,7 @@ impl SteamTotp {
 
     pub fn new_from_otp_uri(uri: &Url) -> Result<SteamTotp, SteamTotpError> {
         if uri.scheme() != "otpauth" {
+            warn!("Invalid steam url [{}]", uri.to_string());
             return Err(SteamTotpError::BadUrl);
         }
 

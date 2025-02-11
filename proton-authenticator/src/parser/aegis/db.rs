@@ -46,11 +46,12 @@ impl TryFrom<DbEntry> for TOTP {
             issuer: Some(entry.issuer),
             algorithm: match Algorithm::try_from(entry.info.algo.as_str()) {
                 Ok(a) => Some(a),
-                Err(_) => {
+                Err(e) => {
+                    warn!("Unsupported algorithm [{}]: {:?}", entry.info.algo, e);
                     return Err(AegisImportError::Unsupported(format!(
                         "unsupported algorithm: {:?}",
                         entry.info.algo
-                    )))
+                    )));
                 }
             },
             digits: Some(entry.info.digits as u8),
@@ -97,10 +98,13 @@ pub fn parse_aegis_db(db: AegisDbRoot) -> Result<ImportResult, AegisImportError>
     for (idx, entry) in db.entries.into_iter().enumerate() {
         match AuthenticatorEntry::try_from(entry.clone()) {
             Ok(entry) => entries.push(entry),
-            Err(e) => errors.push(ImportError {
-                context: format!("Error importing entry {idx}"),
-                message: format!("Error importing entry {:?}, {:?}", entry, e),
-            }),
+            Err(e) => {
+                warn!("error importing entry {:?}: {:?}", entry, e);
+                errors.push(ImportError {
+                    context: format!("Error importing entry {idx}"),
+                    message: format!("Error importing entry {:?}, {:?}", entry, e),
+                })
+            }
         }
     }
     Ok(ImportResult { entries, errors })

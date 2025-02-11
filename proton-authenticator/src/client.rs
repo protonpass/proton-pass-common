@@ -32,23 +32,27 @@ impl AuthenticatorClient {
     pub fn generate_codes(&self, entries: &[AuthenticatorEntry], time: u64) -> Result<Vec<AuthenticatorCodeResponse>> {
         let mut result = Vec::new();
         for entry in entries {
-            result.push(Self::generate_code(entry, time)?);
+            let uri = entry.uri();
+            match Self::generate_code(entry, time) {
+                Ok(code) => result.push(code),
+                Err(e) => {
+                    warn!("Error generating code [uri={}]: {:?}", uri, e);
+                    return Err(e);
+                }
+            }
         }
         Ok(result)
     }
 
-    pub fn deserialize_entries(&self, entries: Vec<Vec<u8>>, fail_on_error: bool) -> Result<Vec<AuthenticatorEntry>> {
+    pub fn deserialize_entries(&self, entries: Vec<Vec<u8>>) -> Result<Vec<AuthenticatorEntry>> {
         let mut result = Vec::new();
         for entry in entries {
             match AuthenticatorEntry::deserialize(&entry) {
                 Ok(entry) => result.push(entry),
                 Err(e) => {
-                    if fail_on_error {
-                        return Err(AuthenticatorError::SerializationError(format!(
-                            "error deserializing entry: {:?}",
-                            e
-                        )));
-                    }
+                    let msg = format!("error deserializing entry: {:?}", e);
+                    warn!("{}", msg);
+                    return Err(AuthenticatorError::SerializationError(msg));
                 }
             }
         }
@@ -58,19 +62,23 @@ impl AuthenticatorClient {
     pub fn serialize_entries(&self, entries: Vec<AuthenticatorEntry>) -> Result<Vec<Vec<u8>>> {
         let mut result = Vec::new();
         for entry in entries {
-            result.push(
-                entry
-                    .serialize()
-                    .map_err(|e| AuthenticatorError::SerializationError(format!("{:?}", e)))?,
-            );
+            let uri = entry.uri();
+            result.push(entry.serialize().map_err(|e| {
+                let msg = format!("error serializing entry [uri={}]: {:?}", uri, e);
+                warn!("{}", msg);
+                AuthenticatorError::SerializationError(msg)
+            })?);
         }
 
         Ok(result)
     }
 
     pub fn export_entries(&self, entries: Vec<AuthenticatorEntry>) -> Result<String> {
-        entry::export_entries(entries)
-            .map_err(|e| AuthenticatorError::SerializationError(format!("error exporting entries: {:?}", e)))
+        entry::export_entries(entries).map_err(|e| {
+            let msg = format!("error exporting entries: {:?}", e);
+            warn!("{}", msg);
+            AuthenticatorError::SerializationError(msg)
+        })
     }
 
     fn generate_code(entry: &AuthenticatorEntry, time: u64) -> Result<AuthenticatorCodeResponse> {
@@ -78,12 +86,16 @@ impl AuthenticatorClient {
             AuthenticatorEntryContent::Totp(t) => {
                 let period = t.get_period();
                 let next_time = time + period as u64;
-                let current = t
-                    .generate_token(time)
-                    .map_err(|e| AuthenticatorError::CodeGenerationError(format!("{:?}", e)))?;
-                let next = t
-                    .generate_token(next_time)
-                    .map_err(|e| AuthenticatorError::CodeGenerationError(format!("{:?}", e)))?;
+                let current = t.generate_token(time).map_err(|e| {
+                    let msg = format!("error generating token: {:?}", e);
+                    warn!("{}", msg);
+                    AuthenticatorError::CodeGenerationError(msg)
+                })?;
+                let next = t.generate_token(next_time).map_err(|e| {
+                    let msg = format!("error generating token: {:?}", e);
+                    warn!("{}", msg);
+                    AuthenticatorError::CodeGenerationError(msg)
+                })?;
 
                 Ok(AuthenticatorCodeResponse {
                     current_code: current,

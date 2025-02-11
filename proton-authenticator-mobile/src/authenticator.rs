@@ -163,7 +163,7 @@ impl AuthenticatorMobileClient {
         &self,
         entries: Vec<Vec<u8>>,
     ) -> Result<Vec<AuthenticatorEntryModel>, AuthenticatorError> {
-        let deserialized = self.inner.deserialize_entries(entries, false)?;
+        let deserialized = self.inner.deserialize_entries(entries)?;
         Ok(deserialized.into_iter().map(|m| m.into()).collect())
     }
 

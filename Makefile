@@ -286,3 +286,28 @@ authenticator-android-lib-x86_64: authenticator-android-dirs ## Build the androi
 .PHONY: authenticator-android
 authenticator-android: authenticator-android-lib-aarch64 authenticator-android-lib-armv7 authenticator-android-lib-x86_64 ## Build all the android variants
 	@cd ${PROJECT_ROOT}/proton-authenticator-mobile/android && ./gradlew :lib:assembleRelease
+
+.PHONY: authenticator-web-setup
+authenticator-web-setup:
+	@rm -rf "${AUTHENTICATOR_WEB_BUILD_DIR}" && mkdir "${AUTHENTICATOR_WEB_BUILD_DIR}"
+
+.PHONY: authenticator-web-worker
+authenticator-web-worker: ## Build the authenticator web worker artifacts
+	@echo "--- Building authenticator-web-worker"
+	@RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build proton-authenticator-web --scope protontech
+	@sed -i'' -e 's/"name": "@protontech\/proton-authenticator-web",/"name": "worker",/g' "${AUTHENTICATOR_WEB_DIR}/pkg/package.json"
+	@mv "${AUTHENTICATOR_WEB_DIR}/pkg" "${AUTHENTICATOR_WEB_BUILD_DIR}/worker"
+
+.PHONY: authenticator-web
+authenticator-web: authenticator-web-setup authenticator-web-worker ## Build the authenticator web artifacts
+	@cp "${AUTHENTICATOR_WEB_DIR}/package.json" "${AUTHENTICATOR_WEB_BUILD_DIR}/package.json"
+
+.PHONY: authenticator-web-test
+authenticator-web-test: authenticator-web-setup ## Test the web artifacts
+	@rm -rf "${AUTHENTICATOR_WEB_TEST_BUILD_DIR}" && mkdir -p "${AUTHENTICATOR_WEB_TEST_BUILD_DIR}"
+	@echo "--- Building web-worker"
+	@RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build proton-authenticator-web --scope protontech --target nodejs --out-dir "${AUTHENTICATOR_WEB_TEST_BUILD_DIR}/worker"
+	@sed -i'' -e 's/"name": "@protontech\/proton-authenticator-web",/"name": "worker",/g' "${AUTHENTICATOR_WEB_TEST_BUILD_DIR}/worker/package.json"
+
+	@cp "${AUTHENTICATOR_WEB_DIR}/package.json" "${AUTHENTICATOR_WEB_TEST_BUILD_DIR}/package.json"
+	@cd ${AUTHENTICATOR_WEB_TEST_DIR} && bun test

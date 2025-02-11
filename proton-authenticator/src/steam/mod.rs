@@ -129,7 +129,7 @@ mod tests {
     use rand::RngCore;
 
     fn generate_code() -> Vec<u8> {
-        let mut rng = rand::rng();
+        let mut rng = rand::thread_rng();
         let mut code = Vec::new();
         for _ in 0..10 {
             let bytes = rng.next_u64().to_be_bytes();

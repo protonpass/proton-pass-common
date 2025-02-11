@@ -1693,7 +1693,7 @@ dependencies = [
  "base32 0.5.1",
  "base64",
  "csv",
- "getrandom 0.3.1",
+ "getrandom 0.2.15",
  "hex",
  "hmac",
  "hmac-sha1",
@@ -1703,7 +1703,7 @@ dependencies = [
  "protoc-bin-vendored",
  "proton-pass-derive",
  "proton-pass-totp",
- "rand 0.9.0",
+ "rand 0.8.5",
  "scrypt",
  "serde",
  "serde_json",
@@ -1719,6 +1719,18 @@ dependencies = [
  "proton-authenticator",
  "proton-pass-derive",
  "uniffi",
+]
+
+[[package]]
+name = "proton-authenticator-web"
+version = "0.13.3"
+dependencies = [
+ "js-sys",
+ "proton-authenticator",
+ "serde",
+ "tsify-next",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
 ]
 
 [[package]]

@@ -1,7 +1,6 @@
 use aes_gcm::aead::{Aead, Payload};
 use aes_gcm::{Aes256Gcm, KeyInit, Nonce};
-use rand::rngs::StdRng;
-use rand::{RngCore, SeedableRng};
+use rand::RngCore;
 
 #[derive(Clone, Debug)]
 pub enum EncryptionTag {
@@ -63,7 +62,8 @@ pub fn decrypt(ciphertext: &[u8], key: &[u8], tag: EncryptionTag) -> Result<Vec<
 
 fn random_bytes(count: usize) -> Vec<u8> {
     let mut random_bytes = vec![0; count];
-    let mut rng = StdRng::from_os_rng();
+    //let mut rng = StdRng::from_os_rng(); // uncomment when rand=0.9
+    let mut rng = rand::thread_rng();
     rng.fill_bytes(&mut random_bytes);
     random_bytes.to_vec()
 }

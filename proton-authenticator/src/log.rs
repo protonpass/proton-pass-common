@@ -21,6 +21,10 @@ pub fn register_authenticator_logger(logger: Arc<dyn Logger>) {
     }
 }
 
+pub fn emit_log_message(level: LogLevel, msg: String) {
+    with_logger(|logger| logger.log(level, msg));
+}
+
 #[allow(dead_code)]
 pub(crate) fn with_logger<F>(cb: F)
 where

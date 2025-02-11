@@ -7,7 +7,7 @@ use proton_pass_totp::totp::TOTP;
 
 pub use exporter::{export_entries, import_authenticator_entries};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, proton_pass_derive::Error)]
 pub enum AuthenticatorEntryError {
     UnsupportedUri,
     ParseError,

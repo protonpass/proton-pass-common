@@ -1,5 +1,5 @@
 [package]
-name = "proton-pass-web"
+name = "proton-authenticator-web"
 version = "0.13.3"
 edition = "2021"
 
@@ -14,15 +14,10 @@ doctest = false
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-proton-pass-common = { path = "../proton-pass-common" }
+proton-authenticator = { path = "../proton-authenticator" }
 
 js-sys = "0.3.77"
 serde = { version = "1.0", features = ["derive"] }
 tsify-next = { version = "0.5.5", features = ["wasm-bindgen", "js", "json"] }
 wasm-bindgen = "0.2.100"
 wasm-bindgen-futures = "0.4.50"
-
-[features]
-web_password = []
-web_ui = []
-web_worker = ["web_password"]

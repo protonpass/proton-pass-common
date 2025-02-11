@@ -20,6 +20,7 @@ name = "proton_pass_common_mobile"
 proton-pass-common = { path = "../proton-pass-common" }
 proton-pass-derive = { path = "../proton-pass-derive" }
 
+clap_derive = { version = "4.0.0-rc.1" } # Needed for now to fix mobile binding generation
 tokio = { version = "1.43", features = ["full"] }
 uniffi = { version = "0.29.0" }
 

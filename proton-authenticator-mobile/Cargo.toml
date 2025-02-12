@@ -1,6 +1,6 @@
 [package]
 name = "proton-authenticator-mobile"
-version = "0.13.3"
+version = "0.13.4"
 edition = "2021"
 
 # Flags for cargo-release

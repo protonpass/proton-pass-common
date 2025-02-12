@@ -6,6 +6,17 @@
 
 ### Other
 
+## 0.13.4
+
+### Features :tada:
+
+- authenticator-web: offer web package for authenticator.
+- authenticator-mobile: fix mobile logger interface for registering a logger.
+
+### Fixes :bug:
+
+- authenticator: preserve steam totp names when importing from 2fas.
+
 ## 0.13.3
 
 ### Fixes :bug:

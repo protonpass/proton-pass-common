@@ -1,8 +1,8 @@
+use crate::entry::WasmAuthenticatorEntryModel;
+use proton_authenticator::ThirdPartyImportError;
 use serde::{Deserialize, Serialize};
 use tsify_next::Tsify;
 use wasm_bindgen::prelude::*;
-use proton_authenticator::ThirdPartyImportError;
-use crate::entry::WasmAuthenticatorEntryModel;
 
 type ImportResult = Result<AuthenticatorImportResult, JsError>;
 
@@ -32,7 +32,11 @@ pub struct AuthenticatorImportResult {
 impl From<proton_authenticator::ImportResult> for AuthenticatorImportResult {
     fn from(result: proton_authenticator::ImportResult) -> Self {
         Self {
-            entries: result.entries.into_iter().map(WasmAuthenticatorEntryModel::from).collect(),
+            entries: result
+                .entries
+                .into_iter()
+                .map(WasmAuthenticatorEntryModel::from)
+                .collect(),
             errors: result.errors.into_iter().map(AuthenticatorImportError::from).collect(),
         }
     }
@@ -70,8 +74,7 @@ pub fn import_from_ente_txt(contents: String) -> ImportResult {
 
 #[wasm_bindgen]
 pub fn import_from_google_qr(contents: String) -> ImportResult {
-    let res =
-        proton_authenticator::parse_google_authenticator_totp(&contents).map_err(ThirdPartyImportError::from)?;
+    let res = proton_authenticator::parse_google_authenticator_totp(&contents).map_err(ThirdPartyImportError::from)?;
     Ok(AuthenticatorImportResult::from(res))
 }
 

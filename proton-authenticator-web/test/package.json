@@ -3,6 +3,7 @@
   "module": "index.ts",
   "type": "module",
   "devDependencies": {
+    "@types/node": "^22.13.1",
     "bun-types": "latest"
   },
   "peerDependencies": {

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use tsify_next::Tsify;
 use wasm_bindgen::prelude::*;
 
-#[derive(Tsify, Deserialize, Serialize)]
+#[derive(Debug, Tsify, Deserialize, Serialize)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct WasmAuthenticatorEntryModel {
     name: String,
@@ -32,7 +32,7 @@ impl From<AuthenticatorEntry> for WasmAuthenticatorEntryModel {
     }
 }
 
-#[derive(Tsify, Deserialize, Serialize)]
+#[derive(Debug, Tsify, Deserialize, Serialize)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub enum WasmAuthenticatorEntryType {
     Totp,

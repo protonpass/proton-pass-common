@@ -20,7 +20,7 @@ pub struct ImportResult {
     pub errors: Vec<ImportError>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, proton_pass_derive::Error)]
 pub enum ThirdPartyImportError {
     BadContent,
     BadPassword,

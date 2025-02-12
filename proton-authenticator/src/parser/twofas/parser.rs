@@ -157,7 +157,7 @@ fn parse_entry(obj: TwoFasEntry) -> Result<AuthenticatorEntry, TwoFasImportError
             label,
             ..
         } => AuthenticatorEntryContent::Totp(TOTP {
-            label,
+            label: label.or(Some(obj.name)),
             secret: obj.secret,
             issuer: Some(issuer),
             algorithm: match Algorithm::try_from(algorithm.as_str()) {
@@ -168,7 +168,12 @@ fn parse_entry(obj: TwoFasEntry) -> Result<AuthenticatorEntry, TwoFasImportError
             period: Some(period as u16),
         }),
         Otp::Steam { .. } => {
-            let steam_totp = SteamTotp::new(&obj.secret).map_err(|_| TwoFasImportError::BadContent)?;
+            let mut steam_totp = SteamTotp::new(&obj.secret)
+                .map_err(|_| TwoFasImportError::BadContent)?;
+            if !obj.name.trim().is_empty() {
+                steam_totp.set_name(Some(obj.name.trim().to_string()));
+            }
+
             AuthenticatorEntryContent::Steam(steam_totp)
         }
     };

@@ -6,7 +6,7 @@ enum AuthenticatorLogLevel {
   "Error",
 };
 
-[Trait]
+[Trait, WithForeign]
 interface AuthenticatorLogger {
     void log(AuthenticatorLogLevel level, string message);
 };

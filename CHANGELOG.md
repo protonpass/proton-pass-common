@@ -6,6 +6,13 @@
 
 ### Other
 
+## 0.13.5
+
+### Features :tada:
+
+- authenticator-web: offer a get_totp_params to get the params from an entry.
+- authenticator-mobile: offer a get_totp_params to get the params from an entry.
+
 ## 0.13.4
 
 ### Features :tada:

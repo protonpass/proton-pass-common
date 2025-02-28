@@ -13,6 +13,10 @@
 - authenticator-web: offer a get_totp_params to get the params from an entry.
 - authenticator-mobile: offer a get_totp_params to get the params from an entry.
 
+### Fixes :bug:
+
+- authenticator: return MissingPassword error when importing an encrypted 2FAS backup without submitting a password.
+
 ## 0.13.4
 
 ### Features :tada:

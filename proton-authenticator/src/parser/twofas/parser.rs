@@ -115,7 +115,7 @@ fn decrypt_2fas_encrypted_state(
 
     let password = match password {
         Some(password) => password,
-        None => return Err(TwoFasImportError::WrongPassword),
+        None => return Err(TwoFasImportError::MissingPassword),
     };
 
     // 1. Derive the 256-bit AES key
@@ -223,5 +223,12 @@ mod test {
         let res = parse_2fas_file(&contents, None).expect("error parsing");
         assert!(res.errors.is_empty());
         assert_eq!(res.entries.len(), 2);
+    }
+
+    #[test]
+    fn returns_missing_password_if_encrypted_with_no_password_provided() {
+        let contents = get_file_contents("2fas/encrypted.2fas");
+        let err = parse_2fas_file(&contents, None).expect_err("should return an error");
+        assert!(matches!(err, TwoFasImportError::MissingPassword));
     }
 }

@@ -8,6 +8,7 @@ pub enum TwoFasImportError {
     Unsupported,
     UnableToDecrypt,
     WrongPassword,
+    MissingPassword,
 }
 
 impl From<TwoFasImportError> for ThirdPartyImportError {
@@ -17,6 +18,7 @@ impl From<TwoFasImportError> for ThirdPartyImportError {
             TwoFasImportError::Unsupported => Self::BadContent,
             TwoFasImportError::UnableToDecrypt => Self::DecryptionFailed,
             TwoFasImportError::WrongPassword => Self::BadPassword,
+            TwoFasImportError::MissingPassword => Self::MissingPassword,
         }
     }
 }

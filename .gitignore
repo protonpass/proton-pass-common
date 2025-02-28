@@ -32,4 +32,7 @@ proton-authenticator-mobile/src/*.modulemap
 proton-authenticator-mobile/iOS/**/*.swift
 proton-authenticator-mobile/pkg
 
+proton-authenticator-web/**/pkg
+proton-authenticator-web/dist
+
 

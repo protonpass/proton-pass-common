@@ -4,6 +4,8 @@
 
 ### Fixes :bug:
 
+- authenticator: preserve steam name when importing an aegis export.
+
 ### Other
 
 ## 0.13.5

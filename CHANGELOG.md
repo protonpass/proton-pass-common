@@ -5,6 +5,7 @@
 ### Fixes :bug:
 
 - authenticator: preserve steam name when importing an aegis export.
+- authenticator: return MissingPassword error when importing an encrypted aegis backup without submitting a password.
 
 ### Other
 

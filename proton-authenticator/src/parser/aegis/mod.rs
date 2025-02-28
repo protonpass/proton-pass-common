@@ -20,7 +20,7 @@ impl From<AegisImportError> for ThirdPartyImportError {
             AegisImportError::BadContent => Self::BadContent,
             AegisImportError::BadPassword => Self::BadPassword,
             AegisImportError::NotEncryptedBackupWithPassword => Self::BadPassword,
-            AegisImportError::EncryptedBackupWithNoPassword => Self::BadPassword,
+            AegisImportError::EncryptedBackupWithNoPassword => Self::MissingPassword,
             AegisImportError::UnableToDecrypt => Self::DecryptionFailed,
         }
     }

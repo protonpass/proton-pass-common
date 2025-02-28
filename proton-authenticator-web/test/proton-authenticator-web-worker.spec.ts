@@ -8,6 +8,7 @@ import {
     entry_from_uri,
     generate_code,
     generate_key,
+    get_totp_parameters,
     library_version,
     register_authenticator_logger
 } from "./pkg/worker";
@@ -25,6 +26,19 @@ describe("ProtonAuthenticatorWeb WASM", () => {
         expect(entry.entry_type).toEqual("Totp");
         expect(entry.name).toEqual("MYLABEL");
         expect(entry.note).toBeUndefined();
+    });
+
+    test("Can get TOTP params", () => {
+        const uri = "otpauth://totp/MYLABEL?secret=MYSECRET&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15";
+        const entry = entry_from_uri(uri);
+
+        const params = get_totp_parameters(entry);
+
+        expect(params.period).toEqual(15);
+        expect(params.digits).toEqual(8);
+        expect(params.secret).toEqual("MYSECRET");
+        expect(params.algorithm).toEqual("SHA256")
+        expect(params.issuer).toEqual("MYISSUER")
     });
 
     test("Can generate a TOTP code", () => {

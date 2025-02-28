@@ -1,8 +1,8 @@
 use crate::{AuthenticatorEntryModel, AuthenticatorEntryType};
 use proton_authenticator::steam::SteamTotp;
 use proton_authenticator::{
-    AuthenticatorClient, AuthenticatorCodeResponse as CommonAuthenticatorCodeResponse, AuthenticatorEntry,
-    AuthenticatorEntryContent,
+    Algorithm, AuthenticatorClient, AuthenticatorCodeResponse as CommonAuthenticatorCodeResponse, AuthenticatorEntry,
+    AuthenticatorEntryContent, AuthenticatorEntryTotpParameters as CommonTotpParameters,
 };
 use proton_pass_derive::Error;
 
@@ -45,12 +45,22 @@ pub enum AuthenticatorTotpAlgorithm {
     SHA512,
 }
 
-impl From<AuthenticatorTotpAlgorithm> for proton_authenticator::Algorithm {
+impl From<AuthenticatorTotpAlgorithm> for Algorithm {
     fn from(value: AuthenticatorTotpAlgorithm) -> Self {
         match value {
-            AuthenticatorTotpAlgorithm::SHA1 => proton_authenticator::Algorithm::SHA1,
-            AuthenticatorTotpAlgorithm::SHA256 => proton_authenticator::Algorithm::SHA256,
-            AuthenticatorTotpAlgorithm::SHA512 => proton_authenticator::Algorithm::SHA512,
+            AuthenticatorTotpAlgorithm::SHA1 => Algorithm::SHA1,
+            AuthenticatorTotpAlgorithm::SHA256 => Algorithm::SHA256,
+            AuthenticatorTotpAlgorithm::SHA512 => Algorithm::SHA512,
+        }
+    }
+}
+
+impl From<Algorithm> for AuthenticatorTotpAlgorithm {
+    fn from(value: Algorithm) -> Self {
+        match value {
+            Algorithm::SHA1 => AuthenticatorTotpAlgorithm::SHA1,
+            Algorithm::SHA256 => AuthenticatorTotpAlgorithm::SHA256,
+            Algorithm::SHA512 => AuthenticatorTotpAlgorithm::SHA512,
         }
     }
 }
@@ -83,6 +93,27 @@ impl From<CommonAuthenticatorCodeResponse> for AuthenticatorCodeResponse {
         Self {
             current_code: value.current_code,
             next_code: value.next_code,
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct AuthenticatorEntryTotpParameters {
+    pub secret: String,
+    pub issuer: Option<String>,
+    pub period: u16,
+    pub digits: u8,
+    pub algorithm: AuthenticatorTotpAlgorithm,
+}
+
+impl From<CommonTotpParameters> for AuthenticatorEntryTotpParameters {
+    fn from(value: CommonTotpParameters) -> Self {
+        Self {
+            secret: value.secret,
+            issuer: value.issuer,
+            period: value.period,
+            digits: value.digits,
+            algorithm: AuthenticatorTotpAlgorithm::from(value.algorithm),
         }
     }
 }
@@ -173,5 +204,16 @@ impl AuthenticatorMobileClient {
             mapped.push(entry.to_entry()?);
         }
         Ok(self.inner.export_entries(mapped)?)
+    }
+
+    pub fn get_totp_params(
+        &self,
+        entry: AuthenticatorEntryModel,
+    ) -> Result<AuthenticatorEntryTotpParameters, AuthenticatorError> {
+        let as_entry = entry.to_entry()?;
+        let parameters = as_entry.get_totp_parameters().map_err(|e| AuthenticatorError {
+            e: proton_authenticator::AuthenticatorError::Unknown(e.to_string()),
+        })?;
+        Ok(AuthenticatorEntryTotpParameters::from(parameters))
     }
 }

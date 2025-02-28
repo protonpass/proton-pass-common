@@ -6,12 +6,14 @@ use crate::steam::{SteamTotp, PERIOD as STEAM_PERIOD};
 use proton_pass_totp::totp::TOTP;
 
 pub use exporter::{export_entries, import_authenticator_entries};
+use proton_pass_totp::Algorithm;
 
 #[derive(Clone, Debug, proton_pass_derive::Error)]
 pub enum AuthenticatorEntryError {
     UnsupportedUri,
     ParseError,
     SerializationError(String),
+    Unknown(String),
 }
 
 #[derive(Clone, Debug)]
@@ -48,6 +50,15 @@ impl AuthenticatorEntryContent {
 pub struct AuthenticatorEntry {
     pub content: AuthenticatorEntryContent,
     pub note: Option<String>,
+}
+
+#[derive(Clone, Debug)]
+pub struct AuthenticatorEntryTotpParameters {
+    pub secret: String,
+    pub issuer: Option<String>,
+    pub period: u16,
+    pub digits: u8,
+    pub algorithm: Algorithm,
 }
 
 impl AuthenticatorEntry {
@@ -87,6 +98,26 @@ impl AuthenticatorEntry {
                 None => "".to_string(),
             },
             AuthenticatorEntryContent::Steam(steam) => steam.name(),
+        }
+    }
+
+    pub fn get_totp_parameters(&self) -> Result<AuthenticatorEntryTotpParameters, AuthenticatorEntryError> {
+        match self.content {
+            AuthenticatorEntryContent::Totp(ref totp) => {
+                let period = totp.get_period();
+                let digits = totp.get_digits();
+                let algorithm = totp.get_algorithm();
+                Ok(AuthenticatorEntryTotpParameters {
+                    secret: totp.secret.clone(),
+                    issuer: totp.issuer.clone(),
+                    period,
+                    digits,
+                    algorithm,
+                })
+            }
+            AuthenticatorEntryContent::Steam(_) => Err(AuthenticatorEntryError::Unknown(
+                "Cannot get TOTP parameters from an entry that is not TOTP".to_string(),
+            )),
         }
     }
 }

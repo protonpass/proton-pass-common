@@ -35,11 +35,17 @@ mod test {
     use crate::{AuthenticatorEntry, AuthenticatorEntryContent};
     use proton_pass_totp::algorithm::Algorithm;
 
-    pub fn check_export_matches(entries: Vec<AuthenticatorEntry>) {
+    pub fn check_export_matches(entries: Vec<AuthenticatorEntry>, check_steam_name: bool) {
         assert_eq!(entries.len(), 3);
         check_totp(&entries[0].content, 15, 8, Algorithm::SHA256);
         check_totp(&entries[1].content, 30, 6, Algorithm::SHA1);
-        check_steam(&entries[2].content);
+
+        let name = if check_steam_name {
+            Some("Steam".to_string())
+        } else {
+            None
+        };
+        check_steam(&entries[2].content, name);
     }
 
     fn check_totp(entry: &AuthenticatorEntryContent, period: u16, digits: u8, algorithm: Algorithm) {
@@ -53,9 +59,11 @@ mod test {
         };
     }
 
-    fn check_steam(entry: &AuthenticatorEntryContent) {
+    fn check_steam(entry: &AuthenticatorEntryContent, name: Option<String>) {
         match entry {
-            AuthenticatorEntryContent::Steam(_) => {}
+            AuthenticatorEntryContent::Steam(entry) => {
+                assert_eq!(entry.name, name);
+            }
             _ => panic!("Should be AuthenticatorEntryContent::Steam"),
         };
     }

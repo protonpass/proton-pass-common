@@ -33,7 +33,7 @@ mod tests {
     fn can_parse_aegis_txt() {
         let content = get_file_contents("aegis/aegis-txt.txt");
         let parsed = parse_aegis_txt(&content).expect("should be able to parse");
-        check_export_matches(parsed.entries);
+        check_export_matches(parsed.entries, false);
         assert!(parsed.errors.is_empty());
     }
 }

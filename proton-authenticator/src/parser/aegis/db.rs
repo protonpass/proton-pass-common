@@ -73,7 +73,10 @@ impl TryFrom<DbEntry> for AuthenticatorEntry {
 
         let content = match entry.entry_type.as_str() {
             "steam" => {
-                let steam = SteamTotp::new(&entry.info.secret).map_err(|_| AegisImportError::BadContent)?;
+                let mut steam = SteamTotp::new(&entry.info.secret).map_err(|_| AegisImportError::BadContent)?;
+                if !entry.name.trim().is_empty() {
+                    steam.set_name(Some(entry.name.trim().to_string()));
+                }
                 AuthenticatorEntryContent::Steam(steam)
             }
             "totp" => {

@@ -44,7 +44,7 @@ mod test {
     fn can_import_unencrypted_json() {
         let contents = get_file_contents("aegis/aegis-json-unencrypted.json");
         let res = parse_aegis_json(&contents, None).expect("should be able to parse");
-        check_export_matches(res.entries);
+        check_export_matches(res.entries, true);
         assert_eq!(res.errors.len(), 0);
     }
 
@@ -52,7 +52,7 @@ mod test {
     fn can_import_encrypted_json() {
         let contents = get_file_contents("aegis/aegis-json-encrypted-test.json");
         let res = parse_aegis_json(&contents, Some("test".to_string())).expect("should be able to parse");
-        check_export_matches(res.entries);
+        check_export_matches(res.entries, true);
         assert_eq!(res.errors.len(), 0);
     }
 

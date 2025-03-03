@@ -13,4 +13,6 @@ pub enum TOTPError {
     EmptySecret,
     NoQueries,
     SecretParseError,
+    InvalidPeriod,
+    InvalidDigits,
 }

@@ -45,17 +45,17 @@ impl TOTP {
 
         let label = Self::parse_label(&uri);
 
-        let queries = &Self::parse_queries(&uri)?;
+        let queries = Self::parse_queries(&uri)?;
         let secret = queries.get_secret()?;
-        let issuer = queries.get_issuer();
         let algorithm = queries.get_algorithm()?;
-        let digits = queries.get_digits();
-        let period = queries.get_period();
+        let digits = queries.get_digits()?;
+
+        let period = queries.get_period()?;
 
         Ok(Self {
+            issuer: queries.issuer,
             label,
             secret,
-            issuer,
             algorithm,
             digits,
             period,
@@ -211,8 +211,9 @@ impl TOTP {
         let final_secret = encoded_secret
             .to_bytes()
             .unwrap_or(raw_secret.to_bytes().map_err(|_| TOTPError::SecretParseError)?);
+        let algorithm = self.get_algorithm();
         let totp = totp_rs::TOTP::new_unchecked(
-            (&self.get_algorithm()).into(),
+            totp_rs::Algorithm::from(algorithm),
             self.get_digits() as usize,
             1,
             self.get_period() as u64,

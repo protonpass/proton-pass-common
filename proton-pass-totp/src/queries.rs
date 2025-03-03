@@ -5,11 +5,11 @@ use serde_querystring::{from_str, ParseMode};
 
 #[derive(Debug, Deserialize, Default, PartialEq)]
 pub struct Queries {
-    secret: Option<String>,
-    issuer: Option<String>,
-    algorithm: Option<String>,
-    digits: Option<String>,
-    period: Option<String>,
+    pub(crate) secret: Option<String>,
+    pub(crate) issuer: Option<String>,
+    pub(crate) algorithm: Option<String>,
+    pub(crate) digits: Option<String>,
+    pub(crate) period: Option<String>,
 }
 
 impl Queries {
@@ -29,10 +29,6 @@ impl Queries {
         }
     }
 
-    pub fn get_issuer(&self) -> Option<String> {
-        self.issuer.clone()
-    }
-
     pub fn get_algorithm(&self) -> Result<Option<Algorithm>, TOTPError> {
         if let Some(value) = self.algorithm.clone() {
             match Algorithm::try_from(&*value) {
@@ -44,11 +40,35 @@ impl Queries {
         }
     }
 
-    pub fn get_digits(&self) -> Option<u8> {
-        self.digits.clone().and_then(|s| s.parse().ok())
+    pub fn get_digits(&self) -> Result<Option<u8>, TOTPError> {
+        match self.digits {
+            Some(ref period) => match period.parse::<u8>() {
+                Ok(digits) => {
+                    if digits > 0 && digits <= 9 {
+                        Ok(Some(digits))
+                    } else {
+                        Err(TOTPError::InvalidDigits)
+                    }
+                }
+                Err(_) => Err(TOTPError::InvalidDigits),
+            },
+            None => Ok(None),
+        }
     }
 
-    pub fn get_period(&self) -> Option<u16> {
-        self.period.clone().and_then(|s| s.parse().ok())
+    pub fn get_period(&self) -> Result<Option<u16>, TOTPError> {
+        match self.period {
+            Some(ref period) => match period.parse::<u16>() {
+                Ok(period) => {
+                    if period > 0 {
+                        Ok(Some(period))
+                    } else {
+                        Err(TOTPError::InvalidPeriod)
+                    }
+                }
+                Err(_) => Err(TOTPError::InvalidPeriod),
+            },
+            None => Ok(None),
+        }
     }
 }

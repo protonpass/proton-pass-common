@@ -20,8 +20,8 @@ impl<'a> TryFrom<&'a str> for Algorithm {
     }
 }
 
-impl From<&Algorithm> for totp_rs::Algorithm {
-    fn from(value: &Algorithm) -> Self {
+impl From<Algorithm> for totp_rs::Algorithm {
+    fn from(value: Algorithm) -> Self {
         match value {
             Algorithm::SHA1 => totp_rs::Algorithm::SHA1,
             Algorithm::SHA256 => totp_rs::Algorithm::SHA256,

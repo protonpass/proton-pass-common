@@ -16,6 +16,8 @@ pub enum TOTPError {
     EmptySecret,
     NoQueries,
     SecretParseError,
+    InvalidDigitsError,
+    InvalidPeriodError,
 }
 
 impl From<CommonTOTPError> for TOTPError {
@@ -31,6 +33,8 @@ impl From<CommonTOTPError> for TOTPError {
             CommonTOTPError::EmptySecret => Self::EmptySecret,
             CommonTOTPError::NoQueries => Self::NoQueries,
             CommonTOTPError::SecretParseError => Self::SecretParseError,
+            CommonTOTPError::InvalidDigits => Self::InvalidDigitsError,
+            CommonTOTPError::InvalidPeriod => Self::InvalidPeriodError,
         }
     }
 }

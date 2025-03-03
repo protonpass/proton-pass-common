@@ -9,7 +9,9 @@ enum TOTPError {
     "NoSecret",
     "EmptySecret",
     "NoQueries",
-    "SecretParseError"
+    "SecretParseError",
+    "InvalidDigitsError",
+    "InvalidPeriodError",
 };
 
 enum TOTPAlgorithm {

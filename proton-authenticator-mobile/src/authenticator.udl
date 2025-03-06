@@ -67,7 +67,13 @@ interface AuthenticatorMobileClient {
   sequence<AuthenticatorCodeResponse> generate_codes(sequence<AuthenticatorEntryModel> entries, u64 time);
 
   [Throws=AuthenticatorError]
+  bytes serialize_entry(AuthenticatorEntryModel entry);
+
+  [Throws=AuthenticatorError]
   sequence<bytes> serialize_entries(sequence<AuthenticatorEntryModel> entries);
+
+  [Throws=AuthenticatorError]
+  AuthenticatorEntryModel deserialize_entry(bytes serialized);
 
   [Throws=AuthenticatorError]
   sequence<AuthenticatorEntryModel> deserialize_entries(sequence<bytes> serialized);

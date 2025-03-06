@@ -182,12 +182,32 @@ impl AuthenticatorMobileClient {
         Ok(mapped)
     }
 
+    pub fn serialize_entry(&self, entry: AuthenticatorEntryModel) -> Result<Vec<u8>, AuthenticatorError> {
+        if let Some(serialized) = self.serialize_entries(vec![entry])?.into_iter().next() {
+            Ok(serialized)
+        } else {
+            Err(AuthenticatorError {
+                e: proton_authenticator::AuthenticatorError::Unknown("No entries".to_string()),
+            })
+        }
+    }
+
     pub fn serialize_entries(&self, entries: Vec<AuthenticatorEntryModel>) -> Result<Vec<Vec<u8>>, AuthenticatorError> {
         let mut mapped = vec![];
         for entry in entries {
             mapped.push(entry.to_entry()?);
         }
         Ok(self.inner.serialize_entries(mapped)?)
+    }
+
+    pub fn deserialize_entry(&self, entry: Vec<u8>) -> Result<AuthenticatorEntryModel, AuthenticatorError> {
+        if let Some(deserialized) = self.deserialize_entries(vec![entry])?.into_iter().next() {
+            Ok(deserialized)
+        } else {
+            Err(AuthenticatorError {
+                e: proton_authenticator::AuthenticatorError::Unknown("No entries".to_string()),
+            })
+        }
     }
 
     pub fn deserialize_entries(

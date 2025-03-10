@@ -14,7 +14,10 @@
 ### Features :tada:
 
 - authenticator-web: offer a get_totp_params to get the params from an entry.
+- authenticator-web: expose the issuer property of an entry.
 - authenticator-mobile: offer a get_totp_params to get the params from an entry.
+- authenticator-mobile: offer methods that take a single entry for serializing and deserializing.
+- authenticator-mobile: expose the issuer property of an entry.
 
 ### Fixes :bug:
 

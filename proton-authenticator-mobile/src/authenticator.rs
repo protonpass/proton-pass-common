@@ -29,6 +29,7 @@ impl From<AuthenticatorEntry> for AuthenticatorEntryModel {
             name: entry.name(),
             note: entry.note.clone(),
             uri: entry.uri(),
+            issuer: entry.issuer(),
             period: entry.period(),
             entry_type: match entry.content {
                 AuthenticatorEntryContent::Totp(_) => AuthenticatorEntryType::TOTP,

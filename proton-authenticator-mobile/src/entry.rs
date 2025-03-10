@@ -6,6 +6,7 @@ pub struct AuthenticatorEntryModel {
     pub name: String,
     pub uri: String,
     pub period: u16,
+    pub issuer: String,
     pub note: Option<String>,
     pub entry_type: AuthenticatorEntryType,
 }

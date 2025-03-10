@@ -101,6 +101,16 @@ impl AuthenticatorEntry {
         }
     }
 
+    pub fn issuer(&self) -> String {
+        match self.content {
+            AuthenticatorEntryContent::Totp(ref totp) => match totp.issuer {
+                Some(ref issuer) => issuer.to_string(),
+                None => "".to_string(),
+            },
+            AuthenticatorEntryContent::Steam(_) => "Steam".to_string(),
+        }
+    }
+
     pub fn get_totp_parameters(&self) -> Result<AuthenticatorEntryTotpParameters, AuthenticatorEntryError> {
         match self.content {
             AuthenticatorEntryContent::Totp(ref totp) => {

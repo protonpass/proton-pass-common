@@ -6,6 +6,7 @@ interface AuthenticatorError {
 dictionary AuthenticatorCodeResponse {
   string current_code;
   string next_code;
+  AuthenticatorEntryModel entry;
 };
 
 enum AuthenticatorEntryType {

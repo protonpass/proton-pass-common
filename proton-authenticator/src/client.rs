@@ -14,6 +14,7 @@ type Result<T> = std::result::Result<T, AuthenticatorError>;
 pub struct AuthenticatorCodeResponse {
     pub current_code: String,
     pub next_code: String,
+    pub entry: AuthenticatorEntry,
 }
 
 #[derive(Default)]
@@ -100,6 +101,7 @@ impl AuthenticatorClient {
                 Ok(AuthenticatorCodeResponse {
                     current_code: current,
                     next_code: next,
+                    entry: entry.clone(),
                 })
             }
             AuthenticatorEntryContent::Steam(steam) => {
@@ -108,6 +110,7 @@ impl AuthenticatorClient {
                 Ok(AuthenticatorCodeResponse {
                     current_code: current,
                     next_code: next,
+                    entry: entry.clone(),
                 })
             }
         }

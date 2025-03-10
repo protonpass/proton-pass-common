@@ -20,6 +20,7 @@ pub fn entry_from_uri(uri: String) -> JsResult<WasmAuthenticatorEntryModel> {
 pub struct WasmAuthenticatorCodeResponse {
     pub current_code: String,
     pub next_code: String,
+    pub entry: WasmAuthenticatorEntryModel,
 }
 
 impl From<AuthenticatorCodeResponse> for WasmAuthenticatorCodeResponse {
@@ -27,6 +28,7 @@ impl From<AuthenticatorCodeResponse> for WasmAuthenticatorCodeResponse {
         Self {
             current_code: resp.current_code,
             next_code: resp.next_code,
+            entry: WasmAuthenticatorEntryModel::from(resp.entry),
         }
     }
 }

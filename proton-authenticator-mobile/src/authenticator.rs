@@ -86,6 +86,7 @@ pub struct AuthenticatorEntrySteamCreateParameters {
 pub struct AuthenticatorCodeResponse {
     pub current_code: String,
     pub next_code: String,
+    pub entry: AuthenticatorEntryModel,
 }
 
 impl From<CommonAuthenticatorCodeResponse> for AuthenticatorCodeResponse {
@@ -93,6 +94,7 @@ impl From<CommonAuthenticatorCodeResponse> for AuthenticatorCodeResponse {
         Self {
             current_code: value.current_code,
             next_code: value.next_code,
+            entry: AuthenticatorEntryModel::from(value.entry),
         }
     }
 }

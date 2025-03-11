@@ -1,13 +1,11 @@
 plugins {
-    id("com.android.test")
+    id("com.android.library")
     id("org.jetbrains.kotlin.android")
 }
 
 android {
     namespace = "proton.android.authenticator.commonrust"
     compileSdk = libs.versions.compileSdk.get().toInt()
-
-    targetProjectPath = ":lib"
 
     defaultConfig {
         minSdk = libs.versions.minSdk.get().toInt()
@@ -20,11 +18,12 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
+
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = JavaVersion.VERSION_17.toString()
     }
 }
 

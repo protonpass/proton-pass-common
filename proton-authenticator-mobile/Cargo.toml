@@ -20,7 +20,9 @@ name = "proton_authenticator_common_mobile"
 proton-authenticator = { path = "../proton-authenticator" }
 proton-pass-derive = { path = "../proton-pass-derive" }
 
+async-trait = "0.1.87"
 clap_derive = { version = "4.0.0-rc.1" } # Needed for now to fix mobile binding generation
+tokio = { version = "1.43", features = ["full"] }
 uniffi = { version = "0.29.0" }
 
 [build-dependencies]

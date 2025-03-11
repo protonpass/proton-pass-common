@@ -9,16 +9,11 @@ interface MobileTotpGenerationHandle {
 };
 
 [Trait, WithForeign]
-interface MobileDelayProvider {
-    void delay(u64 millis);
-};
-
-[Trait, WithForeign]
 interface MobileCurrentTimeProvider {
     u64 now();
 };
 
 interface MobileTotpGenerator {
-  constructor(MobileDelayProvider delay, MobileCurrentTimeProvider current_time);
+  constructor(u32 period, MobileCurrentTimeProvider current_time);
   MobileTotpGenerationHandle start(sequence<AuthenticatorEntryModel> entries, MobileTotpGeneratorCallback callback);
 };

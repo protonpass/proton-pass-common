@@ -1,24 +1,10 @@
 use crate::{AuthenticatorCodeResponse, AuthenticatorEntryModel};
 use proton_authenticator::generator::{
-    GeneratorCurrentTimeProvider, GeneratorDelay, TotpGenerationHandle, TotpGenerator as CoreTotpGenerator,
+    GeneratorCurrentTimeProvider, TotpGenerationHandle, TotpGenerator as CoreTotpGenerator,
     TotpGeneratorCallback, TotpGeneratorDependencies,
 };
 use std::sync::{Arc, Mutex};
 
-// Delay provider
-pub trait MobileDelayProvider: Send + Sync {
-    fn delay(&self, millis: u64);
-}
-
-pub struct MobileDelayAdapter {
-    inner: Arc<dyn MobileDelayProvider>,
-}
-
-impl GeneratorDelay for MobileDelayAdapter {
-    fn delay(&self, millis: u64) {
-        self.inner.delay(millis);
-    }
-}
 
 // Current Time Provider
 pub trait MobileCurrentTimeProvider: Send + Sync {
@@ -78,16 +64,18 @@ impl TotpGeneratorCallback for MobileTotpGeneratorCallbackAdapter {
 // Totp Generator
 pub struct MobileTotpGenerator {
     inner: CoreTotpGenerator,
+    rt: tokio::runtime::Runtime,
 }
 
 impl MobileTotpGenerator {
-    pub fn new(delay: Arc<dyn MobileDelayProvider>, current_time: Arc<dyn MobileCurrentTimeProvider>) -> Self {
+    pub fn new(period: u32, current_time: Arc<dyn MobileCurrentTimeProvider>) -> Self {
         let dependencies = TotpGeneratorDependencies {
-            delay: Arc::new(MobileDelayAdapter { inner: delay }),
             current_time_provider: Arc::new(MobileTimeAdapter { inner: current_time }),
         };
+        let rt = tokio::runtime::Builder::new_current_thread().build().unwrap();
         Self {
-            inner: CoreTotpGenerator::new(dependencies),
+            inner: CoreTotpGenerator::new(dependencies, period),
+            rt,
         }
     }
 
@@ -101,10 +89,12 @@ impl MobileTotpGenerator {
             .map(|e| e.to_entry().expect("todo: fixme"))
             .collect();
         let adapted_callback = MobileTotpGeneratorCallbackAdapter { inner: callback };
-        let res = self.inner.start(as_entries, adapted_callback);
+        self.rt.handle().block_on(async move {
+            let res = self.inner.start_async(as_entries, adapted_callback).await;
 
-        Arc::new(MobileTotpGenerationHandleAdapter {
-            inner: Arc::new(Mutex::new(res)),
+            Arc::new(MobileTotpGenerationHandleAdapter {
+                inner: Arc::new(Mutex::new(res)),
+            })
         })
     }
 }

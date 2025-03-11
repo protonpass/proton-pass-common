@@ -1,0 +1,24 @@
+[Trait, WithForeign]
+interface MobileTotpGeneratorCallback {
+  void on_codes(sequence<AuthenticatorCodeResponse> codes);
+};
+
+[Trait, WithForeign]
+interface MobileTotpGenerationHandle {
+  void cancel();
+};
+
+[Trait, WithForeign]
+interface MobileDelayProvider {
+    void delay(u64 millis);
+};
+
+[Trait, WithForeign]
+interface MobileCurrentTimeProvider {
+    u64 now();
+};
+
+interface MobileTotpGenerator {
+  constructor(MobileDelayProvider delay, MobileCurrentTimeProvider current_time);
+  MobileTotpGenerationHandle start(sequence<AuthenticatorEntryModel> entries, MobileTotpGeneratorCallback callback);
+};

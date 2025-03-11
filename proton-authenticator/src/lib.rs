@@ -4,6 +4,7 @@ mod log;
 
 pub mod crypto;
 pub mod entry;
+pub mod generator;
 pub mod parser;
 pub mod steam;
 

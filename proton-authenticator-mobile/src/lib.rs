@@ -3,6 +3,7 @@
 mod authenticator;
 mod crypto;
 mod entry;
+mod generator;
 mod import;
 mod log;
 
@@ -15,5 +16,6 @@ pub fn library_version() -> String {
 pub use authenticator::*;
 pub use crypto::*;
 pub use entry::*;
+pub use generator::*;
 pub use import::*;
 pub use log::*;

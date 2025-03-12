@@ -1714,7 +1714,7 @@ checksum = "7dc55d7dec32ecaf61e0bd90b3d2392d721a28b95cfd23c3e176eccefbeab2f2"
 
 [[package]]
 name = "proton-authenticator"
-version = "0.13.5"
+version = "0.14.0"
 dependencies = [
  "aes-gcm",
  "async-trait",
@@ -1744,7 +1744,7 @@ dependencies = [
 
 [[package]]
 name = "proton-authenticator-mobile"
-version = "0.13.5"
+version = "0.14.0"
 dependencies = [
  "async-trait",
  "clap_derive",
@@ -1756,7 +1756,7 @@ dependencies = [
 
 [[package]]
 name = "proton-authenticator-web"
-version = "0.13.5"
+version = "0.14.0"
 dependencies = [
  "js-sys",
  "proton-authenticator",
@@ -1768,7 +1768,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-common"
-version = "0.13.5"
+version = "0.14.0"
 dependencies = [
  "async-trait",
  "coset",
@@ -1795,7 +1795,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-derive"
-version = "0.13.5"
+version = "0.14.0"
 dependencies = [
  "quote",
  "syn 2.0.98",
@@ -1803,7 +1803,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-mobile"
-version = "0.13.5"
+version = "0.14.0"
 dependencies = [
  "clap_derive",
  "proton-pass-common",
@@ -1814,7 +1814,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-totp"
-version = "0.13.5"
+version = "0.14.0"
 dependencies = [
  "proton-pass-derive",
  "serde",
@@ -1826,7 +1826,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-web"
-version = "0.13.5"
+version = "0.14.0"
 dependencies = [
  "js-sys",
  "proton-pass-common",

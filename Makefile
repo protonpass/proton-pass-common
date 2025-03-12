@@ -287,6 +287,10 @@ authenticator-android-lib-x86_64: authenticator-android-dirs ## Build the androi
 authenticator-android: authenticator-android-lib-aarch64 authenticator-android-lib-armv7 authenticator-android-lib-x86_64 ## Build all the android variants
 	@cd ${PROJECT_ROOT}/proton-authenticator-mobile/android && ./gradlew :lib:assembleRelease
 
+.PHONY: authenticator-android-test
+authenticator-android-test:
+	@cd ${PROJECT_ROOT}/proton-authenticator-mobile/android && ./gradlew :libTest:connectedDebugAndroidTest
+
 .PHONY: authenticator-web-setup
 authenticator-web-setup:
 	@rm -rf "${AUTHENTICATOR_WEB_BUILD_DIR}" && mkdir "${AUTHENTICATOR_WEB_BUILD_DIR}"

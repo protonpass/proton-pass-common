@@ -15,7 +15,8 @@ class TotpGeneratorTest {
     @Test
     fun canInvokeEntryFromUri() {
         val client = AuthenticatorMobileClient()
-        val entry = client.entryFromUri("otpauth://totp/MYLABEL?secret=MYSECRET&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15")
+        val entry =
+            client.entryFromUri("otpauth://totp/MYLABEL?secret=MYSECRET&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15")
 
         assertThat(entry.name).isEqualTo("MYLABEL")
     }
@@ -35,6 +36,7 @@ class TotpGeneratorTest {
             val period = 100 // generate codes every 100ms
             val generator = MobileTotpGenerator(
                 period = period.toUInt(),
+                onlyOnCodeChange = false,
                 currentTime = object : MobileCurrentTimeProvider {
                     var idx = 0
                     override fun now(): ULong = when (idx) {
@@ -85,6 +87,64 @@ class TotpGeneratorTest {
             assertThat(generated[2][0].nextCode).isEqualTo("49179669")
             assertThat(generated[2][1].currentCode).isEqualTo("77812358")
             assertThat(generated[2][1].nextCode).isEqualTo("54935379")
+        }
+
+    }
+
+    @Test
+    fun canInvokeGeneratorOnlyOnCodeChange() = runTest {
+        registerAuthenticatorLogger(object : AuthenticatorLogger {
+            override fun log(level: AuthenticatorLogLevel, message: String) {
+                println("[$level] $message")
+            }
+        })
+
+        launch(Dispatchers.Default) {
+            val entry = getEntry1()
+
+            val period = 100 // generate codes every 100ms
+            val generator = MobileTotpGenerator(
+                period = period.toUInt(),
+                onlyOnCodeChange = true,
+                currentTime = object : MobileCurrentTimeProvider {
+                    var idx = 0
+                    override fun now(): ULong = when (idx) {
+                        0 -> 1741764120 // Generate
+                        1 -> 1741764121 // Don't generate
+                        2 -> 1741764122 // Don't generate
+                        3 -> 1741890120 // Generate
+                        else -> throw RuntimeException("Should not request")
+                    }.toULong().also { idx += 1 }
+                }
+            )
+
+            val generated = mutableListOf<List<AuthenticatorCodeResponse>>()
+            val handle = generator.start(
+                entries = listOf(entry),
+                callback = object : MobileTotpGeneratorCallback {
+                    override fun onCodes(codes: List<AuthenticatorCodeResponse>) {
+                        generated.add(codes)
+                    }
+                }
+            )
+
+            // Wait for the necessary time to generate 4 ticks
+            val times = 4
+            delay((times * period).toLong())
+
+            assertThat(generated.size).isEqualTo(2)
+
+            // Cancel the generation
+            handle.cancel()
+
+            // Assert codes are right
+            assertThat(generated[0].size).isEqualTo(1)
+            assertThat(generated[0][0].currentCode).isEqualTo("55894277")
+            assertThat(generated[0][0].nextCode).isEqualTo("32755418")
+
+            assertThat(generated[1].size).isEqualTo(1)
+            assertThat(generated[1][0].currentCode).isEqualTo("07871325")
+            assertThat(generated[1][0].nextCode).isEqualTo("49179669")
         }
 
     }

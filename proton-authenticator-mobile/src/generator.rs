@@ -69,7 +69,11 @@ pub struct MobileTotpGenerator {
 impl MobileTotpGenerator {
     const RUNTIME_THREADS: usize = 2;
 
-    pub fn new(period: u32, only_on_code_change: bool, current_time: Arc<dyn MobileCurrentTimeProvider>) -> Result<Self, AuthenticatorError> {
+    pub fn new(
+        period: u32,
+        only_on_code_change: bool,
+        current_time: Arc<dyn MobileCurrentTimeProvider>,
+    ) -> Result<Self, AuthenticatorError> {
         let dependencies = TotpGeneratorDependencies {
             current_time_provider: Arc::new(MobileTimeAdapter { inner: current_time }),
         };

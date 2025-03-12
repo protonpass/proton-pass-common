@@ -34,7 +34,11 @@ impl TotpGenerator {
     const MAX_ERRORS: usize = 3;
 
     pub fn new(dependencies: TotpGeneratorDependencies, only_on_code_change: bool, period: u32) -> Self {
-        Self { dependencies, only_on_code_change, period }
+        Self {
+            dependencies,
+            only_on_code_change,
+            period,
+        }
     }
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -51,9 +55,16 @@ impl TotpGenerator {
             let period = self.period;
             let only_on_code_change = self.only_on_code_change;
             Some(tokio::spawn(async move {
-                Self::generate_codes_loop(entries, only_on_code_change, callback, time_provider, cancelled_cloned, || async move {
-                    tokio::time::sleep(tokio::time::Duration::from_millis(period as u64)).await;
-                })
+                Self::generate_codes_loop(
+                    entries,
+                    only_on_code_change,
+                    callback,
+                    time_provider,
+                    cancelled_cloned,
+                    || async move {
+                        tokio::time::sleep(tokio::time::Duration::from_millis(period as u64)).await;
+                    },
+                )
                 .await;
             }))
         };
@@ -73,9 +84,16 @@ impl TotpGenerator {
 
         let cancelled_cloned = cancelled.clone();
         wasm_bindgen_futures::spawn_local(async move {
-            Self::generate_codes_loop(entries, only_on_code_change, callback, time_provider, cancelled_cloned, || async move {
-                gloo_timers::future::TimeoutFuture::new(period).await;
-            })
+            Self::generate_codes_loop(
+                entries,
+                only_on_code_change,
+                callback,
+                time_provider,
+                cancelled_cloned,
+                || async move {
+                    gloo_timers::future::TimeoutFuture::new(period).await;
+                },
+            )
             .await;
         });
         TotpGenerationHandle { cancelled }
@@ -112,20 +130,20 @@ impl TotpGenerator {
                 match client.generate_codes(&entries, now) {
                     Ok(codes) => {
                         let should_invoke = if only_on_code_change {
-                            let codes_as_str = codes.iter()
+                            let codes_as_str = codes
+                                .iter()
                                 .map(|c| c.current_code.as_str())
                                 .collect::<Vec<&str>>()
                                 .join("");
                             let res = match last_state {
                                 Some(ref last) => codes_as_str != last.as_str(),
-                                None => true
+                                None => true,
                             };
                             last_state = Some(codes_as_str);
                             res
                         } else {
                             true
                         };
-
 
                         if should_invoke {
                             info!("{prefix} Got codes size={}", codes.len());
@@ -204,7 +222,11 @@ mod tests {
     }
 
     impl TestTotpGeneratorCallbackAccumulator {
-        pub fn new() -> Self { Self { values: Mutex::new(Vec::new()) }}
+        pub fn new() -> Self {
+            Self {
+                values: Mutex::new(Vec::new()),
+            }
+        }
 
         pub fn get_values(&self) -> Vec<Vec<AuthenticatorCodeResponse>> {
             let list_ref = self.values.lock().unwrap();
@@ -219,7 +241,7 @@ mod tests {
 
     impl TotpGeneratorCallback for TestTotpGeneratorCallbackAccumulator {
         fn on_codes(&self, codes: Vec<AuthenticatorCodeResponse>) {
-          self.on_codes_callback(codes)
+            self.on_codes_callback(codes)
         }
     }
 
@@ -231,12 +253,12 @@ mod tests {
 
     #[tokio::test]
     async fn can_generate_codes() {
-        let entry1 = get_entry("otpauth://totp/MYLABEL?secret=MYSECRET&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15");
-        let entry2 = get_entry("otpauth://totp/MYLABEL?secret=MYSECRET123&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15");
+        let entry1 =
+            get_entry("otpauth://totp/MYLABEL?secret=MYSECRET&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15");
+        let entry2 =
+            get_entry("otpauth://totp/MYLABEL?secret=MYSECRET123&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15");
 
-        let current_time_provider = TestCurrentTimeProvider::new(vec![
-            1741764120, 1741789012, 1741890123
-        ]);
+        let current_time_provider = TestCurrentTimeProvider::new(vec![1741764120, 1741789012, 1741890123]);
 
         let period = 10;
         let dependencies = TotpGeneratorDependencies {
@@ -247,10 +269,7 @@ mod tests {
         let accumulator_callback = Arc::new(TestTotpGeneratorCallbackAccumulator::new());
 
         let accumulator_clone = accumulator_callback.clone();
-        let mut handle = generator.start_async(
-            vec![entry1, entry2],
-            accumulator_clone
-        ).await;
+        let mut handle = generator.start_async(vec![entry1, entry2], accumulator_clone).await;
 
         let times = 3;
         tokio::time::sleep(tokio::time::Duration::from_millis((period * times) as u64)).await;
@@ -282,19 +301,24 @@ mod tests {
         assert_eq!("77812358", accumulated_ref[2][1].current_code);
         assert_eq!("54935379", accumulated_ref[2][1].next_code);
 
-        let handle_err = handle.join_handle.unwrap().await.expect_err("should have an error (Cancelled)");
+        let handle_err = handle
+            .join_handle
+            .unwrap()
+            .await
+            .expect_err("should have an error (Cancelled)");
         assert!(handle_err.is_cancelled());
     }
 
     #[tokio::test]
     async fn can_generate_codes_only_on_code_change() {
-        let entry = get_entry("otpauth://totp/MYLABEL?secret=MYSECRET&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15");
+        let entry =
+            get_entry("otpauth://totp/MYLABEL?secret=MYSECRET&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15");
 
         let times_to_return = vec![
             1741764120, // Generate
             1741764121, // Don't generate
             1741764122, // Don't generate
-            1741890120 // Generate
+            1741890120, // Generate
         ];
         let times = times_to_return.len();
         let current_time_provider = TestCurrentTimeProvider::new(times_to_return);
@@ -323,7 +347,11 @@ mod tests {
         assert_eq!("49179669", accumulated_ref[1][0].next_code);
 
         handle.cancel();
-        let handle_err = handle.join_handle.unwrap().await.expect_err("should have an error (Cancelled)");
+        let handle_err = handle
+            .join_handle
+            .unwrap()
+            .await
+            .expect_err("should have an error (Cancelled)");
         assert!(handle_err.is_cancelled());
     }
 }

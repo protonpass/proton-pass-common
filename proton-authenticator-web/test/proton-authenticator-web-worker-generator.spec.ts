@@ -17,7 +17,7 @@ describe("ProtonAuthenticatorWeb WASM generator", () => {
 
         const period = 50;
         const timeProvider = () => BigInt(1739284795);
-        const generator = new WebTotpGenerator(period, timeProvider);
+        const generator = new WebTotpGenerator(period, false, timeProvider);
 
         const generated = [];
         const handle = await generator.start([entry], (codes: [WasmAuthenticatorCodeResponse]) => {

@@ -15,7 +15,7 @@ interface MobileCurrentTimeProvider {
 
 interface MobileTotpGenerator {
   [Throws=AuthenticatorError]
-  constructor(u32 period, MobileCurrentTimeProvider current_time);
+  constructor(u32 period, boolean only_on_code_change, MobileCurrentTimeProvider current_time);
   [Throws=AuthenticatorError]
   MobileTotpGenerationHandle start(sequence<AuthenticatorEntryModel> entries, MobileTotpGeneratorCallback callback);
 };

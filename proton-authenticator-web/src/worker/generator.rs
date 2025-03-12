@@ -36,14 +36,14 @@ impl GeneratorCurrentTimeProvider for WebCurrentTimeProvider {
 #[wasm_bindgen]
 impl WebTotpGenerator {
     #[wasm_bindgen(constructor)]
-    pub fn new(period: u32, current_time_provider: js_sys::Function) -> Self {
+    pub fn new(period: u32, only_on_code_change: bool, current_time_provider: js_sys::Function) -> Self {
         let dependencies = TotpGeneratorDependencies {
             current_time_provider: Arc::new(WebCurrentTimeProvider {
                 inner: current_time_provider,
             }),
         };
         Self {
-            inner: CoreTotpGenerator::new(dependencies, period),
+            inner: CoreTotpGenerator::new(dependencies, only_on_code_change, period),
         }
     }
 

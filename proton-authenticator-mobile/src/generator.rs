@@ -1,10 +1,9 @@
-use crate::{AuthenticatorCodeResponse, AuthenticatorEntryModel};
+use crate::{AuthenticatorCodeResponse, AuthenticatorEntryModel, AuthenticatorError};
 use proton_authenticator::generator::{
-    GeneratorCurrentTimeProvider, TotpGenerationHandle, TotpGenerator as CoreTotpGenerator,
-    TotpGeneratorCallback, TotpGeneratorDependencies,
+    GeneratorCurrentTimeProvider, TotpGenerationHandle, TotpGenerator as CoreTotpGenerator, TotpGeneratorCallback,
+    TotpGeneratorDependencies,
 };
 use std::sync::{Arc, Mutex};
-
 
 // Current Time Provider
 pub trait MobileCurrentTimeProvider: Send + Sync {
@@ -68,33 +67,39 @@ pub struct MobileTotpGenerator {
 }
 
 impl MobileTotpGenerator {
-    pub fn new(period: u32, current_time: Arc<dyn MobileCurrentTimeProvider>) -> Self {
+    const RUNTIME_THREADS: usize = 2;
+
+    pub fn new(period: u32, current_time: Arc<dyn MobileCurrentTimeProvider>) -> Result<Self, AuthenticatorError> {
         let dependencies = TotpGeneratorDependencies {
             current_time_provider: Arc::new(MobileTimeAdapter { inner: current_time }),
         };
-        let rt = tokio::runtime::Builder::new_current_thread().build().unwrap();
-        Self {
+        let rt = tokio::runtime::Builder::new_multi_thread()
+            .worker_threads(Self::RUNTIME_THREADS)
+            .enable_time()
+            .build()
+            .map_err(|e| proton_authenticator::AuthenticatorError::Unknown(format!("Cannot start runtime: {:?}", e)))?;
+        Ok(Self {
             inner: CoreTotpGenerator::new(dependencies, period),
             rt,
-        }
+        })
     }
 
     pub fn start(
         &self,
         entries: Vec<AuthenticatorEntryModel>,
         callback: Arc<dyn MobileTotpGeneratorCallback>,
-    ) -> Arc<dyn MobileTotpGenerationHandle> {
-        let as_entries = entries
-            .into_iter()
-            .map(|e| e.to_entry().expect("todo: fixme"))
-            .collect();
+    ) -> Result<Arc<dyn MobileTotpGenerationHandle>, AuthenticatorError> {
+        let mut as_entries = vec![];
+        for entry in entries {
+            as_entries.push(entry.to_entry()?);
+        }
         let adapted_callback = MobileTotpGeneratorCallbackAdapter { inner: callback };
-        self.rt.handle().block_on(async move {
+        Ok(self.rt.handle().block_on(async move {
             let res = self.inner.start_async(as_entries, adapted_callback).await;
 
             Arc::new(MobileTotpGenerationHandleAdapter {
                 inner: Arc::new(Mutex::new(res)),
             })
-        })
+        }))
     }
 }

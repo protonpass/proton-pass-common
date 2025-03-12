@@ -1,10 +1,13 @@
-use proton_authenticator::generator::{TotpGenerator as CoreTotpGenerator, TotpGeneratorDependencies, TotpGenerationHandle, TotpGeneratorCallback, GeneratorCurrentTimeProvider};
+use crate::entry::WasmAuthenticatorEntryModel;
+use crate::worker::client::WasmAuthenticatorCodeResponse;
+use proton_authenticator::generator::{
+    GeneratorCurrentTimeProvider, TotpGenerationHandle, TotpGenerator as CoreTotpGenerator, TotpGeneratorCallback,
+    TotpGeneratorDependencies,
+};
+use proton_authenticator::AuthenticatorCodeResponse;
 use std::sync::Arc;
 use wasm_bindgen::__rt::IntoJsResult;
 use wasm_bindgen::prelude::*;
-use proton_authenticator::AuthenticatorCodeResponse;
-use crate::entry::WasmAuthenticatorEntryModel;
-use crate::worker::client::WasmAuthenticatorCodeResponse;
 
 #[wasm_bindgen]
 pub struct WebTotpGenerator {
@@ -12,7 +15,7 @@ pub struct WebTotpGenerator {
 }
 
 pub struct WebCurrentTimeProvider {
-    inner: js_sys::Function
+    inner: js_sys::Function,
 }
 
 unsafe impl Send for WebCurrentTimeProvider {}
@@ -35,7 +38,9 @@ impl WebTotpGenerator {
     #[wasm_bindgen(constructor)]
     pub fn new(period: u32, current_time_provider: js_sys::Function) -> Self {
         let dependencies = TotpGeneratorDependencies {
-            current_time_provider: Arc::new(WebCurrentTimeProvider { inner: current_time_provider }),
+            current_time_provider: Arc::new(WebCurrentTimeProvider {
+                inner: current_time_provider,
+            }),
         };
         Self {
             inner: CoreTotpGenerator::new(dependencies, period),
@@ -44,7 +49,11 @@ impl WebTotpGenerator {
 
     /// Async start; expects a JSON-serializable array of WebAuthenticatorEntry and a JS callback.
     #[wasm_bindgen]
-    pub async fn start(&self, entries: Vec<WasmAuthenticatorEntryModel>, callback: js_sys::Function) -> WebTotpGenerationHandle {
+    pub async fn start(
+        &self,
+        entries: Vec<WasmAuthenticatorEntryModel>,
+        callback: js_sys::Function,
+    ) -> WebTotpGenerationHandle {
         let entries = entries
             .into_iter()
             .map(|e| e.to_entry().expect("todo: fixme"))
@@ -69,7 +78,7 @@ impl TotpGeneratorCallback for WasmCallback {
 
         for code in codes {
             let mapped = WasmAuthenticatorCodeResponse::from(code);
-            if let Ok(v ) = mapped.into_js_result() {
+            if let Ok(v) = mapped.into_js_result() {
                 res.push(&v);
             }
         }

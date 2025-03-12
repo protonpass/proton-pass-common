@@ -25,7 +25,6 @@ serializationJson = "1.6.3"
 # Test
 junit = "4.13.2"
 truth = "1.4.4"
-fusion = "0.9.52"
 
 [plugins]
 gradlePlugin-application = { id = "com.android.application", version.ref = "gradlePlugin-android" }
@@ -51,4 +50,4 @@ coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", ve
 junit = { module = "junit:junit", version.ref = "junit" }
 kotlinTest = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 truth = { module = "com.google.truth:truth", version.ref = "truth" }
-fusion = { module = "me.proton.test:fusion", version.ref = "fusion" }
+turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }

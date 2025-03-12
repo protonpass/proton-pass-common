@@ -28,13 +28,17 @@ android {
 }
 
 dependencies {
-    implementation(projects.lib)
+    androidTestImplementation(projects.lib)
 
-    implementation(libs.androidx.test.core)
-    implementation(libs.androidx.test.core.ktx)
-    implementation(libs.androidx.test.junit)
-    implementation(libs.androidx.test.runner)
-    implementation(libs.junit)
-    implementation(libs.kotlinTest)
-    implementation(libs.truth)
+    androidTestImplementation(libs.androidx.test.core)
+    androidTestImplementation(libs.androidx.test.core.ktx)
+    androidTestImplementation(libs.androidx.test.junit)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.kotlinx.coroutines.core)
+    androidTestImplementation(libs.coroutines.test)
+    androidTestImplementation(libs.kotlinx.datetime)
+    androidTestImplementation(libs.junit)
+    androidTestImplementation(libs.kotlinTest)
+    androidTestImplementation(libs.truth)
+    androidTestImplementation(libs.turbine)
 }

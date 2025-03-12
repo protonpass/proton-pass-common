@@ -4,6 +4,17 @@
 
 ### Fixes :bug:
 
+### Other
+
+## 0.14.0
+
+### Features :tada:
+
+- authenticator: offer new callback-based TOTP generator.
+- authenticator: expose issuer property for TOTP entries
+
+### Fixes :bug:
+
 - authenticator: preserve steam name when importing an aegis export.
 - authenticator: return MissingPassword error when importing an encrypted aegis backup without submitting a password.
 

@@ -11,6 +11,7 @@ pub enum AuthenticatorError {
 
 type Result<T> = std::result::Result<T, AuthenticatorError>;
 
+#[derive(Clone)]
 pub struct AuthenticatorCodeResponse {
     pub current_code: String,
     pub next_code: String,

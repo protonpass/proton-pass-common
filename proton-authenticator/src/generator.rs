@@ -129,3 +129,121 @@ impl TotpGenerationHandle {
         }
     }
 }
+
+#[cfg(test)]
+#[cfg(not(target_arch = "wasm32"))]
+mod tests {
+    use super::*;
+
+    fn get_entry(uri: &str) -> AuthenticatorEntry {
+        AuthenticatorEntry::from_uri(uri, None).expect("Failed to parse authenticator entry")
+    }
+
+    struct TestCurrentTimeProvider {
+        values: Vec<u64>,
+        idx: std::sync::Mutex<usize>,
+    }
+
+    impl TestCurrentTimeProvider {
+        pub fn new(values: Vec<u64>) -> Self {
+            Self {
+                idx: std::sync::Mutex::new(0),
+                values,
+            }
+        }
+    }
+
+    impl GeneratorCurrentTimeProvider for TestCurrentTimeProvider {
+        fn now(&self) -> u64 {
+            let mut current_idx = self.idx.lock().unwrap();
+            let res = self.values.get(*current_idx).expect("could not get time");
+            *current_idx += 1;
+
+            *res
+        }
+    }
+
+    struct TestTotpGeneratorCallbackAccumulator {
+        values: std::sync::Mutex<Vec<Vec<AuthenticatorCodeResponse>>>,
+    }
+
+    impl TestTotpGeneratorCallbackAccumulator {
+        pub fn new() -> Self { Self { values: std::sync::Mutex::new(Vec::new()) }}
+
+        pub fn get_values(&self) -> Vec<Vec<AuthenticatorCodeResponse>> {
+            let list_ref = self.values.lock().unwrap();
+            (*list_ref).clone()
+        }
+
+        fn on_codes_callback(&self, codes: Vec<AuthenticatorCodeResponse>) {
+            let mut values_ref = self.values.lock().unwrap();
+            values_ref.push(codes);
+        }
+    }
+
+    impl TotpGeneratorCallback for TestTotpGeneratorCallbackAccumulator {
+        fn on_codes(&self, codes: Vec<AuthenticatorCodeResponse>) {
+          self.on_codes_callback(codes)
+        }
+    }
+
+    impl TotpGeneratorCallback for Arc<TestTotpGeneratorCallbackAccumulator> {
+        fn on_codes(&self, codes: Vec<AuthenticatorCodeResponse>) {
+            self.on_codes_callback(codes)
+        }
+    }
+
+    #[tokio::test]
+    async fn can_generate_codes() {
+        let entry1 = get_entry("otpauth://totp/MYLABEL?secret=MYSECRET&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15");
+        let entry2 = get_entry("otpauth://totp/MYLABEL?secret=MYSECRET123&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15");
+
+        let current_time_provider = TestCurrentTimeProvider::new(vec![
+            1741764120, 1741789012, 1741890123
+        ]);
+
+        let period = 100;
+        let dependencies = TotpGeneratorDependencies {
+            current_time_provider: Arc::new(current_time_provider),
+        };
+        let generator = TotpGenerator::new(dependencies, period);
+
+        let accumulator_callback = Arc::new(TestTotpGeneratorCallbackAccumulator::new());
+
+        let accumulator_clone = accumulator_callback.clone();
+        let mut handle = generator.start_async(
+            vec![entry1, entry2],
+            accumulator_clone
+        ).await;
+
+        let times = 3;
+        tokio::time::sleep(tokio::time::Duration::from_millis((period * times) as u64)).await;
+
+        {
+            let accumulated_ref = accumulator_callback.get_values();
+            assert_eq!(accumulated_ref.len(), times as usize);
+        }
+
+        handle.cancel();
+        tokio::time::sleep(tokio::time::Duration::from_millis((period * 2) as u64)).await;
+
+        let accumulated_ref = accumulator_callback.get_values();
+        assert_eq!(accumulated_ref.len(), times as usize);
+
+        assert_eq!(2, accumulated_ref[0].len());
+        assert_eq!("55894277", accumulated_ref[0][0].current_code);
+        assert_eq!("32755418", accumulated_ref[0][0].next_code);
+        assert_eq!("03271278", accumulated_ref[0][1].current_code);
+        assert_eq!("94297675", accumulated_ref[0][1].next_code);
+
+        assert_eq!("74506379", accumulated_ref[1][0].current_code);
+        assert_eq!("66003564", accumulated_ref[1][0].next_code);
+        assert_eq!("66986124", accumulated_ref[1][1].current_code);
+        assert_eq!("11675313", accumulated_ref[1][1].next_code);
+
+        assert_eq!("07871325", accumulated_ref[2][0].current_code);
+        assert_eq!("49179669", accumulated_ref[2][0].next_code);
+        assert_eq!("77812358", accumulated_ref[2][1].current_code);
+        assert_eq!("54935379", accumulated_ref[2][1].next_code);
+    }
+}

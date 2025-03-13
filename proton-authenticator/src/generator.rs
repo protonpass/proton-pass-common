@@ -127,6 +127,7 @@ impl TotpGenerator {
                 true
             };
             if should_generate {
+                debug!("{prefix} Generating codes");
                 match client.generate_codes(&entries, now) {
                     Ok(codes) => {
                         let should_invoke = if only_on_code_change {
@@ -148,6 +149,8 @@ impl TotpGenerator {
                         if should_invoke {
                             info!("{prefix} Got codes size={}", codes.len());
                             callback.on_codes(codes);
+                        } else {
+                            debug!("{prefix} Callback not invoked");
                         }
                     }
                     Err(e) => {
@@ -175,6 +178,7 @@ pub struct TotpGenerationHandle {
 impl TotpGenerationHandle {
     /// Cancels the generation loop and waits for the thread to finish.
     pub fn cancel(&mut self) {
+        info!("[TOTP_GENERATOR] Canceled");
         self.cancelled.store(true, Ordering::Relaxed);
         #[cfg(not(target_arch = "wasm32"))]
         if let Some(ref handle) = self.join_handle {

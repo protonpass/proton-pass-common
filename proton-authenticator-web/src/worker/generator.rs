@@ -6,7 +6,6 @@ use proton_authenticator::generator::{
 };
 use proton_authenticator::AuthenticatorCodeResponse;
 use std::sync::Arc;
-use wasm_bindgen::__rt::IntoJsResult;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -53,14 +52,14 @@ impl WebTotpGenerator {
         &self,
         entries: Vec<WasmAuthenticatorEntryModel>,
         callback: js_sys::Function,
-    ) -> WebTotpGenerationHandle {
-        let entries = entries
-            .into_iter()
-            .map(|e| e.to_entry().expect("todo: fixme"))
-            .collect();
+    ) -> Result<WebTotpGenerationHandle, JsError> {
+        let mut as_entries = vec![];
+        for entry in entries {
+            as_entries.push(entry.to_entry()?);
+        }
         let cb = WasmCallback { callback };
-        let handle = self.inner.start_async(entries, cb).await;
-        WebTotpGenerationHandle { inner: handle }
+        let handle = self.inner.start_async(as_entries, cb).await;
+        Ok(WebTotpGenerationHandle { inner: handle })
     }
 }
 
@@ -74,13 +73,12 @@ unsafe impl Sync for WasmCallback {}
 
 impl TotpGeneratorCallback for WasmCallback {
     fn on_codes(&self, codes: Vec<AuthenticatorCodeResponse>) {
-        let res = js_sys::Array::new();
+        let res = js_sys::Array::new_with_length(codes.len() as u32);
 
-        for code in codes {
+        for (idx, code) in codes.into_iter().enumerate() {
             let mapped = WasmAuthenticatorCodeResponse::from(code);
-            if let Ok(v) = mapped.into_js_result() {
-                res.push(&v);
-            }
+            let as_js_value: JsValue = mapped.into();
+            res.set(idx as u32, as_js_value);
         }
 
         let _ = self.callback.call1(&JsValue::NULL, &res);

@@ -60,7 +60,8 @@ impl TotpGeneratorCallback for MobileTotpGeneratorCallbackAdapter {
     }
 }
 
-// Totp Generator
+/// Callback-based TOTP generator that allows the caller to subscribe to TOTP code changes, and
+/// to get notified of changes in a configurable manner
 pub struct MobileTotpGenerator {
     inner: CoreTotpGenerator,
     rt: tokio::runtime::Runtime,
@@ -69,6 +70,10 @@ pub struct MobileTotpGenerator {
 impl MobileTotpGenerator {
     const RUNTIME_THREADS: usize = 2;
 
+    /// Create a new instance of the TOTP generator
+    /// - period: how often the generator should check if the codes have changed. Time in ms
+    /// - only_on_code_change: if true, only invoke the callback if the codes have changed. If false, it will always be called
+    /// - current_time_provider: callback that will be invoked to get the current time
     pub fn new(
         period: u32,
         only_on_code_change: bool,
@@ -88,6 +93,9 @@ impl MobileTotpGenerator {
         })
     }
 
+    /// Start generating the codes.
+    ///  - entries: Entries to generate codes for
+    ///  - callback: callback that will be invoked when new codes are generated
     pub fn start(
         &self,
         entries: Vec<AuthenticatorEntryModel>,

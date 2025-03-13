@@ -32,8 +32,14 @@ impl GeneratorCurrentTimeProvider for WebCurrentTimeProvider {
     }
 }
 
+/// Callback-based TOTP generator that allows the caller to subscribe to TOTP code changes, and
+/// to get notified of changes in a configurable manner
 #[wasm_bindgen]
 impl WebTotpGenerator {
+    /// Create a new instance of the TOTP generator
+    /// - period: how often the generator should check if the codes have changed. Time in ms
+    /// - only_on_code_change: if true, only invoke the callback if the codes have changed. If false, it will always be called
+    /// - current_time_provider: callback that will be invoked to get the current time
     #[wasm_bindgen(constructor)]
     pub fn new(period: u32, only_on_code_change: bool, current_time_provider: js_sys::Function) -> Self {
         let dependencies = TotpGeneratorDependencies {
@@ -46,7 +52,9 @@ impl WebTotpGenerator {
         }
     }
 
-    /// Async start; expects a JSON-serializable array of WebAuthenticatorEntry and a JS callback.
+    /// Start generating the codes.
+    ///  - entries: Entries to generate codes for
+    ///  - callback: callback that will be invoked when new codes are generated
     #[wasm_bindgen]
     pub async fn start(
         &self,

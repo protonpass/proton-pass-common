@@ -63,6 +63,7 @@ impl TryFrom<google::OtpParameters> for AuthenticatorEntry {
                 period: Some(30), // Google always uses period=30
             }),
             note: None,
+            id: Self::generate_id(),
         })
     }
 }

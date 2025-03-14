@@ -13,6 +13,7 @@ pub fn parse_ente_txt(input: &str) -> Result<ImportResult, EnteImportError> {
                     Ok(sanitized) => entries.push(AuthenticatorEntry {
                         content: sanitized,
                         note: None,
+                        id: AuthenticatorEntry::generate_id(),
                     }),
                     Err(e) => errors.push(ImportError {
                         context: format!("Error in line {idx}"),

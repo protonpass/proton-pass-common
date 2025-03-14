@@ -1,4 +1,6 @@
+use crate::common::vec_to_uint8_array;
 use crate::entry::*;
+use js_sys::Uint8Array;
 use proton_authenticator::{
     Algorithm, AuthenticatorCodeResponse, AuthenticatorEntry, AuthenticatorEntryTotpParameters,
 };
@@ -91,4 +93,31 @@ pub fn get_totp_parameters(model: WasmAuthenticatorEntryModel) -> JsResult<WasmA
         Ok(params) => Ok(WasmAuthenticatorEntryTotpParameters::from(params)),
         Err(e) => Err(JsError::new(&format!("{:?}", e))),
     }
+}
+
+#[wasm_bindgen]
+pub fn serialize_entries(models: Vec<WasmAuthenticatorEntryModel>) -> JsResult<Vec<Uint8Array>> {
+    let mut serialized_entries = Vec::with_capacity(models.len());
+    for model in models {
+        let as_entry = model.to_entry()?;
+        let serialized = as_entry.serialize()?;
+        serialized_entries.push(vec_to_uint8_array(serialized));
+    }
+
+    Ok(serialized_entries)
+}
+
+#[wasm_bindgen]
+pub fn deserialize_entries(serialized_entries: Vec<Uint8Array>) -> JsResult<Vec<WasmAuthenticatorEntryModel>> {
+    let mut deserialized_entries = Vec::with_capacity(serialized_entries.len());
+    for entry in serialized_entries {
+        let entry_as_bytes = entry.to_vec();
+        let as_entry = AuthenticatorEntry::deserialize(&entry_as_bytes)
+            .map_err(|e| JsError::new(&format!("failed to deserialize entry: {:?}", e)))?;
+
+        let as_model = WasmAuthenticatorEntryModel::from(as_entry);
+        deserialized_entries.push(as_model);
+    }
+
+    Ok(deserialized_entries)
 }

@@ -18,6 +18,7 @@ message AuthenticatorEntryContent {
 message AuthenticatorEntryMetadata {
   string name = 1;
   string note = 2;
+  string id = 3;
 }
 
 message AuthenticatorEntry {

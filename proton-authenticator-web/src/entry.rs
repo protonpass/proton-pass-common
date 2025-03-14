@@ -6,6 +6,7 @@ use wasm_bindgen::prelude::*;
 #[derive(Debug, Tsify, Deserialize, Serialize)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct WasmAuthenticatorEntryModel {
+    id: String,
     name: String,
     uri: String,
     period: u16,
@@ -16,14 +17,17 @@ pub struct WasmAuthenticatorEntryModel {
 
 impl WasmAuthenticatorEntryModel {
     pub fn to_entry(&self) -> Result<AuthenticatorEntry, JsError> {
-        Ok(AuthenticatorEntry::from_uri(&self.uri, self.note.clone())
-            .map_err(|e| proton_authenticator::AuthenticatorError::Unknown(format!("cannot parse uri: {:?}", e)))?)
+        Ok(
+            AuthenticatorEntry::from_uri_and_id(&self.uri, self.note.clone(), self.id.clone())
+                .map_err(|e| proton_authenticator::AuthenticatorError::Unknown(format!("cannot parse uri: {:?}", e)))?,
+        )
     }
 }
 
 impl From<AuthenticatorEntry> for WasmAuthenticatorEntryModel {
     fn from(entry: AuthenticatorEntry) -> Self {
         Self {
+            id: entry.id.to_string(),
             name: entry.name(),
             uri: entry.uri(),
             issuer: entry.issuer(),

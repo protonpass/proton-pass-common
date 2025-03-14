@@ -15,6 +15,7 @@ enum AuthenticatorEntryType {
 };
 
 dictionary AuthenticatorEntryModel {
+  string id;
   string name;
   string uri;
   u16 period;

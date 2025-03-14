@@ -91,7 +91,11 @@ impl TryFrom<DbEntry> for AuthenticatorEntry {
             }
         };
 
-        Ok(AuthenticatorEntry { content, note })
+        Ok(AuthenticatorEntry {
+            content,
+            note,
+            id: Self::generate_id(),
+        })
     }
 }
 

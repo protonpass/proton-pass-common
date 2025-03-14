@@ -26,6 +26,7 @@ impl From<proton_authenticator::AuthenticatorError> for AuthenticatorError {
 impl From<AuthenticatorEntry> for AuthenticatorEntryModel {
     fn from(entry: AuthenticatorEntry) -> Self {
         Self {
+            id: entry.id.to_string(),
             name: entry.name(),
             note: entry.note.clone(),
             uri: entry.uri(),
@@ -142,6 +143,7 @@ impl AuthenticatorMobileClient {
         params: AuthenticatorEntryTotpCreateParameters,
     ) -> Result<AuthenticatorEntryModel, AuthenticatorError> {
         let entry = AuthenticatorEntry {
+            id: AuthenticatorEntry::generate_id(),
             content: AuthenticatorEntryContent::Totp(proton_authenticator::TOTP {
                 label: Some(params.name),
                 secret: params.secret,
@@ -165,6 +167,7 @@ impl AuthenticatorMobileClient {
 
         steam.set_name(Some(params.name));
         let entry = AuthenticatorEntry {
+            id: AuthenticatorEntry::generate_id(),
             content: AuthenticatorEntryContent::Steam(steam),
             note: params.note,
         };

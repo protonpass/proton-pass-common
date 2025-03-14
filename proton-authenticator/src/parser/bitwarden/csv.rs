@@ -71,6 +71,7 @@ fn parse_totp_line(uri: &str, entries: &mut Vec<AuthenticatorEntry>, errors: &mu
             entries.push(AuthenticatorEntry {
                 content: AuthenticatorEntryContent::Totp(totp),
                 note: None,
+                id: AuthenticatorEntry::generate_id(),
             });
         }
         Err(e) => {
@@ -98,6 +99,7 @@ fn parse_steam_line(
             entries.push(AuthenticatorEntry {
                 content: AuthenticatorEntryContent::Steam(steam),
                 note: None,
+                id: AuthenticatorEntry::generate_id(),
             });
         }
         Err(e) => {

@@ -177,7 +177,11 @@ fn parse_entry(obj: TwoFasEntry) -> Result<AuthenticatorEntry, TwoFasImportError
         }
     };
 
-    Ok(AuthenticatorEntry { content, note: None })
+    Ok(AuthenticatorEntry {
+        content,
+        note: None,
+        id: AuthenticatorEntry::generate_id(),
+    })
 }
 
 pub fn parse_2fas_file(json_data: &str, password: Option<String>) -> Result<ImportResult, TwoFasImportError> {

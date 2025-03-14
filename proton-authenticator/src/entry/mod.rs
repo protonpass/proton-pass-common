@@ -48,6 +48,7 @@ impl AuthenticatorEntryContent {
 
 #[derive(Clone, Debug)]
 pub struct AuthenticatorEntry {
+    pub id: String,
     pub content: AuthenticatorEntryContent,
     pub note: Option<String>,
 }
@@ -62,9 +63,17 @@ pub struct AuthenticatorEntryTotpParameters {
 }
 
 impl AuthenticatorEntry {
+    pub fn generate_id() -> String {
+        uuid::Uuid::new_v4().to_string()
+    }
+
     pub fn from_uri(uri: &str, note: Option<String>) -> Result<Self, AuthenticatorEntryError> {
+        Self::from_uri_and_id(uri, note, Self::generate_id())
+    }
+
+    pub fn from_uri_and_id(uri: &str, note: Option<String>, id: String) -> Result<Self, AuthenticatorEntryError> {
         let content = AuthenticatorEntryContent::from_uri(uri)?;
-        Ok(AuthenticatorEntry { content, note })
+        Ok(AuthenticatorEntry { content, note, id })
     }
 
     pub fn serialize(self) -> Result<Vec<u8>, AuthenticatorEntryError> {

@@ -3,6 +3,7 @@ use proton_authenticator::AuthenticatorEntry;
 
 #[derive(Clone, Debug)]
 pub struct AuthenticatorEntryModel {
+    pub id: String,
     pub name: String,
     pub uri: String,
     pub period: u16,
@@ -19,7 +20,9 @@ pub enum AuthenticatorEntryType {
 
 impl AuthenticatorEntryModel {
     pub fn to_entry(&self) -> Result<AuthenticatorEntry, AuthenticatorError> {
-        Ok(AuthenticatorEntry::from_uri(&self.uri, self.note.clone())
-            .map_err(|e| proton_authenticator::AuthenticatorError::Unknown(format!("cannot parse uri: {:?}", e)))?)
+        Ok(
+            AuthenticatorEntry::from_uri_and_id(&self.uri, self.note.clone(), self.id.clone())
+                .map_err(|e| proton_authenticator::AuthenticatorError::Unknown(format!("cannot parse uri: {:?}", e)))?,
+        )
     }
 }

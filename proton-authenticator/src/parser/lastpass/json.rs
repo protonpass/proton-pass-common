@@ -68,6 +68,7 @@ impl TryFrom<Account> for AuthenticatorEntry {
                 digits: Some(value.digits),
                 period: Some(value.time_step),
             }),
+            id: Self::generate_id(),
         })
     }
 }

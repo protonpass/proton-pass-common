@@ -555,6 +555,8 @@ pub struct AuthenticatorEntryMetadata {
     pub name: ::std::string::String,
     // @@protoc_insertion_point(field:AuthenticatorEntryMetadata.note)
     pub note: ::std::string::String,
+    // @@protoc_insertion_point(field:AuthenticatorEntryMetadata.id)
+    pub id: ::std::string::String,
     // special fields
     // @@protoc_insertion_point(special_field:AuthenticatorEntryMetadata.special_fields)
     pub special_fields: ::protobuf::SpecialFields,
@@ -572,7 +574,7 @@ impl AuthenticatorEntryMetadata {
     }
 
     fn generated_message_descriptor_data() -> ::protobuf::reflect::GeneratedMessageDescriptorData {
-        let mut fields = ::std::vec::Vec::with_capacity(2);
+        let mut fields = ::std::vec::Vec::with_capacity(3);
         let mut oneofs = ::std::vec::Vec::with_capacity(0);
         fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
             "name",
@@ -583,6 +585,11 @@ impl AuthenticatorEntryMetadata {
             "note",
             |m: &AuthenticatorEntryMetadata| { &m.note },
             |m: &mut AuthenticatorEntryMetadata| { &mut m.note },
+        ));
+        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
+            "id",
+            |m: &AuthenticatorEntryMetadata| { &m.id },
+            |m: &mut AuthenticatorEntryMetadata| { &mut m.id },
         ));
         ::protobuf::reflect::GeneratedMessageDescriptorData::new_2::<AuthenticatorEntryMetadata>(
             "AuthenticatorEntryMetadata",
@@ -608,6 +615,9 @@ impl ::protobuf::Message for AuthenticatorEntryMetadata {
                 18 => {
                     self.note = is.read_string()?;
                 },
+                26 => {
+                    self.id = is.read_string()?;
+                },
                 tag => {
                     ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
                 },
@@ -626,6 +636,9 @@ impl ::protobuf::Message for AuthenticatorEntryMetadata {
         if !self.note.is_empty() {
             my_size += ::protobuf::rt::string_size(2, &self.note);
         }
+        if !self.id.is_empty() {
+            my_size += ::protobuf::rt::string_size(3, &self.id);
+        }
         my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
         self.special_fields.cached_size().set(my_size as u32);
         my_size
@@ -637,6 +650,9 @@ impl ::protobuf::Message for AuthenticatorEntryMetadata {
         }
         if !self.note.is_empty() {
             os.write_string(2, &self.note)?;
+        }
+        if !self.id.is_empty() {
+            os.write_string(3, &self.id)?;
         }
         os.write_unknown_fields(self.special_fields.unknown_fields())?;
         ::std::result::Result::Ok(())
@@ -657,6 +673,7 @@ impl ::protobuf::Message for AuthenticatorEntryMetadata {
     fn clear(&mut self) {
         self.name.clear();
         self.note.clear();
+        self.id.clear();
         self.special_fields.clear();
     }
 
@@ -664,6 +681,7 @@ impl ::protobuf::Message for AuthenticatorEntryMetadata {
         static instance: AuthenticatorEntryMetadata = AuthenticatorEntryMetadata {
             name: ::std::string::String::new(),
             note: ::std::string::String::new(),
+            id: ::std::string::String::new(),
             special_fields: ::protobuf::SpecialFields::new(),
         };
         &instance
@@ -836,11 +854,12 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     \n\x19AuthenticatorEntryContent\x124\n\x04totp\x18\x01\x20\x01(\x0b2\x1e\
     .AuthenticatorEntryContentTotpH\0R\x04totp\x127\n\x05steam\x18\x02\x20\
     \x01(\x0b2\x1f.AuthenticatorEntryContentSteamH\0R\x05steamB\t\n\x07conte\
-    nt\"D\n\x1aAuthenticatorEntryMetadata\x12\x12\n\x04name\x18\x01\x20\x01(\
-    \tR\x04name\x12\x12\n\x04note\x18\x02\x20\x01(\tR\x04note\"\x83\x01\n\
-    \x12AuthenticatorEntry\x127\n\x08metadata\x18\x01\x20\x01(\x0b2\x1b.Auth\
-    enticatorEntryMetadataR\x08metadata\x124\n\x07content\x18\x02\x20\x01(\
-    \x0b2\x1a.AuthenticatorEntryContentR\x07contentb\x06proto3\
+    nt\"T\n\x1aAuthenticatorEntryMetadata\x12\x12\n\x04name\x18\x01\x20\x01(\
+    \tR\x04name\x12\x12\n\x04note\x18\x02\x20\x01(\tR\x04note\x12\x0e\n\x02i\
+    d\x18\x03\x20\x01(\tR\x02id\"\x83\x01\n\x12AuthenticatorEntry\x127\n\x08\
+    metadata\x18\x01\x20\x01(\x0b2\x1b.AuthenticatorEntryMetadataR\x08metada\
+    ta\x124\n\x07content\x18\x02\x20\x01(\x0b2\x1a.AuthenticatorEntryContent\
+    R\x07contentb\x06proto3\
 ";
 
 /// `FileDescriptorProto` object which was a source for this generated file

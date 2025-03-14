@@ -38,6 +38,7 @@ impl From<AuthenticatorEntry> for proto::AuthenticatorEntry {
                     None => "".to_string(),
                 },
                 name: entry.name(),
+                id: entry.id.to_string(),
                 ..Default::default()
             }),
             content: protobuf::MessageField::some(entry.content.into()),
@@ -89,6 +90,11 @@ impl TryFrom<proto::AuthenticatorEntry> for AuthenticatorEntry {
             } else {
                 Some(metadata.note.to_string())
             },
+            id: if metadata.id.is_empty() {
+                Self::generate_id()
+            } else {
+                metadata.id.to_string()
+            },
         })
     }
 }
@@ -103,4 +109,21 @@ pub fn deserialize_entry(input: &[u8]) -> Result<AuthenticatorEntry, Authenticat
     })?;
 
     AuthenticatorEntry::try_from(parsed)
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn ensure_id_is_persisted() {
+        let entry = AuthenticatorEntry::from_uri(
+            "otpauth://totp/MYLABEL?secret=MYSECRET&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15",
+            None,
+        )
+        .unwrap();
+        let serialized = entry.clone().serialize().expect("should be able to serialize");
+        let deserialized = deserialize_entry(&serialized).expect("should be able to deserialize");
+        assert_eq!(entry.id, deserialized.id);
+    }
 }

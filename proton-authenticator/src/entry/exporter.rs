@@ -17,6 +17,7 @@ pub struct ExportedAuthenticatorEntryContent {
 
 #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
 pub struct ExportedAuthenticatorEntry {
+    pub id: String,
     pub content: ExportedAuthenticatorEntryContent,
     pub note: Option<String>,
 }
@@ -50,6 +51,7 @@ impl From<AuthenticatorEntryContent> for ExportedAuthenticatorEntryContent {
 impl From<AuthenticatorEntry> for ExportedAuthenticatorEntry {
     fn from(entry: AuthenticatorEntry) -> Self {
         Self {
+            id: entry.id,
             note: entry.note,
             content: ExportedAuthenticatorEntryContent::from(entry.content),
         }
@@ -81,6 +83,7 @@ impl TryFrom<ExportedAuthenticatorEntry> for AuthenticatorEntry {
             content: AuthenticatorEntryContent::try_from(entry.content)
                 .map_err(|e| AuthenticatorError::SerializationError(format!("error parsing entry content: {:?}", e)))?,
             note: entry.note,
+            id: entry.id,
         })
     }
 }

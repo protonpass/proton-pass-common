@@ -51,6 +51,7 @@ impl TryFrom<Struct> for AuthenticatorEntry {
         Ok(AuthenticatorEntry {
             content: content_with_label,
             note: value.notes,
+            id: Self::generate_id(),
         })
     }
 }

@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.15.0
+
+### Features :tada:
+
+- authenticator: add AuthenticatorEntry id field.
+
 ## 0.14.0
 
 ### Features :tada:

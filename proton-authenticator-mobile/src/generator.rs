@@ -68,7 +68,7 @@ pub struct MobileTotpGenerator {
 }
 
 impl MobileTotpGenerator {
-    const RUNTIME_THREADS: usize = 2;
+    const RUNTIME_THREADS: usize = 1;
 
     /// Create a new instance of the TOTP generator
     /// - period_ms: how often the generator should check if the codes have changed. Time in ms

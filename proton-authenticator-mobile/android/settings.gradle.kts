@@ -19,4 +19,4 @@ dependencyResolutionManagement {
 rootProject.name = "ProtonAuthenticatorCommonRust"
 include(":lib")
 include(":libTest")
- 
+include(":libTestApp")

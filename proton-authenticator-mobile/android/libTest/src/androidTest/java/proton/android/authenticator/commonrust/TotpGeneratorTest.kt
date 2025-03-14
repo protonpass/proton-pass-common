@@ -13,15 +13,6 @@ import org.junit.runner.RunWith
 class TotpGeneratorTest {
 
     @Test
-    fun canInvokeEntryFromUri() {
-        val client = AuthenticatorMobileClient()
-        val entry =
-            client.entryFromUri("otpauth://totp/MYLABEL?secret=MYSECRET&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15")
-
-        assertThat(entry.name).isEqualTo("MYLABEL")
-    }
-
-    @Test
     fun canInvokeGenerator() = runTest {
         registerAuthenticatorLogger(object : AuthenticatorLogger {
             override fun log(level: AuthenticatorLogLevel, message: String) {
@@ -30,12 +21,12 @@ class TotpGeneratorTest {
         })
 
         launch(Dispatchers.Default) {
-            val entry1 = getEntry1()
-            val entry2 = getEntry2()
+            val entry1 = TestUtils.getEntry1()
+            val entry2 = TestUtils.getEntry2()
 
             val period = 100 // generate codes every 100ms
             val generator = MobileTotpGenerator(
-                period = period.toUInt(),
+                periodMs = period.toUInt(),
                 onlyOnCodeChange = false,
                 currentTime = object : MobileCurrentTimeProvider {
                     var idx = 0
@@ -100,11 +91,11 @@ class TotpGeneratorTest {
         })
 
         launch(Dispatchers.Default) {
-            val entry = getEntry1()
+            val entry = TestUtils.getEntry1()
 
             val period = 100 // generate codes every 100ms
             val generator = MobileTotpGenerator(
-                period = period.toUInt(),
+                periodMs = period.toUInt(),
                 onlyOnCodeChange = true,
                 currentTime = object : MobileCurrentTimeProvider {
                     var idx = 0
@@ -147,15 +138,5 @@ class TotpGeneratorTest {
             assertThat(generated[1][0].nextCode).isEqualTo("49179669")
         }
 
-    }
-
-    private fun getEntry1(): AuthenticatorEntryModel {
-        val client = AuthenticatorMobileClient()
-        return client.entryFromUri("otpauth://totp/MYLABEL?secret=MYSECRET&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15")
-    }
-
-    private fun getEntry2(): AuthenticatorEntryModel {
-        val client = AuthenticatorMobileClient()
-        return client.entryFromUri("otpauth://totp/MYLABEL?secret=MYSECRET123&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15")
     }
 }

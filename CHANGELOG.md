@@ -4,6 +4,8 @@
 
 ### Fixes :bug:
 
+- authenticator: make TOTP issuer mandatory
+
 ### Other
 
 ## 0.15.0

@@ -16,11 +16,11 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 proton-pass-common = { path = "../proton-pass-common" }
 
-js-sys = "0.3.77"
-serde = { version = "1.0", features = ["derive"] }
-tsify-next = { version = "0.5.5", features = ["wasm-bindgen", "js", "json"] }
-wasm-bindgen = "0.2.100"
-wasm-bindgen-futures = "0.4.50"
+js-sys.workspace = true
+serde.workspace = true
+tsify-next.workspace = true
+wasm-bindgen.workspace = true
+wasm-bindgen-futures.workspace = true
 
 [features]
 web_password = []

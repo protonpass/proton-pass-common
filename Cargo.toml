@@ -11,6 +11,16 @@ members = [
     "proton-pass-totp"
 ]
 
+[workspace.dependencies]
+criterion = { version = "0.5.1", features = ["html_reports"] }
+js-sys = "0.3.77"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.44.1", features = ["full"] }
+tsify-next = { version = "0.5.5", features = ["wasm-bindgen", "js", "json"] }
+wasm-bindgen = "0.2.100"
+wasm-bindgen-futures = "0.4.50"
+
 [profile.release]
 opt-level = "s" # Tell `rustc` to optimize for small code size.
 strip = true  # Comment out if using Rust <1.82

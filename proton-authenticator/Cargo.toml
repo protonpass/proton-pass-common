@@ -10,6 +10,9 @@ doctest = false
 proton-pass-derive = { path = "../proton-pass-derive" }
 proton-pass-totp = { path = "../proton-pass-totp" }
 
+serde.workspace = true
+serde_json.workspace = true
+
 aes-gcm = "0.10.3"
 base32 = "0.5.1"
 base64 = "0.22.0"
@@ -21,19 +24,19 @@ pbkdf2 = "0.12.2"
 protobuf = "3.7.1"
 rand = "0.8"
 scrypt = "0.11.0"
-serde = { version = "1.0.188", features = ["derive"] }
-serde_json = "1.0.111"
 sha2 = "0.10"
 url = "2.5.4"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-tokio = { version = "1.43", features = ["full"] }
+tokio.workspace = true
+
 uuid = { version = "1.15.1", features = ["v4"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen-futures.workspace = true
+
 getrandom = { version = "0.2.15", features = ["js"] }
 gloo-timers = { version = "0.3.0", features = ["futures"] }
-wasm-bindgen-futures = "0.4.50"
 uuid = { version = "1.15.1", features = ["v4", "js"] }
 
 [build-dependencies]

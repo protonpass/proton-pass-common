@@ -37,6 +37,10 @@ test: ## Run the library tests
 bench: ## Run the benchmarks
 	@cargo bench -p proton-pass-common
 
+.PHONY: totp-bench
+totp-bench: ## Run the TOTP benchmarks
+	@cargo bench -p proton-pass-totp
+
 .PHONY: clean
 clean: ## Remove compile artifacts
 	@cargo clean

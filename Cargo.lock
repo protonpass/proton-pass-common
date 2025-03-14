@@ -1816,6 +1816,7 @@ dependencies = [
 name = "proton-pass-totp"
 version = "0.14.0"
 dependencies = [
+ "criterion",
  "proton-pass-derive",
  "serde",
  "serde-querystring",

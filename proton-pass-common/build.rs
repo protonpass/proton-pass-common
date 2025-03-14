@@ -11,7 +11,7 @@ fn main() {
 }
 
 fn build_eff_wordlist() {
-    println!("cargo:rerun-if-changed=eff_words.txt");
+    println!("cargo:rerun-if-changed=eff_large_wordlist.txt");
     let out_dir = env::var("OUT_DIR").expect("OUT_DIR not set");
     let dest_path = Path::new(&out_dir).join("wordlists.rs");
     let f = File::create(dest_path).expect("Could not create wordlists.rs");

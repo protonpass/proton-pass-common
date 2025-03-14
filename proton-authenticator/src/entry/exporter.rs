@@ -132,3 +132,29 @@ pub fn import_authenticator_entries(input: &str) -> Result<ImportResult, Authent
         ))),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_export_import_preserves_ids() {
+        let e1 = AuthenticatorEntry::from_uri(
+            "otpauth://totp/MYLABEL?secret=MYSECRET&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15",
+            None,
+        )
+        .unwrap();
+        let e2 = AuthenticatorEntry::from_uri("steam://STEAMKEY", None).unwrap();
+
+        let e1_id = e1.id.clone();
+        let e2_id = e2.id.clone();
+        let entries = vec![e1, e2];
+        let exported = export_entries(entries).unwrap();
+        let imported = import_authenticator_entries_v1(&exported).unwrap();
+        assert_eq!(imported.entries.len(), 2);
+        assert!(imported.errors.is_empty());
+
+        assert_eq!(e1_id, imported.entries[0].id);
+        assert_eq!(e2_id, imported.entries[1].id);
+    }
+}

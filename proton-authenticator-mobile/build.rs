@@ -35,7 +35,7 @@ fn merge_udl_files() {
 // Get all the UDL files excluding OUTPUT_UDL_NAME in src directory
 fn scan_udl_files() -> Result<Vec<String>> {
     let files = std::fs::read_dir("src")?;
-    let udl_files: Vec<_> = files
+    let udl_files: Vec<String> = files
         .filter_map(|file| {
             let file = file.ok()?;
             let path = file.path();

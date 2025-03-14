@@ -27,17 +27,17 @@ pub trait TotpGeneratorCallback: Send + Sync + 'static {
 pub struct TotpGenerator {
     dependencies: TotpGeneratorDependencies,
     only_on_code_change: bool,
-    period: u32,
+    period_ms: u32,
 }
 
 impl TotpGenerator {
     const MAX_ERRORS: usize = 3;
 
-    pub fn new(dependencies: TotpGeneratorDependencies, only_on_code_change: bool, period: u32) -> Self {
+    pub fn new(dependencies: TotpGeneratorDependencies, only_on_code_change: bool, period_ms: u32) -> Self {
         Self {
             dependencies,
             only_on_code_change,
-            period,
+            period_ms,
         }
     }
 
@@ -52,7 +52,7 @@ impl TotpGenerator {
         let join_handle = {
             let cancelled_cloned = cancelled.clone();
             let time_provider = self.dependencies.current_time_provider.clone();
-            let period = self.period;
+            let period = self.period_ms;
             let only_on_code_change = self.only_on_code_change;
             Some(tokio::spawn(async move {
                 Self::generate_codes_loop(
@@ -79,7 +79,7 @@ impl TotpGenerator {
     ) -> TotpGenerationHandle {
         let cancelled = Arc::new(AtomicBool::new(false));
         let time_provider = self.dependencies.current_time_provider.clone();
-        let period = self.period;
+        let period = self.period_ms;
         let only_on_code_change = self.only_on_code_change;
 
         let cancelled_cloned = cancelled.clone();

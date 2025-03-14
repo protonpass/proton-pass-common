@@ -37,18 +37,18 @@ impl GeneratorCurrentTimeProvider for WebCurrentTimeProvider {
 #[wasm_bindgen]
 impl WebTotpGenerator {
     /// Create a new instance of the TOTP generator
-    /// - period: how often the generator should check if the codes have changed. Time in ms
+    /// - period_ms: how often the generator should check if the codes have changed. Time in ms
     /// - only_on_code_change: if true, only invoke the callback if the codes have changed. If false, it will always be called
     /// - current_time_provider: callback that will be invoked to get the current time
     #[wasm_bindgen(constructor)]
-    pub fn new(period: u32, only_on_code_change: bool, current_time_provider: js_sys::Function) -> Self {
+    pub fn new(period_ms: u32, only_on_code_change: bool, current_time_provider: js_sys::Function) -> Self {
         let dependencies = TotpGeneratorDependencies {
             current_time_provider: Arc::new(WebCurrentTimeProvider {
                 inner: current_time_provider,
             }),
         };
         Self {
-            inner: CoreTotpGenerator::new(dependencies, only_on_code_change, period),
+            inner: CoreTotpGenerator::new(dependencies, only_on_code_change, period_ms),
         }
     }
 

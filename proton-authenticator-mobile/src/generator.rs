@@ -71,11 +71,11 @@ impl MobileTotpGenerator {
     const RUNTIME_THREADS: usize = 2;
 
     /// Create a new instance of the TOTP generator
-    /// - period: how often the generator should check if the codes have changed. Time in ms
+    /// - period_ms: how often the generator should check if the codes have changed. Time in ms
     /// - only_on_code_change: if true, only invoke the callback if the codes have changed. If false, it will always be called
     /// - current_time_provider: callback that will be invoked to get the current time
     pub fn new(
-        period: u32,
+        period_ms: u32,
         only_on_code_change: bool,
         current_time: Arc<dyn MobileCurrentTimeProvider>,
     ) -> Result<Self, AuthenticatorError> {
@@ -88,7 +88,7 @@ impl MobileTotpGenerator {
             .build()
             .map_err(|e| proton_authenticator::AuthenticatorError::Unknown(format!("Cannot start runtime: {:?}", e)))?;
         Ok(Self {
-            inner: CoreTotpGenerator::new(dependencies, only_on_code_change, period),
+            inner: CoreTotpGenerator::new(dependencies, only_on_code_change, period_ms),
             rt,
         })
     }

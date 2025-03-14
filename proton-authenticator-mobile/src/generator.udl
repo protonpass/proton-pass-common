@@ -23,11 +23,11 @@ interface MobileCurrentTimeProvider {
 interface MobileTotpGenerator {
 
   /// Create a new instance of the TOTP generator
-  /// - period: how often the generator should check if the codes have changed. Time in ms
+  /// - period_ms: how often the generator should check if the codes have changed. Time in ms
   /// - only_on_code_change: if true, only invoke the callback if the codes have changed. If false, it will always be called
   /// - current_time_provider: callback that will be invoked to get the current time
   [Throws=AuthenticatorError]
-  constructor(u32 period, boolean only_on_code_change, MobileCurrentTimeProvider current_time);
+  constructor(u32 period_ms, boolean only_on_code_change, MobileCurrentTimeProvider current_time);
 
   /// Start generating the codes.
   ///  - entries: Entries to generate codes for

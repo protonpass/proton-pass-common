@@ -15,6 +15,7 @@ class MobileAuthenticatorClientTest {
             client.entryFromUri("otpauth://totp/MYLABEL?secret=MYSECRET&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15")
 
         assertThat(entry.name).isEqualTo("MYLABEL")
+        assertThat(entry.secret).isEqualTo("MYSECRET")
     }
 
     @Test

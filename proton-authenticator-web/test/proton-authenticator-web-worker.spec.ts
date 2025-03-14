@@ -28,6 +28,7 @@ describe("ProtonAuthenticatorWeb WASM", () => {
         expect(entry.entry_type).toEqual("Totp");
         expect(entry.name).toEqual("MYLABEL");
         expect(entry.note).toBeUndefined();
+        expect(entry.secret).toEqual("MYSECRET");
     });
 
     test("ID is persisted when serializing and deserializing TOTP uri", () => {

@@ -20,6 +20,7 @@ dictionary AuthenticatorEntryModel {
   string uri;
   u16 period;
   string issuer;
+  string secret;
   string? note;
   AuthenticatorEntryType entry_type;
 };

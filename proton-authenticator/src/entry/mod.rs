@@ -120,6 +120,13 @@ impl AuthenticatorEntry {
         }
     }
 
+    pub fn secret(&self) -> String {
+        match self.content {
+            AuthenticatorEntryContent::Totp(ref totp) => totp.secret.to_string(),
+            AuthenticatorEntryContent::Steam(ref steam) => steam.secret(),
+        }
+    }
+
     pub fn get_totp_parameters(&self) -> Result<AuthenticatorEntryTotpParameters, AuthenticatorEntryError> {
         match self.content {
             AuthenticatorEntryContent::Totp(ref totp) => {

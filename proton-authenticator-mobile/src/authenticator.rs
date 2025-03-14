@@ -32,6 +32,7 @@ impl From<AuthenticatorEntry> for AuthenticatorEntryModel {
             uri: entry.uri(),
             issuer: entry.issuer(),
             period: entry.period(),
+            secret: entry.secret(),
             entry_type: match entry.content {
                 AuthenticatorEntryContent::Totp(_) => AuthenticatorEntryType::TOTP,
                 AuthenticatorEntryContent::Steam(_) => AuthenticatorEntryType::Steam,

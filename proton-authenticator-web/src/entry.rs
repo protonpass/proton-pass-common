@@ -11,6 +11,7 @@ pub struct WasmAuthenticatorEntryModel {
     uri: String,
     period: u16,
     issuer: String,
+    secret: String,
     note: Option<String>,
     entry_type: WasmAuthenticatorEntryType,
 }
@@ -32,6 +33,7 @@ impl From<AuthenticatorEntry> for WasmAuthenticatorEntryModel {
             uri: entry.uri(),
             issuer: entry.issuer(),
             period: entry.period(),
+            secret: entry.secret(),
             note: entry.note,
             entry_type: WasmAuthenticatorEntryType::from(entry.content),
         }

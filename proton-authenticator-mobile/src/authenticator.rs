@@ -72,7 +72,7 @@ impl From<Algorithm> for AuthenticatorTotpAlgorithm {
 pub struct AuthenticatorEntryTotpCreateParameters {
     pub name: String,
     pub secret: String,
-    pub issuer: Option<String>,
+    pub issuer: String,
     pub period: Option<u16>,
     pub digits: Option<u8>,
     pub algorithm: Option<AuthenticatorTotpAlgorithm>,
@@ -105,7 +105,7 @@ impl From<CommonAuthenticatorCodeResponse> for AuthenticatorCodeResponse {
 #[derive(Clone, Debug)]
 pub struct AuthenticatorEntryTotpParameters {
     pub secret: String,
-    pub issuer: Option<String>,
+    pub issuer: String,
     pub period: u16,
     pub digits: u8,
     pub algorithm: AuthenticatorTotpAlgorithm,
@@ -115,7 +115,7 @@ impl From<CommonTotpParameters> for AuthenticatorEntryTotpParameters {
     fn from(value: CommonTotpParameters) -> Self {
         Self {
             secret: value.secret,
-            issuer: value.issuer,
+            issuer: value.issuer.unwrap_or_default(),
             period: value.period,
             digits: value.digits,
             algorithm: AuthenticatorTotpAlgorithm::from(value.algorithm),
@@ -148,7 +148,7 @@ impl AuthenticatorMobileClient {
             content: AuthenticatorEntryContent::Totp(proton_authenticator::TOTP {
                 label: Some(params.name),
                 secret: params.secret,
-                issuer: params.issuer,
+                issuer: Some(params.issuer),
                 algorithm: params.algorithm.map(proton_authenticator::Algorithm::from),
                 digits: params.digits,
                 period: params.period,

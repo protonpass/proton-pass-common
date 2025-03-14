@@ -34,7 +34,7 @@ enum AuthenticatorTotpAlgorithm {
 dictionary AuthenticatorEntryTotpCreateParameters {
   string name;
   string secret;
-  string? issuer;
+  string issuer;
   u16? period;
   u8? digits;
   AuthenticatorTotpAlgorithm? algorithm;
@@ -43,7 +43,7 @@ dictionary AuthenticatorEntryTotpCreateParameters {
 
 dictionary AuthenticatorEntryTotpParameters {
   string secret;
-  string? issuer;
+  string issuer;
   u16 period;
   u8 digits;
   AuthenticatorTotpAlgorithm algorithm;

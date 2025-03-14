@@ -68,7 +68,7 @@ impl From<Algorithm> for TotpAlgorithm {
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct WasmAuthenticatorEntryTotpParameters {
     pub secret: String,
-    pub issuer: Option<String>,
+    pub issuer: String,
     pub period: u16,
     pub digits: u8,
     pub algorithm: TotpAlgorithm,
@@ -78,7 +78,7 @@ impl From<AuthenticatorEntryTotpParameters> for WasmAuthenticatorEntryTotpParame
     fn from(value: AuthenticatorEntryTotpParameters) -> Self {
         Self {
             secret: value.secret,
-            issuer: value.issuer,
+            issuer: value.issuer.unwrap_or_default(),
             period: value.period,
             digits: value.digits,
             algorithm: value.algorithm.into(),

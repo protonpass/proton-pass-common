@@ -8,6 +8,8 @@
 
 ### Other
 
+- Dependency updates.
+
 ## 0.15.0
 
 ### Features :tada:

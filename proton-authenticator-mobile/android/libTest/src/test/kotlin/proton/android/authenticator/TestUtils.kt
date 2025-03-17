@@ -1,4 +1,7 @@
-package proton.android.authenticator.commonrust
+package proton.android.authenticator
+
+import uniffi.proton_authenticator_common_mobile.AuthenticatorEntryModel
+import uniffi.proton_authenticator_common_mobile.AuthenticatorMobileClient
 
 object TestUtils {
 

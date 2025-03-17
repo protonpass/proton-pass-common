@@ -1,11 +1,9 @@
-package proton.android.authenticator.commonrust
+package proton.android.authenticator
 
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import org.junit.runner.RunWith
+import uniffi.proton_authenticator_common_mobile.AuthenticatorMobileClient
 
-@RunWith(AndroidJUnit4::class)
 class MobileAuthenticatorClientTest {
 
     @Test

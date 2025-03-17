@@ -20,4 +20,3 @@ rootProject.name = "ProtonAuthenticatorCommonRust"
 include(":lib")
 include(":libTest")
 include(":libTestApp")
-include(":libUnitTest")

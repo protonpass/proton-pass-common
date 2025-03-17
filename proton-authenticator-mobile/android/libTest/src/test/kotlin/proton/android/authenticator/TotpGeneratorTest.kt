@@ -1,15 +1,19 @@
-package proton.android.authenticator.commonrust
+package proton.android.authenticator
 
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
-import org.junit.runner.RunWith
+import uniffi.proton_authenticator_common_mobile.AuthenticatorCodeResponse
+import uniffi.proton_authenticator_common_mobile.AuthenticatorLogLevel
+import uniffi.proton_authenticator_common_mobile.AuthenticatorLogger
+import uniffi.proton_authenticator_common_mobile.MobileCurrentTimeProvider
+import uniffi.proton_authenticator_common_mobile.MobileTotpGenerator
+import uniffi.proton_authenticator_common_mobile.MobileTotpGeneratorCallback
+import uniffi.proton_authenticator_common_mobile.registerAuthenticatorLogger
 
-@RunWith(AndroidJUnit4::class)
 class TotpGeneratorTest {
 
     @Test
@@ -139,4 +143,5 @@ class TotpGeneratorTest {
         }
 
     }
+
 }

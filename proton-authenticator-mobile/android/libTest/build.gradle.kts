@@ -1,44 +1,43 @@
 plugins {
-    alias(libs.plugins.gradlePlugin.library)
-    alias(libs.plugins.gradlePlugin.kotlin.android)
+    alias(libs.plugins.gradlePlugin.kotlin.jvm)
+    alias(libs.plugins.gradlePlugin.kotlinx.atomicfu)
+    alias(libs.plugins.gradlePlugin.kotlin.serialization)
 }
 
-android {
-    namespace = "proton.android.authenticator.commonrust"
-    compileSdk = libs.versions.compileSdk.get().toInt()
+kotlin {
+    jvmToolchain(17)
+}
 
-    defaultConfig {
-        minSdk = libs.versions.minSdk.get().toInt()
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        proguardFiles(
-            getDefaultProguardFile("proguard-android-optimize.txt"),
-            "proguard-rules.pro"
-        )
+sourceSets {
+    main {
+        // Make sure jniLibs is treated as resources, so it is on the classpath
+        resources {
+            srcDir("src/main/jniLibs")
+        }
     }
+}
 
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
+tasks.test {
+    systemProperty("jna.library.path", file("src/main/jniLibs").absolutePath)
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+    testLogging {
+        events("PASSED", "SKIPPED", "FAILED") // which events to display
+        showStandardStreams = true            // show standard out/err for each test
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
     }
 }
 
 dependencies {
-    androidTestImplementation(projects.lib)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.jna)
+    implementation(libs.okio)
 
-    androidTestImplementation(libs.androidx.test.core)
-    androidTestImplementation(libs.androidx.test.core.ktx)
-    androidTestImplementation(libs.androidx.test.junit)
-    androidTestImplementation(libs.androidx.test.runner)
-    androidTestImplementation(libs.kotlinx.coroutines.core)
-    androidTestImplementation(libs.coroutines.test)
-    androidTestImplementation(libs.kotlinx.datetime)
-    androidTestImplementation(libs.junit)
-    androidTestImplementation(libs.kotlinTest)
-    androidTestImplementation(libs.truth)
-    androidTestImplementation(libs.turbine)
+    testImplementation(libs.coroutines.test)
+    testImplementation(libs.kotlinx.coroutines.core)
+    testImplementation(libs.kotlinx.datetime)
+    testImplementation(libs.kotlinTest)
+    testImplementation(libs.junit)
+    testImplementation(libs.truth)
+    testImplementation(libs.turbine)
 }

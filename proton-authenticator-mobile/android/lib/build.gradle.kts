@@ -4,22 +4,11 @@ import java.io.IOException
 
 
 plugins {
-    id("com.android.library")
-    id("org.jetbrains.kotlin.android")
-    id("signing")
-    id("com.vanniktech.maven.publish") version "0.22.0"
-}
-
-/*
-
-plugins {
     alias(libs.plugins.gradlePlugin.library)
     alias(libs.plugins.gradlePlugin.kotlin.android)
     alias(libs.plugins.gradlePlugin.maven.publish)
     id("signing")
 }
-
- */
 
 val privateProperties = Properties().apply {
     try {

@@ -1,7 +1,7 @@
 plugins {
-    id("org.jetbrains.kotlin.jvm")
-    kotlin("plugin.serialization")
-    id("org.jetbrains.kotlinx.atomicfu")
+    alias(libs.plugins.gradlePlugin.kotlin.jvm)
+    alias(libs.plugins.gradlePlugin.kotlinx.atomicfu)
+    alias(libs.plugins.gradlePlugin.kotlin.serialization)
 }
 
 kotlin {

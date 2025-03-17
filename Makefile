@@ -324,14 +324,15 @@ authenticator-web-test: authenticator-web-setup ## Test the web artifacts
 	@cd ${AUTHENTICATOR_WEB_TEST_DIR} && bun test
 
 .PHONY: authenticator-mobile-unit-test
-authenticator-mobile-unit-test:
+authenticator-mobile-unit-test:  ## Run the unit tests for the authenticator mobile library
+	@sed -e 's:uniffi = { version = "0.29.0":uniffi = { version = "0.28.3":g' proton-authenticator-mobile/Cargo.toml > proton-authenticator-mobile/Cargo.toml.uniffi
+	@mv proton-authenticator-mobile/Cargo.toml.uniffi proton-authenticator-mobile/Cargo.toml
 	@cargo build --release -p proton-authenticator-mobile
-	@rm -rf ${PROJECT_ROOT}/proton-authenticator-mobile/android/libUnitTest/jniLibs
-	@mkdir -p ${PROJECT_ROOT}/proton-authenticator-mobile/android/libUnitTest/jniLibs
-	@cp "${PROJECT_ROOT}/target/release/libproton_authenticator_common_mobile.${LIBRARY_EXT}" "${PROJECT_ROOT}/proton-authenticator-mobile/android/libUnitTest/jniLibs/libuniffi_proton_authenticator_common_mobile.${LIBRARY_EXT}"
+	@rm -rf ${PROJECT_ROOT}/proton-authenticator-mobile/android/libUnitTest/src/main/jniLibs
+	@mkdir -p ${PROJECT_ROOT}/proton-authenticator-mobile/android/libUnitTest/src/main/jniLibs
+	@cp "${PROJECT_ROOT}/target/release/libproton_authenticator_common_mobile.${LIBRARY_EXT}" "${PROJECT_ROOT}/proton-authenticator-mobile/android/libUnitTest/src/main/jniLibs/libuniffi_proton_authenticator_common_mobile.${LIBRARY_EXT}"
 
 	# Generate gobley bindings
-	@mkdir -p ${PROJECT_ROOT}/proton-authenticator-mobile/android/libUnitTest/jniLibs
 	@rm -rf ${PROJECT_ROOT}/bindings/
 	@gobley-uniffi-bindgen --lib-file ${PROJECT_ROOT}/target/release/libproton_authenticator_common_mobile.a --config ${PROJECT_ROOT}/proton-authenticator-mobile/uniffi.toml -o bindings ${PROJECT_ROOT}/proton-authenticator-mobile/src/common.udl
 	@cp -R ${PROJECT_ROOT}/bindings/main proton-authenticator-mobile/android/libUnitTest/src

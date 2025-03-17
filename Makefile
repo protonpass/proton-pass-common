@@ -215,6 +215,13 @@ AUTHENTICATOR_WEB_BUILD_DIR:=${AUTHENTICATOR_WEB_DIR}/dist
 AUTHENTICATOR_WEB_TEST_DIR:=${AUTHENTICATOR_WEB_DIR}/test
 AUTHENTICATOR_WEB_TEST_BUILD_DIR:=${AUTHENTICATOR_WEB_DIR}/test/pkg
 
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S), Darwin)
+LIBRARY_EXT = dylib
+else ifeq ($(UNAME_S), Linux)
+LIBRARY_EXT = so
+endif
+
 
 .PHONY: authenticator-kotlin-bindings
 authenticator-kotlin-bindings: ## Generate the kotlin bindings
@@ -291,10 +298,6 @@ authenticator-android-lib-x86_64: authenticator-android-dirs ## Build the androi
 authenticator-android: authenticator-android-lib-aarch64 authenticator-android-lib-armv7 authenticator-android-lib-x86_64 ## Build all the android variants
 	@cd ${PROJECT_ROOT}/proton-authenticator-mobile/android && ./gradlew :lib:assembleRelease
 
-.PHONY: authenticator-android-test
-authenticator-android-test:
-	@cd ${PROJECT_ROOT}/proton-authenticator-mobile/android && ./gradlew :libTest:connectedDebugAndroidTest
-
 .PHONY: authenticator-web-setup
 authenticator-web-setup:
 	@rm -rf "${AUTHENTICATOR_WEB_BUILD_DIR}" && mkdir "${AUTHENTICATOR_WEB_BUILD_DIR}"
@@ -319,3 +322,20 @@ authenticator-web-test: authenticator-web-setup ## Test the web artifacts
 
 	@cp "${AUTHENTICATOR_WEB_DIR}/package.json" "${AUTHENTICATOR_WEB_TEST_BUILD_DIR}/package.json"
 	@cd ${AUTHENTICATOR_WEB_TEST_DIR} && bun test
+
+.PHONY: authenticator-mobile-unit-test
+authenticator-mobile-unit-test:
+	@cargo build --release -p proton-authenticator-mobile
+	@rm -rf ${PROJECT_ROOT}/proton-authenticator-mobile/android/libUnitTest/jniLibs
+	@mkdir -p ${PROJECT_ROOT}/proton-authenticator-mobile/android/libUnitTest/jniLibs
+	@cp "${PROJECT_ROOT}/target/release/libproton_authenticator_common_mobile.${LIBRARY_EXT}" "${PROJECT_ROOT}/proton-authenticator-mobile/android/libUnitTest/jniLibs/libuniffi_proton_authenticator_common_mobile.${LIBRARY_EXT}"
+
+	# Generate gobley bindings
+	@mkdir -p ${PROJECT_ROOT}/proton-authenticator-mobile/android/libUnitTest/jniLibs
+	@rm -rf ${PROJECT_ROOT}/bindings/
+	@gobley-uniffi-bindgen --lib-file ${PROJECT_ROOT}/target/release/libproton_authenticator_common_mobile.a --config ${PROJECT_ROOT}/proton-authenticator-mobile/uniffi.toml -o bindings ${PROJECT_ROOT}/proton-authenticator-mobile/src/common.udl
+	@cp -R ${PROJECT_ROOT}/bindings/main proton-authenticator-mobile/android/libUnitTest/src
+	@rm -rf ${PROJECT_ROOT}/bindings/
+
+	# Run unit test
+	@cd ${PROJECT_ROOT}/proton-authenticator-mobile/android && ./gradlew :libUnitTest:test

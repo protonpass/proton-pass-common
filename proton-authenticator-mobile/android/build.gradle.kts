@@ -1,6 +1,10 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
-    id("com.android.application") version "8.1.1" apply false
-    id("org.jetbrains.kotlin.android") version "1.8.10" apply false
-    id("com.vanniktech.maven.publish") version "0.22.0" apply false
+    alias(libs.plugins.gradlePlugin.application) apply false
+    alias(libs.plugins.gradlePlugin.library) apply false
+    alias(libs.plugins.gradlePlugin.maven.publish) apply false
+    alias(libs.plugins.gradlePlugin.kotlin.android) apply false
+    alias(libs.plugins.gradlePlugin.kotlin.serialization) apply false
+
+    id("org.jetbrains.kotlinx.atomicfu") version "0.27.0" apply false
 }

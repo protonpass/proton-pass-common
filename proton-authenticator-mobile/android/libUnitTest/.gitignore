@@ -1,0 +1,3 @@
+build/
+jniLibs/
+src/main/kotlin/**/*.kt

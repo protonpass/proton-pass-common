@@ -10,6 +10,17 @@ plugins {
     id("com.vanniktech.maven.publish") version "0.22.0"
 }
 
+/*
+
+plugins {
+    alias(libs.plugins.gradlePlugin.library)
+    alias(libs.plugins.gradlePlugin.kotlin.android)
+    alias(libs.plugins.gradlePlugin.maven.publish)
+    id("signing")
+}
+
+ */
+
 val privateProperties = Properties().apply {
     try {
         load(FileInputStream("${rootProject.projectDir}/private.properties"))
@@ -28,11 +39,10 @@ val mavenSigningKeyPassword = "MAVEN_SIGNING_KEY_PASSWORD".fromVariable()
 
 android {
     namespace = "proton.android.authenticator.commonrust"
-    compileSdk = 33
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 24
-        targetSdk = 33
+        minSdk = libs.versions.minSdk.get().toInt()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         proguardFiles(
@@ -76,12 +86,13 @@ signing {
 }
 
 
-dependencies {
-    val COROUTINES = "1.6.4"
-    val JNA = "5.15.0"
+val versionCatalog = extensions.findByType<VersionCatalogsExtension>()?.named("libs")
+val jna = versionCatalog?.findLibrary("jna")?.get()?.get()
+val jnaAarDependency = project.dependencies.create("$jna@aar")
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${COROUTINES}")
-    implementation("net.java.dev.jna:jna:${JNA}@aar")
+dependencies {
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(jnaAarDependency)
 }
 
 fun String.fromVariable(): String {

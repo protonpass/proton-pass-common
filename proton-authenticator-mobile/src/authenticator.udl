@@ -1,4 +1,3 @@
-[Traits=(Debug)]
 interface AuthenticatorError {
   string message();
 };

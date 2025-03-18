@@ -12,6 +12,7 @@ mod passkey;
 mod password;
 mod totp;
 mod twofa;
+mod wifi;
 
 uniffi::include_scaffolding!("common");
 
@@ -31,3 +32,4 @@ pub use passkey::*;
 pub use password::*;
 pub use totp::*;
 pub use twofa::*;
+pub use wifi::*;

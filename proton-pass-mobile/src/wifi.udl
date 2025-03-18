@@ -1,0 +1,18 @@
+[Error]
+enum WifiQrCodeGeneratorError {
+    "EmptySSID"
+};
+
+enum WifiSecurity {
+    "Unspecified",
+    "WPA",
+    "WPA2",
+    "WPA3",
+    "WEP",
+};
+
+interface WifiQrCodeGenerator {
+    constructor();
+    [Throws=WifiQrCodeGeneratorError]
+    string generate_uri(string ssid, string password, WifiSecurity security);
+};

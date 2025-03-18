@@ -10,6 +10,7 @@ pub mod passkey;
 pub use passkey_types;
 pub mod password;
 pub mod twofa;
+pub mod wifi;
 
 pub fn library_version() -> String {
     env!("CARGO_PKG_VERSION").to_string()

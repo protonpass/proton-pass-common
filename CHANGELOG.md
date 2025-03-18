@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.15.2
+
+### Fixes :bug:
+
+- authenticator: fix Steam TOTP generation (Base32 vs Base64 and millisecond timestamp)
+
 ## 0.15.1
 
 ### Fixes :bug:

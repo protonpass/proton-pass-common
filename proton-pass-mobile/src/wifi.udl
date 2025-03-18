@@ -1,6 +1,12 @@
 [Error]
-enum WifiQrCodeGeneratorError {
+enum WifiError {
     "EmptySSID"
+};
+
+[Error]
+enum WifiQrCodeGeneratorError {
+    "Wifi",
+    "QrCode"
 };
 
 enum WifiSecurity {
@@ -14,5 +20,5 @@ enum WifiSecurity {
 interface WifiQrCodeGenerator {
     constructor();
     [Throws=WifiQrCodeGeneratorError]
-    string generate_uri(string ssid, string password, WifiSecurity security);
+    string generate_svg_qr_code(string ssid, string password, WifiSecurity security);
 };

@@ -1,4 +1,7 @@
+use crate::QrCodeError;
+use proton_pass_common::qr::generate_svg_qr_code;
 use proton_pass_common::wifi::{generate_wifi_uri, WifiError as CommonWifiError, WifiSecurity as CommonWifiSecurity};
+use proton_pass_derive::Error;
 
 pub struct WifiQrCodeGenerator;
 
@@ -22,17 +25,23 @@ impl From<WifiSecurity> for CommonWifiSecurity {
     }
 }
 
-#[derive(Debug, proton_pass_derive::Error, PartialEq, Eq)]
-pub enum WifiQrCodeGeneratorError {
+#[derive(Debug, Error, PartialEq, Eq)]
+pub enum WifiError {
     EmptySSID,
 }
 
-impl From<CommonWifiError> for WifiQrCodeGeneratorError {
+impl From<CommonWifiError> for WifiError {
     fn from(value: CommonWifiError) -> Self {
         match value {
-            CommonWifiError::EmptySSID => WifiQrCodeGeneratorError::EmptySSID,
+            CommonWifiError::EmptySSID => Self::EmptySSID,
         }
     }
+}
+
+#[derive(Debug, Error, PartialEq, Eq)]
+pub enum WifiQrCodeGeneratorError {
+    Wifi(WifiError),
+    QrCode(QrCodeError),
 }
 
 impl WifiQrCodeGenerator {
@@ -40,12 +49,15 @@ impl WifiQrCodeGenerator {
         Self
     }
 
-    pub fn generate_uri(
+    pub fn generate_svg_qr_code(
         &self,
         ssid: String,
         password: String,
         security: WifiSecurity,
     ) -> Result<String, WifiQrCodeGeneratorError> {
-        generate_wifi_uri(&ssid, &password, security.into()).map_err(|e| e.into())
+        let uri = generate_wifi_uri(&ssid, &password, security.into())
+            .map_err(|e| WifiQrCodeGeneratorError::Wifi(e.into()))?;
+
+        generate_svg_qr_code(&uri).map_err(|e| WifiQrCodeGeneratorError::QrCode(e.into()))
     }
 }

@@ -3,6 +3,7 @@ use crate::ui::wifi::WasmWifiSecurity;
 use creditcard::*;
 use login::WasmLogin;
 use proton_pass_common::file::{get_file_group_from_mime_type, get_mime_type_from_content};
+use proton_pass_common::wifi::generate_wifi_uri;
 use wasm_bindgen::prelude::*;
 
 mod creditcard;
@@ -60,8 +61,13 @@ pub fn mime_type_from_content(content: js_sys::Uint8Array) -> String {
 }
 
 #[wasm_bindgen]
-pub fn generate_wifi_uri(ssid: String, password: String, security: WasmWifiSecurity) -> Result<String, JsError> {
-    proton_pass_common::wifi::generate_wifi_uri(&ssid, &password, security.into()).map_err(|e| e.into())
+pub fn generate_wifi_svg_qr_code(
+    ssid: String,
+    password: String,
+    security: WasmWifiSecurity,
+) -> Result<String, JsError> {
+    let uri = generate_wifi_uri(&ssid, &password, security.into()).map_err(|e| JsError::from(e))?;
+    generate_svg_qr_code(uri)
 }
 
 #[wasm_bindgen]

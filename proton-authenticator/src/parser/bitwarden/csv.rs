@@ -159,4 +159,22 @@ mod test {
             _ => panic!("Should be a TOTP"),
         }
     }
+
+    #[test]
+    fn steam_entry_imported_from_bitwarden_csv_generates_correct_code() {
+        let input = get_file_contents("bitwarden/bitwarden.csv");
+
+        let res = parse_bitwarden_csv(&input).expect("Should be able to parse the CSV");
+        let entries = res.entries;
+        assert_eq!(entries.len(), 4);
+
+        let steam_entry = entries
+            .iter()
+            .find(|e| matches!(&e.content, AuthenticatorEntryContent::Steam(_)))
+            .expect("should contain a steam entry");
+
+        let now = 1742298622;
+        let code = crate::AuthenticatorClient::generate_code(steam_entry, now).expect("should generate code");
+        assert_eq!("NTK5M", code.current_code);
+    }
 }

@@ -25,9 +25,13 @@ impl SteamTotp {
         if secret.is_empty() {
             return Err(SteamTotpError::BadSecret);
         }
-        match base64::engine::general_purpose::STANDARD.decode(secret) {
-            Ok(secret) => Ok(SteamTotp { secret, name: None }),
-            Err(_) => Err(SteamTotpError::BadSecret),
+
+        match base32::decode(base32::Alphabet::Rfc4648 { padding: false }, secret) {
+            Some(secret) => Ok(SteamTotp { secret, name: None }),
+            None => match base64::engine::general_purpose::STANDARD_NO_PAD.decode(secret) {
+                Ok(secret) => Ok(SteamTotp { secret, name: None }),
+                Err(_) => Err(SteamTotpError::BadSecret),
+            },
         }
     }
 
@@ -76,7 +80,7 @@ impl SteamTotp {
         self.name = name;
     }
 
-    pub fn generate(&self, time: i64) -> String {
+    pub fn generate(&self, time: u64) -> String {
         // 8-byte big-endian representation of the current interval
         let interval = Self::code_interval(time).to_be_bytes();
 
@@ -103,7 +107,7 @@ impl SteamTotp {
     }
 
     pub fn uri(&self) -> String {
-        let encoded_secret = base64::engine::general_purpose::STANDARD.encode(&self.secret);
+        let encoded_secret = self.secret();
         format!("steam://{encoded_secret}")
     }
 
@@ -115,11 +119,11 @@ impl SteamTotp {
     }
 
     pub fn secret(&self) -> String {
-        base64::engine::general_purpose::STANDARD.encode(&self.secret)
+        base64::engine::general_purpose::STANDARD_NO_PAD.encode(&self.secret)
     }
 
-    fn code_interval(time: i64) -> u64 {
-        (time / ((PERIOD * 1000) as i64)) as u64
+    fn code_interval(time: u64) -> u64 {
+        time / (PERIOD as u64)
     }
 }
 
@@ -143,10 +147,10 @@ mod tests {
 
     #[test]
     fn generates_correct_code() {
-        let secret ="5Mmi0hvgpxaToJ3qcRG7ErLgMAXbWLYBYNm8MjLpHV4wIfiLRnwi1oEsZYBMk5GcmEBDlSCRueibOtHJP7t9DOJv7JDXY5kH12KIF0HHTnE=";
+        let secret = "STEAMKEY";
         let totp = SteamTotp::new(secret).expect("should be able to create");
-        let result = totp.generate(1737960861);
-        assert_eq!("X45DW", result);
+        let result = totp.generate(1742298317);
+        assert_eq!("VKFDN", result);
     }
 
     #[test]
@@ -178,5 +182,19 @@ mod tests {
         let code1 = totp1.generate(1737960861);
         let code2 = totp2.generate(1737960861);
         assert_eq!(code1, code2, "Code should be deterministic for the same interval");
+    }
+
+    #[test]
+    fn test_code_generation_changes_after_period() {
+        let secret = generate_code();
+        let totp1 = SteamTotp::new_from_raw(secret.clone());
+        let totp2 = SteamTotp::new_from_raw(secret);
+
+        let initial_time = 12345678u64;
+
+        let code1 = totp1.generate(initial_time);
+        let code2 = totp2.generate(initial_time + PERIOD as u64);
+
+        assert_ne!(code1, code2);
     }
 }

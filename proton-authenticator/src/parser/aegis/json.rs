@@ -39,6 +39,7 @@ mod test {
     use super::*;
     use crate::parser::aegis::test::check_export_matches;
     use crate::test_utils::get_file_contents;
+    use crate::AuthenticatorEntryContent;
 
     #[test]
     fn can_import_unencrypted_json() {
@@ -46,6 +47,22 @@ mod test {
         let res = parse_aegis_json(&contents, None).expect("should be able to parse");
         check_export_matches(res.entries, true);
         assert_eq!(res.errors.len(), 0);
+    }
+
+    #[test]
+    fn steam_entry_imported_from_aegis_json_generates_correct_code() {
+        let contents = get_file_contents("aegis/aegis-json-unencrypted.json");
+        let res = parse_aegis_json(&contents, None).expect("should be able to parse");
+
+        let steam_entry = res
+            .entries
+            .iter()
+            .find(|e| matches!(&e.content, AuthenticatorEntryContent::Steam(_)))
+            .expect("entry should exist");
+
+        let now = 1742298622;
+        let code = crate::AuthenticatorClient::generate_code(steam_entry, now).expect("should generate code");
+        assert_eq!("NTK5M", code.current_code);
     }
 
     #[test]

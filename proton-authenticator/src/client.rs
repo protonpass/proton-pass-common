@@ -83,7 +83,7 @@ impl AuthenticatorClient {
         })
     }
 
-    fn generate_code(entry: &AuthenticatorEntry, time: u64) -> Result<AuthenticatorCodeResponse> {
+    pub(crate) fn generate_code(entry: &AuthenticatorEntry, time: u64) -> Result<AuthenticatorCodeResponse> {
         match &entry.content {
             AuthenticatorEntryContent::Totp(t) => {
                 let period = t.get_period();
@@ -106,8 +106,8 @@ impl AuthenticatorClient {
                 })
             }
             AuthenticatorEntryContent::Steam(steam) => {
-                let current = steam.generate(time as i64);
-                let next = steam.generate((time + STEAM_PERIOD as u64) as i64);
+                let current = steam.generate(time);
+                let next = steam.generate(time + STEAM_PERIOD as u64);
                 Ok(AuthenticatorCodeResponse {
                     current_code: current,
                     next_code: next,

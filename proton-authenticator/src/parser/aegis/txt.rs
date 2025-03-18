@@ -28,6 +28,7 @@ mod tests {
     use super::*;
     use crate::parser::aegis::test::check_export_matches;
     use crate::test_utils::get_file_contents;
+    use crate::AuthenticatorEntryContent;
 
     #[test]
     fn can_parse_aegis_txt() {
@@ -35,5 +36,21 @@ mod tests {
         let parsed = parse_aegis_txt(&content).expect("should be able to parse");
         check_export_matches(parsed.entries, false);
         assert!(parsed.errors.is_empty());
+    }
+
+    #[test]
+    fn steam_entry_imported_from_aegis_txt_generates_correct_code() {
+        let content = get_file_contents("aegis/aegis-txt.txt");
+        let parsed = parse_aegis_txt(&content).expect("should be able to parse");
+
+        let steam_entry = parsed
+            .entries
+            .iter()
+            .find(|e| matches!(&e.content, AuthenticatorEntryContent::Steam(_)))
+            .expect("entry should exist");
+
+        let now = 1742298622;
+        let code = crate::AuthenticatorClient::generate_code(steam_entry, now).expect("should generate code");
+        assert_eq!("NTK5M", code.current_code);
     }
 }

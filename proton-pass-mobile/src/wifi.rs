@@ -1,4 +1,4 @@
-use proton_pass_common::wifi::{generate_uri, WifiError as CommonWifiError, WifiSecurity as CommonWifiSecurity};
+use proton_pass_common::wifi::{generate_wifi_uri, WifiError as CommonWifiError, WifiSecurity as CommonWifiSecurity};
 
 pub struct WifiQrCodeGenerator;
 
@@ -46,6 +46,6 @@ impl WifiQrCodeGenerator {
         password: String,
         security: WifiSecurity,
     ) -> Result<String, WifiQrCodeGeneratorError> {
-        generate_uri(&ssid, &password, security.into()).map_err(|e| e.into())
+        generate_wifi_uri(&ssid, &password, security.into()).map_err(|e| e.into())
     }
 }

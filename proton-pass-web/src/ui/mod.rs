@@ -1,4 +1,5 @@
 use crate::ui::file::WasmFileGroup;
+use crate::ui::wifi::WasmWifiSecurity;
 use creditcard::*;
 use login::WasmLogin;
 use proton_pass_common::file::{get_file_group_from_mime_type, get_mime_type_from_content};
@@ -7,6 +8,7 @@ use wasm_bindgen::prelude::*;
 mod creditcard;
 mod file;
 mod login;
+mod wifi;
 
 #[wasm_bindgen]
 pub fn is_email_valid(email: String) -> bool {
@@ -55,4 +57,14 @@ pub fn file_group_from_mime_type(mime_type: String) -> WasmFileGroup {
 pub fn mime_type_from_content(content: js_sys::Uint8Array) -> String {
     let as_vec = content.to_vec();
     get_mime_type_from_content(&as_vec)
+}
+
+#[wasm_bindgen]
+pub fn generate_wifi_uri(ssid: String, password: String, security: WasmWifiSecurity) -> Result<String, JsError> {
+    proton_pass_common::wifi::generate_wifi_uri(&ssid, &password, security.into()).map_err(|e| e.into())
+}
+
+#[wasm_bindgen]
+pub fn generate_svg_qr_code(value: String) -> Result<String, JsError> {
+    proton_pass_common::qr::generate_svg_qr_code(&value).map_err(|e| e.into())
 }

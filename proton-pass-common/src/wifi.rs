@@ -26,7 +26,7 @@ pub enum WifiError {
     EmptySSID,
 }
 
-pub fn generate_uri(ssid: &str, password: &str, security: WifiSecurity) -> Result<String, WifiError> {
+pub fn generate_wifi_uri(ssid: &str, password: &str, security: WifiSecurity) -> Result<String, WifiError> {
     if ssid.is_empty() {
         return Err(WifiError::EmptySSID);
     }
@@ -43,31 +43,31 @@ mod test {
 
     #[test]
     fn empty_ssid() {
-        let result = generate_uri("", "some password", WifiSecurity::WPA);
+        let result = generate_wifi_uri("", "some password", WifiSecurity::WPA);
         assert_eq!(result, Err(WifiError::EmptySSID))
     }
 
     #[test]
     fn empty_password() {
-        let result = generate_uri("my_ssid", "", WifiSecurity::WPA2);
+        let result = generate_wifi_uri("my_ssid", "", WifiSecurity::WPA2);
         assert_eq!(result, Ok("WIFI:S:my_ssid;T:nopass;;".to_string()));
     }
 
     #[test]
     fn securities() {
-        let unspecified = generate_uri("my_ssid", "my_password", WifiSecurity::Unspecified);
+        let unspecified = generate_wifi_uri("my_ssid", "my_password", WifiSecurity::Unspecified);
         assert_eq!(unspecified, Ok("WIFI:S:my_ssid;T:WPA2;P:my_password;;".to_string()));
 
-        let wpa = generate_uri("my_ssid", "my_password", WifiSecurity::WPA);
+        let wpa = generate_wifi_uri("my_ssid", "my_password", WifiSecurity::WPA);
         assert_eq!(wpa, Ok("WIFI:S:my_ssid;T:WPA;P:my_password;;".to_string()));
 
-        let wpa2 = generate_uri("my_ssid", "my_password", WifiSecurity::WPA2);
+        let wpa2 = generate_wifi_uri("my_ssid", "my_password", WifiSecurity::WPA2);
         assert_eq!(wpa2, Ok("WIFI:S:my_ssid;T:WPA2;P:my_password;;".to_string()));
 
-        let wpa3 = generate_uri("my_ssid", "my_password", WifiSecurity::WPA3);
+        let wpa3 = generate_wifi_uri("my_ssid", "my_password", WifiSecurity::WPA3);
         assert_eq!(wpa3, Ok("WIFI:S:my_ssid;T:WPA3;P:my_password;;".to_string()));
 
-        let wep = generate_uri("my_ssid", "my_password", WifiSecurity::WEP);
+        let wep = generate_wifi_uri("my_ssid", "my_password", WifiSecurity::WEP);
         assert_eq!(wep, Ok("WIFI:S:my_ssid;T:WEP;P:my_password;;".to_string()));
     }
 }

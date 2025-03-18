@@ -1,14 +1,14 @@
 [Error]
 enum QrCodeError {
     "DataTooLong",
-        "InvalidVersion",
-        "UnsupportedCharacterSet",
-        "InvalidEciDesignator",
-        "InvalidCharacter",
+    "InvalidVersion",
+    "UnsupportedCharacterSet",
+    "InvalidEciDesignator",
+    "InvalidCharacter",
 };
 
 interface QrCodeGenerator {
-constructor();
+    constructor();
     [Throws=QrCodeError]
     string generate_svg_qr_code(string value);
 };

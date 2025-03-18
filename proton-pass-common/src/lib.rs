@@ -9,6 +9,7 @@ pub mod login;
 pub mod passkey;
 pub use passkey_types;
 pub mod password;
+pub mod qr;
 pub mod twofa;
 pub mod wifi;
 
@@ -17,4 +18,5 @@ pub fn library_version() -> String {
 }
 
 pub use proton_pass_totp as totp;
+pub use qrcode;
 pub use url;

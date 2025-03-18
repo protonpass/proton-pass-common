@@ -6,6 +6,13 @@
 
 ### Other
 
+## 0.16.0
+
+### Features :tada:
+
+- pass: offer methods to generate WIFI QR code
+- pass: offer methods to generate arbitrary SVG QR codes
+
 ## 0.15.2
 
 ### Fixes :bug:

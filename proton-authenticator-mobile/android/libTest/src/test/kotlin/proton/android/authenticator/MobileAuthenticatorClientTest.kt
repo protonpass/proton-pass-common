@@ -82,14 +82,16 @@ class MobileAuthenticatorClientTest {
 
     @Test
     fun `can create steam entry and generate codes`() {
+        val name = "MySteamEntry"
         val entry = client.newSteamEntryFromParams(AuthenticatorEntrySteamCreateParameters(
-            name = "MySteamEntry",
+            name = name,
             secret = "STEAMKEY",
             note = null,
         ))
 
         assertThat(entry.entryType).isEqualTo(AuthenticatorEntryType.STEAM)
         assertThat(entry.issuer).isEqualTo("Steam")
+        assertThat(entry.name).isEqualTo(name)
 
         val codes = client.generateCodes(listOf(entry), 1742298622u)
         assertThat(codes.size).isEqualTo(1)
@@ -97,6 +99,22 @@ class MobileAuthenticatorClientTest {
         val code = codes[0]
         assertThat(code.currentCode).isEqualTo("NTK5M")
         assertThat(code.nextCode).isEqualTo("R9PMC")
+    }
+
+    @Test
+    fun `can get steam totp params`() {
+        val name = "MySteamEntry"
+        val entry = client.newSteamEntryFromParams(AuthenticatorEntrySteamCreateParameters(
+            name = name,
+            secret = "STEAMKEY",
+            note = null,
+        ))
+
+        val params = client.getTotpParams(entry)
+        assertThat(params.algorithm).isEqualTo(AuthenticatorTotpAlgorithm.SHA1)
+        assertThat(params.issuer).isEqualTo("Steam")
+        assertThat(params.digits.toInt()).isEqualTo(5)
+        assertThat(params.period.toInt()).isEqualTo(30)
     }
 
 }

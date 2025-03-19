@@ -54,6 +54,16 @@ dictionary AuthenticatorEntrySteamCreateParameters {
   string? note;
 };
 
+dictionary AuthenticatorEntryUpdateContents {
+    string name;
+    string secret;
+    string issuer;
+    u16 period;
+    u8 digits;
+    AuthenticatorTotpAlgorithm algorithm;
+    string? note;
+};
+
 interface AuthenticatorMobileClient {
   constructor();
 
@@ -86,4 +96,7 @@ interface AuthenticatorMobileClient {
 
   [Throws=AuthenticatorError]
   AuthenticatorEntryTotpParameters get_totp_params(AuthenticatorEntryModel entry);
+
+  [Throws=AuthenticatorError]
+  AuthenticatorEntryModel update_entry(AuthenticatorEntryModel entry, AuthenticatorEntryUpdateContents update);
 };

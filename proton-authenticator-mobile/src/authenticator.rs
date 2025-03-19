@@ -1,8 +1,9 @@
 use crate::{AuthenticatorEntryModel, AuthenticatorEntryType};
-use proton_authenticator::steam::SteamTotp;
 use proton_authenticator::{
     Algorithm, AuthenticatorClient, AuthenticatorCodeResponse as CommonAuthenticatorCodeResponse, AuthenticatorEntry,
-    AuthenticatorEntryContent, AuthenticatorEntryTotpParameters as CommonTotpParameters,
+    AuthenticatorEntryContent, AuthenticatorEntrySteamCreateParameters as CommonSteamCreateParameters,
+    AuthenticatorEntryTotpCreateParameters as CommonTotpCreateParameters,
+    AuthenticatorEntryTotpParameters as CommonTotpParameters, AuthenticatorEntryUpdateContents as CommonUpdateContents,
 };
 use proton_pass_derive::Error;
 
@@ -79,11 +80,35 @@ pub struct AuthenticatorEntryTotpCreateParameters {
     pub note: Option<String>,
 }
 
+impl From<AuthenticatorEntryTotpCreateParameters> for CommonTotpCreateParameters {
+    fn from(value: AuthenticatorEntryTotpCreateParameters) -> Self {
+        Self {
+            name: value.name,
+            secret: value.secret,
+            issuer: value.issuer,
+            period: value.period,
+            digits: value.digits,
+            algorithm: value.algorithm.map(Algorithm::from),
+            note: value.note,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct AuthenticatorEntrySteamCreateParameters {
     pub name: String,
     pub secret: String,
     pub note: Option<String>,
+}
+
+impl From<AuthenticatorEntrySteamCreateParameters> for CommonSteamCreateParameters {
+    fn from(value: AuthenticatorEntrySteamCreateParameters) -> Self {
+        Self {
+            name: value.name,
+            secret: value.secret,
+            note: value.note,
+        }
+    }
 }
 
 pub struct AuthenticatorCodeResponse {
@@ -123,6 +148,31 @@ impl From<CommonTotpParameters> for AuthenticatorEntryTotpParameters {
     }
 }
 
+#[derive(Clone, Debug)]
+pub struct AuthenticatorEntryUpdateContents {
+    pub name: String,
+    pub secret: String,
+    pub issuer: String,
+    pub period: u16,
+    pub digits: u8,
+    pub algorithm: AuthenticatorTotpAlgorithm,
+    pub note: Option<String>,
+}
+
+impl From<AuthenticatorEntryUpdateContents> for CommonUpdateContents {
+    fn from(value: AuthenticatorEntryUpdateContents) -> Self {
+        Self {
+            name: value.name,
+            secret: value.secret,
+            issuer: value.issuer,
+            period: value.period,
+            digits: value.digits,
+            algorithm: Algorithm::from(value.algorithm),
+            note: value.note,
+        }
+    }
+}
+
 pub struct AuthenticatorMobileClient {
     inner: AuthenticatorClient,
 }
@@ -143,18 +193,10 @@ impl AuthenticatorMobileClient {
         &self,
         params: AuthenticatorEntryTotpCreateParameters,
     ) -> Result<AuthenticatorEntryModel, AuthenticatorError> {
-        let entry = AuthenticatorEntry {
-            id: AuthenticatorEntry::generate_id(),
-            content: AuthenticatorEntryContent::Totp(proton_authenticator::TOTP {
-                label: Some(params.name),
-                secret: params.secret,
-                issuer: Some(params.issuer),
-                algorithm: params.algorithm.map(proton_authenticator::Algorithm::from),
-                digits: params.digits,
-                period: params.period,
-            }),
-            note: params.note,
-        };
+        let mapped_params = CommonTotpCreateParameters::from(params);
+        let entry = AuthenticatorEntry::new_totp_entry_from_params(mapped_params).map_err(|e| AuthenticatorError {
+            e: proton_authenticator::AuthenticatorError::Unknown(e.to_string()),
+        })?;
         Ok(entry.into())
     }
 
@@ -162,16 +204,10 @@ impl AuthenticatorMobileClient {
         &self,
         params: AuthenticatorEntrySteamCreateParameters,
     ) -> Result<AuthenticatorEntryModel, AuthenticatorError> {
-        let mut steam = SteamTotp::new(&params.secret).map_err(|_| AuthenticatorError {
-            e: proton_authenticator::AuthenticatorError::Unknown("Invalid secret".to_string()),
+        let mapped_params = CommonSteamCreateParameters::from(params);
+        let entry = AuthenticatorEntry::new_steam_entry_from_params(mapped_params).map_err(|e| AuthenticatorError {
+            e: proton_authenticator::AuthenticatorError::Unknown(e.to_string()),
         })?;
-
-        steam.set_name(Some(params.name));
-        let entry = AuthenticatorEntry {
-            id: AuthenticatorEntry::generate_id(),
-            content: AuthenticatorEntryContent::Steam(steam),
-            note: params.note,
-        };
         Ok(entry.into())
     }
 
@@ -242,5 +278,19 @@ impl AuthenticatorMobileClient {
             e: proton_authenticator::AuthenticatorError::Unknown(e.to_string()),
         })?;
         Ok(AuthenticatorEntryTotpParameters::from(parameters))
+    }
+
+    pub fn update_entry(
+        &self,
+        entry: AuthenticatorEntryModel,
+        update: AuthenticatorEntryUpdateContents,
+    ) -> Result<AuthenticatorEntryModel, AuthenticatorError> {
+        let mapped_update = CommonUpdateContents::from(update);
+        let mut as_entry = entry.to_entry()?;
+        as_entry.update(mapped_update).map_err(|e| AuthenticatorError {
+            e: proton_authenticator::AuthenticatorError::Unknown(e.to_string()),
+        })?;
+
+        Ok(as_entry.into())
     }
 }

@@ -5,6 +5,7 @@ import org.junit.Before
 import org.junit.Test
 import uniffi.proton_authenticator_common_mobile.AuthenticatorEntrySteamCreateParameters
 import uniffi.proton_authenticator_common_mobile.AuthenticatorEntryType
+import uniffi.proton_authenticator_common_mobile.AuthenticatorEntryUpdateContents
 import uniffi.proton_authenticator_common_mobile.AuthenticatorMobileClient
 import uniffi.proton_authenticator_common_mobile.AuthenticatorTotpAlgorithm
 
@@ -131,5 +132,60 @@ class MobileAuthenticatorClientTest {
         val deserialized = client.deserializeEntry(serialized)
 
         assertThat(deserialized.name).isEqualTo(name)
+    }
+
+    @Test
+    fun `can update totp entry`() {
+        val entry = client.entryFromUri(
+            "otpauth://totp/MYLABEL?secret=MYSECRET&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15"
+        )
+
+        val initialId = entry.id
+        val update = AuthenticatorEntryUpdateContents(
+            name = "NEW_NAME",
+            secret = "NEW_SECRET",
+            issuer = "NEW_ISSUER",
+            period = 8u,
+            digits = 4.toUByte(),
+            algorithm = AuthenticatorTotpAlgorithm.SHA1,
+            note = "NEW_NOTE"
+        )
+        val updated = client.updateEntry(entry, update)
+
+        assertThat(updated.id).isEqualTo(initialId)
+        assertThat(updated.name).isEqualTo(update.name)
+        assertThat(updated.issuer).isEqualTo(update.issuer)
+        assertThat(updated.period).isEqualTo(update.period)
+        assertThat(updated.note).isEqualTo(update.note)
+        assertThat(updated.secret).isEqualTo(update.secret)
+    }
+
+    @Test
+    fun `can update steam entry`() {
+        val name = "MySteamEntry"
+        val entry = client.newSteamEntryFromParams(AuthenticatorEntrySteamCreateParameters(
+            name = name,
+            secret = "STEAMKEY",
+            note = null,
+        ))
+
+        val initialId = entry.id
+        val update = AuthenticatorEntryUpdateContents(
+            name = "NEW_NAME",
+            secret = "JZCVOX2TIVBVERKU",
+            note = "NEW_NOTE",
+
+            // These fields are ignored
+            issuer = "NEW_ISSUER",
+            period = 8u,
+            digits = 4.toUByte(),
+            algorithm = AuthenticatorTotpAlgorithm.SHA1
+        )
+        val updated = client.updateEntry(entry, update)
+
+        assertThat(updated.id).isEqualTo(initialId)
+        assertThat(updated.note).isEqualTo(update.note)
+        assertThat(updated.name).isEqualTo(update.name)
+        assertThat(updated.secret).isEqualTo(update.secret)
     }
 }

@@ -7,23 +7,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import uniffi.proton_authenticator_common_mobile.AuthenticatorCodeResponse
-import uniffi.proton_authenticator_common_mobile.AuthenticatorLogLevel
-import uniffi.proton_authenticator_common_mobile.AuthenticatorLogger
 import uniffi.proton_authenticator_common_mobile.MobileCurrentTimeProvider
 import uniffi.proton_authenticator_common_mobile.MobileTotpGenerator
 import uniffi.proton_authenticator_common_mobile.MobileTotpGeneratorCallback
-import uniffi.proton_authenticator_common_mobile.registerAuthenticatorLogger
 
 class TotpGeneratorTest {
 
     @Test
     fun canInvokeGenerator() = runTest {
-        registerAuthenticatorLogger(object : AuthenticatorLogger {
-            override fun log(level: AuthenticatorLogLevel, message: String) {
-                println("[$level] $message")
-            }
-        })
-
         launch(Dispatchers.Default) {
             val entry1 = TestUtils.getEntry1()
             val entry2 = TestUtils.getEntry2()
@@ -88,12 +79,6 @@ class TotpGeneratorTest {
 
     @Test
     fun canInvokeGeneratorOnlyOnCodeChange() = runTest {
-        registerAuthenticatorLogger(object : AuthenticatorLogger {
-            override fun log(level: AuthenticatorLogLevel, message: String) {
-                println("[$level] $message")
-            }
-        })
-
         launch(Dispatchers.Default) {
             val entry = TestUtils.getEntry1()
 

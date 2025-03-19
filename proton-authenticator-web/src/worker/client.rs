@@ -1,10 +1,11 @@
 use crate::common::vec_to_uint8_array;
 use crate::entry::*;
 use js_sys::Uint8Array;
-use proton_authenticator::steam::SteamTotp;
 use proton_authenticator::{
-    Algorithm, AuthenticatorCodeResponse, AuthenticatorEntry, AuthenticatorEntryContent,
-    AuthenticatorEntryTotpParameters,
+    Algorithm, AuthenticatorCodeResponse, AuthenticatorEntry,
+    AuthenticatorEntrySteamCreateParameters as CommonSteamCreateParameters,
+    AuthenticatorEntryTotpCreateParameters as CommonTotpCreateParameters, AuthenticatorEntryTotpParameters,
+    AuthenticatorEntryUpdateContents as CommonUpdateContents,
 };
 use serde::{Deserialize, Serialize};
 use tsify_next::Tsify;
@@ -31,22 +32,26 @@ pub struct WasmAuthenticatorEntryTotpCreateParameters {
     pub note: Option<String>,
 }
 
+impl From<WasmAuthenticatorEntryTotpCreateParameters> for CommonTotpCreateParameters {
+    fn from(entry: WasmAuthenticatorEntryTotpCreateParameters) -> Self {
+        Self {
+            name: entry.name,
+            secret: entry.secret,
+            issuer: entry.issuer,
+            period: entry.period,
+            digits: entry.digits,
+            algorithm: entry.algorithm.map(Algorithm::from),
+            note: entry.note,
+        }
+    }
+}
+
 #[wasm_bindgen]
 pub fn new_totp_entry_from_params(
     params: WasmAuthenticatorEntryTotpCreateParameters,
 ) -> JsResult<WasmAuthenticatorEntryModel> {
-    let entry = AuthenticatorEntry {
-        id: AuthenticatorEntry::generate_id(),
-        content: AuthenticatorEntryContent::Totp(proton_authenticator::TOTP {
-            label: Some(params.name),
-            secret: params.secret,
-            issuer: Some(params.issuer),
-            algorithm: params.algorithm.map(proton_authenticator::Algorithm::from),
-            digits: params.digits,
-            period: params.period,
-        }),
-        note: params.note,
-    };
+    let mapped_params = CommonTotpCreateParameters::from(params);
+    let entry = AuthenticatorEntry::new_totp_entry_from_params(mapped_params)?;
     Ok(entry.into())
 }
 
@@ -58,20 +63,60 @@ pub struct WasmAuthenticatorEntrySteamCreateParameters {
     pub note: Option<String>,
 }
 
+impl From<WasmAuthenticatorEntrySteamCreateParameters> for CommonSteamCreateParameters {
+    fn from(entry: WasmAuthenticatorEntrySteamCreateParameters) -> Self {
+        Self {
+            name: entry.name,
+            secret: entry.secret,
+            note: entry.note,
+        }
+    }
+}
+
 #[wasm_bindgen]
 pub fn new_steam_entry_from_params(
     params: WasmAuthenticatorEntrySteamCreateParameters,
 ) -> JsResult<WasmAuthenticatorEntryModel> {
-    let mut steam = SteamTotp::new(&params.secret)
-        .map_err(|_| proton_authenticator::AuthenticatorError::Unknown("Invalid secret".to_string()))?;
-
-    steam.set_name(Some(params.name));
-    let entry = AuthenticatorEntry {
-        id: AuthenticatorEntry::generate_id(),
-        content: AuthenticatorEntryContent::Steam(steam),
-        note: params.note,
-    };
+    let mapped_params = CommonSteamCreateParameters::from(params);
+    let entry = AuthenticatorEntry::new_steam_entry_from_params(mapped_params)?;
     Ok(entry.into())
+}
+
+#[derive(Tsify, Deserialize, Serialize)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct WasmAuthenticatorEntryUpdateContents {
+    pub name: String,
+    pub secret: String,
+    pub issuer: String,
+    pub period: u16,
+    pub digits: u8,
+    pub algorithm: TotpAlgorithm,
+    pub note: Option<String>,
+}
+
+impl From<WasmAuthenticatorEntryUpdateContents> for CommonUpdateContents {
+    fn from(entry: WasmAuthenticatorEntryUpdateContents) -> Self {
+        Self {
+            name: entry.name,
+            secret: entry.secret,
+            issuer: entry.issuer,
+            period: entry.period,
+            digits: entry.digits,
+            algorithm: Algorithm::from(entry.algorithm),
+            note: entry.note,
+        }
+    }
+}
+
+#[wasm_bindgen]
+pub fn update_entry(
+    entry: WasmAuthenticatorEntryModel,
+    update: WasmAuthenticatorEntryUpdateContents,
+) -> JsResult<WasmAuthenticatorEntryModel> {
+    let mut as_entry = entry.to_entry()?;
+    let mapped_params = CommonUpdateContents::from(update);
+    as_entry.update(mapped_params)?;
+    Ok(as_entry.into())
 }
 
 #[derive(Tsify, Deserialize, Serialize)]

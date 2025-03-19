@@ -14,6 +14,7 @@ import {
     new_steam_entry_from_params,
     register_authenticator_logger,
     serialize_entries,
+    update_entry, WasmAuthenticatorEntryUpdateContents,
 } from "./pkg/worker";
 
 describe("ProtonAuthenticatorWeb WASM", () => {
@@ -69,6 +70,34 @@ describe("ProtonAuthenticatorWeb WASM", () => {
         const deserializedEntry = deserialized[0];
         expect(deserializedEntry.name).toEqual(name);
         expect(deserializedEntry.note).toEqual(note);
+    });
+
+    test("Can update entry", () => {
+        const uri = "otpauth://totp/MYLABEL?secret=MYSECRET&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15";
+        const entry = entry_from_uri(uri);
+        const entryId = entry.id;
+
+        const update: WasmAuthenticatorEntryUpdateContents = {
+            name: "NEW_NAME",
+            secret: "NEW_SECRET",
+            issuer: "NEW_ISSUER",
+            algorithm: "SHA1",
+            digits: 4,
+            period: 18,
+            note: "NEW_NOTE"
+        };
+        const updated = update_entry(entry, update);
+        expect(updated.name).toEqual(update.name);
+        expect(updated.note).toEqual(update.note);
+        expect(updated.issuer).toEqual(update.issuer);
+        expect(updated.period).toEqual(update.period);
+        expect(updated.id).toEqual(entryId);
+
+        const totpParams = get_totp_parameters(updated);
+        expect(totpParams.algorithm).toEqual(update.algorithm);
+        expect(totpParams.digits).toEqual(update.digits);
+        expect(totpParams.period).toEqual(update.period);
+
     });
 
     test("Can get TOTP params", () => {

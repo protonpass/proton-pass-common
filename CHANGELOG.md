@@ -4,10 +4,14 @@
 
 ### Fixes :bug:
 
+### Other
+
+## 0.16.1
+
+### Fixes :bug:
+
 - authenticator: return Steam TOTP params for Steam entries
 - authenticator: preserve Steam entry name
-
-### Other
 
 ## 0.16.0
 

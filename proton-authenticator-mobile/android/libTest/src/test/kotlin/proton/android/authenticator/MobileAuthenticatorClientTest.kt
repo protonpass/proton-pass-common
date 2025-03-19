@@ -117,4 +117,19 @@ class MobileAuthenticatorClientTest {
         assertThat(params.period.toInt()).isEqualTo(30)
     }
 
+
+    @Test
+    fun `serialize and deserialize steam entry preserves name`() {
+        val name = "MySteamEntry"
+        val entry = client.newSteamEntryFromParams(AuthenticatorEntrySteamCreateParameters(
+            name = name,
+            secret = "STEAMKEY",
+            note = null,
+        ))
+
+        val serialized = client.serializeEntry(entry)
+        val deserialized = client.deserializeEntry(serialized)
+
+        assertThat(deserialized.name).isEqualTo(name)
+    }
 }

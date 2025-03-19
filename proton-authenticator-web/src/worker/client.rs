@@ -1,8 +1,10 @@
 use crate::common::vec_to_uint8_array;
 use crate::entry::*;
 use js_sys::Uint8Array;
+use proton_authenticator::steam::SteamTotp;
 use proton_authenticator::{
-    Algorithm, AuthenticatorCodeResponse, AuthenticatorEntry, AuthenticatorEntryTotpParameters,
+    Algorithm, AuthenticatorCodeResponse, AuthenticatorEntry, AuthenticatorEntryContent,
+    AuthenticatorEntryTotpParameters,
 };
 use serde::{Deserialize, Serialize};
 use tsify_next::Tsify;
@@ -15,6 +17,61 @@ pub fn entry_from_uri(uri: String) -> JsResult<WasmAuthenticatorEntryModel> {
     let entry = AuthenticatorEntry::from_uri(&uri, None)?;
     let as_model = WasmAuthenticatorEntryModel::from(entry);
     Ok(as_model)
+}
+
+#[derive(Tsify, Deserialize, Serialize)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct WasmAuthenticatorEntryTotpCreateParameters {
+    pub name: String,
+    pub secret: String,
+    pub issuer: String,
+    pub period: Option<u16>,
+    pub digits: Option<u8>,
+    pub algorithm: Option<TotpAlgorithm>,
+    pub note: Option<String>,
+}
+
+#[wasm_bindgen]
+pub fn new_totp_entry_from_params(
+    params: WasmAuthenticatorEntryTotpCreateParameters,
+) -> JsResult<WasmAuthenticatorEntryModel> {
+    let entry = AuthenticatorEntry {
+        id: AuthenticatorEntry::generate_id(),
+        content: AuthenticatorEntryContent::Totp(proton_authenticator::TOTP {
+            label: Some(params.name),
+            secret: params.secret,
+            issuer: Some(params.issuer),
+            algorithm: params.algorithm.map(proton_authenticator::Algorithm::from),
+            digits: params.digits,
+            period: params.period,
+        }),
+        note: params.note,
+    };
+    Ok(entry.into())
+}
+
+#[derive(Tsify, Deserialize, Serialize)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct WasmAuthenticatorEntrySteamCreateParameters {
+    pub name: String,
+    pub secret: String,
+    pub note: Option<String>,
+}
+
+#[wasm_bindgen]
+pub fn new_steam_entry_from_params(
+    params: WasmAuthenticatorEntrySteamCreateParameters,
+) -> JsResult<WasmAuthenticatorEntryModel> {
+    let mut steam = SteamTotp::new(&params.secret)
+        .map_err(|_| proton_authenticator::AuthenticatorError::Unknown("Invalid secret".to_string()))?;
+
+    steam.set_name(Some(params.name));
+    let entry = AuthenticatorEntry {
+        id: AuthenticatorEntry::generate_id(),
+        content: AuthenticatorEntryContent::Steam(steam),
+        note: params.note,
+    };
+    Ok(entry.into())
 }
 
 #[derive(Tsify, Deserialize, Serialize)]
@@ -60,6 +117,16 @@ impl From<Algorithm> for TotpAlgorithm {
             Algorithm::SHA1 => TotpAlgorithm::SHA1,
             Algorithm::SHA256 => TotpAlgorithm::SHA256,
             Algorithm::SHA512 => TotpAlgorithm::SHA512,
+        }
+    }
+}
+
+impl From<TotpAlgorithm> for Algorithm {
+    fn from(value: TotpAlgorithm) -> Self {
+        match value {
+            TotpAlgorithm::SHA1 => Algorithm::SHA1,
+            TotpAlgorithm::SHA256 => Algorithm::SHA256,
+            TotpAlgorithm::SHA512 => Algorithm::SHA512,
         }
     }
 }

@@ -1,4 +1,4 @@
-use proton_authenticator::AuthenticatorEntry;
+use proton_authenticator::{AuthenticatorEntry, AuthenticatorEntryContent};
 use serde::{Deserialize, Serialize};
 use tsify_next::Tsify;
 use wasm_bindgen::prelude::*;
@@ -18,10 +18,16 @@ pub struct WasmAuthenticatorEntryModel {
 
 impl WasmAuthenticatorEntryModel {
     pub fn to_entry(&self) -> Result<AuthenticatorEntry, JsError> {
-        Ok(
-            AuthenticatorEntry::from_uri_and_id(&self.uri, self.note.clone(), self.id.clone())
-                .map_err(|e| proton_authenticator::AuthenticatorError::Unknown(format!("cannot parse uri: {:?}", e)))?,
-        )
+        let mut entry = AuthenticatorEntry::from_uri_and_id(&self.uri, self.note.clone(), self.id.clone())
+            .map_err(|e| proton_authenticator::AuthenticatorError::Unknown(format!("cannot parse uri: {:?}", e)))?;
+
+        if let AuthenticatorEntryContent::Steam(ref mut steam) = entry.content {
+            if !self.name.trim().is_empty() {
+                steam.set_name(Some(self.name.trim().to_string()));
+            }
+        }
+
+        Ok(entry)
     }
 }
 
@@ -47,11 +53,11 @@ pub enum WasmAuthenticatorEntryType {
     Steam,
 }
 
-impl From<proton_authenticator::AuthenticatorEntryContent> for WasmAuthenticatorEntryType {
-    fn from(value: proton_authenticator::AuthenticatorEntryContent) -> Self {
+impl From<AuthenticatorEntryContent> for WasmAuthenticatorEntryType {
+    fn from(value: AuthenticatorEntryContent) -> Self {
         match value {
-            proton_authenticator::AuthenticatorEntryContent::Totp(_) => WasmAuthenticatorEntryType::Totp,
-            proton_authenticator::AuthenticatorEntryContent::Steam(_) => WasmAuthenticatorEntryType::Steam,
+            AuthenticatorEntryContent::Totp(_) => WasmAuthenticatorEntryType::Totp,
+            AuthenticatorEntryContent::Steam(_) => WasmAuthenticatorEntryType::Steam,
         }
     }
 }

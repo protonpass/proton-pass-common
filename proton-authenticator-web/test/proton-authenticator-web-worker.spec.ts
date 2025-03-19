@@ -11,6 +11,7 @@ import {
     generate_key,
     get_totp_parameters,
     library_version,
+    new_steam_entry_from_params,
     register_authenticator_logger,
     serialize_entries,
 } from "./pkg/worker";
@@ -32,9 +33,6 @@ describe("ProtonAuthenticatorWeb WASM", () => {
     });
 
     test("ID is persisted when serializing and deserializing TOTP uri", () => {
-        register_authenticator_logger((level: string, msg: string) => {
-            console.log(`[${level}] ${msg}`);
-        })
         const uri = "otpauth://totp/MYLABEL?secret=MYSECRET&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15";
         const entry = entry_from_uri(uri);
 
@@ -50,6 +48,27 @@ describe("ProtonAuthenticatorWeb WASM", () => {
         // Check that ID is preserved
         const deserializedEntry = deserialized[0];
         expect(deserializedEntry.id).toEqual(entry_id);
+    });
+
+    test("Steam entry name is preserved when serializing and deserializing", () => {
+        const name = "MySteamEntry";
+        const note = "My note";
+        const entry = new_steam_entry_from_params({
+            name: name,
+            secret: "STEAMKEY",
+            note: note,
+        });
+
+        const serialized = serialize_entries([entry]);
+        expect(serialized.length).toEqual(1);
+
+        const deserialized = deserialize_entries(serialized);
+        expect(deserialized.length).toEqual(1);
+
+        // Check that name and note are preserved
+        const deserializedEntry = deserialized[0];
+        expect(deserializedEntry.name).toEqual(name);
+        expect(deserializedEntry.note).toEqual(note);
     });
 
     test("Can get TOTP params", () => {

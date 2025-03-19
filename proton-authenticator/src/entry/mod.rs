@@ -1,12 +1,20 @@
+mod create;
 mod exporter;
 mod gen;
 mod serializer;
+mod update;
 
 use crate::steam::{SteamTotp, PERIOD as STEAM_PERIOD, STEAM_DIGITS, STEAM_ISSUER};
-use proton_pass_totp::totp::TOTP;
-
+pub use create::{AuthenticatorEntrySteamCreateParameters, AuthenticatorEntryTotpCreateParameters};
 pub use exporter::{export_entries, import_authenticator_entries};
-use proton_pass_totp::Algorithm;
+use proton_pass_totp::{Algorithm, TOTP};
+pub use update::AuthenticatorEntryUpdateContents;
+
+#[derive(Clone, Debug)]
+pub enum AuthenticatorInvalidDataParam {
+    Name,
+    Secret,
+}
 
 #[derive(Clone, Debug, proton_pass_derive::Error)]
 pub enum AuthenticatorEntryError {
@@ -14,6 +22,7 @@ pub enum AuthenticatorEntryError {
     ParseError,
     SerializationError(String),
     Unknown(String),
+    InvalidData(AuthenticatorInvalidDataParam),
 }
 
 #[derive(Clone, Debug)]

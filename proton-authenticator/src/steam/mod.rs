@@ -19,6 +19,7 @@ pub enum SteamTotpError {
 pub struct SteamTotp {
     pub(crate) secret: Vec<u8>,
     pub(crate) name: Option<String>,
+    was_b32: bool,
 }
 
 impl SteamTotp {
@@ -28,9 +29,17 @@ impl SteamTotp {
         }
 
         match base32::decode(base32::Alphabet::Rfc4648 { padding: false }, secret) {
-            Some(secret) => Ok(SteamTotp { secret, name: None }),
+            Some(secret) => Ok(SteamTotp {
+                secret,
+                name: None,
+                was_b32: true,
+            }),
             None => match base64::engine::general_purpose::STANDARD_NO_PAD.decode(secret) {
-                Ok(secret) => Ok(SteamTotp { secret, name: None }),
+                Ok(secret) => Ok(SteamTotp {
+                    secret,
+                    name: None,
+                    was_b32: false,
+                }),
                 Err(_) => Err(SteamTotpError::BadSecret),
             },
         }
@@ -72,7 +81,11 @@ impl SteamTotp {
     }
 
     pub fn new_from_raw(secret: Vec<u8>) -> Self {
-        SteamTotp { secret, name: None }
+        SteamTotp {
+            secret,
+            name: None,
+            was_b32: false,
+        }
     }
 
     // Offered as a method instead of constructor, so we are always certain about it being an
@@ -120,7 +133,11 @@ impl SteamTotp {
     }
 
     pub fn secret(&self) -> String {
-        base64::engine::general_purpose::STANDARD_NO_PAD.encode(&self.secret)
+        if self.was_b32 {
+            base32::encode(base32::Alphabet::Rfc4648 { padding: false }, &self.secret)
+        } else {
+            base64::engine::general_purpose::STANDARD_NO_PAD.encode(&self.secret)
+        }
     }
 
     fn code_interval(time: u64) -> u64 {

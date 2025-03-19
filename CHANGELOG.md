@@ -5,6 +5,7 @@
 ### Fixes :bug:
 
 - authenticator: return Steam TOTP params for Steam entries
+- authenticator: preserve Steam entry name
 
 ### Other
 

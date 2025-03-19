@@ -70,3 +70,48 @@ impl AuthenticatorEntry {
         Ok((name.trim().to_string(), secret.trim().to_string()))
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn empty_name_returns_error() {
+        let entry = AuthenticatorEntry::new_totp_entry_from_params(AuthenticatorEntryTotpCreateParameters {
+            name: "".to_string(),
+            secret: "NON_EMPTY".to_string(),
+            issuer: "NON_EMPTY".to_string(),
+            period: None,
+            digits: None,
+            algorithm: None,
+            note: None,
+        });
+
+        assert!(matches!(
+            entry,
+            Err(AuthenticatorEntryError::InvalidData(
+                AuthenticatorInvalidDataParam::Name
+            ))
+        ));
+    }
+
+    #[test]
+    fn empty_secret_returns_error() {
+        let entry = AuthenticatorEntry::new_totp_entry_from_params(AuthenticatorEntryTotpCreateParameters {
+            name: "NON_EMPTY".to_string(),
+            secret: "".to_string(),
+            issuer: "NON_EMPTY".to_string(),
+            period: None,
+            digits: None,
+            algorithm: None,
+            note: None,
+        });
+
+        assert!(matches!(
+            entry,
+            Err(AuthenticatorEntryError::InvalidData(
+                AuthenticatorInvalidDataParam::Secret
+            ))
+        ));
+    }
+}

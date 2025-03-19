@@ -2,7 +2,8 @@ use base64::Engine;
 use url::Url;
 
 pub static PERIOD: u16 = 30;
-static CODE_DIGITS: usize = 5;
+pub static STEAM_ISSUER: &str = "Steam";
+pub static STEAM_DIGITS: usize = 5;
 static STEAM_CHARS: [char; 26] = [
     '2', '3', '4', '5', '6', '7', '8', '9', 'B', 'C', 'D', 'F', 'G', 'H', 'J', 'K', 'M', 'N', 'P', 'Q', 'R', 'T', 'V',
     'W', 'X', 'Y',
@@ -98,7 +99,7 @@ impl SteamTotp {
         // Convert into STEAM_CHARS
         let mut code = String::new();
         let mut temp_code = full_code;
-        for _ in 0..CODE_DIGITS {
+        for _ in 0..STEAM_DIGITS {
             let idx = (temp_code % (STEAM_CHARS.len() as u32)) as usize;
             code.push(STEAM_CHARS[idx]);
             temp_code /= STEAM_CHARS.len() as u32;
@@ -159,7 +160,7 @@ mod tests {
         let result = totp.generate(1737960861);
 
         // Check it outputs the correct length
-        assert_eq!(result.len(), CODE_DIGITS);
+        assert_eq!(result.len(), STEAM_DIGITS);
 
         // Check it uses the correct dictionary
         for ch in result.chars() {

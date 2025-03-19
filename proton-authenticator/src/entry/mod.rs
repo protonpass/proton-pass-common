@@ -2,7 +2,7 @@ mod exporter;
 mod gen;
 mod serializer;
 
-use crate::steam::{SteamTotp, PERIOD as STEAM_PERIOD};
+use crate::steam::{SteamTotp, PERIOD as STEAM_PERIOD, STEAM_DIGITS, STEAM_ISSUER};
 use proton_pass_totp::totp::TOTP;
 
 pub use exporter::{export_entries, import_authenticator_entries};
@@ -141,9 +141,13 @@ impl AuthenticatorEntry {
                     algorithm,
                 })
             }
-            AuthenticatorEntryContent::Steam(_) => Err(AuthenticatorEntryError::Unknown(
-                "Cannot get TOTP parameters from an entry that is not TOTP".to_string(),
-            )),
+            AuthenticatorEntryContent::Steam(ref steam) => Ok(AuthenticatorEntryTotpParameters {
+                secret: steam.secret(),
+                issuer: Some(STEAM_ISSUER.to_string()),
+                period: STEAM_PERIOD,
+                digits: STEAM_DIGITS as u8,
+                algorithm: Algorithm::SHA1,
+            }),
         }
     }
 }

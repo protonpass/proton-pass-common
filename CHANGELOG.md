@@ -6,6 +6,17 @@
 
 ### Other
 
+## 0.17.0
+
+### Features :tada:
+
+- authenticator: offer entry update methods
+
+### Other
+
+- authenticator-mobile: upgraded uniffi to 0.29.1
+- pass-mobile: upgraded uniffi to 0.29.1
+
 ## 0.16.1
 
 ### Fixes :bug:

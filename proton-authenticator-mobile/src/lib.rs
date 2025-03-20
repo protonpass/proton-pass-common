@@ -6,6 +6,7 @@ mod crypto;
 mod entry;
 mod generator;
 mod import;
+mod issuer_mapper;
 mod log;
 
 uniffi::include_scaffolding!("common");
@@ -20,4 +21,5 @@ pub use crypto::*;
 pub use entry::*;
 pub use generator::*;
 pub use import::*;
+pub use issuer_mapper::*;
 pub use log::*;

@@ -1,0 +1,11 @@
+dictionary IssuerInfo { 
+    string domain;
+    string icon_url;
+};
+
+interface AuthenticatorIssuerMapper {
+  constructor();
+
+ IssuerInfo? lookup(string issuer);
+
+};

@@ -5,6 +5,7 @@ mod log;
 pub mod crypto;
 pub mod entry;
 pub mod generator;
+pub mod issuer_mapper;
 pub mod parser;
 pub mod steam;
 
@@ -19,6 +20,7 @@ pub use entry::{
     AuthenticatorEntryTotpCreateParameters, AuthenticatorEntryTotpParameters, AuthenticatorEntryType,
     AuthenticatorEntryUpdateContents,
 };
+pub use issuer_mapper::{IssuerInfo, TOTPIssuerMapper};
 pub use log::{emit_log_message, register_authenticator_logger, LogLevel, Logger};
 pub use parser::aegis::{parse_aegis_json, parse_aegis_txt};
 pub use parser::bitwarden::{parse_bitwarden_csv, parse_bitwarden_json};

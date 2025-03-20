@@ -1,0 +1,24 @@
+[workspace]
+
+[package]
+name = "icon_fetcher"
+version = "0.2.0"
+edition = "2021"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1.36.0", features = ["full"] }
+tokio-stream = "0.1"
+
+# HTTP client
+reqwest = { version = "0.11.24", features = ["json", "stream", "rustls-tls"] }
+
+# Futures
+futures = "0.3.30"
+
+# Serialization
+serde = { version = "1.0.197", features = ["derive"] }
+toml = "0.8.10"
+
+# Progress bar
+indicatif = "0.17.8"

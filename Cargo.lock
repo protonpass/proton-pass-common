@@ -1041,6 +1041,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "include_dir"
+version = "0.7.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "923d117408f1e49d914f1a379a309cffe4f18c05cf4e3d12e613a15fc81bd0dd"
+dependencies = [
+ "include_dir_macros",
+]
+
+[[package]]
+name = "include_dir_macros"
+version = "0.7.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7cab85a7ed0bd5f0e76d93846e0147172bed2e2d3f859bcc33a8d9699cad1a75"
+dependencies = [
+ "proc-macro2",
+ "quote",
+]
+
+[[package]]
 name = "indexmap"
 version = "2.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1731,7 +1750,7 @@ checksum = "7dc55d7dec32ecaf61e0bd90b3d2392d721a28b95cfd23c3e176eccefbeab2f2"
 
 [[package]]
 name = "proton-authenticator"
-version = "0.16.1"
+version = "0.17.0"
 dependencies = [
  "aes-gcm",
  "base32 0.5.1",
@@ -1742,6 +1761,7 @@ dependencies = [
  "hex",
  "hmac",
  "hmac-sha1",
+ "include_dir",
  "pbkdf2",
  "protobuf",
  "protobuf-codegen",
@@ -1761,7 +1781,7 @@ dependencies = [
 
 [[package]]
 name = "proton-authenticator-mobile"
-version = "0.16.1"
+version = "0.17.0"
 dependencies = [
  "chrono",
  "proton-authenticator",
@@ -1772,7 +1792,7 @@ dependencies = [
 
 [[package]]
 name = "proton-authenticator-web"
-version = "0.16.1"
+version = "0.17.0"
 dependencies = [
  "js-sys",
  "proton-authenticator",
@@ -1784,7 +1804,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-common"
-version = "0.16.1"
+version = "0.17.0"
 dependencies = [
  "async-trait",
  "coset",
@@ -1812,7 +1832,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-derive"
-version = "0.16.1"
+version = "0.17.0"
 dependencies = [
  "quote",
  "syn 2.0.100",
@@ -1820,7 +1840,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-mobile"
-version = "0.16.1"
+version = "0.17.0"
 dependencies = [
  "proton-pass-common",
  "proton-pass-derive",
@@ -1830,7 +1850,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-totp"
-version = "0.16.1"
+version = "0.17.0"
 dependencies = [
  "criterion",
  "proton-pass-derive",
@@ -1843,7 +1863,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-web"
-version = "0.16.1"
+version = "0.17.0"
 dependencies = [
  "js-sys",
  "proton-pass-common",

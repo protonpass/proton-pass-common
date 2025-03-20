@@ -34,5 +34,5 @@ proton-authenticator-mobile/pkg
 
 proton-authenticator-web/**/pkg
 proton-authenticator-web/dist
-
+tools/generateIssuerInfos/target
 

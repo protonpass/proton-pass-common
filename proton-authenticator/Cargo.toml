@@ -1,6 +1,6 @@
 [package]
 name = "proton-authenticator"
-version = "0.16.1"
+version = "0.17.0"
 edition = "2021"
 
 [lib]
@@ -26,6 +26,7 @@ rand = "0.8"
 scrypt = "0.11.0"
 sha2 = "0.10"
 url = "2.5.4"
+include_dir = "0.7"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio.workspace = true
@@ -42,3 +43,4 @@ uuid = { version = "1.15.1", features = ["v4", "js"] }
 [build-dependencies]
 protobuf-codegen = "3.7.1"
 protoc-bin-vendored = "3.1.0"
+

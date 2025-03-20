@@ -10,6 +10,7 @@ members = [
     "proton-pass-derive",
     "proton-pass-totp"
 ]
+exclude = ["tools/generateIssuerInfos"]
 
 [workspace.dependencies]
 criterion = { version = "0.5.1", features = ["html_reports"] }

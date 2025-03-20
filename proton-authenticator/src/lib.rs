@@ -16,7 +16,8 @@ pub mod test_utils;
 pub use client::{AuthenticatorClient, AuthenticatorCodeResponse, AuthenticatorError};
 pub use entry::{
     AuthenticatorEntry, AuthenticatorEntryContent, AuthenticatorEntryError, AuthenticatorEntrySteamCreateParameters,
-    AuthenticatorEntryTotpCreateParameters, AuthenticatorEntryTotpParameters, AuthenticatorEntryUpdateContents,
+    AuthenticatorEntryTotpCreateParameters, AuthenticatorEntryTotpParameters, AuthenticatorEntryType,
+    AuthenticatorEntryUpdateContents,
 };
 pub use log::{emit_log_message, register_authenticator_logger, LogLevel, Logger};
 pub use parser::aegis::{parse_aegis_json, parse_aegis_txt};

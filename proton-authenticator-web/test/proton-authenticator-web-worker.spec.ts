@@ -84,7 +84,8 @@ describe("ProtonAuthenticatorWeb WASM", () => {
             algorithm: "SHA1",
             digits: 4,
             period: 18,
-            note: "NEW_NOTE"
+            note: "NEW_NOTE",
+            entry_type: "Totp",
         };
         const updated = update_entry(entry, update);
         expect(updated.name).toEqual(update.name);
@@ -97,6 +98,39 @@ describe("ProtonAuthenticatorWeb WASM", () => {
         expect(totpParams.algorithm).toEqual(update.algorithm);
         expect(totpParams.digits).toEqual(update.digits);
         expect(totpParams.period).toEqual(update.period);
+
+    });
+
+    test("Can convert totp to steam entry", () => {
+        const uri = "otpauth://totp/MYLABEL?secret=MYSECRET&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15";
+        const entry = entry_from_uri(uri);
+        const entryId = entry.id;
+
+        const update: WasmAuthenticatorEntryUpdateContents = {
+            name: "NEW_NAME",
+            secret: "STEAMKEY",
+            note: "NEW_NOTE",
+
+            // Ignored fields
+            issuer: "NEW_ISSUER",
+            algorithm: "SHA512",
+            digits: 4,
+            period: 18,
+            entry_type: "Steam",
+        };
+        const updated = update_entry(entry, update);
+        expect(updated.id).toEqual(entryId); // ID is preserved
+        expect(updated.name).toEqual(update.name); // Name is updated
+        expect(updated.note).toEqual(update.note); // Note is updated
+
+        expect(updated.issuer).toEqual("Steam"); // Note how the update param was ignored
+        expect(updated.period).toEqual(30); // Note how the period param was ignored
+
+
+        const totpParams = get_totp_parameters(updated);
+        expect(totpParams.algorithm).toEqual("SHA1"); // Algorithm is ignored
+        expect(totpParams.digits).toEqual(5); // Digits are ignored
+        expect(totpParams.period).toEqual(30); // Period is ignored
 
     });
 

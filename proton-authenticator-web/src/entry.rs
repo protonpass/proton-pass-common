@@ -1,4 +1,4 @@
-use proton_authenticator::{AuthenticatorEntry, AuthenticatorEntryContent};
+use proton_authenticator::{AuthenticatorEntry, AuthenticatorEntryContent, AuthenticatorEntryType};
 use serde::{Deserialize, Serialize};
 use tsify_next::Tsify;
 use wasm_bindgen::prelude::*;
@@ -58,6 +58,15 @@ impl From<AuthenticatorEntryContent> for WasmAuthenticatorEntryType {
         match value {
             AuthenticatorEntryContent::Totp(_) => WasmAuthenticatorEntryType::Totp,
             AuthenticatorEntryContent::Steam(_) => WasmAuthenticatorEntryType::Steam,
+        }
+    }
+}
+
+impl From<WasmAuthenticatorEntryType> for AuthenticatorEntryType {
+    fn from(value: WasmAuthenticatorEntryType) -> Self {
+        match value {
+            WasmAuthenticatorEntryType::Totp => Self::Totp,
+            WasmAuthenticatorEntryType::Steam => Self::Steam,
         }
     }
 }

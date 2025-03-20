@@ -92,6 +92,7 @@ pub struct WasmAuthenticatorEntryUpdateContents {
     pub digits: u8,
     pub algorithm: TotpAlgorithm,
     pub note: Option<String>,
+    pub entry_type: WasmAuthenticatorEntryType,
 }
 
 impl From<WasmAuthenticatorEntryUpdateContents> for CommonUpdateContents {
@@ -104,6 +105,7 @@ impl From<WasmAuthenticatorEntryUpdateContents> for CommonUpdateContents {
             digits: entry.digits,
             algorithm: Algorithm::from(entry.algorithm),
             note: entry.note,
+            entry_type: proton_authenticator::AuthenticatorEntryType::from(entry.entry_type),
         }
     }
 }

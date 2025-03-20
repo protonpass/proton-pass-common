@@ -148,7 +148,8 @@ class MobileAuthenticatorClientTest {
             period = 8u,
             digits = 4.toUByte(),
             algorithm = AuthenticatorTotpAlgorithm.SHA1,
-            note = "NEW_NOTE"
+            note = "NEW_NOTE",
+            entryType = AuthenticatorEntryType.TOTP
         )
         val updated = client.updateEntry(entry, update)
 
@@ -179,7 +180,8 @@ class MobileAuthenticatorClientTest {
             issuer = "NEW_ISSUER",
             period = 8u,
             digits = 4.toUByte(),
-            algorithm = AuthenticatorTotpAlgorithm.SHA1
+            algorithm = AuthenticatorTotpAlgorithm.SHA1,
+            entryType = AuthenticatorEntryType.STEAM
         )
         val updated = client.updateEntry(entry, update)
 
@@ -187,5 +189,41 @@ class MobileAuthenticatorClientTest {
         assertThat(updated.note).isEqualTo(update.note)
         assertThat(updated.name).isEqualTo(update.name)
         assertThat(updated.secret).isEqualTo(update.secret)
+    }
+
+    @Test
+    fun `can convert TOTP to steam entry`() {
+        val entry = client.entryFromUri(
+            "otpauth://totp/MYLABEL?secret=MYSECRET&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15"
+        )
+
+        val initialId = entry.id
+        val update = AuthenticatorEntryUpdateContents(
+            name = "NEW_NAME",
+            secret = "JZCVOX2TIVBVERKU",
+            note = "NEW_NOTE",
+
+            // These fields are ignored
+            issuer = "NEW_ISSUER",
+            period = 8u,
+            digits = 4.toUByte(),
+            algorithm = AuthenticatorTotpAlgorithm.SHA512,
+            entryType = AuthenticatorEntryType.STEAM
+        )
+        val updated = client.updateEntry(entry, update)
+
+        assertThat(updated.id).isEqualTo(initialId)
+        assertThat(updated.entryType).isEqualTo(AuthenticatorEntryType.STEAM)
+        assertThat(updated.note).isEqualTo(update.note)
+        assertThat(updated.name).isEqualTo(update.name)
+        assertThat(updated.secret).isEqualTo(update.secret)
+
+        assertThat(updated.period.toInt()).isEqualTo(30) // Period gets ignored
+        assertThat(updated.issuer).isEqualTo("Steam") // Issuer gets ignored
+
+        val totpParams = client.getTotpParams(updated)
+        assertThat(totpParams.algorithm).isEqualTo(AuthenticatorTotpAlgorithm.SHA1) // Algorithm gets ignored
+        assertThat(totpParams.digits.toInt()).isEqualTo(5) // Digits get ignored
+
     }
 }

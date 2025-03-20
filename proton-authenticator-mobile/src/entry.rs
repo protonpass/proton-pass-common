@@ -1,5 +1,5 @@
 use crate::AuthenticatorError;
-use proton_authenticator::{AuthenticatorEntry, AuthenticatorEntryContent};
+use proton_authenticator::{AuthenticatorEntry, AuthenticatorEntryContent, AuthenticatorEntryType as CommonEntryType};
 
 #[derive(Clone, Debug)]
 pub struct AuthenticatorEntryModel {
@@ -17,6 +17,15 @@ pub struct AuthenticatorEntryModel {
 pub enum AuthenticatorEntryType {
     TOTP,
     Steam,
+}
+
+impl From<AuthenticatorEntryType> for CommonEntryType {
+    fn from(t: AuthenticatorEntryType) -> Self {
+        match t {
+            AuthenticatorEntryType::TOTP => CommonEntryType::Totp,
+            AuthenticatorEntryType::Steam => CommonEntryType::Steam,
+        }
+    }
 }
 
 impl AuthenticatorEntryModel {

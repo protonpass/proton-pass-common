@@ -157,6 +157,7 @@ pub struct AuthenticatorEntryUpdateContents {
     pub digits: u8,
     pub algorithm: AuthenticatorTotpAlgorithm,
     pub note: Option<String>,
+    pub entry_type: AuthenticatorEntryType,
 }
 
 impl From<AuthenticatorEntryUpdateContents> for CommonUpdateContents {
@@ -169,6 +170,7 @@ impl From<AuthenticatorEntryUpdateContents> for CommonUpdateContents {
             digits: value.digits,
             algorithm: Algorithm::from(value.algorithm),
             note: value.note,
+            entry_type: proton_authenticator::AuthenticatorEntryType::from(value.entry_type),
         }
     }
 }

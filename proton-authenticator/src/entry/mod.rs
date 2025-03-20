@@ -8,7 +8,7 @@ use crate::steam::{SteamTotp, PERIOD as STEAM_PERIOD, STEAM_DIGITS, STEAM_ISSUER
 pub use create::{AuthenticatorEntrySteamCreateParameters, AuthenticatorEntryTotpCreateParameters};
 pub use exporter::{export_entries, import_authenticator_entries};
 use proton_pass_totp::{Algorithm, TOTP};
-pub use update::AuthenticatorEntryUpdateContents;
+pub use update::{AuthenticatorEntryType, AuthenticatorEntryUpdateContents};
 
 #[derive(Clone, Debug)]
 pub enum AuthenticatorInvalidDataParam {

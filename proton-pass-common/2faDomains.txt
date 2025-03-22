@@ -697,6 +697,7 @@ namecheap.com
 namehero.com
 names.co.uk
 namesilo.com
+nasafcu.com
 ncsu.edu
 nd.edu
 ndax.io
@@ -805,6 +806,7 @@ phemex.com
 philips-hue.com
 phrase.com
 pinata.cloud
+pirateship.com
 pivotaltracker.com
 piwik.pro
 pixieset.com

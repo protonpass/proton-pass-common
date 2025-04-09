@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.17.1
+
+### Fixes :bug:
+
+- authenticator-web: fix parsing current time as bigint
+
 ## 0.17.0
 
 ### Features :tada:

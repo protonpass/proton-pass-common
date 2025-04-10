@@ -26,7 +26,6 @@ rand = "0.8"
 scrypt = "0.11.0"
 sha2 = "0.10"
 url = "2.5.4"
-include_dir = "0.7"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio.workspace = true

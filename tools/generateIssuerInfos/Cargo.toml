@@ -7,18 +7,18 @@ edition = "2021"
 
 [dependencies]
 # Async runtime
-tokio = { version = "1.36.0", features = ["full"] }
-tokio-stream = "0.1"
+tokio = { version = "1.44.0", features = ["full"] }
+tokio-stream = "0.1.17"
 
 # HTTP client
-reqwest = { version = "0.11.24", features = ["json", "stream", "rustls-tls"] }
+reqwest = { version = "0.12.15", features = ["json", "stream", "rustls-tls"] }
 
 # Futures
-futures = "0.3.30"
+futures = "0.3.31"
 
 # Serialization
-serde = { version = "1.0.197", features = ["derive"] }
-toml = "0.8.10"
+serde = { version = "1.0.219", features = ["derive"] }
+toml = "0.8.20"
 
 # Progress bar
-indicatif = "0.17.8"
+indicatif = "0.17.11"

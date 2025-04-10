@@ -4,7 +4,7 @@ use proton_authenticator::generator::{
     GeneratorCurrentTimeProvider, TotpGenerationHandle, TotpGenerator as CoreTotpGenerator, TotpGeneratorCallback,
     TotpGeneratorDependencies,
 };
-use proton_authenticator::AuthenticatorCodeResponse;
+use proton_authenticator::{emit_log_message, AuthenticatorCodeResponse, LogLevel};
 use std::sync::Arc;
 use wasm_bindgen::prelude::*;
 
@@ -23,11 +23,23 @@ unsafe impl Sync for WebCurrentTimeProvider {}
 impl GeneratorCurrentTimeProvider for WebCurrentTimeProvider {
     fn now(&self) -> u64 {
         match self.inner.call0(&JsValue::NULL) {
-            Ok(v) => match v.as_f64() {
-                Some(v) => v as u64,
-                None => 0,
-            },
-            Err(_) => 0,
+            Ok(v) => {
+                let value_as_debug = format!("{v:?}");
+                u64::try_from(v).unwrap_or_else(|e| {
+                    emit_log_message(
+                        LogLevel::Error,
+                        format!("Error when trying to convert {value_as_debug} to u64: {e:?}"),
+                    );
+                    0
+                })
+            }
+            Err(e) => {
+                emit_log_message(
+                    LogLevel::Error,
+                    format!("Got error when invoking time generator: {:?}", e),
+                );
+                0
+            }
         }
     }
 }

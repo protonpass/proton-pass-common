@@ -18,6 +18,18 @@ const STANDARD_SERVICES: &[&str] = &[
     "https://www.google.com/s2/favicons?domain=DOMAIN&sz=256",
 ];
 
+struct FaviconInfo {
+    pub name: String,
+    pub domain: String,
+    pub icon_url: String,
+}
+
+impl FaviconInfo {
+    pub fn to_line(&self) -> String {
+        format!("{};{};{}", self.name, self.domain, self.icon_url)
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct Config {
     output_file: String,
@@ -85,13 +97,17 @@ async fn favicon_exists(client: &Client, config: &Config, url: &str) -> bool {
     false
 }
 
-async fn find_first_favicon(client: Arc<Client>, config: &Config, domain: String) -> Option<String> {
+async fn find_first_favicon(client: Arc<Client>, config: &Config, domain: String) -> Option<FaviconInfo> {
     let name = extract_name(&domain);
     let urls = build_favicon_urls(&domain);
 
     for url in urls {
         if favicon_exists(&client, config, &url).await {
-            return Some(format!("{};{};{}", name, domain, url));
+            return Some(FaviconInfo {
+                domain,
+                name,
+                icon_url: url,
+            });
         }
     }
 
@@ -176,11 +192,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     pb.finish_with_message("Favicon check complete.");
     // Sort alphabetically by name (first part of the line)
-    results.sort_by(|a, b| a.split(';').next().cmp(&b.split(';').next()));
+    results.sort_by(|a, b| a.name.cmp(&b.name));
 
     let mut output = File::create(config.output_file)?;
     for line in results {
-        writeln!(output, "{}", line)?;
+        writeln!(output, "{}", line.to_line())?;
     }
 
     println!("Async favicon check complete. Results written to favicons.txt.");

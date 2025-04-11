@@ -93,7 +93,7 @@ mod tests {
 
         let aws_infos = mapper.lookup("aws");
         assert!(!aws_infos.clone().unwrap().domain.is_empty());
-        assert!(aws_infos.clone().unwrap().icon_url == "https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://aws.amazon.com&size=256");
+        assert!(aws_infos.clone().unwrap().icon_url == "https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://aws.amazon.com&size=256");
     }
     #[test]
     fn test_bad_domain_check() {

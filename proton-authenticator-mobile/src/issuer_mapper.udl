@@ -4,8 +4,6 @@ dictionary IssuerInfo {
 };
 
 interface AuthenticatorIssuerMapper {
-  constructor();
-
- IssuerInfo? lookup(string issuer);
-
+    constructor();
+    IssuerInfo? lookup(string issuer);
 };

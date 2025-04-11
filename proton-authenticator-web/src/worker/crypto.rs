@@ -1,11 +1,10 @@
+use super::JsResult;
 use crate::common::*;
 use crate::entry::*;
 use js_sys::Uint8Array;
 use proton_authenticator::crypto::EncryptionTag;
 use proton_authenticator::AuthenticatorEntry;
 use wasm_bindgen::prelude::*;
-
-type JsResult<T> = Result<T, JsError>;
 
 #[wasm_bindgen]
 pub fn generate_key() -> Uint8Array {

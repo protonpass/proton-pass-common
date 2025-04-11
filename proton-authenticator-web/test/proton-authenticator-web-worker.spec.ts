@@ -14,7 +14,9 @@ import {
     new_steam_entry_from_params,
     register_authenticator_logger,
     serialize_entries,
-    update_entry, WasmAuthenticatorEntryUpdateContents,
+    update_entry,
+    WasmAuthenticatorEntryUpdateContents,
+    WasmIssuerMapper
 } from "./pkg/worker";
 
 describe("ProtonAuthenticatorWeb WASM", () => {
@@ -213,4 +215,21 @@ describe("ProtonAuthenticatorWeb WASM", () => {
         expect(records[4].message).toEqual(message5);
     });
 
+    test("Can get issuer info", () => {
+        const mapper = new WasmIssuerMapper();
+        const nonExistantInfo = mapper.get_issuer_info("NONEXISTANT");
+        expect(nonExistantInfo).toBeUndefined();
+
+        const protonInfo = mapper.get_issuer_info("Protonmail");
+        expect(protonInfo).toEqual({
+            icon_url: "https://proton.me/favicons/apple-touch-icon.png",
+            domain: "proton.me"
+        });
+
+        const wikipediaInfo = mapper.get_issuer_info("Wikipedia");
+        expect(wikipediaInfo).toEqual({
+            icon_url: "https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://wikipedia.org&size=256",
+            domain: "wikipedia.org"
+        });
+    });
 });

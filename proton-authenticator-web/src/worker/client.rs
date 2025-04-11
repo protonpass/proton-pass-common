@@ -1,3 +1,4 @@
+use super::JsResult;
 use crate::common::vec_to_uint8_array;
 use crate::entry::*;
 use js_sys::Uint8Array;
@@ -10,8 +11,6 @@ use proton_authenticator::{
 use serde::{Deserialize, Serialize};
 use tsify_next::Tsify;
 use wasm_bindgen::prelude::*;
-
-type JsResult<T> = Result<T, JsError>;
 
 #[wasm_bindgen]
 pub fn entry_from_uri(uri: String) -> JsResult<WasmAuthenticatorEntryModel> {

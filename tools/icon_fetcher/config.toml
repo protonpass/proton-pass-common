@@ -1,0 +1,4 @@
+output_file = "proton-authenticator/resources/issuerInfos.txt"
+domains_file = "proton-pass-common/2faDomains.txt"
+max_parallel = 50
+timeout_secs = 5

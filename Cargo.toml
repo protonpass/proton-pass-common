@@ -8,9 +8,9 @@ members = [
     "proton-pass-mobile",
     "proton-pass-web",
     "proton-pass-derive",
-    "proton-pass-totp"
+    "proton-pass-totp",
+    "tools/icon_fetcher"
 ]
-exclude = ["tools/generateIssuerInfos"]
 
 [workspace.dependencies]
 criterion = { version = "0.5.1", features = ["html_reports"] }

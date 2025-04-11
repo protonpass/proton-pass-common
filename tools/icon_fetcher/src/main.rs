@@ -1,15 +1,16 @@
+use indicatif::{ProgressBar, ProgressStyle};
 use reqwest::Client;
+use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 use std::sync::Arc;
-use tokio::{fs as tokio_fs};
+use tokio::fs as tokio_fs;
 use tokio::sync::Semaphore;
+use tokio::time::{timeout, Duration};
 use tokio_stream::StreamExt;
-use indicatif::{ProgressBar, ProgressStyle};
-use serde::{Deserialize, Serialize};
 
 const STANDARD_SERVICES: &[&str] = &[
-    "https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://DOMAIN&size=256",
+    "https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://DOMAIN&size=256",
     "https://icons.duckduckgo.com/ip3/DOMAIN.ico",
     "https://logo.clearbit.com/DOMAIN?size=64",
     "https://www.DOMAIN/favicon.ico",
@@ -28,8 +29,8 @@ struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            output_file: "issuerInfos".to_string(),
-            domains_file: "domains.txt".to_string(),
+            output_file: "proton-authenticator/resources/issuerInfos.txt".to_string(),
+            domains_file: "2faDomains.txt".to_string(),
             max_parallel: 50,
             timeout_secs: 5,
         }
@@ -53,14 +54,12 @@ fn read_domains_from_file(path: &str) -> std::io::Result<Vec<String>> {
 
     let domains: Vec<String> = reader
         .lines()
-        .filter_map(Result::ok)
+        .map_while(Result::ok)
         .filter(|d| !d.trim().is_empty())
         .collect();
 
     Ok(domains)
 }
-
-use tokio::time::{timeout, Duration};
 
 async fn favicon_exists(client: &Client, config: &Config, url: &str) -> bool {
     let timeout_duration = Duration::from_secs(config.timeout_secs);
@@ -91,7 +90,7 @@ async fn find_first_favicon(client: Arc<Client>, config: &Config, domain: String
     let urls = build_favicon_urls(&domain);
 
     for url in urls {
-        if favicon_exists(&client, &config, &url).await {
+        if favicon_exists(&client, config, &url).await {
             return Some(format!("{};{};{}", name, domain, url));
         }
     }
@@ -101,9 +100,16 @@ async fn find_first_favicon(client: Arc<Client>, config: &Config, domain: String
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-
     // Load configuration
-    let config = match tokio_fs::read_to_string("config.toml").await {
+    let args: Vec<String> = std::env::args().collect();
+
+    if args.len() != 2 {
+        eprintln!("Usage: {} <path to config file found in tool/icon_fetcher>", args[0]);
+        std::process::exit(1);
+    }
+
+    let path = &args[1];
+    let config = match tokio_fs::read_to_string(path).await {
         Ok(content) => toml::from_str(&content).unwrap_or_else(|_| {
             eprintln!("Invalid config file, using defaults");
             Config::default()
@@ -111,7 +117,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Err(_) => {
             let default_config = Config::default();
             let toml = toml::to_string(&default_config).unwrap();
-            tokio_fs::write("config.toml", toml).await.expect("Failed to create default config");
+            tokio_fs::write("config.toml", toml)
+                .await
+                .expect("Failed to create default config");
             default_config
         }
     };
@@ -132,48 +140,50 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let total = domains.len() as u64;
     let pb = Arc::new(ProgressBar::new(total));
-    pb.set_style(ProgressStyle::default_bar()
+    pb.set_style(
+        ProgressStyle::default_bar()
             .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} domains ({eta})")
             .unwrap()
-            .progress_chars("=>-"));
+            .progress_chars("=>-"),
+    );
 
     let client = Arc::new(Client::builder().user_agent("favicon-checker").build()?);
-    let semaphore = Arc::new(Semaphore::new(config.max_parallel)); 
+    let semaphore = Arc::new(Semaphore::new(config.max_parallel));
 
     let mut tasks = futures::stream::FuturesUnordered::new();
 
     for domain in domains {
-        let client = Arc::clone(&client);
-        let permit = semaphore.clone().acquire_owned().await?;
-        let pb = Arc::clone(&pb);
+        let client = client.clone();
+        let permit = semaphore.clone().acquire_owned(); //.await?;
+        let pb = pb.clone();
         let config = config.clone();
 
         tasks.push(tokio::spawn(async move {
-            let _permit = permit;
+            let _permit = permit.await.unwrap();
             let result = find_first_favicon(client, &config, domain).await;
             pb.inc(1);
             result
         }));
     }
 
-      // Collect all successful results
-      let mut results = Vec::new();
-      while let Some(result) = tasks.next().await {
-          if let Ok(Some(line)) = result {
-              results.push(line);
-          }
-      }
-  
-      pb.finish_with_message("Favicon check complete.");
-      // Sort alphabetically by name (first part of the line)
-      results.sort_by(|a, b| a.split(';').next().cmp(&b.split(';').next()));
-  
-      let mut output = File::create(config.output_file)?;
-      for line in results {
-          writeln!(output, "{}", line)?;
-      }
-  
-      println!("Async favicon check complete. Results written to favicons.txt.");
+    // Collect all successful results
+    let mut results = Vec::new();
+    while let Some(result) = tasks.next().await {
+        if let Ok(Some(line)) = result {
+            results.push(line);
+        }
+    }
+
+    pb.finish_with_message("Favicon check complete.");
+    // Sort alphabetically by name (first part of the line)
+    results.sort_by(|a, b| a.split(';').next().cmp(&b.split(';').next()));
+
+    let mut output = File::create(config.output_file)?;
+    for line in results {
+        writeln!(output, "{}", line)?;
+    }
+
+    println!("Async favicon check complete. Results written to favicons.txt.");
 
     Ok(())
 }

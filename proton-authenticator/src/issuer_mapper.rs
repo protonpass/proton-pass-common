@@ -91,7 +91,7 @@ mod tests {
         assert!(!infos.clone().unwrap().domain.is_empty());
         assert!(infos.clone().unwrap().icon_url == "https://proton.me/favicons/apple-touch-icon.png");
 
-        let aws_infos = mapper.lookup("aws");
+        let aws_infos = mapper.lookup("aws.amazon");
         assert!(!aws_infos.clone().unwrap().domain.is_empty());
         assert!(aws_infos.clone().unwrap().icon_url == "https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://aws.amazon.com&size=256");
     }

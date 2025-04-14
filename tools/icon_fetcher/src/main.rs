@@ -8,6 +8,9 @@ use tokio::fs as tokio_fs;
 use tokio::sync::Semaphore;
 use tokio::time::{timeout, Duration};
 use tokio_stream::StreamExt;
+use once_cell::sync::Lazy;
+use regex::Regex;
+use std::collections::HashSet;
 
 const STANDARD_SERVICES: &[&str] = &[
     "https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://DOMAIN&size=256",
@@ -50,7 +53,80 @@ impl Default for Config {
 }
 
 fn extract_name(domain: &str) -> String {
-    domain.split('.').next().unwrap_or(domain).to_string()
+    let domain = domain.to_lowercase();
+    let parts: Vec<&str> = domain.split('.').collect();
+
+    // Check for multi-level matches (e.g., .co.uk)
+    for i in 1..parts.len() {
+        let test_suffix = parts[i..].join(".");
+        if PUBLIC_SUFFIXES.contains(&test_suffix) {
+            return parts[..i].join(".");
+        }
+    }
+
+    // Fallback to removing just the last part
+    if parts.len() > 1 {
+        parts[..parts.len()-1].join(".")
+    } else {
+        domain
+    }
+}
+
+static PUBLIC_SUFFIXES: Lazy<HashSet<String>> = Lazy::new(|| {
+    fetch_and_parse_public_suffix_list().unwrap_or_else(|_| {
+        // Fallback to some common suffixes if fetching fails
+        let mut fallback = HashSet::new();
+        fallback.insert("com".to_string());
+        fallback.insert("net".to_string());
+        fallback.insert("org".to_string());
+        fallback.insert("co.uk".to_string());
+        fallback.insert("com.au".to_string());
+        fallback.insert("com.eu".to_string());
+        fallback
+    })
+});
+
+fn fetch_and_parse_public_suffix_list() -> Result<HashSet<String>, Box<dyn std::error::Error>> {
+    let url = "https://publicsuffix.org/list/public_suffix_list.dat";
+    let body = reqwest::blocking::get(url)?.text()?;
+
+    let mut suffixes = HashSet::new();
+    let re = Regex::new(r"^(?P<suffix>[^/\n]+)")?;
+
+    for line in body.lines() {
+        if line.starts_with("//") || line.trim().is_empty() {
+            continue;
+        }
+
+        if let Some(caps) = re.captures(line) {
+            let suffix = caps["suffix"].trim().to_lowercase();
+            if !suffix.is_empty() {
+                suffixes.insert(suffix);
+            }
+        }
+    }
+
+    Ok(suffixes)
+}
+
+pub fn remove_tld(domain: &str) -> String {
+    let domain = domain.to_lowercase();
+    let parts: Vec<&str> = domain.split('.').collect();
+
+    // Check for multi-level matches (e.g., .co.uk)
+    for i in 1..parts.len() {
+        let test_suffix = parts[i..].join(".");
+        if PUBLIC_SUFFIXES.contains(&test_suffix) {
+            return parts[..i].join(".");
+        }
+    }
+
+    // Fallback to removing just the last part
+    if parts.len() > 1 {
+        parts[..parts.len()-1].join(".")
+    } else {
+        domain
+    }
 }
 
 fn build_favicon_urls(domain: &str) -> Vec<String> {
@@ -76,21 +152,41 @@ fn read_domains_from_file(path: &str) -> std::io::Result<Vec<String>> {
 async fn favicon_exists(client: &Client, config: &Config, url: &str) -> bool {
     let timeout_duration = Duration::from_secs(config.timeout_secs);
 
-    // First, try HEAD
-    if let Ok(Ok(resp)) = timeout(timeout_duration, client.head(url).send()).await {
-        if resp.status().is_success() {
-            return true;
+    match timeout(timeout_duration, client.head(url).send()).await {
+        Ok(Ok(resp)) if resp.status().is_success() => return true,
+        Ok(Ok(resp)) => {
+            eprintln!("HEAD {} -> status {}", url, resp.status());
+        }
+        Ok(Err(err)) => {
+            eprintln!("HEAD {} failed: {}", url, err);
+        }
+        Err(_) => {
+            eprintln!("HEAD {} timed out after {}s", url, config.timeout_secs);
         }
     }
 
-    // Fallback to GET with content-type check
-    if let Ok(Ok(resp)) = timeout(timeout_duration, client.get(url).send()).await {
-        if resp.status().is_success() {
-            if let Some(content_type) = resp.headers().get("content-type") {
-                if content_type.to_str().unwrap_or("").starts_with("image") {
-                    return true;
+    match timeout(timeout_duration, client.get(url).send()).await {
+        Ok(Ok(resp)) => {
+            if resp.status().is_success() {
+                if let Some(content_type) = resp.headers().get("content-type") {
+                    let mime = content_type.to_str().unwrap_or("");
+                    if mime.starts_with("image") {
+                        return true;
+                    } else {
+                        eprintln!("GET {} -> unexpected content-type: {}", url, mime);
+                    }
+                } else {
+                    eprintln!("GET {} succeeded, but no content-type header", url);
                 }
+            } else {
+                eprintln!("GET {} -> status {}", url, resp.status());
             }
+        }
+        Ok(Err(err)) => {
+            eprintln!("GET {} failed: {}", url, err);
+        }
+        Err(_) => {
+            eprintln!("GET {} timed out after {}s", url, config.timeout_secs);
         }
     }
 
@@ -175,7 +271,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let config = config.clone();
 
         tasks.push(tokio::spawn(async move {
-            let _permit = permit.await.unwrap();
+            let _permit = match permit.await {
+                Ok(p) => p,
+                Err(_) => {
+                    eprintln!("Semaphore permit acquisition failed.");
+                    return None;
+                }
+            };
+
             let result = find_first_favicon(client, &config, domain).await;
             pb.inc(1);
             result
@@ -185,8 +288,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Collect all successful results
     let mut results = Vec::new();
     while let Some(result) = tasks.next().await {
-        if let Ok(Some(line)) = result {
-            results.push(line);
+        match result {
+            Ok(Some(line)) => results.push(line),
+            Ok(None) => {} // favicon not found
+            Err(e) => eprintln!("Task failed: {}", e),
         }
     }
 

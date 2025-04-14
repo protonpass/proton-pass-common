@@ -1174,6 +1174,8 @@ version = "0.2.0"
 dependencies = [
  "futures",
  "indicatif",
+ "once_cell",
+ "regex",
  "reqwest",
  "serde",
  "tokio",
@@ -2459,6 +2461,7 @@ dependencies = [
  "base64",
  "bytes",
  "encoding_rs",
+ "futures-channel",
  "futures-core",
  "futures-util",
  "h2",

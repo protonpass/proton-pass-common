@@ -8,7 +8,6 @@ use tokio::fs as tokio_fs;
 use tokio::sync::Semaphore;
 use tokio::time::{timeout, Duration};
 use tokio_stream::StreamExt;
-use once_cell::sync::Lazy;
 use regex::Regex;
 use std::collections::HashSet;
 
@@ -52,49 +51,25 @@ impl Default for Config {
     }
 }
 
-fn extract_name(domain: &str) -> String {
-    let domain = domain.to_lowercase();
-    let parts: Vec<&str> = domain.split('.').collect();
+pub async fn fetch_public_suffixes(client: &Client, z: HashSet<String>) -> HashSet<String> {
+    let url = "https://publicsuffix.org/list/public_suffix_list.dat";
 
-    // Check for multi-level matches (e.g., .co.uk)
-    for i in 1..parts.len() {
-        let test_suffix = parts[i..].join(".");
-        if PUBLIC_SUFFIXES.contains(&test_suffix) {
-            return parts[..i].join(".");
-        }
-    }
-
-    // Fallback to removing just the last part
-    if parts.len() > 1 {
-        parts[..parts.len()-1].join(".")
-    } else {
-        domain
+    match client.get(url).send().await {
+        Ok(response) => match response.text().await {
+            Ok(body) => parse_public_suffix_list(&body).unwrap_or(z),
+            Err(_) => z,
+        },
+        Err(_) => z,
     }
 }
 
-static PUBLIC_SUFFIXES: Lazy<HashSet<String>> = Lazy::new(|| {
-    fetch_and_parse_public_suffix_list().unwrap_or_else(|_| {
-        // Fallback to some common suffixes if fetching fails
-        let mut fallback = HashSet::new();
-        fallback.insert("com".to_string());
-        fallback.insert("net".to_string());
-        fallback.insert("org".to_string());
-        fallback.insert("co.uk".to_string());
-        fallback.insert("com.au".to_string());
-        fallback.insert("com.eu".to_string());
-        fallback
-    })
-});
-
-fn fetch_and_parse_public_suffix_list() -> Result<HashSet<String>, Box<dyn std::error::Error>> {
-    let url = "https://publicsuffix.org/list/public_suffix_list.dat";
-    let body = reqwest::blocking::get(url)?.text()?;
-
+fn parse_public_suffix_list(body: &str) -> Option<HashSet<String>> {
     let mut suffixes = HashSet::new();
-    let re = Regex::new(r"^(?P<suffix>[^/\n]+)")?;
+    let re = Regex::new(r"^(?P<suffix>[^/\n]+)").ok()?;
 
     for line in body.lines() {
-        if line.starts_with("//") || line.trim().is_empty() {
+        let line = line.trim();
+        if line.starts_with("//") || line.is_empty() {
             continue;
         }
 
@@ -106,17 +81,18 @@ fn fetch_and_parse_public_suffix_list() -> Result<HashSet<String>, Box<dyn std::
         }
     }
 
-    Ok(suffixes)
+    Some(suffixes)
 }
 
-pub fn remove_tld(domain: &str) -> String {
+fn extract_name(domain: &str, suffixes: &HashSet<String>) -> String {
+    
     let domain = domain.to_lowercase();
     let parts: Vec<&str> = domain.split('.').collect();
 
     // Check for multi-level matches (e.g., .co.uk)
     for i in 1..parts.len() {
         let test_suffix = parts[i..].join(".");
-        if PUBLIC_SUFFIXES.contains(&test_suffix) {
+        if suffixes.contains(&test_suffix) {
             return parts[..i].join(".");
         }
     }
@@ -193,8 +169,9 @@ async fn favicon_exists(client: &Client, config: &Config, url: &str) -> bool {
     false
 }
 
-async fn find_first_favicon(client: Arc<Client>, config: &Config, domain: String) -> Option<FaviconInfo> {
-    let name = extract_name(&domain);
+
+async fn find_first_favicon(client: Arc<Client>, config: &Config, domain: String, suffixes: HashSet<String>) -> Option<FaviconInfo> {
+    let name = extract_name(&domain, &suffixes);
     let urls = build_favicon_urls(&domain);
 
     for url in urls {
@@ -264,12 +241,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut tasks = futures::stream::FuturesUnordered::new();
 
+    // Fallback in case fetching fails
+    let mut fallback = HashSet::new();
+    fallback.insert("com".to_string());
+    fallback.insert("net".to_string());
+    fallback.insert("org".to_string());
+    fallback.insert("co.uk".to_string());
+    fallback.insert("com.au".to_string());
+    fallback.insert("com.eu".to_string());
+
+    let suffixes = fetch_public_suffixes(&client, fallback).await;
+
     for domain in domains {
         let client = client.clone();
         let permit = semaphore.clone().acquire_owned(); //.await?;
         let pb = pb.clone();
         let config = config.clone();
-
+        let suffixes = suffixes.clone();
+        
         tasks.push(tokio::spawn(async move {
             let _permit = match permit.await {
                 Ok(p) => p,
@@ -279,7 +268,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             };
 
-            let result = find_first_favicon(client, &config, domain).await;
+            let result = find_first_favicon(client, &config, domain, suffixes).await;
             pb.inc(1);
             result
         }));

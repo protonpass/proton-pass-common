@@ -172,9 +172,9 @@ async fn find_first_favicon(
     client: Arc<Client>,
     config: &Config,
     domain: String,
-    suffixes: HashSet<String>,
+    suffixes: &HashSet<String>,
 ) -> Option<FaviconInfo> {
-    let name = extract_name(&domain, &suffixes);
+    let name = extract_name(&domain, suffixes);
     let urls = build_favicon_urls(&domain);
 
     for url in urls {
@@ -254,6 +254,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     fallback.insert("com.eu".to_string());
 
     let suffixes = fetch_public_suffixes(&client, fallback).await;
+    let suffixes = Arc::new(suffixes);
 
     for domain in domains {
         let client = client.clone();
@@ -271,7 +272,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             };
 
-            let result = find_first_favicon(client, &config, domain, suffixes).await;
+            let result = find_first_favicon(client, &config, domain, &suffixes).await;
             pb.inc(1);
             result
         }));

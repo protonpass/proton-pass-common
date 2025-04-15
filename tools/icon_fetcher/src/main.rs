@@ -1,6 +1,8 @@
 use indicatif::{ProgressBar, ProgressStyle};
+use regex::Regex;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 use std::sync::Arc;
@@ -8,8 +10,6 @@ use tokio::fs as tokio_fs;
 use tokio::sync::Semaphore;
 use tokio::time::{timeout, Duration};
 use tokio_stream::StreamExt;
-use regex::Regex;
-use std::collections::HashSet;
 
 const STANDARD_SERVICES: &[&str] = &[
     "https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://DOMAIN&size=256",
@@ -85,7 +85,6 @@ fn parse_public_suffix_list(body: &str) -> Option<HashSet<String>> {
 }
 
 fn extract_name(domain: &str, suffixes: &HashSet<String>) -> String {
-    
     let domain = domain.to_lowercase();
     let parts: Vec<&str> = domain.split('.').collect();
 
@@ -99,7 +98,7 @@ fn extract_name(domain: &str, suffixes: &HashSet<String>) -> String {
 
     // Fallback to removing just the last part
     if parts.len() > 1 {
-        parts[..parts.len()-1].join(".")
+        parts[..parts.len() - 1].join(".")
     } else {
         domain
     }
@@ -169,8 +168,12 @@ async fn favicon_exists(client: &Client, config: &Config, url: &str) -> bool {
     false
 }
 
-
-async fn find_first_favicon(client: Arc<Client>, config: &Config, domain: String, suffixes: HashSet<String>) -> Option<FaviconInfo> {
+async fn find_first_favicon(
+    client: Arc<Client>,
+    config: &Config,
+    domain: String,
+    suffixes: HashSet<String>,
+) -> Option<FaviconInfo> {
     let name = extract_name(&domain, &suffixes);
     let urls = build_favicon_urls(&domain);
 
@@ -258,7 +261,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let pb = pb.clone();
         let config = config.clone();
         let suffixes = suffixes.clone();
-        
+
         tasks.push(tokio::spawn(async move {
             let _permit = match permit.await {
                 Ok(p) => p,

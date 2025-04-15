@@ -1,3 +1,4 @@
+use futures::StreamExt;
 use indicatif::{ProgressBar, ProgressStyle};
 use regex::Regex;
 use reqwest::Client;
@@ -9,7 +10,6 @@ use std::sync::Arc;
 use tokio::fs as tokio_fs;
 use tokio::sync::Semaphore;
 use tokio::time::{timeout, Duration};
-use tokio_stream::StreamExt;
 
 const STANDARD_SERVICES: &[&str] = &[
     "https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://DOMAIN&size=256",
@@ -242,7 +242,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = Arc::new(Client::builder().user_agent("favicon-checker").build()?);
     let semaphore = Arc::new(Semaphore::new(config.max_parallel));
 
-    let mut tasks = futures::stream::FuturesUnordered::new();
+    let mut tasks = Vec::new();
 
     // Fallback in case fetching fails
     let mut fallback = HashSet::new();
@@ -278,9 +278,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }));
     }
 
+    let mut stream = tokio_stream::iter(tasks).buffer_unordered(config.max_parallel);
+
     // Collect all successful results
     let mut results = Vec::new();
-    while let Some(result) = tasks.next().await {
+    while let Some(result) = stream.next().await {
         match result {
             Ok(Some(line)) => results.push(line),
             Ok(None) => {} // favicon not found

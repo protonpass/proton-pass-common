@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.18.0
+
+### Features :tada:
+
+- authenticator: offer methods for getting info from the issuer name
+
 ## 0.17.1
 
 ### Fixes :bug:

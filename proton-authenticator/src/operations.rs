@@ -21,10 +21,15 @@ pub struct RemoteEntry {
 }
 
 pub enum AuthenticatorOperation {
+    // Update local copy of the entry
     Upsert,
+    // Delete local copy
     DeleteLocal,
+    // Delete local copy and make api request to delete remote
     DeleteLocalAndRemote,
+    // Create remote version
     Push,
+    // Conflict, user must choose what to do
     Conflict,
 }
 

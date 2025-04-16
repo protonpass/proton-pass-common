@@ -15,7 +15,7 @@ pub enum SteamTotpError {
     BadUrl,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct SteamTotp {
     pub(crate) secret: Vec<u8>,
     pub(crate) name: Option<String>,

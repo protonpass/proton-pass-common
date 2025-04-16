@@ -25,7 +25,7 @@ pub enum AuthenticatorEntryError {
     InvalidData(AuthenticatorInvalidDataParam),
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum AuthenticatorEntryContent {
     Totp(TOTP),
     Steam(SteamTotp),
@@ -55,7 +55,7 @@ impl AuthenticatorEntryContent {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct AuthenticatorEntry {
     pub id: String,
     pub content: AuthenticatorEntryContent,

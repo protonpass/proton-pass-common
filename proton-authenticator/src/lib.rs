@@ -6,6 +6,7 @@ pub mod crypto;
 pub mod entry;
 pub mod generator;
 pub mod issuer_mapper;
+pub mod operations;
 pub mod parser;
 pub mod steam;
 

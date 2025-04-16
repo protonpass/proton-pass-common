@@ -1,5 +1,5 @@
 use crate::AuthenticatorEntry;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 #[derive(Clone, Copy)]
 pub enum AuthenticatorEntryState {
@@ -35,14 +35,15 @@ pub struct EntryOperation {
 }
 
 pub fn calculate_operations_to_perform(remote: Vec<RemoteEntry>, local: Vec<LocalEntry>) -> Vec<EntryOperation> {
-    let remote_entries = list_to_map(remote, |e| e.entry.id.to_string());
     let local_entries = list_to_map(local, |e| e.entry.id.to_string());
+    let mut remote_entry_ids = HashSet::new();
 
     let mut ops = Vec::new();
 
     // Detect remote entries not in local
-    for (remote_entry_id, remote_entry) in remote_entries.iter() {
-        match local_entries.get(remote_entry_id) {
+    for remote_entry in remote {
+        let remote_entry_id = remote_entry.entry.id.to_string();
+        match local_entries.get(&remote_entry_id) {
             Some(local_entry) => {
                 // We found it locally. Check if it's pending to be deleted
                 match local_entry.state {
@@ -52,7 +53,7 @@ pub fn calculate_operations_to_perform(remote: Vec<RemoteEntry>, local: Vec<Loca
                         if !local_entry.entry.eq(&remote_entry.entry) {
                             ops.push(EntryOperation {
                                 remote_id: Some(remote_entry.remote_id.to_string()),
-                                entry: remote_entry.entry.clone(),
+                                entry: remote_entry.entry,
                                 operation: AuthenticatorOperation::Upsert,
                             });
                         }
@@ -63,7 +64,7 @@ pub fn calculate_operations_to_perform(remote: Vec<RemoteEntry>, local: Vec<Loca
                         // Return conflict so the client preserves the most recent one
                         ops.push(EntryOperation {
                             remote_id: Some(remote_entry.remote_id.to_string()),
-                            entry: remote_entry.entry.clone(),
+                            entry: remote_entry.entry,
                             operation: AuthenticatorOperation::Conflict,
                         });
                     }
@@ -72,7 +73,7 @@ pub fn calculate_operations_to_perform(remote: Vec<RemoteEntry>, local: Vec<Loca
                         // Store the deletion operation
                         ops.push(EntryOperation {
                             remote_id: Some(remote_entry.remote_id.to_string()),
-                            entry: remote_entry.entry.clone(),
+                            entry: remote_entry.entry,
                             operation: AuthenticatorOperation::DeleteLocalAndRemote,
                         })
                     }
@@ -82,17 +83,19 @@ pub fn calculate_operations_to_perform(remote: Vec<RemoteEntry>, local: Vec<Loca
                 // We don't have it locally, store it
                 ops.push(EntryOperation {
                     remote_id: Some(remote_entry.remote_id.to_string()),
-                    entry: remote_entry.entry.clone(),
+                    entry: remote_entry.entry,
                     operation: AuthenticatorOperation::Upsert,
                 });
             }
         }
+
+        remote_entry_ids.insert(remote_entry_id);
     }
 
     // Detect local entries not in remote
     for (local_id, local_entry) in local_entries.iter() {
         // If the local entry was present in the remote it would have been processed by the other loop
-        if !remote_entries.contains_key(local_id) {
+        if !remote_entry_ids.contains(local_id) {
             // Local entry not in remote. Determine the reason
             match local_entry.state {
                 AuthenticatorEntryState::Synced => {

@@ -164,10 +164,6 @@ web-ui: ## Build the web ui artifacts
 	@echo "--- Building web-ui"
 	@RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build proton-pass-web --scope protontech --features web_ui
 	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "ui",/g' "${WEB_DIR}/pkg/package.json"
-	@echo "--- Compiling web-ui to ASM.js"
-	@echo -n "export default " > "${WEB_DIR}/pkg/proton_pass_web_bg.asm.js"
-	@wasm2js --emscripten -Oz "${WEB_DIR}/pkg/proton_pass_web_bg.wasm" >> "${WEB_DIR}/pkg/proton_pass_web_bg.asm.js"
-	@cp "${WEB_DIR}/asm.js" "${WEB_DIR}/pkg/proton_pass_web.asm.js"
 	@mv "${WEB_DIR}/pkg" "${WEB_BUILD_DIR}/ui"
 
 .PHONY: web-password

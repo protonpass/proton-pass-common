@@ -1,5 +1,5 @@
 use proton_pass_common::file::FileGroup as CommonFileGroup;
-use proton_pass_common::file::{get_file_group_from_mime_type, get_mime_type_from_content};
+use proton_pass_common::file::{get_file_group_from_mime_type, get_mime_type_from_content, sanitize_name};
 
 // START MAPPING TYPES
 
@@ -57,5 +57,9 @@ impl FileDecoder {
 
     pub fn get_filegroup_from_mimetype(&self, mimetype: String) -> FileGroup {
         FileGroup::from(get_file_group_from_mime_type(&mimetype))
+    }
+
+    pub fn sanitize_filename(&self, name: String, windows: bool) -> String {
+        sanitize_name(&name, windows)
     }
 }

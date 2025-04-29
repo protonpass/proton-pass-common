@@ -19,4 +19,5 @@ interface FileDecoder {
     constructor();
     string get_mimetype_from_content(bytes content);
     FileGroup get_filegroup_from_mimetype(string mimetype);
+    string sanitize_filename(string name, boolean windows);
 };

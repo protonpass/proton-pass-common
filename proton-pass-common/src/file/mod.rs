@@ -57,3 +57,12 @@ fn get_file_group_from_heuristics(mime_type: &str) -> FileGroup {
         _ => FileGroup::Unknown,
     }
 }
+
+pub fn sanitize_name(name: &str, windows: bool) -> String {
+    let options = sanitize_filename::Options {
+        windows,
+        truncate: true, // Truncates to 255 bytes
+        replacement: "",
+    };
+    sanitize_filename::sanitize_with_options(name, options)
+}

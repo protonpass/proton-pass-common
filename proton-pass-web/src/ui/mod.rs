@@ -2,7 +2,7 @@ use crate::ui::file::WasmFileGroup;
 use crate::ui::wifi::WasmWifiSecurity;
 use creditcard::*;
 use login::WasmLogin;
-use proton_pass_common::file::{get_file_group_from_mime_type, get_mime_type_from_content};
+use proton_pass_common::file::{get_file_group_from_mime_type, get_mime_type_from_content, sanitize_name};
 use proton_pass_common::wifi::generate_wifi_uri;
 use wasm_bindgen::prelude::*;
 
@@ -58,6 +58,11 @@ pub fn file_group_from_mime_type(mime_type: String) -> WasmFileGroup {
 pub fn mime_type_from_content(content: js_sys::Uint8Array) -> String {
     let as_vec = content.to_vec();
     get_mime_type_from_content(&as_vec)
+}
+
+#[wasm_bindgen]
+pub fn sanitize_filename(name: String, windows: bool) -> String {
+    sanitize_name(&name, windows)
 }
 
 #[wasm_bindgen]

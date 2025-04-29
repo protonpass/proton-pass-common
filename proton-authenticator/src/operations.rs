@@ -1,5 +1,6 @@
+use crate::utils::list_to_map;
 use crate::AuthenticatorEntry;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 #[derive(Clone, Copy)]
 pub enum AuthenticatorEntryState {
@@ -134,15 +135,6 @@ pub fn calculate_operations_to_perform(remote: Vec<RemoteEntry>, local: Vec<Loca
     }
 
     ops
-}
-
-fn list_to_map<T, F: Fn(&T) -> String>(input: Vec<T>, f: F) -> HashMap<String, T> {
-    let mut map = HashMap::new();
-    for item in input {
-        let key = f(&item);
-        map.insert(key, item);
-    }
-    map
 }
 
 #[cfg(test)]

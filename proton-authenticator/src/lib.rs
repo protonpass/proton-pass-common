@@ -11,6 +11,7 @@ pub mod parser;
 pub mod steam;
 
 mod client;
+mod utils;
 
 #[cfg(test)]
 pub mod test_utils;

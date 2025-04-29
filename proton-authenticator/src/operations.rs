@@ -190,6 +190,7 @@ mod tests {
     fn local_entry_with_state(state: AuthenticatorEntryState) -> LocalEntry {
         local_entry_with_entry_and_state(random_entry(), state)
     }
+
     fn local_entry_with_entry_and_state(entry: AuthenticatorEntry, state: AuthenticatorEntryState) -> LocalEntry {
         LocalEntry { entry, state }
     }

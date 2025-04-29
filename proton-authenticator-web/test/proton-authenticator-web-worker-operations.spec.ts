@@ -12,6 +12,11 @@ const newEntry = (label: string, secret: string) =>
     entry_from_uri(`otpauth://totp/${label}?secret=${secret}&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15`);
 
 describe("ProtonAuthenticatorWeb WASM diff", () => {
+    test("Can handle empty lists", () => {
+        const res = calculate_operations([], []);
+        expect(res).toBeEmpty();
+    });
+
     test("Does not return anything in case no differences", () => {
         const entry = newEntry("LABEL", "SECRET");
         const remote: WasmRemoteEntry[] = [

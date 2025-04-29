@@ -8,6 +8,7 @@ mod generator;
 mod import;
 mod issuer_mapper;
 mod log;
+mod operations;
 
 uniffi::include_scaffolding!("common");
 
@@ -23,3 +24,4 @@ pub use generator::*;
 pub use import::*;
 pub use issuer_mapper::*;
 pub use log::*;
+pub use operations::*;

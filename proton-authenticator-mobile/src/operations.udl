@@ -1,0 +1,36 @@
+dictionary RemoteEntry {
+  string remote_id;
+  AuthenticatorEntryModel entry;
+};
+
+enum LocalEntryState {
+  "Synced",
+  "PendingSync",
+  "PendingToDelete",
+};
+
+dictionary LocalEntry {
+  AuthenticatorEntryModel entry;
+  LocalEntryState state;
+};
+
+enum OperationType {
+  "Upsert",
+  "DeleteLocal",
+  "DeleteLocalAndRemote",
+  "Push",
+  "Conflict",
+};
+
+dictionary EntryOperation {
+  string? remote_id;
+  AuthenticatorEntryModel entry;
+  OperationType operation;
+};
+
+interface SyncOperationChecker {
+  constructor();
+
+  [Throws=AuthenticatorError]
+  sequence<EntryOperation> calculate_operations(sequence<RemoteEntry> remote, sequence<LocalEntry> local);
+};

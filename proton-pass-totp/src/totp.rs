@@ -91,8 +91,8 @@ impl TOTP {
 
     fn parse_label(uri: &Url) -> Option<String> {
         match uri.path_segments() {
-            Some(segments) => {
-                if let Some(label) = segments.last() {
+            Some(mut segments) => {
+                if let Some(label) = segments.next_back() {
                     if !label.is_empty() {
                         match urlencoding::decode(label) {
                             Ok(decoded) => {

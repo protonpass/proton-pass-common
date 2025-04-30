@@ -2,6 +2,10 @@ use file_format::FileFormat;
 
 mod associations;
 
+// External file, do not complain about lint
+#[allow(dead_code)]
+mod sanitize_filename;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
 pub enum FileGroup {
     Image,

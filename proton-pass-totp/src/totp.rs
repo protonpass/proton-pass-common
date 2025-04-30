@@ -46,6 +46,7 @@ impl TOTP {
         let label = Self::parse_label(&uri);
 
         let queries = Self::parse_queries(&uri)?;
+        let issuer = Self::parse_issuer(&uri, &queries);
         let secret = queries.get_secret()?;
         let algorithm = queries.get_algorithm()?;
         let digits = queries.get_digits()?;
@@ -53,7 +54,7 @@ impl TOTP {
         let period = queries.get_period()?;
 
         Ok(Self {
-            issuer: queries.issuer,
+            issuer,
             label,
             secret,
             algorithm,
@@ -66,9 +67,7 @@ impl TOTP {
         let queries_string = uri.query().ok_or(TOTPError::NoQueries)?;
         Ok(Queries::new(queries_string))
     }
-}
 
-impl TOTP {
     fn check_scheme(uri: &Url) -> Result<(), TOTPError> {
         let scheme = uri.scheme().to_string();
         if scheme.to_lowercase() == OTP_SCHEME {
@@ -86,6 +85,25 @@ impl TOTP {
             Ok(())
         } else {
             Err(TOTPError::InvalidAuthority(authority.to_string()))
+        }
+    }
+
+    fn parse_issuer(uri: &Url, queries: &Queries) -> Option<String> {
+        if let Some(ref issuer) = queries.issuer {
+            return Some(issuer.to_string());
+        }
+
+        let path = uri.path_segments()?.next_back()?.trim();
+        if path.is_empty() {
+            return None;
+        }
+
+        match urlencoding::decode(path) {
+            Ok(decoded) => {
+                let split: Vec<&str> = decoded.split(':').collect();
+                split.first().map(|s| s.to_string()).filter(|_| split.len() > 1)
+            }
+            Err(_) => Some(path.to_string()),
         }
     }
 
@@ -114,9 +132,7 @@ impl TOTP {
             _ => None,
         }
     }
-}
 
-impl TOTP {
     pub fn has_default_params(&self) -> bool {
         let default_algorithm = match &self.algorithm {
             Some(value) => *value == DEFAULT_ALGORITHM,
@@ -147,9 +163,7 @@ impl TOTP {
     pub fn get_period(&self) -> u16 {
         self.period.unwrap_or(DEFAULT_PERIOD)
     }
-}
 
-impl TOTP {
     pub fn to_uri(&self, original_label: Option<String>, original_issuer: Option<String>) -> String {
         let base_uri = format!("{}://{}/", OTP_SCHEME, TOTP_HOST);
 
@@ -201,9 +215,7 @@ impl TOTP {
         uri.query_pairs_mut().append_pair(QUERY_PERIOD, &format!("{}", period));
         uri.as_str().to_string()
     }
-}
 
-impl TOTP {
     pub fn generate_token(&self, current_time: u64) -> Result<String, TOTPError> {
         let sanitized_secret = sanitize_secret(self.secret.as_str());
         let encoded_secret = totp_rs::Secret::Encoded(sanitized_secret.clone());
@@ -392,6 +404,33 @@ mod test_from_uri {
         assert_eq!(sut.algorithm, None);
         assert_eq!(sut.digits, None);
         assert_eq!(sut.period, None);
+    }
+
+    #[test]
+    fn parse_issuer_from_multiple_formats() {
+        let cases = vec![
+            (
+                "otpauth://totp/ISSUER:username?secret=SECRET&algorithm=SHA256&digits=8&period=60",
+                Some("ISSUER".to_string()),
+            ),
+            (
+                "otpauth://totp/ISSUER:username?issuer=OTHER&secret=SECRET&algorithm=SHA256&digits=8&period=60",
+                Some("OTHER".to_string()),
+            ),
+            (
+                "otpauth://totp/username?issuer=ISSUER&secret=SECRET&algorithm=SHA256&digits=8&period=60",
+                Some("ISSUER".to_string()),
+            ),
+            (
+                "otpauth://totp/username?secret=SECRET&algorithm=SHA256&digits=8&period=60",
+                None,
+            ),
+        ];
+
+        for (uri, expected_issuer) in cases {
+            let parsed = TOTP::from_uri(uri).expect("Should be able to parse");
+            assert_eq!(parsed.issuer, expected_issuer);
+        }
     }
 }
 

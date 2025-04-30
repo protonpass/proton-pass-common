@@ -6,6 +6,18 @@
 
 ### Other
 
+## 0.19.0
+
+### Features :tada:
+
+- pass-common: offer methods for sanitizing file names
+- pass-web: removed ASMJS
+- authenticator: offer method for sync-diff planning
+
+### Other
+
+- pass-common: updated 2fa domains list
+
 ## 0.18.0
 
 ### Features :tada:

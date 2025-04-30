@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.19.1
+
+### Fixes :bug:
+
+- pass-totp: fix issuer extraction from path segments
+
 ## 0.19.0
 
 ### Features :tada:

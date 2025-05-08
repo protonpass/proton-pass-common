@@ -6,6 +6,13 @@
 
 ### Other
 
+## 0.19.3
+
+### Fixes :bug:
+
+- authenticator: make bitwarden CSV importer more resilient
+- authenticator: allow null issuers in 2FAS imports
+
 ## 0.19.2
 
 ### Fixes :bug:

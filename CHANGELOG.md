@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.19.2
+
+### Fixes :bug:
+
+- authenticator: fix lastpass JSON importer
+
 ## 0.19.1
 
 ### Fixes :bug:

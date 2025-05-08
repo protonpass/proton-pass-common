@@ -155,30 +155,26 @@ mod test {
         assert_eq!(entries.len(), 2);
 
         match &entries[0].content {
-            AuthenticatorEntryContent::Totp(totp) => {
-                check_totp(
-                    totp,
-                    Algorithm::SHA1,
-                    6,
-                    30,
-                    Some("code 1 lastpass".to_string()),
-                    Some("snjxxndjbdbdb".to_string()),
-                )
-            },
+            AuthenticatorEntryContent::Totp(totp) => check_totp(
+                totp,
+                Algorithm::SHA1,
+                6,
+                30,
+                Some("code 1 lastpass".to_string()),
+                Some("snjxxndjbdbdb".to_string()),
+            ),
             _ => panic!("Should be a TOTP"),
         }
 
         match &entries[1].content {
-            AuthenticatorEntryContent::Totp(totp) => {
-                check_totp(
-                    totp,
-                    Algorithm::SHA1,
-                    6,
-                    30,
-                    Some("code2 lastpass".to_string()),
-                    Some("ndjdbxxnbcb".to_string()),
-                )
-            },
+            AuthenticatorEntryContent::Totp(totp) => check_totp(
+                totp,
+                Algorithm::SHA1,
+                6,
+                30,
+                Some("code2 lastpass".to_string()),
+                Some("ndjdbxxnbcb".to_string()),
+            ),
             _ => panic!("Should be a TOTP"),
         }
     }

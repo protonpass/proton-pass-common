@@ -116,11 +116,11 @@ impl TOTP {
                             Ok(decoded) => {
                                 let split: Vec<&str> = decoded.split(":").collect();
                                 match split.last() {
-                                    Some(label) => Some(label.to_string()),
-                                    None => Some(decoded.to_string()),
+                                    Some(label) => Some(label.trim().to_string()),
+                                    None => Some(decoded.trim().to_string()),
                                 }
                             }
-                            Err(_) => Some(label.to_string()),
+                            Err(_) => Some(label.trim().to_string()),
                         }
                     } else {
                         None

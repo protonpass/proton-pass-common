@@ -1,0 +1,6 @@
+folder,favorite,type,name,notes,fields,reprompt,login_uri,login_username,login_password,login_totp
+,,login,Code 2 ,,,0,,,,otpauth://totp/?secret=NDSKXJHDJNDBDBBB&issuer=Code%202%20&algorithm=SHA1&digits=6&period=30
+
+,,login,Code 3 ,,,0,,,,otpauth://totp/?secret=JSJZJFBBDK&issuer=Code%203%20&algorithm=SHA1&digits=6&period=30
+
+,,login,Code1,,,0,,,,otpauth://totp/?secret=JDKSNDJJDNDJJDBXB&issuer=Code1&algorithm=SHA1&digits=6&period=30

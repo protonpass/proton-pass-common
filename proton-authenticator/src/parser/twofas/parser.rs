@@ -31,7 +31,7 @@ enum TwoFasState {
 enum Otp {
     #[serde(rename = "TOTP")]
     Totp {
-        issuer: String,
+        issuer: Option<String>,
         digits: u32,
         period: u32,
         algorithm: String,
@@ -43,7 +43,7 @@ enum Otp {
     },
     #[serde(rename = "STEAM")]
     Steam {
-        issuer: String,
+        issuer: Option<String>,
         digits: u32,
         period: u32,
         algorithm: String,
@@ -159,7 +159,7 @@ fn parse_entry(obj: TwoFasEntry) -> Result<AuthenticatorEntry, TwoFasImportError
         } => AuthenticatorEntryContent::Totp(TOTP {
             label: label.or(Some(obj.name)),
             secret: obj.secret,
-            issuer: Some(issuer),
+            issuer,
             algorithm: match Algorithm::try_from(algorithm.as_str()) {
                 Ok(a) => Some(a),
                 Err(_) => return Err(TwoFasImportError::Unsupported),
@@ -224,6 +224,14 @@ mod test {
     #[test]
     fn can_import_unencrypted() {
         let contents = get_file_contents("2fas/decrypted.2fas");
+        let res = parse_2fas_file(&contents, None).expect("error parsing");
+        assert!(res.errors.is_empty());
+        assert_eq!(res.entries.len(), 2);
+    }
+
+    #[test]
+    fn can_import_unencrypted_ios() {
+        let contents = get_file_contents("2fas/decrypted_ios.2fas");
         let res = parse_2fas_file(&contents, None).expect("error parsing");
         assert!(res.errors.is_empty());
         assert_eq!(res.entries.len(), 2);

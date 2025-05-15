@@ -20,7 +20,7 @@ file-format = { version = "0.26.0", features = ["reader"] }
 lazy_static = "1.5.0"
 luhn = "1.0.1"
 passkey = "0.4.0"
-passkey-authenticator = { version = "0.4.0", features = ["testable"] }
+passkey-authenticator = "0.4.0"
 passkey-types = { version = "0.4.0", features = ["serialize_bytes_as_base64_string"] }
 public-suffix = "0.1.2"
 rand = "0.9.0"

@@ -3,7 +3,7 @@ use crate::common::vec_to_uint8_array;
 use crate::entry::*;
 use js_sys::Uint8Array;
 use proton_authenticator::{
-    Algorithm, AuthenticatorCodeResponse, AuthenticatorEntry,
+    Algorithm, AuthenticatorClient, AuthenticatorCodeResponse, AuthenticatorEntry,
     AuthenticatorEntrySteamCreateParameters as CommonSteamCreateParameters,
     AuthenticatorEntryTotpCreateParameters as CommonTotpCreateParameters, AuthenticatorEntryTotpParameters,
     AuthenticatorEntryUpdateContents as CommonUpdateContents,
@@ -233,4 +233,14 @@ pub fn deserialize_entries(serialized_entries: Vec<Uint8Array>) -> JsResult<Vec<
     }
 
     Ok(deserialized_entries)
+}
+
+#[wasm_bindgen]
+pub fn export_entries(models: Vec<WasmAuthenticatorEntryModel>) -> JsResult<String> {
+    let mut mapped = vec![];
+    for entry in models {
+        mapped.push(entry.to_entry()?);
+    }
+    let client = AuthenticatorClient::new();
+    Ok(client.export_entries(mapped)?)
 }

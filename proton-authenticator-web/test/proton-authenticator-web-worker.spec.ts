@@ -7,9 +7,11 @@ import {
     encrypt_entries,
     emit_log,
     entry_from_uri,
+    export_entries,
     generate_code,
     generate_key,
     get_totp_parameters,
+    import_from_proton_authenticator,
     library_version,
     new_steam_entry_from_params,
     register_authenticator_logger,
@@ -232,4 +234,22 @@ describe("ProtonAuthenticatorWeb WASM", () => {
             domain: "wikipedia.org"
         });
     });
+
+    test("Can export and import", () => {
+        const label1 = "LABEL1";
+        const label2 = "LABEL2";
+        const entry1 = entry_from_uri(`otpauth://totp/${label1}?secret=MYSECRET&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15`);
+        const entry2 = entry_from_uri(`otpauth://totp/${label2}?secret=MYSECRET&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15`);
+
+        const exported = export_entries([entry1, entry2]);
+        expect(exported).not.toBeEmpty();
+
+        const imported = import_from_proton_authenticator(exported);
+        expect(imported.errors).toBeEmpty();
+        expect(imported.entries.length).toEqual(2);
+
+        const entries = imported.entries;
+        expect(entries[0].id).toEqual(entry1.id);
+        expect(entries[1].id).toEqual(entry2.id);
+    })
 });

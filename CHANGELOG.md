@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.19.4
+
+### Fixes :bug:
+
+- authenticator-web: expose export function
+
 ## 0.19.3
 
 ### Fixes :bug:

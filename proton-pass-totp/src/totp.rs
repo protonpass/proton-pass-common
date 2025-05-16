@@ -218,18 +218,20 @@ impl TOTP {
 
     pub fn generate_token(&self, current_time: u64) -> Result<String, TOTPError> {
         let sanitized_secret = sanitize_secret(self.secret.as_str());
-        let encoded_secret = totp_rs::Secret::Encoded(sanitized_secret.clone());
-        let raw_secret = totp_rs::Secret::Raw(sanitized_secret.clone().into_bytes());
-        let final_secret = encoded_secret
-            .to_bytes()
-            .unwrap_or(raw_secret.to_bytes().map_err(|_| TOTPError::SecretParseError)?);
+        let secret = match totp_rs::Secret::Encoded(sanitized_secret.clone()).to_bytes() {
+            Ok(secret) => secret,
+            Err(_) => match totp_rs::Secret::Raw(sanitized_secret.into_bytes()).to_bytes() {
+                Ok(secret) => secret,
+                Err(_) => return Err(TOTPError::SecretParseError),
+            },
+        };
         let algorithm = self.get_algorithm();
         let totp = totp_rs::TOTP::new_unchecked(
             totp_rs::Algorithm::from(algorithm),
             self.get_digits() as usize,
             1,
             self.get_period() as u64,
-            final_secret,
+            secret,
         );
         Ok(totp.generate(current_time))
     }

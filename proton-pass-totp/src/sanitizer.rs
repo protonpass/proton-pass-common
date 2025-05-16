@@ -83,5 +83,8 @@ pub fn uri_for_saving(original_uri: &str, edited_uri: &str) -> Result<String, TO
 }
 
 pub fn sanitize_secret(secret: &str) -> String {
-    secret.replace([' ', '-', '_'], "")
+    secret
+        .replace([' ', '-', '_'], "")
+        .trim_end_matches('=')
+        .to_ascii_uppercase()
 }

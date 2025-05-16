@@ -6,6 +6,10 @@
 
 ### Other
 
+- pass-mobile: upgraded to uniffi 0.29.2
+- authenticator-mobile: upgraded to uniffi 0.29.2
+- pass-totp: upgraded totp-rs dependency and fixed base32 decoding changes
+
 ## 0.19.4
 
 ### Fixes :bug:

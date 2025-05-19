@@ -127,7 +127,7 @@ impl TotpGenerator {
                 true
             };
             if should_generate {
-                debug!("{prefix} Generating codes");
+                trace!("{prefix} Generating codes");
                 match client.generate_codes(&entries, now) {
                     Ok(codes) => {
                         let should_invoke = if only_on_code_change {
@@ -147,10 +147,10 @@ impl TotpGenerator {
                         };
 
                         if should_invoke {
-                            info!("{prefix} Got codes size={}", codes.len());
+                            trace!("{prefix} Got codes size={}", codes.len());
                             callback.on_codes(codes);
                         } else {
-                            debug!("{prefix} Callback not invoked");
+                            trace!("{prefix} Callback not invoked");
                         }
                     }
                     Err(e) => {

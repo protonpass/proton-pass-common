@@ -32,6 +32,8 @@ impl From<WasmLocalEntryState> for CommonEntryState {
 pub struct WasmLocalEntry {
     pub entry: WasmAuthenticatorEntryModel,
     pub state: WasmLocalEntryState,
+    pub modify_time: i64,
+    pub local_modify_time: Option<i64>,
 }
 
 impl TryFrom<WasmLocalEntry> for CommonLocalEntry {
@@ -41,6 +43,8 @@ impl TryFrom<WasmLocalEntry> for CommonLocalEntry {
         Ok(Self {
             entry: value.entry.to_entry()?,
             state: CommonEntryState::from(value.state),
+            modify_time: value.modify_time,
+            local_modify_time: value.local_modify_time,
         })
     }
 }
@@ -50,6 +54,7 @@ impl TryFrom<WasmLocalEntry> for CommonLocalEntry {
 pub struct WasmRemoteEntry {
     pub remote_id: String,
     pub entry: WasmAuthenticatorEntryModel,
+    pub modify_time: i64,
 }
 
 impl TryFrom<WasmRemoteEntry> for CommonRemoteEntry {
@@ -59,6 +64,7 @@ impl TryFrom<WasmRemoteEntry> for CommonRemoteEntry {
         Ok(Self {
             remote_id: value.remote_id,
             entry: value.entry.to_entry()?,
+            modify_time: value.modify_time,
         })
     }
 }

@@ -8,6 +8,8 @@ import {
     WasmLocalEntry,
 } from "./pkg/worker";
 
+const NOW = 1_700_000_000;
+
 const newEntry = (label: string, secret: string) =>
     entry_from_uri(`otpauth://totp/${label}?secret=${secret}&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15`);
 
@@ -20,10 +22,10 @@ describe("ProtonAuthenticatorWeb WASM diff", () => {
     test("Does not return anything in case no differences", () => {
         const entry = newEntry("LABEL", "SECRET");
         const remote: WasmRemoteEntry[] = [
-            {entry: entry, remote_id: "ID"}
+            {entry: entry, remote_id: "ID", modify_time: NOW}
         ];
         const local: WasmLocalEntry[] = [
-            {entry: entry, state: "Synced"}
+            {entry: entry, state: "Synced", modify_time: NOW, local_modify_time: undefined}
         ];
 
         const res = calculate_operations(remote, local);
@@ -34,7 +36,7 @@ describe("ProtonAuthenticatorWeb WASM diff", () => {
         const entry = newEntry("LABEL", "SECRET");
         const remoteId = "REMOTE_ID";
         const remote: WasmRemoteEntry[] = [
-            {entry: entry, remote_id: remoteId}
+            {entry: entry, remote_id: remoteId, modify_time: NOW}
         ];
         const local: WasmLocalEntry[] = [];
 
@@ -49,7 +51,7 @@ describe("ProtonAuthenticatorWeb WASM diff", () => {
         const entry = newEntry("LABEL", "SECRET");
         const remote: WasmRemoteEntry[] = [];
         const local: WasmLocalEntry[] = [
-            {entry: entry, state: "PendingSync"}
+            {entry: entry, state: "PendingSync", modify_time: NOW, local_modify_time: undefined}
         ];
 
         const res = calculate_operations(remote, local);

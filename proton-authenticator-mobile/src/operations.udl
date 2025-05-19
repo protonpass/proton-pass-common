@@ -1,6 +1,7 @@
 dictionary RemoteEntry {
   string remote_id;
   AuthenticatorEntryModel entry;
+  i64 modify_time;
 };
 
 enum LocalEntryState {
@@ -12,6 +13,8 @@ enum LocalEntryState {
 dictionary LocalEntry {
   AuthenticatorEntryModel entry;
   LocalEntryState state;
+  i64 modify_time;
+  i64? local_modify_time;
 };
 
 enum OperationType {

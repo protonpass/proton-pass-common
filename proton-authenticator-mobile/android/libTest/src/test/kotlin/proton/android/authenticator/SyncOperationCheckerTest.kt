@@ -21,8 +21,13 @@ class SyncOperationCheckerTest {
     @Test
     fun `does not return anything in case no differences`() {
         val entry = TestUtils.getEntry1()
-        val remote = listOf(RemoteEntry(remoteId = "REMOTE_ID", entry = entry))
-        val local = listOf(LocalEntry(entry = entry, state = LocalEntryState.SYNCED))
+        val remote = listOf(RemoteEntry(remoteId = "REMOTE_ID", entry = entry, modifyTime = NOW))
+        val local = listOf(LocalEntry(
+            entry = entry,
+            state = LocalEntryState.SYNCED,
+            modifyTime = NOW,
+            localModifyTime = null
+        ))
         val res = instance.calculateOperations(remote, local)
         assertThat(res).isEmpty()
     }
@@ -31,7 +36,7 @@ class SyncOperationCheckerTest {
     fun `remote entry not present in local returns upsert`() {
         val entry = TestUtils.getEntry1()
         val remoteId = "REMOTE_ID"
-        val remote = listOf(RemoteEntry(remoteId = remoteId, entry = entry))
+        val remote = listOf(RemoteEntry(remoteId = remoteId, entry = entry, modifyTime = NOW))
         val res = instance.calculateOperations(remote, emptyList())
 
         assertThat(res.size).isEqualTo(1)
@@ -43,13 +48,22 @@ class SyncOperationCheckerTest {
     @Test
     fun `local entry pending to be pushed not present in remote returns push`() {
         val entry = TestUtils.getEntry1()
-        val local = listOf(LocalEntry(entry = entry, state = LocalEntryState.PENDING_SYNC))
+        val local = listOf(LocalEntry(
+            entry = entry,
+            state = LocalEntryState.PENDING_SYNC,
+            modifyTime = NOW,
+            localModifyTime = null
+        ))
         val res = instance.calculateOperations(emptyList(), local)
 
         assertThat(res.size).isEqualTo(1)
         assertThat(res[0].entry).isEqualTo(entry)
         assertThat(res[0].remoteId).isNull()
         assertThat(res[0].operation).isEqualTo(OperationType.PUSH)
+    }
+
+    companion object {
+        private val NOW = 1_700_000_000L
     }
 
 }

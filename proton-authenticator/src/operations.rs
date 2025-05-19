@@ -13,14 +13,19 @@ pub enum AuthenticatorEntryState {
 pub struct LocalEntry {
     pub entry: AuthenticatorEntry,
     pub state: AuthenticatorEntryState,
+    /// `modify_time` the server knew about when the entry was fetched
+    pub modify_time: i64,
+    /// local changes that could not yet be pushed; `None` == no offline edits
+    pub local_modify_time: Option<i64>,
 }
 
 #[derive(Clone)]
 pub struct RemoteEntry {
     pub remote_id: String,
     pub entry: AuthenticatorEntry,
+    /// last-modified (time‐millis since Unix epoch) as returned by the server
+    pub modify_time: i64,
 }
-
 pub enum AuthenticatorOperation {
     // Update local copy of the entry
     Upsert,
@@ -39,97 +44,95 @@ pub struct EntryOperation {
     pub entry: AuthenticatorEntry,
     pub operation: AuthenticatorOperation,
 }
-
 pub fn calculate_operations_to_perform(remote: Vec<RemoteEntry>, local: Vec<LocalEntry>) -> Vec<EntryOperation> {
     let local_entries = list_to_map(local, |e| e.entry.id.to_string());
     let mut remote_entry_ids = HashSet::new();
-
     let mut ops = Vec::new();
 
-    // Detect remote entries not in local
+    // Remote present
     for remote_entry in remote {
         let remote_entry_id = remote_entry.entry.id.to_string();
+
         match local_entries.get(&remote_entry_id) {
-            Some(local_entry) => {
-                // We found it locally. Check if it's pending to be deleted
-                match local_entry.state {
-                    AuthenticatorEntryState::Synced => {
-                        // It was synced . Check if it's the same.
-                        // If there are differences, perform upsert and store the remote
-                        if !local_entry.entry.eq(&remote_entry.entry) {
-                            ops.push(EntryOperation {
-                                remote_id: Some(remote_entry.remote_id.to_string()),
-                                entry: remote_entry.entry,
-                                operation: AuthenticatorOperation::Upsert,
-                            });
-                        }
-                    }
-                    AuthenticatorEntryState::PendingSync => {
-                        // We found it locally, but it was marked as pending to be synced.
-                        // Maybe it's because of a local unsynced update
-                        // Return conflict so the client preserves the most recent one
+            // Also exists locally
+            Some(local_entry) => match local_entry.state {
+                // Synced – check if there are changes
+                AuthenticatorEntryState::Synced => {
+                    if !local_entry.entry.eq(&remote_entry.entry) {
                         ops.push(EntryOperation {
-                            remote_id: Some(remote_entry.remote_id.to_string()),
-                            entry: remote_entry.entry,
-                            operation: AuthenticatorOperation::Conflict,
+                            remote_id: Some(remote_entry.remote_id.clone()),
+                            entry: remote_entry.entry.clone(),
+                            operation: AuthenticatorOperation::Upsert,
                         });
                     }
-                    AuthenticatorEntryState::PendingToDelete => {
-                        // We found it locally, but it's marked as pending to be deleted.
-                        // Store the deletion operation
-                        ops.push(EntryOperation {
-                            remote_id: Some(remote_entry.remote_id.to_string()),
-                            entry: remote_entry.entry,
-                            operation: AuthenticatorOperation::DeleteLocalAndRemote,
-                        })
+                }
+
+                // Pending offline update
+                AuthenticatorEntryState::PendingSync => {
+                    let same_timestamp = remote_entry.modify_time == local_entry.modify_time;
+
+                    match (same_timestamp, local_entry.local_modify_time) {
+                        // Equal mtime + offline edits -> push local version
+                        (true, Some(_)) => ops.push(EntryOperation {
+                            remote_id: Some(remote_entry.remote_id.clone()),
+                            entry: local_entry.entry.clone(),
+                            operation: AuthenticatorOperation::Push,
+                        }),
+
+                        // Different mtime + no offline edits -> remote wins
+                        (false, None) => ops.push(EntryOperation {
+                            remote_id: Some(remote_entry.remote_id.clone()),
+                            entry: remote_entry.entry.clone(),
+                            operation: AuthenticatorOperation::Upsert,
+                        }),
+
+                        // Different mtime + offline edits -> real conflict
+                        _ => ops.push(EntryOperation {
+                            remote_id: Some(remote_entry.remote_id.clone()),
+                            entry: remote_entry.entry.clone(),
+                            operation: AuthenticatorOperation::Conflict,
+                        }),
                     }
                 }
-            }
-            None => {
-                // We don't have it locally, store it
-                ops.push(EntryOperation {
-                    remote_id: Some(remote_entry.remote_id.to_string()),
-                    entry: remote_entry.entry,
-                    operation: AuthenticatorOperation::Upsert,
-                });
-            }
-        }
+
+                // Pending deletion
+                AuthenticatorEntryState::PendingToDelete => ops.push(EntryOperation {
+                    remote_id: Some(remote_entry.remote_id.clone()),
+                    entry: remote_entry.entry.clone(),
+                    operation: AuthenticatorOperation::DeleteLocalAndRemote,
+                }),
+            },
+
+            // Only on the server ─> store it locally
+            None => ops.push(EntryOperation {
+                remote_id: Some(remote_entry.remote_id.clone()),
+                entry: remote_entry.entry.clone(),
+                operation: AuthenticatorOperation::Upsert,
+            }),
+        };
 
         remote_entry_ids.insert(remote_entry_id);
     }
 
-    // Detect local entries not in remote
+    // Only available locally
     for (local_id, local_entry) in local_entries.iter() {
-        // If the local entry was present in the remote it would have been processed by the other loop
         if !remote_entry_ids.contains(local_id) {
-            // Local entry not in remote. Determine the reason
             match local_entry.state {
-                AuthenticatorEntryState::Synced => {
-                    // It was synced, and it's not there anymore. Remove it
-                    ops.push(EntryOperation {
-                        remote_id: None,
-                        entry: local_entry.entry.clone(),
-                        operation: AuthenticatorOperation::DeleteLocal,
-                    })
-                }
-                AuthenticatorEntryState::PendingSync => {
-                    // The entry had not yet been pushed to the remote
-                    // Send it
-                    ops.push(EntryOperation {
-                        remote_id: None,
-                        entry: local_entry.entry.clone(),
-                        operation: AuthenticatorOperation::Push,
-                    })
-                }
-                AuthenticatorEntryState::PendingToDelete => {
-                    // Not available in the remote and we have it pending to be deleted
-                    // Delete it locally
-                    ops.push(EntryOperation {
-                        remote_id: None,
-                        entry: local_entry.entry.clone(),
-                        operation: AuthenticatorOperation::DeleteLocal,
-                    })
-                }
+                AuthenticatorEntryState::Synced => ops.push(EntryOperation {
+                    remote_id: None,
+                    entry: local_entry.entry.clone(),
+                    operation: AuthenticatorOperation::DeleteLocal,
+                }),
+                AuthenticatorEntryState::PendingSync => ops.push(EntryOperation {
+                    remote_id: None,
+                    entry: local_entry.entry.clone(),
+                    operation: AuthenticatorOperation::Push,
+                }),
+                AuthenticatorEntryState::PendingToDelete => ops.push(EntryOperation {
+                    remote_id: None,
+                    entry: local_entry.entry.clone(),
+                    operation: AuthenticatorOperation::DeleteLocal,
+                }),
             }
         }
     }
@@ -141,6 +144,44 @@ pub fn calculate_operations_to_perform(remote: Vec<RemoteEntry>, local: Vec<Loca
 mod tests {
     use super::*;
     use crate::AuthenticatorEntryContent;
+
+    const NOW: i64 = 1_700_000_000; // 2023-11-14T06:13:20Z
+    const LATE: i64 = NOW + 1_000; // a bit later
+    const VERY_LATE: i64 = NOW + 2_000; // even later
+
+    fn local_entry_with_entry_state_and_times(
+        entry: AuthenticatorEntry,
+        state: AuthenticatorEntryState,
+        modify_time: i64,
+        local_modify_time: Option<i64>,
+    ) -> LocalEntry {
+        LocalEntry {
+            entry,
+            state,
+            modify_time,
+            local_modify_time,
+        }
+    }
+
+    fn local_entry_with_state(state: AuthenticatorEntryState) -> LocalEntry {
+        local_entry_with_entry_state_and_times(random_entry(), state, NOW, None)
+    }
+
+    fn local_entry_with_entry_and_state(entry: AuthenticatorEntry, state: AuthenticatorEntryState) -> LocalEntry {
+        local_entry_with_entry_state_and_times(entry, state, NOW, None)
+    }
+
+    fn remote_entry_with_id_and_time(id: String, modify_time: i64) -> RemoteEntry {
+        RemoteEntry {
+            remote_id: id,
+            entry: random_entry(),
+            modify_time,
+        }
+    }
+
+    fn remote_entry() -> RemoteEntry {
+        remote_entry_with_id_and_time(random_id(), NOW)
+    }
 
     fn modify_entry(entry: &AuthenticatorEntry) -> AuthenticatorEntry {
         let mut cloned = entry.clone();
@@ -177,25 +218,6 @@ mod tests {
             None,
         )
         .unwrap()
-    }
-
-    fn local_entry_with_state(state: AuthenticatorEntryState) -> LocalEntry {
-        local_entry_with_entry_and_state(random_entry(), state)
-    }
-
-    fn local_entry_with_entry_and_state(entry: AuthenticatorEntry, state: AuthenticatorEntryState) -> LocalEntry {
-        LocalEntry { entry, state }
-    }
-
-    fn remote_entry_with_id(id: String) -> RemoteEntry {
-        RemoteEntry {
-            remote_id: id,
-            entry: random_entry(),
-        }
-    }
-
-    fn remote_entry() -> RemoteEntry {
-        remote_entry_with_id(random_id())
     }
 
     #[test]
@@ -290,5 +312,57 @@ mod tests {
 
         assert!(matches!(res[0].operation, AuthenticatorOperation::DeleteLocalAndRemote));
         assert_eq!(Some(remote_entry.remote_id), res[0].remote_id);
+    }
+
+    #[test]
+    fn pending_sync_same_mtime_but_offline_edit_pushes() {
+        let remote_entry = remote_entry(); // mtime == NOW
+        let local_auth_entry = modify_entry(&remote_entry.entry); // local changes
+
+        let local_entry = LocalEntry {
+            entry: local_auth_entry.clone(),
+            state: AuthenticatorEntryState::PendingSync,
+            modify_time: NOW,
+            local_modify_time: Some(VERY_LATE), // unsynced edit
+        };
+
+        let res = calculate_operations_to_perform(vec![remote_entry.clone()], vec![local_entry]);
+        assert_eq!(1, res.len());
+        assert!(matches!(res[0].operation, AuthenticatorOperation::Push));
+        // local version is the one pushed
+        assert_eq!(local_auth_entry.content, res[0].entry.content);
+    }
+
+    #[test]
+    fn pending_sync_remote_newer_no_local_edit_upserts() {
+        let remote_entry = remote_entry_with_id_and_time(random_id(), LATE); // LATE > NOW
+
+        let local_entry = LocalEntry {
+            entry: remote_entry.entry.clone(), // same content, just older timestamp
+            state: AuthenticatorEntryState::PendingSync,
+            modify_time: NOW,
+            local_modify_time: None,
+        };
+
+        let res = calculate_operations_to_perform(vec![remote_entry.clone()], vec![local_entry]);
+        assert_eq!(1, res.len());
+        assert!(matches!(res[0].operation, AuthenticatorOperation::Upsert));
+        // remote wins
+        assert_eq!(remote_entry.modify_time, LATE);
+    }
+
+    #[test]
+    fn pending_sync_both_modified_conflict() {
+        let remote_entry = remote_entry_with_id_and_time(random_id(), LATE); // remote changed
+        let local_entry = LocalEntry {
+            entry: modify_entry(&remote_entry.entry), // also edited offline
+            state: AuthenticatorEntryState::PendingSync,
+            modify_time: NOW,
+            local_modify_time: Some(VERY_LATE),
+        };
+
+        let res = calculate_operations_to_perform(vec![remote_entry.clone()], vec![local_entry]);
+        assert_eq!(1, res.len());
+        assert!(matches!(res[0].operation, AuthenticatorOperation::Conflict));
     }
 }

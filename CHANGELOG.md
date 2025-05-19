@@ -6,6 +6,18 @@
 
 ### Other
 
+## 0.20.0
+
+### Features :tada:
+
+- BREAKING: authenticator: improve API for sync planning reducing chance of conflicts.
+
+### Fixes :bug:
+
+- authenticator: reduce log level of TOTP generator messages.
+
+### Other
+
 - pass-mobile: upgraded to uniffi 0.29.2
 - authenticator-mobile: upgraded to uniffi 0.29.2
 - pass-totp: upgraded totp-rs dependency and fixed base32 decoding changes

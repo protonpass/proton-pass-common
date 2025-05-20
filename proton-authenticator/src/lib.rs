@@ -7,6 +7,7 @@ pub mod entry;
 pub mod generator;
 pub mod issuer_mapper;
 pub mod operations;
+pub mod ordering;
 pub mod parser;
 pub mod steam;
 

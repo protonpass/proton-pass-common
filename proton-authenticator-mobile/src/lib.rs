@@ -9,6 +9,7 @@ mod import;
 mod issuer_mapper;
 mod log;
 mod operations;
+mod ordering;
 
 uniffi::include_scaffolding!("common");
 
@@ -25,3 +26,4 @@ pub use import::*;
 pub use issuer_mapper::*;
 pub use log::*;
 pub use operations::*;
+pub use ordering::*;

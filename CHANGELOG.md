@@ -15,6 +15,7 @@
 ### Fixes :bug:
 
 - authenticator: reduce log level of TOTP generator messages.
+- authenticator: add name property of Steam entries when exporting/importing. 
 
 ### Other
 

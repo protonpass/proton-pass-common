@@ -13,12 +13,14 @@ pub enum ExportedAuthenticatorEntryType {
 pub struct ExportedAuthenticatorEntryContent {
     pub uri: String,
     pub entry_type: ExportedAuthenticatorEntryType,
+    pub name: Option<String>,
 }
 
 #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
 pub struct ExportedAuthenticatorEntry {
     pub id: String,
     pub content: ExportedAuthenticatorEntryContent,
+    #[serde(default)]
     pub note: Option<String>,
 }
 
@@ -39,10 +41,15 @@ impl From<AuthenticatorEntryContent> for ExportedAuthenticatorEntryContent {
             AuthenticatorEntryContent::Totp(totp) => ExportedAuthenticatorEntryContent {
                 uri: totp.to_uri(None, None),
                 entry_type: ExportedAuthenticatorEntryType::Totp,
+                name: match totp.label {
+                    Some(label) => Some(label),
+                    None => totp.issuer,
+                },
             },
             AuthenticatorEntryContent::Steam(steam) => ExportedAuthenticatorEntryContent {
                 uri: steam.uri(),
                 entry_type: ExportedAuthenticatorEntryType::Steam,
+                name: steam.name,
             },
         }
     }
@@ -68,8 +75,10 @@ impl TryFrom<ExportedAuthenticatorEntryContent> for AuthenticatorEntryContent {
                 Ok(AuthenticatorEntryContent::Totp(totp))
             }
             ExportedAuthenticatorEntryType::Steam => {
-                let steam = SteamTotp::new_from_uri(&content.uri)
+                let mut steam = SteamTotp::new_from_uri(&content.uri)
                     .map_err(|e| AuthenticatorError::SerializationError(format!("error parsing Steam uri: {:?}", e)))?;
+                steam.set_name(content.name);
+
                 Ok(AuthenticatorEntryContent::Steam(steam))
             }
         }
@@ -156,5 +165,40 @@ mod tests {
 
         assert_eq!(e1_id, imported.entries[0].id);
         assert_eq!(e2_id, imported.entries[1].id);
+    }
+
+    #[test]
+    fn test_export_import_preserves_data() {
+        let totp_label = "MY_LABEL";
+        let totp_uri =
+            format!("otpauth://totp/{totp_label}?secret=MYSECRET&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15");
+        let totp_note = "A note";
+        let totp_entry = AuthenticatorEntry::from_uri(&totp_uri, Some(totp_note.to_string())).unwrap();
+
+        let steam_name = "STEAM_NAME";
+        let mut steam_content = SteamTotp::new_from_uri("steam://STEAMKEY").unwrap();
+        steam_content.set_name(Some(steam_name.to_string()));
+        let steam_note = "STEAM NOTE";
+        let steam_entry = AuthenticatorEntry {
+            id: AuthenticatorEntry::generate_id(),
+            content: AuthenticatorEntryContent::Steam(steam_content),
+            note: Some(steam_note.to_string()),
+        };
+
+        let totp_id = totp_entry.id.clone();
+        let steam_id = steam_entry.id.clone();
+        let entries = vec![totp_entry, steam_entry];
+        let exported = export_entries(entries).unwrap();
+        let imported = import_authenticator_entries_v1(&exported).unwrap();
+        assert_eq!(imported.entries.len(), 2);
+        assert!(imported.errors.is_empty());
+
+        assert_eq!(totp_id, imported.entries[0].id);
+        assert_eq!(Some(totp_note.to_string()), imported.entries[0].note);
+        assert_eq!(totp_label.to_string(), imported.entries[0].name());
+
+        assert_eq!(steam_id, imported.entries[1].id);
+        assert_eq!(Some(steam_note.to_string()), imported.entries[1].note);
+        assert_eq!(steam_name.to_string(), imported.entries[1].name());
     }
 }

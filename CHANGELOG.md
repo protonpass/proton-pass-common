@@ -6,6 +6,15 @@
 
 ### Other
 
+## 0.21.0
+
+### Features :tada:
+
+- authenticator-mobile: android libraries generated with 16KB alignment.
+- pass-mobile: android libraries generated with 16KB alignment.
+- authenticator-web: enabled wasm bulk memory
+- pass-web: enabled wasm bulk memory
+
 ## 0.20.0
 
 ### Features :tada:

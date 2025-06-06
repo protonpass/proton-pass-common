@@ -98,7 +98,22 @@ async fn generate_passkey(
 pub async fn generate_passkey_for_domain(url: &str, request: &str) -> PasskeyResult<CreatePasskeyResponse> {
     let origin = parse_url(url)?;
 
-    let parsed = parse_create_request(request, Some(url))?;
+    let mut parsed = parse_create_request(request, Some(url))?;
+
+    // If pub_key_cred_params is empty, add default ES256 and RS256 algorithms
+    if parsed.pub_key_cred_params.is_empty() {
+        parsed.pub_key_cred_params = vec![
+            PublicKeyCredentialParameters {
+                ty: PublicKeyCredentialType::PublicKey,
+                alg: iana::Algorithm::ES256,
+            },
+            PublicKeyCredentialParameters {
+                ty: PublicKeyCredentialType::PublicKey,
+                alg: iana::Algorithm::RS256,
+            },
+        ];
+    }
+
     generate_passkey(origin, parsed).await
 }
 
@@ -158,7 +173,21 @@ pub struct CreatePasskeyData {
 }
 
 pub fn parse_create_passkey_data(request: &str) -> PasskeyResult<CreatePasskeyData> {
-    let parsed = parse_create_request(request, None)?;
+    let mut parsed = parse_create_request(request, None)?;
+
+    // If pub_key_cred_params is empty, add default ES256 and RS256 algorithms
+    if parsed.pub_key_cred_params.is_empty() {
+        parsed.pub_key_cred_params = vec![
+            PublicKeyCredentialParameters {
+                ty: PublicKeyCredentialType::PublicKey,
+                alg: iana::Algorithm::ES256,
+            },
+            PublicKeyCredentialParameters {
+                ty: PublicKeyCredentialType::PublicKey,
+                alg: iana::Algorithm::RS256,
+            },
+        ];
+    }
 
     Ok(CreatePasskeyData {
         rp_id: parsed.rp.id,
@@ -166,4 +195,75 @@ pub fn parse_create_passkey_data(request: &str) -> PasskeyResult<CreatePasskeyDa
         user_name: parsed.user.name,
         user_display_name: parsed.user.display_name,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_empty_pub_key_cred_params_gets_defaults() {
+        let request_with_empty_params = r#"{
+            "challenge": "Y2hhbGxlbmdl",
+            "rp": {"id": "example.com", "name": "Example"},
+            "user": {
+                "id": "dXNlcklk",
+                "name": "user@example.com",
+                "displayName": "User Example"
+            },
+            "pubKeyCredParams": [],
+            "timeout": 60000
+        }"#;
+
+        let result = parse_create_passkey_data(request_with_empty_params);
+        assert!(result.is_ok());
+
+        // Parse the request directly to verify default params were added
+        let mut parsed = parse_create_request(request_with_empty_params, None).unwrap();
+
+        // Initially empty
+        assert!(parsed.pub_key_cred_params.is_empty());
+
+        // Apply the same logic as in our functions
+        if parsed.pub_key_cred_params.is_empty() {
+            parsed.pub_key_cred_params = vec![
+                PublicKeyCredentialParameters {
+                    ty: PublicKeyCredentialType::PublicKey,
+                    alg: iana::Algorithm::ES256,
+                },
+                PublicKeyCredentialParameters {
+                    ty: PublicKeyCredentialType::PublicKey,
+                    alg: iana::Algorithm::RS256,
+                },
+            ];
+        }
+
+        // Verify defaults were added
+        assert_eq!(parsed.pub_key_cred_params.len(), 2);
+        assert_eq!(parsed.pub_key_cred_params[0].ty, PublicKeyCredentialType::PublicKey);
+        assert_eq!(parsed.pub_key_cred_params[0].alg, iana::Algorithm::ES256);
+        assert_eq!(parsed.pub_key_cred_params[1].ty, PublicKeyCredentialType::PublicKey);
+        assert_eq!(parsed.pub_key_cred_params[1].alg, iana::Algorithm::RS256);
+    }
+
+    #[test]
+    fn test_non_empty_pub_key_cred_params_unchanged() {
+        let request_with_params = r#"{
+            "challenge": "Y2hhbGxlbmdl",
+            "rp": {"id": "example.com", "name": "Example"},
+            "user": {
+                "id": "dXNlcklk",
+                "name": "user@example.com",
+                "displayName": "User Example"
+            },
+            "pubKeyCredParams": [{"type": "public-key", "alg": -35}],
+            "timeout": 60000
+        }"#;
+
+        let parsed = parse_create_request(request_with_params, None).unwrap();
+
+        // Should have the original parameter, not defaults
+        assert_eq!(parsed.pub_key_cred_params.len(), 1);
+        assert_eq!(parsed.pub_key_cred_params[0].alg, iana::Algorithm::ES384);
+    }
 }

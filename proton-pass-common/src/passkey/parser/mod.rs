@@ -14,13 +14,61 @@ fn parse(request: &str) -> PasskeyResult<PublicKeyCredentialCreationOptions> {
         .map_err(|e| PasskeyError::SerializationError(format!("Error parsing request: {:?}", e)))
 }
 
+fn try_fix_request(request: &str) -> PasskeyResult<String> {
+    let mut json_value: serde_json::Value = serde_json::from_str(request)
+        .map_err(|e| PasskeyError::SerializationError(format!("Error parsing JSON for fixing: {:?}", e)))?;
+
+    fix_json_value(&mut json_value);
+
+    serde_json::to_string(&json_value)
+        .map_err(|e| PasskeyError::SerializationError(format!("Error serializing fixed JSON: {:?}", e)))
+}
+
+fn fix_json_value(value: &mut serde_json::Value) {
+    match value {
+        serde_json::Value::Object(map) => {
+            for (_, v) in map.iter_mut() {
+                fix_json_value(v);
+            }
+        }
+        serde_json::Value::Array(arr) => {
+            for v in arr.iter_mut() {
+                fix_json_value(v);
+            }
+        }
+        serde_json::Value::String(s) => match s.as_str() {
+            "true" => *value = serde_json::Value::Bool(true),
+            "false" => *value = serde_json::Value::Bool(false),
+            "null" => *value = serde_json::Value::Null,
+            _ => {}
+        },
+        _ => {}
+    }
+}
+
 pub fn parse_create_request(request: &str, url: Option<&str>) -> PasskeyResult<PublicKeyCredentialCreationOptions> {
     match parse(request) {
         Ok(parsed) => Ok(parsed),
         Err(_) => {
             let sanitized = sanitize_request(request, url);
-            let parsed: PublicKeyCredentialCreationOptions = parse(&sanitized)?;
-            Ok(parsed)
+
+            // Try to fix the sanitized request
+            match try_fix_request(&sanitized) {
+                Ok(fixed) => {
+                    // Try to parse the fixed version first
+                    match parse(&fixed) {
+                        Ok(parsed) => Ok(parsed),
+                        Err(_) => {
+                            // If fixed version fails, fall back to sanitized version
+                            parse(&sanitized)
+                        }
+                    }
+                }
+                Err(_) => {
+                    // If fixing fails, fall back to sanitized version
+                    parse(&sanitized)
+                }
+            }
         }
     }
 }

@@ -6,6 +6,13 @@
 
 ### Other
 
+## 0.21.1
+
+### Fixes :bug:
+
+- pass-common: passkey creation fixes.
+
+
 ## 0.21.0
 
 ### Features :tada:

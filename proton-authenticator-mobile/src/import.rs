@@ -38,8 +38,11 @@ impl From<proton_authenticator::ImportError> for AuthenticatorImportError {
 
 impl From<ThirdPartyImportError> for AuthenticatorError {
     fn from(err: ThirdPartyImportError) -> Self {
-        Self {
-            e: proton_authenticator::AuthenticatorError::Import(err),
+        match err {
+            ThirdPartyImportError::BadContent => AuthenticatorError::ImportBadContent,
+            ThirdPartyImportError::BadPassword => AuthenticatorError::ImportBadPassword,
+            ThirdPartyImportError::MissingPassword => AuthenticatorError::ImportMissingPassword,
+            ThirdPartyImportError::DecryptionFailed => AuthenticatorError::ImportDecryptionFailed,
         }
     }
 }

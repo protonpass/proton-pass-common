@@ -1,4 +1,5 @@
 use crate::{AuthenticatorEntryModel, AuthenticatorEntryType};
+use proton_authenticator::entry::AuthenticatorInvalidDataParam;
 use proton_authenticator::{
     Algorithm, AuthenticatorClient, AuthenticatorCodeResponse as CommonAuthenticatorCodeResponse, AuthenticatorEntry,
     AuthenticatorEntryContent, AuthenticatorEntrySteamCreateParameters as CommonSteamCreateParameters,
@@ -8,19 +9,45 @@ use proton_authenticator::{
 use proton_pass_derive::Error;
 
 #[derive(Debug, Error)]
-pub struct AuthenticatorError {
-    pub e: proton_authenticator::AuthenticatorError,
-}
-
-impl AuthenticatorError {
-    pub fn message(&self) -> String {
-        format!("{:?}", self.e)
-    }
+pub enum AuthenticatorError {
+    UnsupportedUri,
+    ParseError,
+    SerializationError,
+    Unknown,
+    InvalidName,
+    InvalidSecret,
+    CodeGenerationError,
+    ImportBadContent,
+    ImportBadPassword,
+    ImportMissingPassword,
+    ImportDecryptionFailed,
 }
 
 impl From<proton_authenticator::AuthenticatorError> for AuthenticatorError {
     fn from(e: proton_authenticator::AuthenticatorError) -> Self {
-        AuthenticatorError { e }
+        match e {
+            proton_authenticator::AuthenticatorError::CodeGenerationError(_) => AuthenticatorError::CodeGenerationError,
+            proton_authenticator::AuthenticatorError::SerializationError(_) => AuthenticatorError::SerializationError,
+            proton_authenticator::AuthenticatorError::Unknown(_) => AuthenticatorError::Unknown,
+            proton_authenticator::AuthenticatorError::Import(import_err) => AuthenticatorError::from(import_err),
+        }
+    }
+}
+
+impl From<proton_authenticator::AuthenticatorEntryError> for AuthenticatorError {
+    fn from(e: proton_authenticator::AuthenticatorEntryError) -> Self {
+        match e {
+            proton_authenticator::AuthenticatorEntryError::UnsupportedUri => AuthenticatorError::UnsupportedUri,
+            proton_authenticator::AuthenticatorEntryError::ParseError => AuthenticatorError::ParseError,
+            proton_authenticator::AuthenticatorEntryError::SerializationError(_) => {
+                AuthenticatorError::SerializationError
+            }
+            proton_authenticator::AuthenticatorEntryError::Unknown(_) => AuthenticatorError::Unknown,
+            proton_authenticator::AuthenticatorEntryError::InvalidData(param) => match param {
+                AuthenticatorInvalidDataParam::Name => AuthenticatorError::InvalidName,
+                AuthenticatorInvalidDataParam::Secret => AuthenticatorError::InvalidSecret,
+            },
+        }
     }
 }
 
@@ -196,9 +223,7 @@ impl AuthenticatorMobileClient {
         params: AuthenticatorEntryTotpCreateParameters,
     ) -> Result<AuthenticatorEntryModel, AuthenticatorError> {
         let mapped_params = CommonTotpCreateParameters::from(params);
-        let entry = AuthenticatorEntry::new_totp_entry_from_params(mapped_params).map_err(|e| AuthenticatorError {
-            e: proton_authenticator::AuthenticatorError::Unknown(e.to_string()),
-        })?;
+        let entry = AuthenticatorEntry::new_totp_entry_from_params(mapped_params)?;
         Ok(entry.into())
     }
 
@@ -207,9 +232,7 @@ impl AuthenticatorMobileClient {
         params: AuthenticatorEntrySteamCreateParameters,
     ) -> Result<AuthenticatorEntryModel, AuthenticatorError> {
         let mapped_params = CommonSteamCreateParameters::from(params);
-        let entry = AuthenticatorEntry::new_steam_entry_from_params(mapped_params).map_err(|e| AuthenticatorError {
-            e: proton_authenticator::AuthenticatorError::Unknown(e.to_string()),
-        })?;
+        let entry = AuthenticatorEntry::new_steam_entry_from_params(mapped_params)?;
         Ok(entry.into())
     }
 
@@ -231,9 +254,7 @@ impl AuthenticatorMobileClient {
         if let Some(serialized) = self.serialize_entries(vec![entry])?.into_iter().next() {
             Ok(serialized)
         } else {
-            Err(AuthenticatorError {
-                e: proton_authenticator::AuthenticatorError::Unknown("No entries".to_string()),
-            })
+            Err(AuthenticatorError::Unknown)
         }
     }
 
@@ -249,9 +270,7 @@ impl AuthenticatorMobileClient {
         if let Some(deserialized) = self.deserialize_entries(vec![entry])?.into_iter().next() {
             Ok(deserialized)
         } else {
-            Err(AuthenticatorError {
-                e: proton_authenticator::AuthenticatorError::Unknown("No entries".to_string()),
-            })
+            Err(AuthenticatorError::Unknown)
         }
     }
 
@@ -276,9 +295,7 @@ impl AuthenticatorMobileClient {
         entry: AuthenticatorEntryModel,
     ) -> Result<AuthenticatorEntryTotpParameters, AuthenticatorError> {
         let as_entry = entry.to_entry()?;
-        let parameters = as_entry.get_totp_parameters().map_err(|e| AuthenticatorError {
-            e: proton_authenticator::AuthenticatorError::Unknown(e.to_string()),
-        })?;
+        let parameters = as_entry.get_totp_parameters()?;
         Ok(AuthenticatorEntryTotpParameters::from(parameters))
     }
 
@@ -289,9 +306,7 @@ impl AuthenticatorMobileClient {
     ) -> Result<AuthenticatorEntryModel, AuthenticatorError> {
         let mapped_update = CommonUpdateContents::from(update);
         let mut as_entry = entry.to_entry()?;
-        as_entry.update(mapped_update).map_err(|e| AuthenticatorError {
-            e: proton_authenticator::AuthenticatorError::Unknown(e.to_string()),
-        })?;
+        as_entry.update(mapped_update)?;
 
         Ok(as_entry.into())
     }

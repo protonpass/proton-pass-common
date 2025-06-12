@@ -30,8 +30,7 @@ impl From<AuthenticatorEntryType> for CommonEntryType {
 
 impl AuthenticatorEntryModel {
     pub fn to_entry(&self) -> Result<AuthenticatorEntry, AuthenticatorError> {
-        let mut entry = AuthenticatorEntry::from_uri_and_id(&self.uri, self.note.clone(), self.id.clone())
-            .map_err(|e| proton_authenticator::AuthenticatorError::Unknown(format!("cannot parse uri: {:?}", e)))?;
+        let mut entry = AuthenticatorEntry::from_uri_and_id(&self.uri, self.note.clone(), self.id.clone())?;
 
         if let AuthenticatorEntryContent::Steam(ref mut steam) = entry.content {
             if !self.name.trim().is_empty() {

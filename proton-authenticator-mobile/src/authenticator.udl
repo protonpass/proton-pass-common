@@ -1,5 +1,16 @@
-interface AuthenticatorError {
-  string message();
+[Error]
+enum AuthenticatorError {
+  "UnsupportedUri",
+  "ParseError", 
+  "SerializationError",
+  "Unknown",
+  "InvalidName",
+  "InvalidSecret",
+  "CodeGenerationError",
+  "ImportBadContent",
+  "ImportBadPassword",
+  "ImportMissingPassword",
+  "ImportDecryptionFailed",
 };
 
 dictionary AuthenticatorCodeResponse {

@@ -1,4 +1,4 @@
-use crate::{AuthenticatorEntryModel, AuthenticatorEntryType};
+use crate::{emit_log, AuthenticatorEntryModel, AuthenticatorEntryType, AuthenticatorLogLevel};
 use proton_authenticator::entry::AuthenticatorInvalidDataParam;
 use proton_authenticator::{
     Algorithm, AuthenticatorClient, AuthenticatorCodeResponse as CommonAuthenticatorCodeResponse, AuthenticatorEntry,
@@ -26,9 +26,21 @@ pub enum AuthenticatorError {
 impl From<proton_authenticator::AuthenticatorError> for AuthenticatorError {
     fn from(e: proton_authenticator::AuthenticatorError) -> Self {
         match e {
-            proton_authenticator::AuthenticatorError::CodeGenerationError(_) => AuthenticatorError::CodeGenerationError,
-            proton_authenticator::AuthenticatorError::SerializationError(_) => AuthenticatorError::SerializationError,
-            proton_authenticator::AuthenticatorError::Unknown(_) => AuthenticatorError::Unknown,
+            proton_authenticator::AuthenticatorError::CodeGenerationError(msg) => {
+                emit_log(AuthenticatorLogLevel::Warn, format!("CodeGenerationError: {}", msg));
+                AuthenticatorError::CodeGenerationError
+            }
+            proton_authenticator::AuthenticatorError::SerializationError(msg) => {
+                emit_log(AuthenticatorLogLevel::Warn, format!("SerializationError: {}", msg));
+                AuthenticatorError::SerializationError
+            }
+            proton_authenticator::AuthenticatorError::Unknown(msg) => {
+                emit_log(
+                    AuthenticatorLogLevel::Warn,
+                    format!("Unknown AuthenticatorError: {}", msg),
+                );
+                AuthenticatorError::Unknown
+            }
             proton_authenticator::AuthenticatorError::Import(import_err) => AuthenticatorError::from(import_err),
         }
     }
@@ -39,10 +51,20 @@ impl From<proton_authenticator::AuthenticatorEntryError> for AuthenticatorError 
         match e {
             proton_authenticator::AuthenticatorEntryError::UnsupportedUri => AuthenticatorError::UnsupportedUri,
             proton_authenticator::AuthenticatorEntryError::ParseError => AuthenticatorError::ParseError,
-            proton_authenticator::AuthenticatorEntryError::SerializationError(_) => {
+            proton_authenticator::AuthenticatorEntryError::SerializationError(msg) => {
+                emit_log(
+                    AuthenticatorLogLevel::Warn,
+                    format!("AuthenticatorEntryError SerializationError: {}", msg),
+                );
                 AuthenticatorError::SerializationError
             }
-            proton_authenticator::AuthenticatorEntryError::Unknown(_) => AuthenticatorError::Unknown,
+            proton_authenticator::AuthenticatorEntryError::Unknown(msg) => {
+                emit_log(
+                    AuthenticatorLogLevel::Warn,
+                    format!("Unknown AuthenticatorEntryError: {}", msg),
+                );
+                AuthenticatorError::Unknown
+            }
             proton_authenticator::AuthenticatorEntryError::InvalidData(param) => match param {
                 AuthenticatorInvalidDataParam::Name => AuthenticatorError::InvalidName,
                 AuthenticatorInvalidDataParam::Secret => AuthenticatorError::InvalidSecret,

@@ -1,5 +1,6 @@
 [Error]
 enum AuthenticatorError {
+  "NoEntries",
   "UnsupportedUri",
   "ParseError", 
   "SerializationError",

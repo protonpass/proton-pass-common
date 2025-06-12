@@ -11,6 +11,7 @@ use proton_pass_derive::Error;
 
 #[derive(Debug, Error)]
 pub enum AuthenticatorError {
+    NoEntries,
     UnsupportedUri,
     ParseError,
     SerializationError,
@@ -38,7 +39,7 @@ impl From<proton_authenticator::AuthenticatorError> for AuthenticatorError {
 
 impl From<proton_authenticator::AuthenticatorEntryError> for AuthenticatorError {
     fn from(e: proton_authenticator::AuthenticatorEntryError) -> Self {
-        warn!("AuthenticatorError: {:?}", e);
+        warn!("AuthenticatorEntryError: {:?}", e);
         match e {
             proton_authenticator::AuthenticatorEntryError::UnsupportedUri => AuthenticatorError::UnsupportedUri,
             proton_authenticator::AuthenticatorEntryError::ParseError => AuthenticatorError::ParseError,
@@ -257,7 +258,7 @@ impl AuthenticatorMobileClient {
         if let Some(serialized) = self.serialize_entries(vec![entry])?.into_iter().next() {
             Ok(serialized)
         } else {
-            Err(AuthenticatorError::Unknown)
+            Err(AuthenticatorError::NoEntries)
         }
     }
 
@@ -273,7 +274,7 @@ impl AuthenticatorMobileClient {
         if let Some(deserialized) = self.deserialize_entries(vec![entry])?.into_iter().next() {
             Ok(deserialized)
         } else {
-            Err(AuthenticatorError::Unknown)
+            Err(AuthenticatorError::NoEntries)
         }
     }
 

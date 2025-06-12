@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.22.0
+
+### Other
+
+- authenticator-mobile: convert `AuthenticatorError` to enum and emit log messages on errors.
+
 ## 0.21.1
 
 ### Fixes :bug:

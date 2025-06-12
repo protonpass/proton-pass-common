@@ -1,6 +1,5 @@
 #[macro_use]
-#[allow(unused_macros)]
-mod log;
+pub mod log;
 
 pub mod crypto;
 pub mod entry;

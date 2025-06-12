@@ -25,8 +25,7 @@ pub fn emit_log_message(level: LogLevel, msg: String) {
     with_logger(|logger| logger.log(level, msg));
 }
 
-#[allow(dead_code)]
-pub(crate) fn with_logger<F>(cb: F)
+pub fn with_logger<F>(cb: F)
 where
     F: FnOnce(Arc<dyn Logger>),
 {
@@ -37,28 +36,35 @@ where
     }
 }
 
+#[macro_export]
 macro_rules! trace {
     ($($args:tt)*) => {
         $crate::log::with_logger(|logger| logger.log($crate::log::LogLevel::Trace, format_args!($($args)*).to_string(),));
     }
 }
 
+#[macro_export]
 macro_rules! debug {
     ($($args:tt)*) => {
         $crate::log::with_logger(|logger| logger.log($crate::log::LogLevel::Debug, format_args!($($args)*).to_string(),));
     }
 }
+
+#[macro_export]
 macro_rules! info {
     ($($args:tt)*) => {
         $crate::log::with_logger(|logger| logger.log($crate::log::LogLevel::Info, format_args!($($args)*).to_string(),));
     }
 }
 
+#[macro_export]
 macro_rules! warn {
     ($($args:tt)*) => {
         $crate::log::with_logger(|logger| logger.log($crate::log::LogLevel::Warn, format_args!($($args)*).to_string(),));
     }
 }
+
+#[macro_export]
 macro_rules! error {
     ($($args:tt)*) => {
         $crate::log::with_logger(|logger| logger.log($crate::log::LogLevel::Error, format_args!($($args)*).to_string(),));

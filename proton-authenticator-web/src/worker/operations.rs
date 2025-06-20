@@ -5,7 +5,7 @@ use proton_authenticator::operations::{
     LocalEntry as CommonLocalEntry, RemoteEntry as CommonRemoteEntry,
 };
 use serde::{Deserialize, Serialize};
-use tsify_next::Tsify;
+use tsify::Tsify;
 use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen::JsError;
 

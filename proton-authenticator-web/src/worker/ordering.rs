@@ -1,7 +1,7 @@
 use crate::entry::WasmAuthenticatorEntryModel;
 use proton_authenticator::ordering::{reorder_items, EntryWithOrder};
 use serde::{Deserialize, Serialize};
-use tsify_next::Tsify;
+use tsify::Tsify;
 use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen::JsError;
 

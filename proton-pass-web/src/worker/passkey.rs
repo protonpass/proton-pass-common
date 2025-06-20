@@ -9,7 +9,7 @@ use proton_pass_common::passkey_types::webauthn::{
 };
 
 use serde::{Deserialize, Serialize};
-use tsify_next::Tsify;
+use tsify::Tsify;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 #[derive(Tsify, Deserialize, Serialize)]

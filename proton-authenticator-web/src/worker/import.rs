@@ -1,7 +1,7 @@
 use crate::entry::WasmAuthenticatorEntryModel;
 use proton_authenticator::ThirdPartyImportError;
 use serde::{Deserialize, Serialize};
-use tsify_next::Tsify;
+use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 
 type ImportResult = Result<AuthenticatorImportResult, JsError>;

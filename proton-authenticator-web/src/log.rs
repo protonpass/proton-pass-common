@@ -2,7 +2,7 @@ use js_sys::Function;
 use proton_authenticator::{register_authenticator_logger as common_register, LogLevel as CommonLogLevel, Logger};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use tsify_next::Tsify;
+use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 
 /// The log levels we pass along to our JavaScript logger.

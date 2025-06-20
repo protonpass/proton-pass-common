@@ -1,6 +1,6 @@
 use proton_pass_common::login::Login;
 use serde::{Deserialize, Serialize};
-use tsify_next::Tsify;
+use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 
 #[derive(Tsify, Deserialize, Serialize)]

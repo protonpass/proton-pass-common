@@ -1,7 +1,7 @@
 pub use proton_pass_common::password::{PassphraseConfig, PasswordScore, RandomPasswordConfig, WordSeparator};
 use proton_pass_common::password::{PasswordPenalty, PasswordScoreResult};
 use serde::{Deserialize, Serialize};
-use tsify_next::Tsify;
+use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 
 #[derive(Tsify, Deserialize, Serialize)]

@@ -1,6 +1,6 @@
 use proton_pass_common::wifi::WifiSecurity;
 use serde::{Deserialize, Serialize};
-use tsify_next::Tsify;
+use tsify::Tsify;
 
 #[derive(Tsify, Deserialize, Serialize)]
 #[tsify(into_wasm_abi, from_wasm_abi)]

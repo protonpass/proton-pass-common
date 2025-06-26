@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.22.1
+
+### Fixes :bug:
+
+- pass-common: Clean malformed byte arrays on Passkey authentication request.
+
 ## 0.22.0
 
 ### Other
@@ -17,7 +23,6 @@
 ### Fixes :bug:
 
 - pass-common: passkey creation fixes.
-
 
 ## 0.21.0
 

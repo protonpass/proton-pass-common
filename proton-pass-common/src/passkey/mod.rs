@@ -1,3 +1,4 @@
+mod authentication_parser;
 mod generate;
 mod parser;
 mod passkey_handling;
@@ -5,6 +6,7 @@ mod protonpasskey;
 mod protonpasskeydeserializer;
 mod protonpasskeyserializer;
 mod resolve;
+mod utils;
 
 pub use generate::{
     generate_passkey_for_domain, generate_passkey_for_ios, parse_create_passkey_data, CreatePasskeyData,

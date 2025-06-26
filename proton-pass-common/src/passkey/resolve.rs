@@ -1,5 +1,6 @@
 use super::passkey_handling::{deserialize_passkey, get_authenticator, parse_url};
 use super::{PasskeyError, PasskeyResult, ProtonPassKey};
+use crate::passkey::authentication_parser::parse_authenticate_request;
 use passkey::client::Client;
 use passkey_types::webauthn::{
     AuthenticatedPublicKeyCredential, CredentialRequestOptions, PublicKeyCredentialRequestOptions,
@@ -19,8 +20,7 @@ impl ResolveChallengeResponse {
 }
 
 async fn resolve_challenge(origin: Url, pk: &ProtonPassKey, request: &str) -> PasskeyResult<ResolveChallengeResponse> {
-    let parsed: PublicKeyCredentialRequestOptions = serde_json::from_str(request)
-        .map_err(|e| PasskeyError::SerializationError(format!("Error parsing request: {:?}", e)))?;
+    let parsed = parse_authenticate_request(request)?;
 
     let credential_request = CredentialRequestOptions { public_key: parsed };
 
@@ -114,8 +114,7 @@ pub async fn resolve_challenge_for_ios(
 }
 
 pub async fn resolve_challenge_for_android(request: AuthenticateWithPasskeyAndroidRequest) -> PasskeyResult<String> {
-    let parsed: PublicKeyCredentialRequestOptions = serde_json::from_str(&request.request)
-        .map_err(|e| PasskeyError::SerializationError(format!("Error parsing request: {:?}", e)))?;
+    let parsed = parse_authenticate_request(&request.request)?;
 
     let url = parse_url(&request.origin)?;
     let credential_request = CredentialRequestOptions { public_key: parsed };

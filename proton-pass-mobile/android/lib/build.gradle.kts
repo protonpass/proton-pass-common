@@ -7,7 +7,7 @@ plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
     id("signing")
-    id("com.vanniktech.maven.publish") version "0.31.0"
+    id("com.vanniktech.maven.publish") version "0.33.0"
 }
 
 val privateProperties = Properties().apply {

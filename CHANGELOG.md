@@ -6,6 +6,13 @@
 
 ### Other
 
+## 0.22.2
+
+### Fixes :bug:
+
+- authenticator-common: implement best-effort conflict resolution in sync operation calculation.
+- pass-common: sanitize passkey authentication request for malformed byte arrays.
+
 ## 0.22.1
 
 ### Fixes :bug:

@@ -35,8 +35,6 @@ pub enum AuthenticatorOperation {
     DeleteLocalAndRemote,
     // Create remote version
     Push,
-    // Conflict, user must choose what to do
-    Conflict,
 }
 
 pub struct EntryOperation {
@@ -86,12 +84,25 @@ pub fn calculate_operations_to_perform(remote: Vec<RemoteEntry>, local: Vec<Loca
                             operation: AuthenticatorOperation::Upsert,
                         }),
 
-                        // Different mtime + offline edits -> real conflict
-                        _ => ops.push(EntryOperation {
-                            remote_id: Some(remote_entry.remote_id.clone()),
-                            entry: remote_entry.entry.clone(),
-                            operation: AuthenticatorOperation::Conflict,
-                        }),
+                        // Different mtime + offline edits -> compare times, most recent wins
+                        _ => {
+                            let local_time = local_entry.local_modify_time.unwrap_or(local_entry.modify_time);
+                            if remote_entry.modify_time > local_time {
+                                // Remote is newer, use remote version
+                                ops.push(EntryOperation {
+                                    remote_id: Some(remote_entry.remote_id.clone()),
+                                    entry: remote_entry.entry.clone(),
+                                    operation: AuthenticatorOperation::Upsert,
+                                });
+                            } else {
+                                // Local is newer or equal, push local version
+                                ops.push(EntryOperation {
+                                    remote_id: Some(remote_entry.remote_id.clone()),
+                                    entry: local_entry.entry.clone(),
+                                    operation: AuthenticatorOperation::Push,
+                                });
+                            }
+                        }
                     }
                 }
 
@@ -291,15 +302,20 @@ mod tests {
     }
 
     #[test]
-    fn remote_in_local_pending_to_sync_with_changes_returns_conflict() {
-        let remote_entry = remote_entry();
-        let local_entry =
-            local_entry_with_entry_and_state(modify_entry(&remote_entry.entry), AuthenticatorEntryState::PendingSync);
+    fn remote_in_local_pending_to_sync_with_changes_returns_upsert_when_remote_newer() {
+        let remote_entry = remote_entry_with_id_and_time(random_id(), LATE); // Remote is newer
+        let local_entry = LocalEntry {
+            entry: modify_entry(&remote_entry.entry),
+            state: AuthenticatorEntryState::PendingSync,
+            modify_time: NOW,
+            local_modify_time: Some(NOW), // Local edit at same time as original modify_time
+        };
         let res = calculate_operations_to_perform(vec![remote_entry.clone()], vec![local_entry.clone()]);
         assert_eq!(1, res.len());
 
-        assert!(matches!(res[0].operation, AuthenticatorOperation::Conflict));
+        assert!(matches!(res[0].operation, AuthenticatorOperation::Upsert));
         assert_eq!(Some(remote_entry.remote_id), res[0].remote_id);
+        assert_eq!(remote_entry.entry.content, res[0].entry.content); // Remote content wins
     }
 
     #[test]
@@ -352,17 +368,34 @@ mod tests {
     }
 
     #[test]
-    fn pending_sync_both_modified_conflict() {
+    fn pending_sync_both_modified_local_newer_wins() {
         let remote_entry = remote_entry_with_id_and_time(random_id(), LATE); // remote changed
         let local_entry = LocalEntry {
             entry: modify_entry(&remote_entry.entry), // also edited offline
             state: AuthenticatorEntryState::PendingSync,
             modify_time: NOW,
-            local_modify_time: Some(VERY_LATE),
+            local_modify_time: Some(VERY_LATE), // Local is newer than remote
         };
 
-        let res = calculate_operations_to_perform(vec![remote_entry.clone()], vec![local_entry]);
+        let res = calculate_operations_to_perform(vec![remote_entry.clone()], vec![local_entry.clone()]);
         assert_eq!(1, res.len());
-        assert!(matches!(res[0].operation, AuthenticatorOperation::Conflict));
+        assert!(matches!(res[0].operation, AuthenticatorOperation::Push));
+        assert_eq!(local_entry.entry.content, res[0].entry.content); // Local content wins
+    }
+
+    #[test]
+    fn pending_sync_both_modified_remote_newer_wins() {
+        let remote_entry = remote_entry_with_id_and_time(random_id(), VERY_LATE); // remote is newer
+        let local_entry = LocalEntry {
+            entry: modify_entry(&remote_entry.entry), // also edited offline
+            state: AuthenticatorEntryState::PendingSync,
+            modify_time: NOW,
+            local_modify_time: Some(LATE), // Local is older than remote
+        };
+
+        let res = calculate_operations_to_perform(vec![remote_entry.clone()], vec![local_entry.clone()]);
+        assert_eq!(1, res.len());
+        assert!(matches!(res[0].operation, AuthenticatorOperation::Upsert));
+        assert_eq!(remote_entry.entry.content, res[0].entry.content); // Remote content wins
     }
 }

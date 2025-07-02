@@ -59,7 +59,6 @@ android {
 }
 
 mavenPublishing {
-    publishToMavenCentral()
     group = "me.proton.pass.common"
     version = "0.22.1"
     pom {

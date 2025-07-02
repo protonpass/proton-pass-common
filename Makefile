@@ -145,7 +145,7 @@ android-lib-x86_64: android-dirs ## Build the android library for x86_64
 
 .PHONY: android
 android: android-lib-aarch64 android-lib-armv7 android-lib-x86_64 ## Build all the android variants
-	@cd ${PROJECT_ROOT}/proton-pass-mobile/android && ./gradlew :lib:assembleRelease
+	@cd ${PROJECT_ROOT}/proton-pass-mobile/android && ./gradlew :lib:assembleRelease --no-configuration-cache
 
 # --- Web
 .PHONY: web-setup
@@ -292,7 +292,7 @@ authenticator-android-lib-x86_64: authenticator-android-dirs ## Build the androi
 
 .PHONY: authenticator-android
 authenticator-android: authenticator-android-lib-aarch64 authenticator-android-lib-armv7 authenticator-android-lib-x86_64 ## Build all the android variants
-	@cd ${PROJECT_ROOT}/proton-authenticator-mobile/android && ./gradlew :lib:assembleRelease
+	@cd ${PROJECT_ROOT}/proton-authenticator-mobile/android && ./gradlew :lib:assembleRelease --no-configuration-cache
 
 .PHONY: authenticator-web-setup
 authenticator-web-setup:
@@ -335,4 +335,4 @@ authenticator-mobile-unit-test:  ## Run the unit tests for the authenticator mob
 	@rm -rf ${PROJECT_ROOT}/bindings/
 
 	# Run unit test
-	@cd ${PROJECT_ROOT}/proton-authenticator-mobile/android && ./gradlew :libTest:test
+	@cd ${PROJECT_ROOT}/proton-authenticator-mobile/android && ./gradlew :libTest:test --no-configuration-cache

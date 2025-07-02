@@ -76,7 +76,6 @@ pub enum WasmOperationType {
     DeleteLocal,
     DeleteLocalAndRemote,
     Push,
-    Conflict,
 }
 
 impl From<AuthenticatorOperation> for WasmOperationType {
@@ -86,7 +85,6 @@ impl From<AuthenticatorOperation> for WasmOperationType {
             AuthenticatorOperation::DeleteLocal => WasmOperationType::DeleteLocal,
             AuthenticatorOperation::DeleteLocalAndRemote => WasmOperationType::DeleteLocalAndRemote,
             AuthenticatorOperation::Push => WasmOperationType::Push,
-            AuthenticatorOperation::Conflict => WasmOperationType::Conflict,
         }
     }
 }

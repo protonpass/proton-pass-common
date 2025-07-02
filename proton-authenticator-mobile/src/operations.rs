@@ -63,7 +63,6 @@ pub enum OperationType {
     DeleteLocal,
     DeleteLocalAndRemote,
     Push,
-    Conflict,
 }
 
 impl From<AuthenticatorOperation> for OperationType {
@@ -73,7 +72,6 @@ impl From<AuthenticatorOperation> for OperationType {
             AuthenticatorOperation::DeleteLocal => OperationType::DeleteLocal,
             AuthenticatorOperation::DeleteLocalAndRemote => OperationType::DeleteLocalAndRemote,
             AuthenticatorOperation::Push => OperationType::Push,
-            AuthenticatorOperation::Conflict => OperationType::Conflict,
         }
     }
 }

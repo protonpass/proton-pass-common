@@ -22,7 +22,6 @@ enum OperationType {
   "DeleteLocal",
   "DeleteLocalAndRemote",
   "Push",
-  "Conflict",
 };
 
 dictionary EntryOperation {

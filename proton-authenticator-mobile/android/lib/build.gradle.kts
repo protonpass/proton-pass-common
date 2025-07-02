@@ -58,7 +58,7 @@ android {
 }
 
 mavenPublishing {
-    publishToMavenCentral(automaticRelease = true)
+    publishToMavenCentral()
     group = "me.proton.authenticator.common"
     version = "0.22.1"
     pom {

@@ -22,6 +22,7 @@ pub struct LocalEntry {
 #[derive(Clone)]
 pub struct RemoteEntry {
     pub remote_id: String,
+    pub revision: u32,
     pub entry: AuthenticatorEntry,
     /// last-modified (time‐millis since Unix epoch) as returned by the server
     pub modify_time: i64,
@@ -42,6 +43,7 @@ pub enum AuthenticatorOperation {
 #[derive(Debug)]
 pub struct EntryOperation {
     pub remote_id: Option<String>,
+    pub revision: Option<u32>,
     pub entry: AuthenticatorEntry,
     pub operation: AuthenticatorOperation,
 }
@@ -63,6 +65,7 @@ pub fn calculate_operations_to_perform(remote: Vec<RemoteEntry>, local: Vec<Loca
                     if !local_entry.entry.eq(&remote_entry.entry) {
                         ops.push(EntryOperation {
                             remote_id: Some(remote_entry.remote_id.clone()),
+                            revision: Some(remote_entry.revision),
                             entry: remote_entry.entry.clone(),
                             operation: AuthenticatorOperation::Upsert,
                         });
@@ -77,6 +80,7 @@ pub fn calculate_operations_to_perform(remote: Vec<RemoteEntry>, local: Vec<Loca
                         // link is performed
                         ops.push(EntryOperation {
                             remote_id: Some(remote_entry.remote_id.clone()),
+                            revision: Some(remote_entry.revision),
                             entry: remote_entry.entry.clone(),
                             operation: AuthenticatorOperation::Upsert,
                         });
@@ -87,6 +91,7 @@ pub fn calculate_operations_to_perform(remote: Vec<RemoteEntry>, local: Vec<Loca
                             // Equal mtime + offline edits -> push local version
                             (true, Some(_)) => ops.push(EntryOperation {
                                 remote_id: Some(remote_entry.remote_id.clone()),
+                                revision: Some(remote_entry.revision),
                                 entry: local_entry.entry.clone(),
                                 operation: AuthenticatorOperation::Push,
                             }),
@@ -96,6 +101,7 @@ pub fn calculate_operations_to_perform(remote: Vec<RemoteEntry>, local: Vec<Loca
                             (true, None) => {
                                 ops.push(EntryOperation {
                                     remote_id: Some(remote_entry.remote_id.clone()),
+                                    revision: Some(remote_entry.revision),
                                     entry: remote_entry.entry.clone(),
                                     operation: AuthenticatorOperation::Upsert,
                                 });
@@ -104,6 +110,7 @@ pub fn calculate_operations_to_perform(remote: Vec<RemoteEntry>, local: Vec<Loca
                             // Different mtime + no offline edits -> remote wins
                             (false, None) => ops.push(EntryOperation {
                                 remote_id: Some(remote_entry.remote_id.clone()),
+                                revision: Some(remote_entry.revision),
                                 entry: remote_entry.entry.clone(),
                                 operation: AuthenticatorOperation::Upsert,
                             }),
@@ -115,6 +122,7 @@ pub fn calculate_operations_to_perform(remote: Vec<RemoteEntry>, local: Vec<Loca
                                     // Remote is newer, use remote version
                                     ops.push(EntryOperation {
                                         remote_id: Some(remote_entry.remote_id.clone()),
+                                        revision: Some(remote_entry.revision),
                                         entry: remote_entry.entry.clone(),
                                         operation: AuthenticatorOperation::Upsert,
                                     });
@@ -122,6 +130,7 @@ pub fn calculate_operations_to_perform(remote: Vec<RemoteEntry>, local: Vec<Loca
                                     // Local is newer or equal, push local version
                                     ops.push(EntryOperation {
                                         remote_id: Some(remote_entry.remote_id.clone()),
+                                        revision: Some(remote_entry.revision),
                                         entry: local_entry.entry.clone(),
                                         operation: AuthenticatorOperation::Push,
                                     });
@@ -134,6 +143,7 @@ pub fn calculate_operations_to_perform(remote: Vec<RemoteEntry>, local: Vec<Loca
                 // Pending deletion
                 AuthenticatorEntryState::PendingToDelete => ops.push(EntryOperation {
                     remote_id: Some(remote_entry.remote_id.clone()),
+                    revision: Some(remote_entry.revision),
                     entry: remote_entry.entry.clone(),
                     operation: AuthenticatorOperation::DeleteLocalAndRemote,
                 }),
@@ -142,6 +152,7 @@ pub fn calculate_operations_to_perform(remote: Vec<RemoteEntry>, local: Vec<Loca
             // Only on the server ─> store it locally
             None => ops.push(EntryOperation {
                 remote_id: Some(remote_entry.remote_id.clone()),
+                revision: Some(remote_entry.revision),
                 entry: remote_entry.entry.clone(),
                 operation: AuthenticatorOperation::Upsert,
             }),
@@ -156,16 +167,19 @@ pub fn calculate_operations_to_perform(remote: Vec<RemoteEntry>, local: Vec<Loca
             match local_entry.state {
                 AuthenticatorEntryState::Synced => ops.push(EntryOperation {
                     remote_id: None,
+                    revision: None,
                     entry: local_entry.entry.clone(),
                     operation: AuthenticatorOperation::DeleteLocal,
                 }),
                 AuthenticatorEntryState::PendingSync => ops.push(EntryOperation {
                     remote_id: None,
+                    revision: None,
                     entry: local_entry.entry.clone(),
                     operation: AuthenticatorOperation::Push,
                 }),
                 AuthenticatorEntryState::PendingToDelete => ops.push(EntryOperation {
                     remote_id: None,
+                    revision: None,
                     entry: local_entry.entry.clone(),
                     operation: AuthenticatorOperation::DeleteLocal,
                 }),
@@ -210,6 +224,7 @@ mod tests {
     fn remote_entry_with_id_and_time(id: String, modify_time: i64) -> RemoteEntry {
         RemoteEntry {
             remote_id: id,
+            revision: 0,
             entry: random_entry(),
             modify_time,
         }

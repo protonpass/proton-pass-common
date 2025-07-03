@@ -1,5 +1,6 @@
 dictionary RemoteEntry {
   string remote_id;
+  u32 revision;
   AuthenticatorEntryModel entry;
   i64 modify_time;
 };
@@ -26,6 +27,7 @@ enum OperationType {
 
 dictionary EntryOperation {
   string? remote_id;
+  u32? revision;
   AuthenticatorEntryModel entry;
   OperationType operation;
 };

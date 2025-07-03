@@ -53,6 +53,7 @@ impl TryFrom<WasmLocalEntry> for CommonLocalEntry {
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct WasmRemoteEntry {
     pub remote_id: String,
+    pub revision: u32,
     pub entry: WasmAuthenticatorEntryModel,
     pub modify_time: i64,
 }
@@ -63,6 +64,7 @@ impl TryFrom<WasmRemoteEntry> for CommonRemoteEntry {
     fn try_from(value: WasmRemoteEntry) -> Result<Self, Self::Error> {
         Ok(Self {
             remote_id: value.remote_id,
+            revision: value.revision,
             entry: value.entry.to_entry()?,
             modify_time: value.modify_time,
         })
@@ -93,6 +95,7 @@ impl From<AuthenticatorOperation> for WasmOperationType {
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct WasmEntryOperation {
     pub remote_id: Option<String>,
+    pub revision: Option<u32>,
     pub entry: WasmAuthenticatorEntryModel,
     pub operation: WasmOperationType,
 }
@@ -101,6 +104,7 @@ impl From<CommonEntryOperation> for WasmEntryOperation {
     fn from(value: CommonEntryOperation) -> Self {
         Self {
             remote_id: value.remote_id,
+            revision: value.revision,
             entry: WasmAuthenticatorEntryModel::from(value.entry),
             operation: WasmOperationType::from(value.operation),
         }

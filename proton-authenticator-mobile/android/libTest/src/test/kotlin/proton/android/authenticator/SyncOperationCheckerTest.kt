@@ -21,7 +21,7 @@ class SyncOperationCheckerTest {
     @Test
     fun `does not return anything in case no differences`() {
         val entry = TestUtils.getEntry1()
-        val remote = listOf(RemoteEntry(remoteId = "REMOTE_ID", entry = entry, modifyTime = NOW))
+        val remote = listOf(RemoteEntry(remoteId = "REMOTE_ID", revision = 1.toUInt(), entry = entry, modifyTime = NOW))
         val local = listOf(LocalEntry(
             entry = entry,
             state = LocalEntryState.SYNCED,
@@ -36,13 +36,15 @@ class SyncOperationCheckerTest {
     fun `remote entry not present in local returns upsert`() {
         val entry = TestUtils.getEntry1()
         val remoteId = "REMOTE_ID"
-        val remote = listOf(RemoteEntry(remoteId = remoteId, entry = entry, modifyTime = NOW))
+        val revision = 3.toUInt()
+        val remote = listOf(RemoteEntry(remoteId = remoteId, revision = revision, entry = entry, modifyTime = NOW))
         val res = instance.calculateOperations(remote, emptyList())
 
         assertThat(res.size).isEqualTo(1)
         assertThat(res[0].entry).isEqualTo(entry)
         assertThat(res[0].remoteId).isEqualTo(remoteId)
         assertThat(res[0].operation).isEqualTo(OperationType.UPSERT)
+        assertThat(res[0].revision).isEqualTo(revision)
     }
 
     @Test

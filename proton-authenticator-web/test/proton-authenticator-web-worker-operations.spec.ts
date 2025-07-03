@@ -22,7 +22,7 @@ describe("ProtonAuthenticatorWeb WASM diff", () => {
     test("Does not return anything in case no differences", () => {
         const entry = newEntry("LABEL", "SECRET");
         const remote: WasmRemoteEntry[] = [
-            {entry: entry, remote_id: "ID", modify_time: NOW}
+            {entry: entry, remote_id: "ID", revision: 1, modify_time: NOW}
         ];
         const local: WasmLocalEntry[] = [
             {entry: entry, state: "Synced", modify_time: NOW, local_modify_time: undefined}
@@ -35,8 +35,9 @@ describe("ProtonAuthenticatorWeb WASM diff", () => {
     test("Remote entry not present in local returns upsert", () => {
         const entry = newEntry("LABEL", "SECRET");
         const remoteId = "REMOTE_ID";
+        const revision = 3;
         const remote: WasmRemoteEntry[] = [
-            {entry: entry, remote_id: remoteId, modify_time: NOW}
+            {entry: entry, remote_id: remoteId, revision: revision, modify_time: NOW}
         ];
         const local: WasmLocalEntry[] = [];
 
@@ -45,6 +46,7 @@ describe("ProtonAuthenticatorWeb WASM diff", () => {
         expect(res[0].entry).toEqual(entry);
         expect(res[0].operation).toEqual("Upsert");
         expect(res[0].remote_id).toEqual(remoteId);
+        expect(res[0].revision).toEqual(revision);
     });
 
     test("Local entry pending to be pushed not present in remote returns push", () => {

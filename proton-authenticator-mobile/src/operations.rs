@@ -42,6 +42,7 @@ impl TryFrom<LocalEntry> for CommonLocalEntry {
 
 pub struct RemoteEntry {
     pub remote_id: String,
+    pub revision: u32,
     pub entry: AuthenticatorEntryModel,
     pub modify_time: i64,
 }
@@ -52,6 +53,7 @@ impl TryFrom<RemoteEntry> for CommonRemoteEntry {
     fn try_from(value: RemoteEntry) -> Result<Self, Self::Error> {
         Ok(Self {
             remote_id: value.remote_id,
+            revision: value.revision,
             entry: value.entry.to_entry()?,
             modify_time: value.modify_time,
         })
@@ -78,6 +80,7 @@ impl From<AuthenticatorOperation> for OperationType {
 
 pub struct EntryOperation {
     pub remote_id: Option<String>,
+    pub revision: Option<u32>,
     pub entry: AuthenticatorEntryModel,
     pub operation: OperationType,
 }
@@ -86,6 +89,7 @@ impl From<CommonEntryOperation> for EntryOperation {
     fn from(value: CommonEntryOperation) -> Self {
         Self {
             remote_id: value.remote_id,
+            revision: value.revision,
             entry: AuthenticatorEntryModel::from(value.entry),
             operation: OperationType::from(value.operation),
         }

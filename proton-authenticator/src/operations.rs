@@ -26,6 +26,8 @@ pub struct RemoteEntry {
     /// last-modified (time‐millis since Unix epoch) as returned by the server
     pub modify_time: i64,
 }
+
+#[derive(Debug)]
 pub enum AuthenticatorOperation {
     // Update local copy of the entry
     Upsert,
@@ -37,11 +39,13 @@ pub enum AuthenticatorOperation {
     Push,
 }
 
+#[derive(Debug)]
 pub struct EntryOperation {
     pub remote_id: Option<String>,
     pub entry: AuthenticatorEntry,
     pub operation: AuthenticatorOperation,
 }
+
 pub fn calculate_operations_to_perform(remote: Vec<RemoteEntry>, local: Vec<LocalEntry>) -> Vec<EntryOperation> {
     let local_entries = list_to_map(local, |e| e.entry.id.to_string());
     let mut remote_entry_ids = HashSet::new();
@@ -76,6 +80,25 @@ pub fn calculate_operations_to_perform(remote: Vec<RemoteEntry>, local: Vec<Loca
                             entry: local_entry.entry.clone(),
                             operation: AuthenticatorOperation::Push,
                         }),
+
+                        // Equal mtime + no offline edits -> check if content is the same
+                        (true, None) => {
+                            if local_entry.entry.eq(&remote_entry.entry) {
+                                // Same content -> upsert to link local entry to remote_id
+                                ops.push(EntryOperation {
+                                    remote_id: Some(remote_entry.remote_id.clone()),
+                                    entry: remote_entry.entry.clone(),
+                                    operation: AuthenticatorOperation::Upsert,
+                                });
+                            } else {
+                                // Different content -> push local version
+                                ops.push(EntryOperation {
+                                    remote_id: Some(remote_entry.remote_id.clone()),
+                                    entry: local_entry.entry.clone(),
+                                    operation: AuthenticatorOperation::Push,
+                                });
+                            }
+                        }
 
                         // Different mtime + no offline edits -> remote wins
                         (false, None) => ops.push(EntryOperation {
@@ -397,5 +420,42 @@ mod tests {
         assert_eq!(1, res.len());
         assert!(matches!(res[0].operation, AuthenticatorOperation::Upsert));
         assert_eq!(remote_entry.entry.content, res[0].entry.content); // Remote content wins
+    }
+
+    #[test]
+    fn local_equals_remote() {
+        let id = random_id();
+        let remote = remote_entry_with_id_and_time(id.clone(), NOW);
+        let local_entry = LocalEntry {
+            entry: remote.entry.clone(),
+            state: AuthenticatorEntryState::PendingSync,
+            modify_time: NOW,
+            local_modify_time: None,
+        };
+
+        let res = calculate_operations_to_perform(vec![remote.clone()], vec![local_entry.clone()]);
+        assert_eq!(1, res.len());
+        assert!(matches!(res[0].operation, AuthenticatorOperation::Upsert));
+        assert_eq!(local_entry.entry.content, res[0].entry.content);
+        assert_eq!(remote.entry.content, res[0].entry.content);
+        assert_eq!(Some(id), res[0].remote_id)
+    }
+
+    #[test]
+    fn local_differs_from_remote() {
+        let id = random_id();
+        let remote = remote_entry_with_id_and_time(id.clone(), NOW);
+        let local_entry = LocalEntry {
+            entry: modify_entry(&remote.entry), // Different content
+            state: AuthenticatorEntryState::PendingSync,
+            modify_time: NOW,
+            local_modify_time: None,
+        };
+
+        let res = calculate_operations_to_perform(vec![remote], vec![local_entry.clone()]);
+        assert_eq!(1, res.len());
+        assert!(matches!(res[0].operation, AuthenticatorOperation::Push));
+        assert_eq!(local_entry.entry.content, res[0].entry.content); // Local content is pushed
+        assert_eq!(Some(id), res[0].remote_id)
     }
 }

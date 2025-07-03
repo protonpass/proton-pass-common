@@ -27,7 +27,7 @@ pub struct RemoteEntry {
     pub modify_time: i64,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum AuthenticatorOperation {
     // Update local copy of the entry
     Upsert,
@@ -71,59 +71,61 @@ pub fn calculate_operations_to_perform(remote: Vec<RemoteEntry>, local: Vec<Loca
 
                 // Pending offline update
                 AuthenticatorEntryState::PendingSync => {
-                    let same_timestamp = remote_entry.modify_time == local_entry.modify_time;
-
-                    match (same_timestamp, local_entry.local_modify_time) {
-                        // Equal mtime + offline edits -> push local version
-                        (true, Some(_)) => ops.push(EntryOperation {
-                            remote_id: Some(remote_entry.remote_id.clone()),
-                            entry: local_entry.entry.clone(),
-                            operation: AuthenticatorOperation::Push,
-                        }),
-
-                        // Equal mtime + no offline edits -> check if content is the same
-                        (true, None) => {
-                            if local_entry.entry.eq(&remote_entry.entry) {
-                                // Same content -> upsert to link local entry to remote_id
-                                ops.push(EntryOperation {
-                                    remote_id: Some(remote_entry.remote_id.clone()),
-                                    entry: remote_entry.entry.clone(),
-                                    operation: AuthenticatorOperation::Upsert,
-                                });
-                            } else {
-                                // Different content -> push local version
-                                ops.push(EntryOperation {
-                                    remote_id: Some(remote_entry.remote_id.clone()),
-                                    entry: local_entry.entry.clone(),
-                                    operation: AuthenticatorOperation::Push,
-                                });
-                            }
-                        }
-
-                        // Different mtime + no offline edits -> remote wins
-                        (false, None) => ops.push(EntryOperation {
+                    // First check if there is actually a difference
+                    if local_entry.entry.eq(&remote_entry.entry) {
+                        // No difference. Just upsert the local one to make sure the local->remote
+                        // link is performed
+                        ops.push(EntryOperation {
                             remote_id: Some(remote_entry.remote_id.clone()),
                             entry: remote_entry.entry.clone(),
                             operation: AuthenticatorOperation::Upsert,
-                        }),
+                        });
+                    } else {
+                        // There is actually a difference. Check the timestamps
+                        let same_timestamp = remote_entry.modify_time == local_entry.modify_time;
+                        match (same_timestamp, local_entry.local_modify_time) {
+                            // Equal mtime + offline edits -> push local version
+                            (true, Some(_)) => ops.push(EntryOperation {
+                                remote_id: Some(remote_entry.remote_id.clone()),
+                                entry: local_entry.entry.clone(),
+                                operation: AuthenticatorOperation::Push,
+                            }),
 
-                        // Different mtime + offline edits -> compare times, most recent wins
-                        _ => {
-                            let local_time = local_entry.local_modify_time.unwrap_or(local_entry.modify_time);
-                            if remote_entry.modify_time > local_time {
-                                // Remote is newer, use remote version
+                            // Equal mtime + no offline edits, but we are sure there is a
+                            // difference in content -> remote wins so we avoid extra calls, upsert
+                            (true, None) => {
                                 ops.push(EntryOperation {
                                     remote_id: Some(remote_entry.remote_id.clone()),
                                     entry: remote_entry.entry.clone(),
                                     operation: AuthenticatorOperation::Upsert,
                                 });
-                            } else {
-                                // Local is newer or equal, push local version
-                                ops.push(EntryOperation {
-                                    remote_id: Some(remote_entry.remote_id.clone()),
-                                    entry: local_entry.entry.clone(),
-                                    operation: AuthenticatorOperation::Push,
-                                });
+                            }
+
+                            // Different mtime + no offline edits -> remote wins
+                            (false, None) => ops.push(EntryOperation {
+                                remote_id: Some(remote_entry.remote_id.clone()),
+                                entry: remote_entry.entry.clone(),
+                                operation: AuthenticatorOperation::Upsert,
+                            }),
+
+                            // Different mtime + offline edits -> compare times, most recent wins
+                            _ => {
+                                let local_time = local_entry.local_modify_time.unwrap_or(local_entry.modify_time);
+                                if remote_entry.modify_time > local_time {
+                                    // Remote is newer, use remote version
+                                    ops.push(EntryOperation {
+                                        remote_id: Some(remote_entry.remote_id.clone()),
+                                        entry: remote_entry.entry.clone(),
+                                        operation: AuthenticatorOperation::Upsert,
+                                    });
+                                } else {
+                                    // Local is newer or equal, push local version
+                                    ops.push(EntryOperation {
+                                        remote_id: Some(remote_entry.remote_id.clone()),
+                                        entry: local_entry.entry.clone(),
+                                        operation: AuthenticatorOperation::Push,
+                                    });
+                                }
                             }
                         }
                     }
@@ -423,7 +425,7 @@ mod tests {
     }
 
     #[test]
-    fn local_equals_remote() {
+    fn local_equals_remote_triggers_upsert() {
         let id = random_id();
         let remote = remote_entry_with_id_and_time(id.clone(), NOW);
         let local_entry = LocalEntry {
@@ -442,7 +444,7 @@ mod tests {
     }
 
     #[test]
-    fn local_differs_from_remote() {
+    fn local_differs_from_remote_triggers_upsert() {
         let id = random_id();
         let remote = remote_entry_with_id_and_time(id.clone(), NOW);
         let local_entry = LocalEntry {
@@ -452,10 +454,10 @@ mod tests {
             local_modify_time: None,
         };
 
-        let res = calculate_operations_to_perform(vec![remote], vec![local_entry.clone()]);
+        let res = calculate_operations_to_perform(vec![remote.clone()], vec![local_entry.clone()]);
         assert_eq!(1, res.len());
-        assert!(matches!(res[0].operation, AuthenticatorOperation::Push));
-        assert_eq!(local_entry.entry.content, res[0].entry.content); // Local content is pushed
+        assert_eq!(AuthenticatorOperation::Upsert, res[0].operation);
+        assert_eq!(remote.entry.content, res[0].entry.content); // Remote content is stored
         assert_eq!(Some(id), res[0].remote_id)
     }
 }

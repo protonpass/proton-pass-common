@@ -6,6 +6,16 @@
 
 ### Other
 
+## 0.23.0
+
+### Fixes :bug:
+
+- authenticator: improve `calculate_operations` method.
+
+### Other
+
+- authenticator: added manual override for `Proton` issuer in IssuerMapper.
+
 ## 0.22.2
 
 ### Fixes :bug:

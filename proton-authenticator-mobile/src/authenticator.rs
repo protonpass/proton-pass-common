@@ -296,14 +296,14 @@ impl AuthenticatorMobileClient {
 
     pub fn export_entries_with_password(
         &self,
-        password: String,
         entries: Vec<AuthenticatorEntryModel>,
+        password: String,
     ) -> Result<String, AuthenticatorError> {
         let mut mapped = vec![];
         for entry in entries {
             mapped.push(entry.to_entry()?);
         }
-        Ok(self.inner.export_entries_with_password(&password, mapped)?)
+        Ok(self.inner.export_entries_with_password(mapped, &password)?)
     }
 
     pub fn get_totp_params(

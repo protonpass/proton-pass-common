@@ -92,7 +92,7 @@ pub fn import_from_proton_authenticator(contents: String) -> ImportResult {
 
 #[wasm_bindgen]
 pub fn import_from_proton_authenticator_with_password(password: String, contents: String) -> ImportResult {
-    let res = proton_authenticator::parse_proton_authenticator_export_with_password(&password, &contents)?;
+    let res = proton_authenticator::parse_proton_authenticator_export_with_password(&contents, &password)?;
     Ok(AuthenticatorImportResult::from(res))
 }
 

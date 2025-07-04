@@ -17,8 +17,8 @@ struct EncryptedExport {
 }
 
 pub fn export_entries_with_password(
-    password: &str,
     entries: Vec<AuthenticatorEntry>,
+    password: &str,
 ) -> Result<String, AuthenticatorError> {
     let exported_data = export_entries(entries)?;
 
@@ -73,7 +73,7 @@ fn derive_password_key(password: &str, salt: &[u8; 16]) -> Result<[u8; 32], Box<
     Ok(aes_key)
 }
 
-pub fn import_entries_with_password(password: &str, input: &str) -> Result<ImportResult, AuthenticatorError> {
+pub fn import_entries_with_password(input: &str, password: &str) -> Result<ImportResult, AuthenticatorError> {
     let encrypted_export: EncryptedExport = serde_json::from_str(input).map_err(|e| {
         AuthenticatorError::SerializationError(format!(
             "Error importing authenticator entries, could deserialize json: {:?}",
@@ -144,8 +144,8 @@ mod tests {
             AuthenticatorEntry::from_uri(uri2, None).unwrap(),
         ];
         let password = "DummyPassword";
-        let exported = export_entries_with_password(password, entries).unwrap();
-        let imported = import_entries_with_password(password, &exported).unwrap();
+        let exported = export_entries_with_password(entries, password).unwrap();
+        let imported = import_entries_with_password(&exported, password).unwrap();
         assert_eq!(imported.entries.len(), 2);
         assert_eq!(
             imported.entries[0].content,
@@ -163,8 +163,8 @@ mod tests {
         let uri1 = "otpauth://totp/MYLABEL?secret=MYSECRET&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15";
 
         let entries = vec![AuthenticatorEntry::from_uri(uri1, None).unwrap()];
-        let exported = export_entries_with_password("ok", entries).unwrap();
-        let result = import_entries_with_password("invalid", &exported);
+        let exported = export_entries_with_password(entries, "ok").unwrap();
+        let result = import_entries_with_password(&exported, "invalid");
         assert!(result.is_err());
     }
 }

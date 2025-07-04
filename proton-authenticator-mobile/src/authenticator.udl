@@ -106,9 +106,9 @@ interface AuthenticatorMobileClient {
 
   [Throws=AuthenticatorError]
   string export_entries(sequence<AuthenticatorEntryModel> entries);
-  
+
   [Throws=AuthenticatorError]
-  string export_entries_with_password(string password, sequence<AuthenticatorEntryModel> entries);
+  string export_entries_with_password(sequence<AuthenticatorEntryModel> entries, string password);
 
   [Throws=AuthenticatorError]
   AuthenticatorEntryTotpParameters get_totp_params(AuthenticatorEntryModel entry);

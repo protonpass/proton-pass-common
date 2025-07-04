@@ -44,7 +44,7 @@ interface AuthenticatorImporter {
   AuthenticatorImportResult import_from_proton_authenticator(string contents);
 
   [Throws=AuthenticatorImportException]
-  AuthenticatorImportResult import_from_proton_authenticator_with_password(string password, string contents);
+  AuthenticatorImportResult import_from_proton_authenticator_with_password(string contents, string password);
 
   [Throws=AuthenticatorImportException]
   AuthenticatorImportResult import_from_2fas(string contents, string? password);

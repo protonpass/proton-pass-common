@@ -6,8 +6,8 @@ pub fn parse_proton_authenticator_export(input: &str) -> Result<ImportResult, Th
 }
 
 pub fn parse_proton_authenticator_export_with_password(
-    password: &str,
     input: &str,
+    password: &str,
 ) -> Result<ImportResult, ThirdPartyImportError> {
-    crate::entry::import_entries_with_password(password, input).map_err(|_| ThirdPartyImportError::BadContent)
+    crate::entry::import_entries_with_password(input, password).map_err(|_| ThirdPartyImportError::BadContent)
 }

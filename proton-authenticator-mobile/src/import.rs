@@ -109,8 +109,8 @@ impl AuthenticatorImporter {
         Ok(AuthenticatorImportResult::from(res))
     }
 
-    pub fn import_from_proton_authenticator_with_password(&self, password: String, contents: String) -> ImportResult {
-        let res = proton_authenticator::parse_proton_authenticator_export_with_password(&password, &contents)?;
+    pub fn import_from_proton_authenticator_with_password(&self, contents: String, password: String) -> ImportResult {
+        let res = proton_authenticator::parse_proton_authenticator_export_with_password(&contents, &password)?;
         Ok(AuthenticatorImportResult::from(res))
     }
 

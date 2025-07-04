@@ -19,7 +19,7 @@ struct EncryptedExport {
 pub fn export_entries_with_password(
     password: &str,
     entries: Vec<AuthenticatorEntry>,
-) -> Result<String, Box<dyn std::error::Error>> {
+) -> Result<String, AuthenticatorError> {
     let exported_data = export_entries(entries)?;
 
     let mut salt = [0u8; 16];
@@ -69,17 +69,26 @@ pub fn import_entries_with_password(password: &str, input: &str) -> Result<Impor
             e
         ))
     })?;
+    if encrypted_export.version != 1 {
+        return Err(AuthenticatorError::SerializationError(format!(
+            "Only encrypted export version 1 is supported, got version {}",
+            encrypted_export.version
+        )));
+    }
     let salt = BASE64_STANDARD.decode(&encrypted_export.salt).map_err(|e| {
         AuthenticatorError::SerializationError(format!(
-            "Error importing authenticator entries, could deserialize salt: {:?}",
+            "Error importing authenticator entries, could not decode salt: {:?}",
             e
         ))
     })?;
 
-    let salt_ref: &[u8; 16] = salt
-        .as_slice()
-        .try_into()
-        .expect("Salt does not have the expected 16 byte length");
+    let salt_ref: &[u8; 16] = salt.as_slice().try_into().map_err(|e| {
+        AuthenticatorError::SerializationError(format!(
+            "Error importing authenticator entries, salt does not have the proper length: {:?}",
+            e
+        ))
+    })?;
+
     let aes_key = derive_password_key(password, salt_ref).map_err(|e| {
         AuthenticatorError::SerializationError(format!(
             "Error importing authenticator entries, could not derive password: {:?}",
@@ -101,7 +110,7 @@ pub fn import_entries_with_password(password: &str, input: &str) -> Result<Impor
 
     let plain_text = std::str::from_utf8(&binary_export).map_err(|e| {
         AuthenticatorError::SerializationError(format!(
-            "Error importing authenticator entries, could not read contents  {:?}",
+            "Error importing authenticator entries, could not read contents: {:?}",
             e
         ))
     })?;

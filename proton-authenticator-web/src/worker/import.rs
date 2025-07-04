@@ -1,5 +1,5 @@
-use js_sys::Uint8Array;
 use crate::entry::WasmAuthenticatorEntryModel;
+use js_sys::Uint8Array;
 use proton_authenticator::ThirdPartyImportError;
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;

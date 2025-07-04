@@ -60,7 +60,7 @@ fn can_extract_domain() {
     );
 
     for (case, expected) in cases {
-        let res = get_domain(case).unwrap_or_else(|e| panic!("should be able to get domain for {case}: {:?}", e));
+        let res = get_domain(case).unwrap_or_else(|e| panic!("should be able to get domain for {case}: {e:?}"));
         assert_eq!(expected, res, "expected {expected} got {res}");
     }
 }

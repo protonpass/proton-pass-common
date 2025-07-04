@@ -71,12 +71,12 @@ impl TryFrom<ExportedAuthenticatorEntryContent> for AuthenticatorEntryContent {
         match content.entry_type {
             ExportedAuthenticatorEntryType::Totp => {
                 let totp = TOTP::from_uri(&content.uri)
-                    .map_err(|e| AuthenticatorError::SerializationError(format!("error parsing TOTP uri: {:?}", e)))?;
+                    .map_err(|e| AuthenticatorError::SerializationError(format!("error parsing TOTP uri: {e:?}")))?;
                 Ok(AuthenticatorEntryContent::Totp(totp))
             }
             ExportedAuthenticatorEntryType::Steam => {
                 let mut steam = SteamTotp::new_from_uri(&content.uri)
-                    .map_err(|e| AuthenticatorError::SerializationError(format!("error parsing Steam uri: {:?}", e)))?;
+                    .map_err(|e| AuthenticatorError::SerializationError(format!("error parsing Steam uri: {e:?}")))?;
                 steam.set_name(content.name);
 
                 Ok(AuthenticatorEntryContent::Steam(steam))
@@ -90,7 +90,7 @@ impl TryFrom<ExportedAuthenticatorEntry> for AuthenticatorEntry {
     fn try_from(entry: ExportedAuthenticatorEntry) -> Result<Self, Self::Error> {
         Ok(Self {
             content: AuthenticatorEntryContent::try_from(entry.content)
-                .map_err(|e| AuthenticatorError::SerializationError(format!("error parsing entry content: {:?}", e)))?,
+                .map_err(|e| AuthenticatorError::SerializationError(format!("error parsing entry content: {e:?}")))?,
             note: entry.note,
             id: entry.id,
         })
@@ -104,12 +104,12 @@ pub fn export_entries(entries: Vec<AuthenticatorEntry>) -> Result<String, Authen
     };
 
     serde_json::to_string(&export)
-        .map_err(|e| AuthenticatorError::SerializationError(format!("Error exporting entries: {:?}", e)))
+        .map_err(|e| AuthenticatorError::SerializationError(format!("Error exporting entries: {e:?}")))
 }
 
 fn import_authenticator_entries_v1(input: &str) -> Result<ImportResult, AuthenticatorError> {
     let parsed: AuthenticatorEntriesExport = serde_json::from_str(input)
-        .map_err(|e| AuthenticatorError::SerializationError(format!("Error importing entries: {:?}", e)))?;
+        .map_err(|e| AuthenticatorError::SerializationError(format!("Error importing entries: {e:?}")))?;
 
     let mut entries = Vec::new();
     let mut errors = Vec::new();
@@ -118,7 +118,7 @@ fn import_authenticator_entries_v1(input: &str) -> Result<ImportResult, Authenti
             Ok(entry) => entries.push(entry),
             Err(e) => errors.push(ImportError {
                 context: format!("Error in entry {idx}"),
-                message: format!("Error importing entry {:?}: {:?}", entry, e),
+                message: format!("Error importing entry {entry:?}: {e:?}"),
             }),
         }
     }
@@ -128,8 +128,7 @@ fn import_authenticator_entries_v1(input: &str) -> Result<ImportResult, Authenti
 pub fn import_authenticator_entries(input: &str) -> Result<ImportResult, AuthenticatorError> {
     let header: AuthenticatorEntriesExportHeader = serde_json::from_str(input).map_err(|e| {
         AuthenticatorError::SerializationError(format!(
-            "Error importing authenticator entries, could not detect header: {:?}",
-            e
+            "Error importing authenticator entries, could not detect header: {e:?}"
         ))
     })?;
 

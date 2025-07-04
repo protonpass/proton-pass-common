@@ -3,7 +3,7 @@ use proton_pass_common::alias_prefix::*;
 fn verify(prefix: &str) {
     let result = validate_alias_prefix(prefix);
     if result.is_err() {
-        panic!("{} should be valid", prefix);
+        panic!("{prefix} should be valid");
     }
 }
 fn verify_error(prefix: &str, expected: AliasPrefixError) {

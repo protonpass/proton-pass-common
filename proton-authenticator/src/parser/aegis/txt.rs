@@ -13,7 +13,7 @@ pub fn parse_aegis_txt(input: &str) -> Result<ImportResult, AegisImportError> {
                 Err(e) => {
                     errors.push(ImportError {
                         context: format!("Error in line {idx}"),
-                        message: format!("Error in line [{}] : {:?}", trimmed, e),
+                        message: format!("Error in line [{trimmed}] : {e:?}"),
                     });
                 }
             }

@@ -11,17 +11,17 @@ mod swissid;
 
 fn parse(request: &str) -> PasskeyResult<PublicKeyCredentialCreationOptions> {
     serde_json::from_str(request)
-        .map_err(|e| PasskeyError::SerializationError(format!("Error parsing request: {:?}", e)))
+        .map_err(|e| PasskeyError::SerializationError(format!("Error parsing request: {e:?}")))
 }
 
 fn try_fix_request(request: &str) -> PasskeyResult<String> {
     let mut json_value: serde_json::Value = serde_json::from_str(request)
-        .map_err(|e| PasskeyError::SerializationError(format!("Error parsing JSON for fixing: {:?}", e)))?;
+        .map_err(|e| PasskeyError::SerializationError(format!("Error parsing JSON for fixing: {e:?}")))?;
 
     fix_json_value(&mut json_value);
 
     serde_json::to_string(&json_value)
-        .map_err(|e| PasskeyError::SerializationError(format!("Error serializing fixed JSON: {:?}", e)))
+        .map_err(|e| PasskeyError::SerializationError(format!("Error serializing fixed JSON: {e:?}")))
 }
 
 fn fix_json_value(value: &mut serde_json::Value) {

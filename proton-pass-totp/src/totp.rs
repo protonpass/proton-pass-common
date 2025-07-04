@@ -165,13 +165,12 @@ impl TOTP {
     }
 
     pub fn to_uri(&self, original_label: Option<String>, original_issuer: Option<String>) -> String {
-        let base_uri = format!("{}://{}/", OTP_SCHEME, TOTP_HOST);
+        let base_uri = format!("{OTP_SCHEME}://{TOTP_HOST}/");
 
         let mut uri = match Url::parse(&base_uri) {
             Ok(value) => value,
             _ => panic!(
-                "Should be able to create Url struct with scheme {} and host {}",
-                OTP_SCHEME, TOTP_HOST
+                "Should be able to create Url struct with scheme {OTP_SCHEME} and host {TOTP_HOST}"
             ),
         };
 
@@ -205,14 +204,14 @@ impl TOTP {
             Some(entered_digits) => entered_digits,
             _ => &DEFAULT_DIGITS,
         };
-        uri.query_pairs_mut().append_pair(QUERY_DIGITS, &format!("{}", digits));
+        uri.query_pairs_mut().append_pair(QUERY_DIGITS, &format!("{digits}"));
 
         // Set period
         let period = match &self.period {
             Some(entered_period) => entered_period,
             _ => &DEFAULT_PERIOD,
         };
-        uri.query_pairs_mut().append_pair(QUERY_PERIOD, &format!("{}", period));
+        uri.query_pairs_mut().append_pair(QUERY_PERIOD, &format!("{period}"));
         uri.as_str().to_string()
     }
 

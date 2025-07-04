@@ -31,7 +31,7 @@ pub struct CreatePasskeyResponse {
 impl CreatePasskeyResponse {
     pub fn response(&self) -> PasskeyResult<String> {
         serde_json::to_string(&self.credential)
-            .map_err(|e| PasskeyError::SerializationError(format!("Error serializing credential: {:?}", e)))
+            .map_err(|e| PasskeyError::SerializationError(format!("Error serializing credential: {e:?}")))
     }
 }
 
@@ -56,7 +56,7 @@ async fn generate_passkey_response(
     let my_webauthn_credential = my_client
         .register(origin, request, client_data_hash)
         .await
-        .map_err(|e| PasskeyError::GenerationError(format!("failed to generate passkey: {:?}", e)))?;
+        .map_err(|e| PasskeyError::GenerationError(format!("failed to generate passkey: {e:?}")))?;
     if let Some(pk) = my_client.authenticator().store() {
         let converted = ProtonPassKey::from(pk.clone());
         let key_id = my_webauthn_credential.id.clone();

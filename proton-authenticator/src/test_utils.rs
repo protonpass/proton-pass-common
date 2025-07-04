@@ -6,5 +6,5 @@ pub fn get_file_contents_raw(name: &str) -> Vec<u8> {
 }
 
 pub fn get_file_contents(name: &str) -> String {
-    String::from_utf8(get_file_contents_raw(name)).unwrap_or_else(|e| panic!("cannot read {}: {:?}", name, e))
+    String::from_utf8(get_file_contents_raw(name)).unwrap_or_else(|e| panic!("cannot read {name}: {e:?}"))
 }

@@ -27,12 +27,12 @@ pub fn parse_bitwarden_csv(input: &str) -> Result<ImportResult, BitwardenImportE
                 Some(r) => parse_line(&record, r, &mut entries, &mut errors, idx, name_idx),
                 None => errors.push(ImportError {
                     context: format!("Error in record {idx}"),
-                    message: format!("Malformed line: {:?}", record),
+                    message: format!("Malformed line: {record:?}"),
                 }),
             },
             Err(e) => errors.push(ImportError {
                 context: format!("Error in record {idx}"),
-                message: format!("Malformed line: {:?}", e),
+                message: format!("Malformed line: {e:?}"),
             }),
         }
     }
@@ -100,7 +100,7 @@ fn parse_totp_line(
         Err(e) => {
             errors.push(ImportError {
                 context: format!("Error in record {idx}"),
-                message: format!("Error parsing TOTP uri [{uri}]: {:?}", e),
+                message: format!("Error parsing TOTP uri [{uri}]: {e:?}"),
             });
         }
     }
@@ -129,7 +129,7 @@ fn parse_steam_line(
         Err(e) => {
             errors.push(ImportError {
                 context: format!("Error in record {idx}"),
-                message: format!("Error parsing steam uri [{uri}]: {:?}", e),
+                message: format!("Error parsing steam uri [{uri}]: {e:?}"),
             });
         }
     }

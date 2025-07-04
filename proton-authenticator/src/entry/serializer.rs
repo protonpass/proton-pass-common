@@ -73,8 +73,7 @@ impl TryFrom<proto::AuthenticatorEntry> for AuthenticatorEntry {
                         }
                         Err(e) => {
                             return Err(AuthenticatorEntryError::SerializationError(format!(
-                                "error parsing Steam uri: {:?}",
-                                e
+                                "error parsing Steam uri: {e:?}"
                             )));
                         }
                     },
@@ -105,7 +104,7 @@ pub fn serialize_entry(entry: AuthenticatorEntry) -> Result<Vec<u8>, protobuf::E
 
 pub fn deserialize_entry(input: &[u8]) -> Result<AuthenticatorEntry, AuthenticatorEntryError> {
     let parsed = proto::AuthenticatorEntry::parse_from_bytes(input).map_err(|e| {
-        AuthenticatorEntryError::SerializationError(format!("cannot parse AuthenticatorEntry from data: {:?}", e))
+        AuthenticatorEntryError::SerializationError(format!("cannot parse AuthenticatorEntry from data: {e:?}"))
     })?;
 
     AuthenticatorEntry::try_from(parsed)

@@ -11,13 +11,13 @@ lazy_static::lazy_static! {
 }
 
 fn build_passphrase_regex() -> Regex {
-    let separator = format!("(?:\\d|{}|\\d{})", SEPARATOR_SYMBOLS, SEPARATOR_SYMBOLS);
-    let regex_str = format!("^([A-Z]?[a-z]{{1,9}}{})+([A-Z]?[a-z]{{1,9}})?$", separator);
+    let separator = format!("(?:\\d|{SEPARATOR_SYMBOLS}|\\d{SEPARATOR_SYMBOLS})");
+    let regex_str = format!("^([A-Z]?[a-z]{{1,9}}{separator})+([A-Z]?[a-z]{{1,9}})?$");
     Regex::new(&regex_str).unwrap()
 }
 
 fn build_passphrase_separator_regex() -> Regex {
-    let separator_regex = format!("(?:\\d|{}|\\d{})", SEPARATOR_SYMBOLS, SEPARATOR_SYMBOLS);
+    let separator_regex = format!("(?:\\d|{SEPARATOR_SYMBOLS}|\\d{SEPARATOR_SYMBOLS})");
     Regex::new(&separator_regex).unwrap()
 }
 
@@ -193,7 +193,7 @@ fn password_without_common(password: &str) -> (String, bool) {
     for common_password in COMMON_PASSWORDS {
         if password_as_lowercase.contains(common_password) {
             // Create a case-insensitive regex pattern
-            let pattern = match Regex::new(&format!("(?i){}", common_password)) {
+            let pattern = match Regex::new(&format!("(?i){common_password}")) {
                 Ok(r) => r,
                 Err(_) => continue,
             };

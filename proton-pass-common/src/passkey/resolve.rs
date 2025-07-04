@@ -15,7 +15,7 @@ pub struct ResolveChallengeResponse {
 impl ResolveChallengeResponse {
     pub fn response(&self) -> PasskeyResult<String> {
         serde_json::to_string(&self.response)
-            .map_err(|e| PasskeyError::SerializationError(format!("Error serializing response: {:?}", e)))
+            .map_err(|e| PasskeyError::SerializationError(format!("Error serializing response: {e:?}")))
     }
 }
 
@@ -30,7 +30,7 @@ async fn resolve_challenge(origin: Url, pk: &ProtonPassKey, request: &str) -> Pa
     let res = client
         .authenticate(&origin, credential_request, None)
         .await
-        .map_err(|e| PasskeyError::ResolveChallengeError(format!("Error authenticating: {:?}", e)))?;
+        .map_err(|e| PasskeyError::ResolveChallengeError(format!("Error authenticating: {e:?}")))?;
 
     Ok(ResolveChallengeResponse { response: res })
 }
@@ -69,7 +69,7 @@ async fn resolve_challenge_for_mobile(
     let res = client
         .authenticate(url, request, client_data_hash)
         .await
-        .map_err(|e| PasskeyError::ResolveChallengeError(format!("Error authenticating: {:?}", e)))?;
+        .map_err(|e| PasskeyError::ResolveChallengeError(format!("Error authenticating: {e:?}")))?;
 
     Ok(res)
 }
@@ -123,7 +123,7 @@ pub async fn resolve_challenge_for_android(request: AuthenticateWithPasskeyAndro
         resolve_challenge_for_mobile(credential_request, &request.passkey, &url, request.client_data_hash).await?;
 
     let string_response = serde_json::to_string(&res)
-        .map_err(|e| PasskeyError::SerializationError(format!("Error serializing response: {:?}", e)))?;
+        .map_err(|e| PasskeyError::SerializationError(format!("Error serializing response: {e:?}")))?;
     Ok(string_response)
 }
 

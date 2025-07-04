@@ -96,7 +96,7 @@ pub fn parse_google_authenticator_totp(input: &str) -> Result<ImportResult, Goog
                     Ok(entry) => entries.push(entry),
                     Err(e) => errors.push(ImportError {
                         context: format!("Error in entry {idx}"),
-                        message: format!("param: {:?} | error: {:?}", param, e),
+                        message: format!("param: {param:?} | error: {e:?}"),
                     }),
                 }
             }

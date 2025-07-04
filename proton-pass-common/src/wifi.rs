@@ -32,7 +32,7 @@ pub fn generate_wifi_uri(ssid: &str, password: &str, security: WifiSecurity) -> 
     }
 
     if password.is_empty() {
-        return Ok(format!("WIFI:S:{};T:nopass;;", ssid));
+        return Ok(format!("WIFI:S:{ssid};T:nopass;;"));
     }
     Ok(format!("WIFI:S:{};T:{};P:{};;", ssid, security.value(), password))
 }

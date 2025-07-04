@@ -133,7 +133,7 @@ async fn favicon_exists(client: &Client, config: &Config, url: &str) -> bool {
             eprintln!("HEAD {} -> status {}", url, resp.status());
         }
         Ok(Err(err)) => {
-            eprintln!("HEAD {} failed: {}", url, err);
+            eprintln!("HEAD {url} failed: {err}");
         }
         Err(_) => {
             eprintln!("HEAD {} timed out after {}s", url, config.timeout_secs);
@@ -148,17 +148,17 @@ async fn favicon_exists(client: &Client, config: &Config, url: &str) -> bool {
                     if mime.starts_with("image") {
                         return true;
                     } else {
-                        eprintln!("GET {} -> unexpected content-type: {}", url, mime);
+                        eprintln!("GET {url} -> unexpected content-type: {mime}");
                     }
                 } else {
-                    eprintln!("GET {} succeeded, but no content-type header", url);
+                    eprintln!("GET {url} succeeded, but no content-type header");
                 }
             } else {
                 eprintln!("GET {} -> status {}", url, resp.status());
             }
         }
         Ok(Err(err)) => {
-            eprintln!("GET {} failed: {}", url, err);
+            eprintln!("GET {url} failed: {err}");
         }
         Err(_) => {
             eprintln!("GET {} timed out after {}s", url, config.timeout_secs);
@@ -220,7 +220,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let domains = match read_domains_from_file(&config.domains_file) {
         Ok(d) => d,
         Err(e) => {
-            eprintln!("Failed to read domains: {}", e);
+            eprintln!("Failed to read domains: {e}");
             std::process::exit(1);
         }
     };
@@ -286,7 +286,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         match result {
             Ok(Some(line)) => results.push(line),
             Ok(None) => {} // favicon not found
-            Err(e) => eprintln!("Task failed: {}", e),
+            Err(e) => eprintln!("Task failed: {e}"),
         }
     }
 

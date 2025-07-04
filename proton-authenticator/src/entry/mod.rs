@@ -89,12 +89,12 @@ impl AuthenticatorEntry {
 
     pub fn serialize(self) -> Result<Vec<u8>, AuthenticatorEntryError> {
         serializer::serialize_entry(self)
-            .map_err(|e| AuthenticatorEntryError::SerializationError(format!("error serializing entry: {}", e)))
+            .map_err(|e| AuthenticatorEntryError::SerializationError(format!("error serializing entry: {e}")))
     }
 
     pub fn deserialize(data: &[u8]) -> Result<Self, AuthenticatorEntryError> {
         serializer::deserialize_entry(data)
-            .map_err(|e| AuthenticatorEntryError::SerializationError(format!("error deserializing entry: {:?}", e)))
+            .map_err(|e| AuthenticatorEntryError::SerializationError(format!("error deserializing entry: {e:?}")))
     }
 
     pub fn uri(&self) -> String {

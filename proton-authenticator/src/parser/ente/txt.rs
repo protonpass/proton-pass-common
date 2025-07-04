@@ -17,12 +17,12 @@ pub fn parse_ente_txt(input: &str) -> Result<ImportResult, EnteImportError> {
                     }),
                     Err(e) => errors.push(ImportError {
                         context: format!("Error in line {idx}"),
-                        message: format!("Could not process [{line}]: {:?}", e),
+                        message: format!("Could not process [{line}]: {e:?}"),
                     }),
                 },
                 Err(e) => errors.push(ImportError {
                     context: format!("Error in line {idx}"),
-                    message: format!("Could not process [{line}]: {:?}", e),
+                    message: format!("Could not process [{line}]: {e:?}"),
                 }),
             };
         }

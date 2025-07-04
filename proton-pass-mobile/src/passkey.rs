@@ -154,7 +154,7 @@ impl PasskeyManager {
     pub fn new() -> PasskeyResult<Self> {
         match tokio::runtime::Builder::new_current_thread().build() {
             Ok(rt) => Ok(Self { rt }),
-            Err(e) => Err(PasskeyError::RuntimeError(format!("Error creating runtime: {:?}", e))),
+            Err(e) => Err(PasskeyError::RuntimeError(format!("Error creating runtime: {e:?}"))),
         }
     }
 
@@ -176,12 +176,12 @@ impl PasskeyManager {
                         user_handle: r.user_handle,
                     }),
                     Err(e) => {
-                        println!("Error in generate_passkey: {:?}", e);
+                        println!("Error in generate_passkey: {e:?}");
                         Err(PasskeyError::from(e))
                     }
                 },
                 Err(e) => {
-                    println!("Error in generate_passkey: {:?}", e);
+                    println!("Error in generate_passkey: {e:?}");
                     Err(PasskeyError::from(e))
                 }
             }
@@ -193,7 +193,7 @@ impl PasskeyManager {
             match generate_passkey_for_ios(CommonCreatePasskeyIosRequest::from(request)).await {
                 Ok(r) => Ok(r),
                 Err(e) => {
-                    println!("Error in generate_passkey_for_ios: {:?}", e);
+                    println!("Error in generate_passkey_for_ios: {e:?}");
                     Err(PasskeyError::from(e))
                 }
             }
@@ -222,7 +222,7 @@ impl PasskeyManager {
             match resolve_challenge_for_android(CommonAuthenticateWithPasskeyAndroidRequest::from(request)).await {
                 Ok(r) => Ok(r),
                 Err(e) => {
-                    println!("Error in resolve_challenge_for_android: {:?}", e);
+                    println!("Error in resolve_challenge_for_android: {e:?}");
                     Err(PasskeyError::from(e))
                 }
             }
@@ -237,7 +237,7 @@ impl PasskeyManager {
             match resolve_challenge_for_ios(CommonAuthenticateWithPasskeyIosRequest::from(request)).await {
                 Ok(r) => Ok(AuthenticateWithPasskeyIosResponse::from(r)),
                 Err(e) => {
-                    println!("Error in generate_passkey_for_ios: {:?}", e);
+                    println!("Error in generate_passkey_for_ios: {e:?}");
                     Err(PasskeyError::from(e))
                 }
             }
@@ -253,7 +253,7 @@ impl PasskeyManager {
                 user_display_name: d.user_display_name,
             }),
             Err(e) => {
-                println!("Error in parse_create_passkey_data: {:?}", e);
+                println!("Error in parse_create_passkey_data: {e:?}");
                 Err(PasskeyError::from(e))
             }
         }

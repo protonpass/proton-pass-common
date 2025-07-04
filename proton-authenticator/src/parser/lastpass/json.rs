@@ -76,7 +76,7 @@ pub fn parse_lastpass_json(input: &str) -> Result<ImportResult, LastPassImportEr
             Err(e) => {
                 errors.push(ImportError {
                     context: format!("Errir in entry {idx}"),
-                    message: format!("Error parsing account {:?}: {:?}", account, e),
+                    message: format!("Error parsing account {account:?}: {e:?}"),
                 });
             }
         }

@@ -26,16 +26,14 @@ pub fn export_entries_with_password(
     OsRng.fill_bytes(&mut salt);
     let aes_key = derive_password_key(password, &salt).map_err(|e| {
         AuthenticatorError::SerializationError(format!(
-            "Error exporting authenticator entries, could not derive password: {:?}",
-            e
+            "Error exporting authenticator entries, could not derive password: {e:?}"
         ))
     })?;
 
     let cipher_text =
         crypto::encrypt(&exported_data.into_bytes(), &aes_key, EncryptionTag::PasswordExport).map_err(|e| {
             AuthenticatorError::SerializationError(format!(
-                "Error exporting authenticator entries, could not encrypt exported data: {:?}",
-                e
+                "Error exporting authenticator entries, could not encrypt exported data: {e:?}"
             ))
         })?;
 
@@ -47,8 +45,7 @@ pub fn export_entries_with_password(
 
     serde_json::to_string(&encrypted_export).map_err(|e| {
         AuthenticatorError::SerializationError(format!(
-            "Error exporting authenticator entries, could not serialize data to json: {:?}",
-            e
+            "Error exporting authenticator entries, could not serialize data to json: {e:?}"
         ))
     })
 }
@@ -66,8 +63,7 @@ fn derive_password_key(password: &str, salt: &[u8; 16]) -> Result<[u8; 32], Box<
         .hash_password_into(password.as_bytes(), salt, &mut aes_key)
         .map_err(|e| {
             AuthenticatorError::SerializationError(format!(
-                "Error exporting authenticator entries, could not hash password: {:?}",
-                e
+                "Error exporting authenticator entries, could not hash password: {e:?}"
             ))
         })?;
     Ok(aes_key)
@@ -76,8 +72,7 @@ fn derive_password_key(password: &str, salt: &[u8; 16]) -> Result<[u8; 32], Box<
 pub fn import_entries_with_password(input: &str, password: &str) -> Result<ImportResult, AuthenticatorError> {
     let encrypted_export: EncryptedExport = serde_json::from_str(input).map_err(|e| {
         AuthenticatorError::SerializationError(format!(
-            "Error importing authenticator entries, could deserialize json: {:?}",
-            e
+            "Error importing authenticator entries, could deserialize json: {e:?}"
         ))
     })?;
     if encrypted_export.version != 1 {
@@ -88,41 +83,35 @@ pub fn import_entries_with_password(input: &str, password: &str) -> Result<Impor
     }
     let salt = BASE64_STANDARD.decode(&encrypted_export.salt).map_err(|e| {
         AuthenticatorError::SerializationError(format!(
-            "Error importing authenticator entries, could not decode salt: {:?}",
-            e
+            "Error importing authenticator entries, could not decode salt: {e:?}"
         ))
     })?;
 
     let salt_ref: &[u8; 16] = salt.as_slice().try_into().map_err(|e| {
         AuthenticatorError::SerializationError(format!(
-            "Error importing authenticator entries, salt does not have the proper length: {:?}",
-            e
+            "Error importing authenticator entries, salt does not have the proper length: {e:?}"
         ))
     })?;
 
     let aes_key = derive_password_key(password, salt_ref).map_err(|e| {
         AuthenticatorError::SerializationError(format!(
-            "Error importing authenticator entries, could not derive password: {:?}",
-            e
+            "Error importing authenticator entries, could not derive password: {e:?}"
         ))
     })?;
     let cypher_text = BASE64_STANDARD.decode(&encrypted_export.content).map_err(|e| {
         AuthenticatorError::SerializationError(format!(
-            "Error importing authenticator entries, could not decode contents: {:?}",
-            e
+            "Error importing authenticator entries, could not decode contents: {e:?}"
         ))
     })?;
     let binary_export = crypto::decrypt(&cypher_text, &aes_key, EncryptionTag::PasswordExport).map_err(|e| {
         AuthenticatorError::SerializationError(format!(
-            "Error importing authenticator entries, could not decrypt contents: {:?}",
-            e
+            "Error importing authenticator entries, could not decrypt contents: {e:?}"
         ))
     })?;
 
     let plain_text = std::str::from_utf8(&binary_export).map_err(|e| {
         AuthenticatorError::SerializationError(format!(
-            "Error importing authenticator entries, could not read contents: {:?}",
-            e
+            "Error importing authenticator entries, could not read contents: {e:?}"
         ))
     })?;
 

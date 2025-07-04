@@ -20,7 +20,7 @@ pub fn encrypt_entries(models: Vec<WasmAuthenticatorEntryModel>, key: Uint8Array
         let as_entry = model.to_entry()?;
         let serialized = as_entry.serialize()?;
         let encrypted = proton_authenticator::crypto::encrypt(&serialized, &key_as_array, EncryptionTag::Entry)
-            .map_err(|e| JsError::new(&format!("failed to encrypt entry: {:?}", e)))?;
+            .map_err(|e| JsError::new(&format!("failed to encrypt entry: {e:?}")))?;
         encrypted_entries.push(vec_to_uint8_array(encrypted));
     }
 
@@ -37,10 +37,10 @@ pub fn decrypt_entries(
     for entry in encrypted_entries {
         let entry_as_bytes = entry.to_vec();
         let decrypted = proton_authenticator::crypto::decrypt(&entry_as_bytes, &key_as_array, EncryptionTag::Entry)
-            .map_err(|e| JsError::new(&format!("failed to decrypt entry: {:?}", e)))?;
+            .map_err(|e| JsError::new(&format!("failed to decrypt entry: {e:?}")))?;
 
         let as_entry = AuthenticatorEntry::deserialize(&decrypted)
-            .map_err(|e| JsError::new(&format!("failed to deserialize entry: {:?}", e)))?;
+            .map_err(|e| JsError::new(&format!("failed to deserialize entry: {e:?}")))?;
 
         let as_model = WasmAuthenticatorEntryModel::from(as_entry);
         decrypted_entries.push(as_model);

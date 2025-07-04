@@ -164,7 +164,7 @@ where
                 Ok(format!("{num}"))
             }
             WordSeparator::NumbersAndSymbols => {
-                let dictionary = format!("{}{}", NUMBERS, SYMBOLS);
+                let dictionary = format!("{NUMBERS}{SYMBOLS}");
                 self.get_char(&dictionary).map(|c| c.to_string())
             }
             WordSeparator::Hyphens => Ok("-".to_string()),

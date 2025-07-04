@@ -36,7 +36,7 @@ impl GeneratorCurrentTimeProvider for WebCurrentTimeProvider {
             Err(e) => {
                 emit_log_message(
                     LogLevel::Error,
-                    format!("Got error when invoking time generator: {:?}", e),
+                    format!("Got error when invoking time generator: {e:?}"),
                 );
                 0
             }

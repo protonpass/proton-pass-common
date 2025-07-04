@@ -5,7 +5,7 @@ use serde_json::Value;
 
 fn sanitize_challenge(request: &str) -> PasskeyResult<String> {
     let mut parsed: Value = serde_json::from_str(request)
-        .map_err(|e| PasskeyError::SerializationError(format!("Error parsing request: {:?}", e)))?;
+        .map_err(|e| PasskeyError::SerializationError(format!("Error parsing request: {e:?}")))?;
 
     if let Some(obj) = parsed.as_object_mut() {
         if let Some(challenge) = obj.get("challenge") {
@@ -25,13 +25,11 @@ pub fn parse_authenticate_request(request: &str) -> PasskeyResult<PublicKeyCrede
             Ok(sanitized) => match serde_json::from_str(&sanitized) {
                 Ok(request) => Ok(request),
                 Err(e) => Err(PasskeyError::SerializationError(format!(
-                    "Error parsing request: {:?}",
-                    e
+                    "Error parsing request: {e:?}"
                 ))),
             },
             Err(e) => Err(PasskeyError::SerializationError(format!(
-                "Error parsing request: {:?}",
-                e
+                "Error parsing request: {e:?}"
             ))),
         },
     }

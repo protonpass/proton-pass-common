@@ -10,12 +10,12 @@ fn main() {
     println!("cargo:rerun-if-changed=src/*.udl");
 
     merge_udl_files();
-    uniffi::generate_scaffolding(format!("src/{}.udl", OUTPUT_UDL_NAME)).unwrap();
+    uniffi::generate_scaffolding(format!("src/{OUTPUT_UDL_NAME}.udl")).unwrap();
 }
 
 fn merge_udl_files() {
-    let path = format!("src/{}.udl", OUTPUT_UDL_NAME);
-    let mut file = File::create(&path).unwrap_or_else(|_| panic!("Could not create {}", path));
+    let path = format!("src/{OUTPUT_UDL_NAME}.udl");
+    let mut file = File::create(&path).unwrap_or_else(|_| panic!("Could not create {path}"));
 
     let header_comment = r#"// This file is auto-generated and contains the concatenated contents of all the UDL files in src directory
 // Do not edit this manually but instead editing/adding UDL files in the src directory
@@ -43,10 +43,10 @@ fn scan_udl_files() -> Result<Vec<String>, IOError> {
                 match path.file_name() {
                     Some(file_name) => match file_name.to_str() {
                         Some(value) => {
-                            if value == format!("{}.udl", OUTPUT_UDL_NAME) {
+                            if value == format!("{OUTPUT_UDL_NAME}.udl") {
                                 None
                             } else {
-                                Some(format!("src/{}", value))
+                                Some(format!("src/{value}"))
                             }
                         }
                         None => None,
@@ -64,10 +64,10 @@ fn scan_udl_files() -> Result<Vec<String>, IOError> {
 
 fn merge(src_udl_path: String, mut file: &File) {
     let content = get_string_from_file_path(&src_udl_path)
-        .unwrap_or_else(|_| panic!("Fail to read the content of {}", src_udl_path))
+        .unwrap_or_else(|_| panic!("Fail to read the content of {src_udl_path}"))
         .add("\n\n");
     file.write_all(content.as_bytes())
-        .unwrap_or_else(|_| panic!("Error copying from {}", src_udl_path));
+        .unwrap_or_else(|_| panic!("Error copying from {src_udl_path}"));
 }
 
 fn get_string_from_file_path(path: &str) -> Result<String, IOError> {

@@ -154,8 +154,8 @@ fn extract_totp_entries_from_item(
                     Ok(entry) => entries.push(entry),
                     Err(e) => {
                         errors.push(ImportError {
-                            context: format!("Error in vault {} item {} (main TOTP)", vault_id, item_idx),
-                            message: format!("{:?}", e),
+                            context: format!("Error in vault {vault_id} item {item_idx} (main TOTP)"),
+                            message: format!("{e:?}"),
                         });
                     }
                 }
@@ -184,7 +184,7 @@ fn extract_totp_entries_from_item(
                                     "Error in vault {} item {} field {} ({})",
                                     vault_id, item_idx, field_idx, field.field_name
                                 ),
-                                message: format!("{:?}", e),
+                                message: format!("{e:?}"),
                             });
                         }
                     }

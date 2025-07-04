@@ -28,7 +28,7 @@ impl AuthenticatorClient {
 
     pub fn entry_from_uri(&self, uri: String) -> Result<AuthenticatorEntry> {
         AuthenticatorEntry::from_uri(&uri, None)
-            .map_err(|e| AuthenticatorError::Unknown(format!("cannot parse uri: {:?}", e)))
+            .map_err(|e| AuthenticatorError::Unknown(format!("cannot parse uri: {e:?}")))
     }
 
     pub fn generate_codes(&self, entries: &[AuthenticatorEntry], time: u64) -> Result<Vec<AuthenticatorCodeResponse>> {
@@ -52,7 +52,7 @@ impl AuthenticatorClient {
             match AuthenticatorEntry::deserialize(&entry) {
                 Ok(entry) => result.push(entry),
                 Err(e) => {
-                    let msg = format!("error deserializing entry: {:?}", e);
+                    let msg = format!("error deserializing entry: {e:?}");
                     warn!("{}", msg);
                     return Err(AuthenticatorError::SerializationError(msg));
                 }
@@ -66,7 +66,7 @@ impl AuthenticatorClient {
         for entry in entries {
             let uri = entry.uri();
             result.push(entry.serialize().map_err(|e| {
-                let msg = format!("error serializing entry [uri={}]: {:?}", uri, e);
+                let msg = format!("error serializing entry [uri={uri}]: {e:?}");
                 warn!("{}", msg);
                 AuthenticatorError::SerializationError(msg)
             })?);
@@ -77,7 +77,7 @@ impl AuthenticatorClient {
 
     pub fn export_entries(&self, entries: Vec<AuthenticatorEntry>) -> Result<String> {
         entry::export_entries(entries).map_err(|e| {
-            let msg = format!("error exporting entries: {:?}", e);
+            let msg = format!("error exporting entries: {e:?}");
             warn!("{}", msg);
             AuthenticatorError::SerializationError(msg)
         })
@@ -85,7 +85,7 @@ impl AuthenticatorClient {
 
     pub fn export_entries_with_password(&self, entries: Vec<AuthenticatorEntry>, password: &str) -> Result<String> {
         entry::export_entries_with_password(entries, password).map_err(|e| {
-            let msg = format!("error exporting entries: {:?}", e);
+            let msg = format!("error exporting entries: {e:?}");
             warn!("{}", msg);
             AuthenticatorError::SerializationError(msg)
         })
@@ -97,12 +97,12 @@ impl AuthenticatorClient {
                 let period = t.get_period();
                 let next_time = time + period as u64;
                 let current = t.generate_token(time).map_err(|e| {
-                    let msg = format!("error generating token: {:?}", e);
+                    let msg = format!("error generating token: {e:?}");
                     warn!("{}", msg);
                     AuthenticatorError::CodeGenerationError(msg)
                 })?;
                 let next = t.generate_token(next_time).map_err(|e| {
-                    let msg = format!("error generating token: {:?}", e);
+                    let msg = format!("error generating token: {e:?}");
                     warn!("{}", msg);
                     AuthenticatorError::CodeGenerationError(msg)
                 })?;

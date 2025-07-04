@@ -204,7 +204,7 @@ pub fn get_totp_parameters(model: WasmAuthenticatorEntryModel) -> JsResult<WasmA
     let as_entry = model.to_entry()?;
     match as_entry.get_totp_parameters() {
         Ok(params) => Ok(WasmAuthenticatorEntryTotpParameters::from(params)),
-        Err(e) => Err(JsError::new(&format!("{:?}", e))),
+        Err(e) => Err(JsError::new(&format!("{e:?}"))),
     }
 }
 
@@ -226,7 +226,7 @@ pub fn deserialize_entries(serialized_entries: Vec<Uint8Array>) -> JsResult<Vec<
     for entry in serialized_entries {
         let entry_as_bytes = entry.to_vec();
         let as_entry = AuthenticatorEntry::deserialize(&entry_as_bytes)
-            .map_err(|e| JsError::new(&format!("failed to deserialize entry: {:?}", e)))?;
+            .map_err(|e| JsError::new(&format!("failed to deserialize entry: {e:?}")))?;
 
         let as_model = WasmAuthenticatorEntryModel::from(as_entry);
         deserialized_entries.push(as_model);

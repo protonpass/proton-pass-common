@@ -51,7 +51,7 @@ fn sanitize(url: &str) -> Result<String> {
     }
 
     let url_with_scheme = if !url.contains("://") {
-        format!("https://{}", url)
+        format!("https://{url}")
     } else {
         url.to_string()
     };

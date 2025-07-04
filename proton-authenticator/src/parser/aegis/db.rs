@@ -109,7 +109,7 @@ pub fn parse_aegis_db(db: AegisDbRoot) -> Result<ImportResult, AegisImportError>
                 warn!("error importing entry {:?}: {:?}", entry, e);
                 errors.push(ImportError {
                     context: format!("Error importing entry {idx}"),
-                    message: format!("Error importing entry {:?}, {:?}", entry, e),
+                    message: format!("Error importing entry {entry:?}, {e:?}"),
                 })
             }
         }

@@ -58,22 +58,22 @@ pub(crate) fn get_authenticator(pk: Option<ProtonPassKey>) -> Authenticator<Opti
 
 pub(crate) fn serialize_passkey(pk: &ProtonPassKey) -> PasskeyResult<Vec<u8>> {
     let serialized_contents = rmp_serde::to_vec_named(pk)
-        .map_err(|e| PasskeyError::SerializationError(format!("Error serializing ProtonPassKey: {:?}", e)))?;
+        .map_err(|e| PasskeyError::SerializationError(format!("Error serializing ProtonPassKey: {e:?}")))?;
     let serialized = SerializedPassKey {
         content: serialized_contents,
         format_version: CONTENT_FORMAT_VERSION,
     };
 
     rmp_serde::to_vec_named(&serialized)
-        .map_err(|e| PasskeyError::SerializationError(format!("Error serializing SerializedPassKey: {:?}", e)))
+        .map_err(|e| PasskeyError::SerializationError(format!("Error serializing SerializedPassKey: {e:?}")))
 }
 
 pub(crate) fn deserialize_passkey(content: &[u8]) -> PasskeyResult<ProtonPassKey> {
     let deserialized: SerializedPassKey = rmp_serde::from_slice(content)
-        .map_err(|e| PasskeyError::SerializationError(format!("Error deserializing SerializedPassKey: {:?}", e)))?;
+        .map_err(|e| PasskeyError::SerializationError(format!("Error deserializing SerializedPassKey: {e:?}")))?;
     match deserialized.format_version {
         1 => rmp_serde::from_slice(&deserialized.content)
-            .map_err(|e| PasskeyError::SerializationError(format!("Error deserializing ProtonPassKey: {:?}", e))),
+            .map_err(|e| PasskeyError::SerializationError(format!("Error deserializing ProtonPassKey: {e:?}"))),
         _ => Err(PasskeyError::SerializationError(format!(
             "Unknown SerializedPassKey format_version {}",
             deserialized.format_version
@@ -86,11 +86,11 @@ pub(crate) fn parse_url(url: &str) -> PasskeyResult<Url> {
         Ok(url) => Ok(url),
         Err(err) => {
             if let ParseError::RelativeUrlWithoutBase = err {
-                let with_protocol = format!("https://{}", url);
+                let with_protocol = format!("https://{url}");
                 Ok(Url::parse(&with_protocol)
-                    .map_err(|e| PasskeyError::InvalidUri(format!("Error parsing uri: {:?}", e)))?)
+                    .map_err(|e| PasskeyError::InvalidUri(format!("Error parsing uri: {e:?}")))?)
             } else {
-                Err(PasskeyError::InvalidUri(format!("Error parsing uri: {:?}", err)))
+                Err(PasskeyError::InvalidUri(format!("Error parsing uri: {err:?}")))
             }
         }
     }

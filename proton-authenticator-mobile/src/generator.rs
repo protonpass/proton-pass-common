@@ -86,7 +86,7 @@ impl MobileTotpGenerator {
             .worker_threads(Self::RUNTIME_THREADS)
             .enable_time()
             .build()
-            .map_err(|e| proton_authenticator::AuthenticatorError::Unknown(format!("Cannot start runtime: {:?}", e)))?;
+            .map_err(|e| proton_authenticator::AuthenticatorError::Unknown(format!("Cannot start runtime: {e:?}")))?;
         Ok(Self {
             inner: CoreTotpGenerator::new(dependencies, only_on_code_change, period_ms),
             rt,

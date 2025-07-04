@@ -69,7 +69,7 @@ pub fn parse_bitwarden_json(input: &str) -> Result<ImportResult, BitwardenImport
             Ok(entry) => entries.push(entry),
             Err(e) => errors.push(ImportError {
                 context: format!("Error in entry {idx}"),
-                message: format!("{:?}", e),
+                message: format!("{e:?}"),
             }),
         }
     }

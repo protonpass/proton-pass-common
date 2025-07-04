@@ -200,7 +200,7 @@ pub fn parse_2fas_file(json_data: &str, password: Option<String>) -> Result<Impo
             Err(e) => {
                 errors.push(ImportError {
                     context: format!("Error parsing entry {idx}"),
-                    message: format!("Error parsing entry {:?}: {:?}", entry, e),
+                    message: format!("Error parsing entry {entry:?}: {e:?}"),
                 });
             }
         }

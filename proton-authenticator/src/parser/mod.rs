@@ -5,6 +5,7 @@ pub mod bitwarden;
 pub mod ente;
 pub mod google;
 pub mod lastpass;
+pub mod pass;
 pub mod proton_authenticator;
 pub mod twofas;
 

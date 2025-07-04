@@ -29,6 +29,7 @@ pub use parser::bitwarden::{parse_bitwarden_csv, parse_bitwarden_json};
 pub use parser::ente::parse_ente_txt;
 pub use parser::google::parse_google_authenticator_totp;
 pub use parser::lastpass::parse_lastpass_json;
+pub use parser::pass::parse_pass_zip;
 pub use parser::proton_authenticator::{
     parse_proton_authenticator_export, parse_proton_authenticator_export_with_password,
 };

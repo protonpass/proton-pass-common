@@ -27,6 +27,7 @@ scrypt = "0.11.0"
 sha2 = "0.10"
 url = "2.5.4"
 argon2 = "0.5.3"
+zip = { version ="4.2.0", default-features = false, features = [ "deflate" ] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio.workspace = true

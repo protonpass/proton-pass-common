@@ -6,6 +6,14 @@
 
 ### Other
 
+## 0.24.0
+
+### Features :tada:
+
+- authenticator: allow to import TOTPs from a Proton Pass zip export.
+- authenticator: allow to export entries to an encrypted backup with a password.
+- authenticator: allow to import authenticator entries from an encrypted backup with a password.
+
 ## 0.23.0
 
 ### Fixes :bug:

@@ -48,4 +48,7 @@ interface AuthenticatorImporter {
 
   [Throws=AuthenticatorImportException]
   AuthenticatorImportResult import_from_2fas(string contents, string? password);
+
+  [Throws=AuthenticatorImportException]
+  AuthenticatorImportResult import_from_pass_zip([ByRef] bytes contents);
 };

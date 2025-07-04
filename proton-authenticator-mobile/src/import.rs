@@ -118,4 +118,9 @@ impl AuthenticatorImporter {
         let res = proton_authenticator::parse_2fas_file(&contents, password).map_err(ThirdPartyImportError::from)?;
         Ok(AuthenticatorImportResult::from(res))
     }
+
+    pub fn import_from_pass_zip(&self, bytes: &[u8],) -> ImportResult {
+        let res = proton_authenticator::parse_pass_zip(bytes).map_err(ThirdPartyImportError::from)?;
+        Ok(AuthenticatorImportResult::from(res))
+    }
 }

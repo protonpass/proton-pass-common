@@ -91,6 +91,12 @@ pub fn import_from_proton_authenticator(contents: String) -> ImportResult {
 }
 
 #[wasm_bindgen]
+pub fn import_from_proton_authenticator_with_password(password: String, contents: String) -> ImportResult {
+    let res = proton_authenticator::parse_proton_authenticator_export_with_password(&password, &contents)?;
+    Ok(AuthenticatorImportResult::from(res))
+}
+
+#[wasm_bindgen]
 pub fn import_from_2fas(contents: String, password: Option<String>) -> ImportResult {
     let res = proton_authenticator::parse_2fas_file(&contents, password).map_err(ThirdPartyImportError::from)?;
     Ok(AuthenticatorImportResult::from(res))

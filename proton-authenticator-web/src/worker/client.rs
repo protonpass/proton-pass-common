@@ -244,3 +244,13 @@ pub fn export_entries(models: Vec<WasmAuthenticatorEntryModel>) -> JsResult<Stri
     let client = AuthenticatorClient::new();
     Ok(client.export_entries(mapped)?)
 }
+
+#[wasm_bindgen]
+pub fn export_entries_with_password(password: String, models: Vec<WasmAuthenticatorEntryModel>) -> JsResult<String> {
+    let mut mapped = vec![];
+    for entry in models {
+        mapped.push(entry.to_entry()?);
+    }
+    let client = AuthenticatorClient::new();
+    Ok(client.export_entries_with_password(&password, mapped)?)
+}

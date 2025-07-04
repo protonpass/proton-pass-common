@@ -10,8 +10,7 @@ mod sanitize;
 mod swissid;
 
 fn parse(request: &str) -> PasskeyResult<PublicKeyCredentialCreationOptions> {
-    serde_json::from_str(request)
-        .map_err(|e| PasskeyError::SerializationError(format!("Error parsing request: {e:?}")))
+    serde_json::from_str(request).map_err(|e| PasskeyError::SerializationError(format!("Error parsing request: {e:?}")))
 }
 
 fn try_fix_request(request: &str) -> PasskeyResult<String> {

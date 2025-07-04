@@ -169,9 +169,7 @@ impl TOTP {
 
         let mut uri = match Url::parse(&base_uri) {
             Ok(value) => value,
-            _ => panic!(
-                "Should be able to create Url struct with scheme {OTP_SCHEME} and host {TOTP_HOST}"
-            ),
+            _ => panic!("Should be able to create Url struct with scheme {OTP_SCHEME} and host {TOTP_HOST}"),
         };
 
         // Add label path

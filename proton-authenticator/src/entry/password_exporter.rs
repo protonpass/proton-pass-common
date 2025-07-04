@@ -1,16 +1,18 @@
-use crate::entry::export_entries;
-use crate::{AuthenticatorEntry, AuthenticatorError};
-use aes_gcm::aead::{Aead, Payload};
-use aes_gcm::{AeadCore, Aes256Gcm, KeyInit};
+use crate::crypto::EncryptionTag;
+use crate::entry::{export_entries, import_authenticator_entries};
+use crate::{crypto, AuthenticatorEntry, AuthenticatorError, ImportResult};
+use aes_gcm::aead::Aead;
+use aes_gcm::{AeadCore, KeyInit};
 use argon2::password_hash::rand_core::RngCore;
 use argon2::Algorithm::Argon2id;
 use argon2::Version::V0x13;
 use argon2::{
-    password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
+    password_hash::{rand_core::OsRng, PasswordHasher, PasswordVerifier},
     Argon2,
 };
 use base64::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::error::Error;
 
 #[derive(Serialize, Deserialize)]
 struct EncryptedExport {
@@ -27,6 +29,25 @@ pub(crate) fn export_entries_with_password(
 
     let mut salt = [0u8; 16];
     OsRng.fill_bytes(&mut salt);
+    let aes_key = derive_password_key(password, &mut salt)?;
+
+    let cipher_text =
+        crypto::encrypt(&exported_data.into_bytes(), &aes_key, EncryptionTag::PasswordExport).map_err(|e| {
+            AuthenticatorError::SerializationError(format!(
+                "Error exporting authenticator entries, could not encrypt exported data: {:?}",
+                e
+            ))
+        })?;
+
+    let encrypted_export = EncryptedExport {
+        version: 1,
+        salt: BASE64_STANDARD.encode(&salt),
+        content: BASE64_STANDARD.encode(&cipher_text),
+    };
+    Ok(serde_json::to_string(&encrypted_export)?)
+}
+
+fn derive_password_key(password: &str, salt: &[u8; 16]) -> Result<[u8; 32], Box<dyn Error>> {
     let argon2_params = argon2::ParamsBuilder::new()
         .m_cost(19 * 1024)
         .t_cost(2)
@@ -34,53 +55,91 @@ pub(crate) fn export_entries_with_password(
         .build()
         .map_err(|e| AuthenticatorError::SerializationError(e.to_string()))?;
     let argon2 = Argon2::new(Argon2id, V0x13, argon2_params);
-    let mut aes_key = [0u8; 32]; // Can be any desired size
+    let mut aes_key = [0u8; 32];
     argon2
-        .hash_password_into(password.as_bytes(), &salt, &mut aes_key)
+        .hash_password_into(password.as_bytes(), salt, &mut aes_key)
         .map_err(|e| {
             AuthenticatorError::SerializationError(format!(
                 "Error exporting authenticator entries, could not hash password: {:?}",
                 e
             ))
         })?;
+    Ok(aes_key)
+}
 
-    let cipher = Aes256Gcm::new_from_slice(&aes_key)?;
-    let payload = Payload {
-        msg: exported_data.as_bytes(),
-        aad: b"proton.authenticator.export.v1",
-    };
-    let nonce = Aes256Gcm::generate_nonce(&mut OsRng);
-    let cypher_text = cipher.encrypt(&nonce, payload).map_err(|e| {
+pub(crate) fn import_entries_with_password(password: &str, input: &str) -> Result<ImportResult, AuthenticatorError> {
+    let encrypted_export: EncryptedExport = serde_json::from_str(input).map_err(|e| {
         AuthenticatorError::SerializationError(format!(
-            "Error exporting authenticator entries, could not encrypt data: {:?}",
+            "Error importing authenticator entries, could deserialize json: {:?}",
+            e
+        ))
+    })?;
+    let salt = BASE64_STANDARD.decode(&encrypted_export.salt).map_err(|e| {
+        AuthenticatorError::SerializationError(format!(
+            "Error importing authenticator entries, could deserialize salt: {:?}",
             e
         ))
     })?;
 
-    let encrypted_export = EncryptedExport {
-        version: 1,
-        salt: BASE64_STANDARD.encode(&salt),
-        content: BASE64_STANDARD.encode(&cypher_text),
-    };
-    Ok(serde_json::to_string(&encrypted_export)?)
+    let salt_ref: &[u8; 16] = salt
+        .as_slice()
+        .try_into()
+        .expect("Salt does not have the expected 16 byte length");
+    let aes_key = derive_password_key(password, salt_ref).map_err(|e| {
+        AuthenticatorError::SerializationError(format!(
+            "Error importing authenticator entries, could not derive password: {:?}",
+            e
+        ))
+    })?;
+    let cypher_text = BASE64_STANDARD.decode(&encrypted_export.content).map_err(|e| {
+        AuthenticatorError::SerializationError(format!(
+            "Error importing authenticator entries, could not decode contents: {:?}",
+            e
+        ))
+    })?;
+    let binary_export = crypto::decrypt(&cypher_text, &aes_key, EncryptionTag::PasswordExport).map_err(|e| {
+        AuthenticatorError::SerializationError(format!(
+            "Error importing authenticator entries, could not decrypt contents: {:?}",
+            e
+        ))
+    })?;
+
+    let plain_text = std::str::from_utf8(&binary_export).map_err(|e| {
+        AuthenticatorError::SerializationError(format!(
+            "Error importing authenticator entries, could not read contents  {:?}",
+            e
+        ))
+    })?;
+
+    import_authenticator_entries(plain_text)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::AuthenticatorEntryContent;
 
     #[test]
-    fn test_export_encrypted() {
-        let e1 = AuthenticatorEntry::from_uri(
-            "otpauth://totp/MYLABEL?secret=MYSECRET&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15",
-            None,
-        )
-        .unwrap();
-        let e2 = AuthenticatorEntry::from_uri("steam://STEAMKEY", None).unwrap();
+    fn test_export_import_encrypted() {
+        let uri1 = "otpauth://totp/MYLABEL?secret=MYSECRET&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15";
+        let uri2 = "steam://STEAMKEY";
 
-        let entries = vec![e1, e2];
+        let entries = vec![
+            AuthenticatorEntry::from_uri(&uri1, None).unwrap(),
+            AuthenticatorEntry::from_uri(&uri2, None).unwrap(),
+        ];
         let password = "DummyPassword";
         let exported = export_entries_with_password(password, entries).unwrap();
+        let imported = import_entries_with_password(password, &exported).unwrap();
+        assert_eq!(imported.entries.len(), 2);
+        assert_eq!(
+            imported.entries[0].content,
+            AuthenticatorEntryContent::from_uri(uri1).unwrap()
+        );
+        assert_eq!(
+            imported.entries[1].content,
+            AuthenticatorEntryContent::from_uri(uri2).unwrap()
+        );
         assert!(exported.len() > 10);
     }
 }

@@ -5,6 +5,7 @@ use rand::RngCore;
 #[derive(Clone, Debug)]
 pub enum EncryptionTag {
     Entry,
+    PasswordExport,
     Unknown,
 }
 
@@ -12,6 +13,7 @@ impl EncryptionTag {
     pub fn aad(&self) -> Vec<u8> {
         match self {
             EncryptionTag::Entry => b"entrycontent".to_vec(),
+            EncryptionTag::PasswordExport => b"proton.authenticator.export.v1".to_vec(),
             EncryptionTag::Unknown => vec![],
         }
     }

@@ -140,8 +140,8 @@ mod tests {
         let uri2 = "steam://STEAMKEY";
 
         let entries = vec![
-            AuthenticatorEntry::from_uri(&uri1, None).unwrap(),
-            AuthenticatorEntry::from_uri(&uri2, None).unwrap(),
+            AuthenticatorEntry::from_uri(uri1, None).unwrap(),
+            AuthenticatorEntry::from_uri(uri2, None).unwrap(),
         ];
         let password = "DummyPassword";
         let exported = export_entries_with_password(password, entries).unwrap();
@@ -162,7 +162,7 @@ mod tests {
     fn test_export_with_different_password_fails() {
         let uri1 = "otpauth://totp/MYLABEL?secret=MYSECRET&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15";
 
-        let entries = vec![AuthenticatorEntry::from_uri(&uri1, None).unwrap()];
+        let entries = vec![AuthenticatorEntry::from_uri(uri1, None).unwrap()];
         let exported = export_entries_with_password("ok", entries).unwrap();
         let result = import_entries_with_password("invalid", &exported);
         assert!(result.is_err());

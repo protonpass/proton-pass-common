@@ -207,9 +207,10 @@ fn create_entry_from_uri(uri: &str, name: &str, note: Option<String>) -> Result<
             // Clean reverse-exported TOTP label:issuer
             if let (Some(label), Some(issuer)) = (totp.label.as_ref(), totp.issuer.as_ref()) {
                 if label == "Proton Pass" && !issuer.is_empty() {
+                    let label_clone = label.clone();
                     let issuer_clone = issuer.clone();
                     totp.label = Some(issuer_clone);
-                    totp.issuer = Some("Proton Pass".to_string());
+                    totp.issuer = Some(label_clone);
                 }
             }
         }

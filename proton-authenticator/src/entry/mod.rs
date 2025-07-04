@@ -1,6 +1,7 @@
 mod create;
 mod exporter;
 mod gen;
+mod password_exporter;
 mod serializer;
 mod update;
 

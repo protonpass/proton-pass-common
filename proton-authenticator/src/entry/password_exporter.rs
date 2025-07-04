@@ -1,15 +1,10 @@
 use crate::crypto::EncryptionTag;
 use crate::entry::{export_entries, import_authenticator_entries};
 use crate::{crypto, AuthenticatorEntry, AuthenticatorError, ImportResult};
-use aes_gcm::aead::Aead;
-use aes_gcm::{AeadCore, KeyInit};
 use argon2::password_hash::rand_core::RngCore;
 use argon2::Algorithm::Argon2id;
 use argon2::Version::V0x13;
-use argon2::{
-    password_hash::{rand_core::OsRng, PasswordHasher, PasswordVerifier},
-    Argon2,
-};
+use argon2::{password_hash::rand_core::OsRng, Argon2};
 use base64::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::error::Error;
@@ -29,7 +24,7 @@ pub fn export_entries_with_password(
 
     let mut salt = [0u8; 16];
     OsRng.fill_bytes(&mut salt);
-    let aes_key = derive_password_key(password, &mut salt)?;
+    let aes_key = derive_password_key(password, &salt)?;
 
     let cipher_text =
         crypto::encrypt(&exported_data.into_bytes(), &aes_key, EncryptionTag::PasswordExport).map_err(|e| {
@@ -41,7 +36,7 @@ pub fn export_entries_with_password(
 
     let encrypted_export = EncryptedExport {
         version: 1,
-        salt: BASE64_STANDARD.encode(&salt),
+        salt: BASE64_STANDARD.encode(salt),
         content: BASE64_STANDARD.encode(&cipher_text),
     };
     Ok(serde_json::to_string(&encrypted_export)?)

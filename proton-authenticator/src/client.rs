@@ -82,15 +82,14 @@ impl AuthenticatorClient {
             AuthenticatorError::SerializationError(msg)
         })
     }
-    /*
-    pub fn export_entries_with_password(&self, password: String, entries: Vec<AuthenticatorEntry>) -> Result<String> {
+
+    pub fn export_entries_with_password(&self, password: &str, entries: Vec<AuthenticatorEntry>) -> Result<String> {
         entry::export_entries_with_password(password, entries).map_err(|e| {
             let msg = format!("error exporting entries: {:?}", e);
             warn!("{}", msg);
             AuthenticatorError::SerializationError(msg)
         })
     }
-    */
 
     pub(crate) fn generate_code(entry: &AuthenticatorEntry, time: u64) -> Result<AuthenticatorCodeResponse> {
         match &entry.content {

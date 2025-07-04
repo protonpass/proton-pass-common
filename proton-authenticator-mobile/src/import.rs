@@ -109,6 +109,11 @@ impl AuthenticatorImporter {
         Ok(AuthenticatorImportResult::from(res))
     }
 
+    pub fn import_from_proton_authenticator_with_password(&self, password: String, contents: String) -> ImportResult {
+        let res = proton_authenticator::parse_proton_authenticator_export_with_password(&password, &contents)?;
+        Ok(AuthenticatorImportResult::from(res))
+    }
+
     pub fn import_from_2fas(&self, contents: String, password: Option<String>) -> ImportResult {
         let res = proton_authenticator::parse_2fas_file(&contents, password).map_err(ThirdPartyImportError::from)?;
         Ok(AuthenticatorImportResult::from(res))

@@ -8,6 +8,7 @@ mod update;
 use crate::steam::{SteamTotp, PERIOD as STEAM_PERIOD, STEAM_DIGITS, STEAM_ISSUER};
 pub use create::{AuthenticatorEntrySteamCreateParameters, AuthenticatorEntryTotpCreateParameters};
 pub use exporter::{export_entries, import_authenticator_entries};
+pub use password_exporter::{export_entries_with_password, import_entries_with_password};
 use proton_pass_totp::{Algorithm, TOTP};
 pub use update::{AuthenticatorEntryType, AuthenticatorEntryUpdateContents};
 

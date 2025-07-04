@@ -21,7 +21,7 @@ struct EncryptedExport {
     content: String,
 }
 
-pub(crate) fn export_entries_with_password(
+pub fn export_entries_with_password(
     password: &str,
     entries: Vec<AuthenticatorEntry>,
 ) -> Result<String, Box<dyn std::error::Error>> {
@@ -67,7 +67,7 @@ fn derive_password_key(password: &str, salt: &[u8; 16]) -> Result<[u8; 32], Box<
     Ok(aes_key)
 }
 
-pub(crate) fn import_entries_with_password(password: &str, input: &str) -> Result<ImportResult, AuthenticatorError> {
+pub fn import_entries_with_password(password: &str, input: &str) -> Result<ImportResult, AuthenticatorError> {
     let encrypted_export: EncryptedExport = serde_json::from_str(input).map_err(|e| {
         AuthenticatorError::SerializationError(format!(
             "Error importing authenticator entries, could deserialize json: {:?}",

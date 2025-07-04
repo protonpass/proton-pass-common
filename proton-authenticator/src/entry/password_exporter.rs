@@ -24,7 +24,12 @@ pub fn export_entries_with_password(
 
     let mut salt = [0u8; 16];
     OsRng.fill_bytes(&mut salt);
-    let aes_key = derive_password_key(password, &salt)?;
+    let aes_key = derive_password_key(password, &salt).map_err(|e| {
+        AuthenticatorError::SerializationError(format!(
+            "Error exporting authenticator entries, could not derive password: {:?}",
+            e
+        ))
+    })?;
 
     let cipher_text =
         crypto::encrypt(&exported_data.into_bytes(), &aes_key, EncryptionTag::PasswordExport).map_err(|e| {
@@ -39,7 +44,13 @@ pub fn export_entries_with_password(
         salt: BASE64_STANDARD.encode(salt),
         content: BASE64_STANDARD.encode(&cipher_text),
     };
-    Ok(serde_json::to_string(&encrypted_export)?)
+
+    Ok(serde_json::to_string(&encrypted_export).map_err(|e| {
+        AuthenticatorError::SerializationError(format!(
+            "Error exporting authenticator entries, could not serialize data to json: {:?}",
+            e
+        ))
+    })?)
 }
 
 fn derive_password_key(password: &str, salt: &[u8; 16]) -> Result<[u8; 32], Box<dyn Error>> {

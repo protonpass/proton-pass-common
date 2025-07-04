@@ -45,12 +45,12 @@ pub fn export_entries_with_password(
         content: BASE64_STANDARD.encode(&cipher_text),
     };
 
-    Ok(serde_json::to_string(&encrypted_export).map_err(|e| {
+    serde_json::to_string(&encrypted_export).map_err(|e| {
         AuthenticatorError::SerializationError(format!(
             "Error exporting authenticator entries, could not serialize data to json: {:?}",
             e
         ))
-    })?)
+    })
 }
 
 fn derive_password_key(password: &str, salt: &[u8; 16]) -> Result<[u8; 32], Box<dyn Error>> {

@@ -1,3 +1,4 @@
+use js_sys::Uint8Array;
 use crate::entry::WasmAuthenticatorEntryModel;
 use proton_authenticator::ThirdPartyImportError;
 use serde::{Deserialize, Serialize};
@@ -99,5 +100,12 @@ pub fn import_from_proton_authenticator_with_password(contents: String, password
 #[wasm_bindgen]
 pub fn import_from_2fas(contents: String, password: Option<String>) -> ImportResult {
     let res = proton_authenticator::parse_2fas_file(&contents, password).map_err(ThirdPartyImportError::from)?;
+    Ok(AuthenticatorImportResult::from(res))
+}
+
+#[wasm_bindgen]
+pub fn import_from_pass_zip(zip_contents: Uint8Array) -> ImportResult {
+    let contents_as_array = zip_contents.to_vec();
+    let res = proton_authenticator::parse_pass_zip(&contents_as_array).map_err(ThirdPartyImportError::from)?;
     Ok(AuthenticatorImportResult::from(res))
 }

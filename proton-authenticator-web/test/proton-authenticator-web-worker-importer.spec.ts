@@ -1,20 +1,27 @@
 import { describe, expect, test } from "bun:test";
 
 import {
-    import_from_2fas, WasmAuthenticatorEntryModel
+    import_from_2fas, import_from_pass_zip, WasmAuthenticatorEntryModel
 } from "./pkg/worker";
 
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import path from "path";
 
-function loadFile(filename: string): string {
+function getFilePath(filename: string): string {
     // @ts-ignore
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
     const basePath = path.resolve(__dirname, "../../proton-authenticator/test_data/authenticator");
-    const filePath = path.join(basePath, filename);
-    return readFileSync(filePath, "utf8");
+    return path.join(basePath, filename);
+}
+
+function loadFile(filename: string): string {
+    return readFileSync(getFilePath(filename), "utf8");
+}
+
+function loadFileBytes(filename: string): Buffer {
+    return readFileSync(getFilePath(filename));
 }
 
 describe("ProtonAuthenticatorWeb WASM importer", () => {
@@ -53,6 +60,12 @@ describe("ProtonAuthenticatorWeb WASM importer", () => {
             } catch (e) {
                 expect(e.message).toEqual("BadPassword");
             }
+        });
+        test("Can import pass zip file", () => {
+            const content = loadFileBytes("pass/PassExport.zip");
+            const imported = import_from_pass_zip(content);
+            expect(imported.entries.length).toEqual(7);
+            expect(imported.errors.length).toEqual(1);
         });
     });
 });

@@ -106,6 +106,14 @@ ios-lib-ios: ## Build the iOS library for iOS
 ios-lib-ios-sim: ## Build the iOS library for iOS arm simulators
 	@cargo build -p proton-pass-mobile --release --target aarch64-apple-ios-sim
 
+.PHONY: ios-min-xcframework
+ios-min-xcframework: ios-lib-ios-sim ## Build a minimal xcframework for iOS arm simulators just to test the build pipeline
+	@xcodebuild -create-xcframework \
+               -library "target/aarch64-apple-ios-sim/release/${IOS_LIB_NAME}" \
+               -headers proton-pass-mobile/iOS/headers \
+               -output "${IOS_FRAMEWORK_DIR}/${IOS_XCFRAMEWORK_NAME}"
+	@cp -R "${IOS_FRAMEWORK_DIR}/${IOS_XCFRAMEWORK_NAME}" "${IOS_PACKAGE_DIR}/${IOS_XCFRAMEWORK_NAME}"
+
 .PHONY: ios-xcframework
 ios-xcframework: ios-lib-macos ios-lib-ios ios-lib-ios-sim ## Build the iOS xcframework
 	@xcodebuild -create-xcframework \
@@ -116,7 +124,6 @@ ios-xcframework: ios-lib-macos ios-lib-ios ios-lib-ios-sim ## Build the iOS xcfr
                -library "target/aarch64-apple-darwin/release/${IOS_LIB_NAME}" \
                -headers proton-pass-mobile/iOS/headers \
                -output "${IOS_FRAMEWORK_DIR}/${IOS_XCFRAMEWORK_NAME}"
-	@cp -R "${IOS_FRAMEWORK_DIR}/${IOS_XCFRAMEWORK_NAME}" "${IOS_PACKAGE_DIR}/${IOS_XCFRAMEWORK_NAME}"
 
 .PHONY: ios-package
 ios-package: clean swift-bindings ios-xcframework ## Update the iOS package
@@ -143,9 +150,12 @@ android-lib-x86_64: android-dirs ## Build the android library for x86_64
 	@strip "target/x86_64-linux-android/release/${MOBILE_LIB_NAME}" || echo "Could not strip x86_64 shared library"
 	@cp "target/x86_64-linux-android/release/${MOBILE_LIB_NAME}" "${ANDROID_JNI_DIR}/x86_64/${MOBILE_LIB_NAME}"
 
-.PHONY: android
-android: android-lib-aarch64 android-lib-armv7 android-lib-x86_64 ## Build all the android variants
+.PHONY: android-build-lib
+android-build-lib:
 	@cd ${PROJECT_ROOT}/proton-pass-mobile/android && ./gradlew :lib:assembleRelease --no-configuration-cache
+
+.PHONY: android
+android: android-lib-aarch64 android-lib-armv7 android-lib-x86_64 android-build-lib ## Build all the android variants
 
 # --- Web
 .PHONY: web-setup
@@ -252,6 +262,13 @@ authenticator-ios-lib-ios: ## Build the iOS library for iOS
 authenticator-ios-lib-ios-sim: ## Build the iOS library for iOS arm simulators
 	@cargo build -p proton-authenticator-mobile --release --target aarch64-apple-ios-sim
 
+.PHONY: authenticator-ios-min-xcframework
+authenticator-ios-min-xcframework: authenticator-ios-lib-ios-sim ## Build a minimal xcframework for iOS arm simulators just to test the build pipeline
+	@xcodebuild -create-xcframework \
+               -library "target/aarch64-apple-ios-sim/release/${AUTHENTICATOR_IOS_LIB_NAME}" \
+               -headers proton-authenticator-mobile/iOS/headers \
+               -output "${AUTHENTICATOR_IOS_FRAMEWORK_DIR}/${AUTHENTICATOR_IOS_XCFRAMEWORK_NAME}"
+
 .PHONY: authenticator-ios-xcframework
 authenticator-ios-xcframework: authenticator-ios-lib-macos authenticator-ios-lib-ios authenticator-ios-lib-ios-sim ## Build the iOS xcframework
 	@xcodebuild -create-xcframework \
@@ -290,9 +307,12 @@ authenticator-android-lib-x86_64: authenticator-android-dirs ## Build the androi
 	@strip "target/x86_64-linux-android/release/${AUTHENTICATOR_MOBILE_LIB_NAME}" || echo "Could not strip x86_64 shared library"
 	@cp "target/x86_64-linux-android/release/${AUTHENTICATOR_MOBILE_LIB_NAME}" "${AUTHENTICATOR_ANDROID_JNI_DIR}/x86_64/${AUTHENTICATOR_MOBILE_LIB_NAME}"
 
-.PHONY: authenticator-android
-authenticator-android: authenticator-android-lib-aarch64 authenticator-android-lib-armv7 authenticator-android-lib-x86_64 ## Build all the android variants
+.PHONY: authenticator-android-build-lib
+authenticator-android-build-lib:
 	@cd ${PROJECT_ROOT}/proton-authenticator-mobile/android && ./gradlew :lib:assembleRelease --no-configuration-cache
+
+.PHONY: authenticator-android
+authenticator-android: authenticator-android-lib-aarch64 authenticator-android-lib-armv7 authenticator-android-lib-x86_64 authenticator-android-build-lib ## Build all the android variants
 
 .PHONY: authenticator-web-setup
 authenticator-web-setup:

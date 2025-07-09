@@ -1,5 +1,6 @@
 use crate::parser::{ImportError, ImportResult, ThirdPartyImportError};
 use crate::{AuthenticatorEntry, AuthenticatorEntryContent};
+use proton_pass_totp::TOTP;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::io::Read;
@@ -195,7 +196,21 @@ fn extract_totp_entries_from_item(
 }
 
 fn create_entry_from_uri(uri: &str, name: &str, note: Option<String>) -> Result<AuthenticatorEntry, PassImportError> {
-    let mut content = AuthenticatorEntryContent::from_uri(uri).map_err(|_| PassImportError::BadContent)?;
+    // In some cases, the URI can be only the secret, instead of a TOTP uri.
+    // If it's a secret-only string, use TOTP::from_uri to parse it, convert it to a real TOTP uri
+    // and try to import it
+    let totp_uri = if !uri.contains("://") {
+        match TOTP::from_uri(uri) {
+            Ok(totp) => totp.to_uri(None, None),
+            Err(e) => {
+                error!("Error creating TOTP from uri: {e:?}");
+                return Err(PassImportError::BadContent);
+            }
+        }
+    } else {
+        uri.to_string()
+    };
+    let mut content = AuthenticatorEntryContent::from_uri(&totp_uri).map_err(|_| PassImportError::BadContent)?;
 
     // Set the name/label if it's not already set or if it's empty
     match &mut content {

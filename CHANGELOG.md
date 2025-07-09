@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.24.1
+
+### Fixes :bug:
+
+- authenticator: allow to import secret-only TOTPs from a Proton Pass zip export.
+
 ## 0.24.0
 
 ### Features :tada:

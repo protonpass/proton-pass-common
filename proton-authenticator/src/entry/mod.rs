@@ -1,4 +1,5 @@
 mod create;
+mod crypto;
 mod exporter;
 mod gen;
 mod password_exporter;
@@ -7,6 +8,7 @@ mod update;
 
 use crate::steam::{SteamTotp, PERIOD as STEAM_PERIOD, STEAM_DIGITS, STEAM_ISSUER};
 pub use create::{AuthenticatorEntrySteamCreateParameters, AuthenticatorEntryTotpCreateParameters};
+pub use crypto::{decrypt_entries, encrypt_entries};
 pub use exporter::{export_entries, import_authenticator_entries};
 pub use password_exporter::{export_entries_with_password, import_entries_with_password};
 use proton_pass_totp::{Algorithm, TOTP};
@@ -57,11 +59,26 @@ impl AuthenticatorEntryContent {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct AuthenticatorEntry {
     pub id: String,
     pub content: AuthenticatorEntryContent,
     pub note: Option<String>,
+}
+
+impl PartialEq for AuthenticatorEntry {
+    fn eq(&self, other: &Self) -> bool {
+        if !self.id.eq(&other.id) || !self.content.eq(&other.content) {
+            return false;
+        }
+
+        match (&self.note, &other.note) {
+            (None, None) => true,
+            (None, Some(other)) => other.is_empty(),
+            (Some(this), None) => this.is_empty(),
+            (Some(this), Some(other)) => this == other,
+        }
+    }
 }
 
 #[derive(Clone, Debug)]

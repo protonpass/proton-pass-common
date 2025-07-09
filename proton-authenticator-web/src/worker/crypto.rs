@@ -2,8 +2,6 @@ use super::JsResult;
 use crate::common::*;
 use crate::entry::*;
 use js_sys::Uint8Array;
-use proton_authenticator::crypto::EncryptionTag;
-use proton_authenticator::AuthenticatorEntry;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -15,16 +13,20 @@ pub fn generate_key() -> Uint8Array {
 #[wasm_bindgen]
 pub fn encrypt_entries(models: Vec<WasmAuthenticatorEntryModel>, key: Uint8Array) -> JsResult<Vec<Uint8Array>> {
     let key_as_array = key.to_vec();
-    let mut encrypted_entries = Vec::with_capacity(models.len());
+    let mut serialized_entries = Vec::with_capacity(models.len());
     for model in models {
         let as_entry = model.to_entry()?;
-        let serialized = as_entry.serialize()?;
-        let encrypted = proton_authenticator::crypto::encrypt(&serialized, &key_as_array, EncryptionTag::Entry)
-            .map_err(|e| JsError::new(&format!("failed to encrypt entry: {e:?}")))?;
-        encrypted_entries.push(vec_to_uint8_array(encrypted));
+        serialized_entries.push(as_entry);
     }
 
-    Ok(encrypted_entries)
+    let encrypted_entries = proton_authenticator::encrypt_entries(serialized_entries, key_as_array)?;
+
+    let mut array_entries = Vec::with_capacity(encrypted_entries.len());
+    for entry in encrypted_entries {
+        array_entries.push(vec_to_uint8_array(entry));
+    }
+
+    Ok(array_entries)
 }
 
 #[wasm_bindgen]
@@ -33,18 +35,18 @@ pub fn decrypt_entries(
     key: Uint8Array,
 ) -> JsResult<Vec<WasmAuthenticatorEntryModel>> {
     let key_as_array = key.to_vec();
-    let mut decrypted_entries = Vec::with_capacity(encrypted_entries.len());
+    let mut entries_to_decrypt = Vec::with_capacity(encrypted_entries.len());
     for entry in encrypted_entries {
         let entry_as_bytes = entry.to_vec();
-        let decrypted = proton_authenticator::crypto::decrypt(&entry_as_bytes, &key_as_array, EncryptionTag::Entry)
-            .map_err(|e| JsError::new(&format!("failed to decrypt entry: {e:?}")))?;
-
-        let as_entry = AuthenticatorEntry::deserialize(&decrypted)
-            .map_err(|e| JsError::new(&format!("failed to deserialize entry: {e:?}")))?;
-
-        let as_model = WasmAuthenticatorEntryModel::from(as_entry);
-        decrypted_entries.push(as_model);
+        entries_to_decrypt.push(entry_as_bytes);
     }
 
-    Ok(decrypted_entries)
+    let decrypted_entries = proton_authenticator::decrypt_entries(entries_to_decrypt, key_as_array)?;
+
+    let mut mapped_entries = Vec::with_capacity(decrypted_entries.len());
+    for entry in decrypted_entries {
+        mapped_entries.push(WasmAuthenticatorEntryModel::from(entry));
+    }
+
+    Ok(mapped_entries)
 }

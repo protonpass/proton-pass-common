@@ -18,9 +18,9 @@ pub mod test_utils;
 
 pub use client::{AuthenticatorClient, AuthenticatorCodeResponse, AuthenticatorError};
 pub use entry::{
-    AuthenticatorEntry, AuthenticatorEntryContent, AuthenticatorEntryError, AuthenticatorEntrySteamCreateParameters,
-    AuthenticatorEntryTotpCreateParameters, AuthenticatorEntryTotpParameters, AuthenticatorEntryType,
-    AuthenticatorEntryUpdateContents,
+    decrypt_entries, encrypt_entries, AuthenticatorEntry, AuthenticatorEntryContent, AuthenticatorEntryError,
+    AuthenticatorEntrySteamCreateParameters, AuthenticatorEntryTotpCreateParameters, AuthenticatorEntryTotpParameters,
+    AuthenticatorEntryType, AuthenticatorEntryUpdateContents,
 };
 pub use issuer_mapper::{IssuerInfo, TOTPIssuerMapper};
 pub use log::{emit_log_message, register_authenticator_logger, LogLevel, Logger};

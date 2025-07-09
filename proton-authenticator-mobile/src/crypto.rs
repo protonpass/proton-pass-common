@@ -1,5 +1,4 @@
 use crate::AuthenticatorEntryModel;
-use proton_authenticator::crypto::EncryptionTag;
 use proton_pass_derive::Error;
 
 #[derive(Clone, Debug, Error)]
@@ -30,20 +29,22 @@ impl AuthenticatorCrypto {
     pub fn encrypt_many_entries(
         &self,
         models: Vec<AuthenticatorEntryModel>,
-        mut key: Vec<u8>,
+        key: Vec<u8>,
     ) -> Result<Vec<Vec<u8>>, AuthenticatorCryptoError> {
-        let mut res = Vec::with_capacity(models.len());
+        let mut entries = Vec::with_capacity(models.len());
         for model in models {
             let as_entry = model.to_entry().map_err(|_| AuthenticatorCryptoError::CryptoError)?;
-            let serialized = as_entry
-                .serialize()
-                .map_err(|_| AuthenticatorCryptoError::CryptoError)?;
-            let decrypted = proton_authenticator::crypto::encrypt(&serialized, &key, EncryptionTag::Entry)
-                .map_err(|_| AuthenticatorCryptoError::CryptoError)?;
-            res.push(decrypted);
+            entries.push(as_entry);
         }
-        key.clear();
-        Ok(res)
+
+        let encrypted = proton_authenticator::encrypt_entries(entries, key).map_err(|e| {
+            proton_authenticator::emit_log_message(
+                proton_authenticator::LogLevel::Error,
+                format!("error encrypting authenticator entries: {e:?}"),
+            );
+            AuthenticatorCryptoError::CryptoError
+        })?;
+        Ok(encrypted)
     }
 
     pub fn decrypt_entry(
@@ -58,20 +59,21 @@ impl AuthenticatorCrypto {
     pub fn decrypt_many_entries(
         &self,
         ciphertexts: Vec<Vec<u8>>,
-        mut key: Vec<u8>,
+        key: Vec<u8>,
     ) -> Result<Vec<AuthenticatorEntryModel>, AuthenticatorCryptoError> {
-        let mut res = Vec::with_capacity(ciphertexts.len());
-        for ciphertext in ciphertexts {
-            let decrypted = proton_authenticator::crypto::decrypt(&ciphertext, &key, EncryptionTag::Entry)
-                .map_err(|_| AuthenticatorCryptoError::CryptoError)?;
+        let decrypted = proton_authenticator::decrypt_entries(ciphertexts, key).map_err(|e| {
+            proton_authenticator::emit_log_message(
+                proton_authenticator::LogLevel::Error,
+                format!("error decrypting authenticator entries: {e:?}"),
+            );
+            AuthenticatorCryptoError::CryptoError
+        })?;
 
-            let deserialized = proton_authenticator::AuthenticatorEntry::deserialize(&decrypted)
-                .map_err(|_| AuthenticatorCryptoError::CryptoError)?;
-
-            let as_model = AuthenticatorEntryModel::from(deserialized);
+        let mut res = Vec::with_capacity(decrypted.len());
+        for entry in decrypted {
+            let as_model = AuthenticatorEntryModel::from(entry);
             res.push(as_model);
         }
-        key.clear();
         Ok(res)
     }
 }

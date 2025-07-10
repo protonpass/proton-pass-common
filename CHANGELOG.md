@@ -6,6 +6,13 @@
 
 ### Other
 
+## 0.24.2
+
+### Fixes :bug:
+
+- authenticator: move bulk encryption/decryption methods to the common implementation. 
+- authenticator: fix entry equality check to handle null and empty string. 
+
 ## 0.24.1
 
 ### Fixes :bug:

@@ -16,7 +16,7 @@ serde_json.workspace = true
 async-trait = "0.1.87"
 coset = "0.3.8"
 email_address = "0.2.9"
-file-format = { version = "0.26.0", features = ["reader"] }
+file-format = { version = "0.27.0", features = ["reader"] }
 lazy_static = "1.5.0"
 luhn = "1.0.1"
 passkey = "0.4.0"

@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.24.3
+
+### Fixes :bug:
+
+- pass-common: improve passkey handling in some sites. 
+
 ## 0.24.2
 
 ### Fixes :bug:

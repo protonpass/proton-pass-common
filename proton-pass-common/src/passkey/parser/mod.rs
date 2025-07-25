@@ -5,6 +5,7 @@ use sanitize::{sanitize_request, PasskeySanitizer};
 mod cvs;
 mod ebay;
 mod equal_sign;
+mod iherb;
 mod paypal;
 mod sanitize;
 mod swissid;

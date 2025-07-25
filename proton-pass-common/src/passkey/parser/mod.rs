@@ -6,6 +6,7 @@ mod cvs;
 mod ebay;
 mod equal_sign;
 mod iherb;
+mod mymailcheap;
 mod paypal;
 mod sanitize;
 mod swissid;

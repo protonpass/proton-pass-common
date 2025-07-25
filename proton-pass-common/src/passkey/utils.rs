@@ -47,3 +47,28 @@ pub fn transform_byte_array(value: Value) -> Value {
         other => other,
     }
 }
+
+pub fn set_user_display_name_if_empty(obj: &mut serde_json::Map<String, Value>) -> bool {
+    if let Some(user_obj) = obj.get("user") {
+        return match (user_obj.get("name"), user_obj.get("displayName")) {
+            (Some(Value::String(name)), Some(Value::Null)) => {
+                // Prepare user object with a set displayName
+                let mut user_obj_clone = user_obj.clone();
+                match user_obj_clone.as_object_mut() {
+                    Some(m) => {
+                        m.insert("displayName".to_string(), Value::String(name.to_string()));
+                    }
+                    None => return false,
+                };
+
+                // Insert user object to root Json object
+                obj.insert("user".to_string(), user_obj_clone);
+
+                true
+            }
+            _ => false,
+        };
+    }
+
+    false
+}

@@ -93,4 +93,35 @@ describe("ProtonPassWeb WASM", () => {
         expect(res.totp.period).toEqual(10);
 
     });
+
+    test("Can generate passkey with prf", async () => {
+        const input = {
+            attestation: "none",
+            authenticatorSelection: {
+                residentKey: "preferred",
+                userVerification: "preferred",
+            },
+            challenge:
+                "D-5y7y_E4V8NQBJrFnnhd7NCvRGhO5sBGwzfh23y8D4a_hSMyRRuTAp0hmSm6_eimM71XoYF84VUiY8e9kqavA",
+            excludeCredentials: [],
+            extensions: { prf: {} },
+            pubKeyCredParams: [
+                { alg: -7, type: "public-key" },
+                { alg: -257, type: "public-key" },
+            ],
+            rp: { id: "webauthn.io", name: "webauthn.io" },
+            user: { displayName: "uyguyhj", id: "ZFhsbmRYbG9hZw", name: "uyguyhj" },
+        };
+        const inputString = JSON.stringify(input);
+        const response = await generate_passkey("https://webauthn.io", inputString);
+
+        const extensionResults = response.credential.client_extension_results;
+
+        expect(extensionResults.hasOwnProperty("credProps")).toBeTrue();
+        expect(extensionResults.credProps).toBeUndefined();
+
+        const prf = extensionResults.prf;
+        expect(prf).not.toBeUndefined();
+        expect(prf.enabled).toBeTrue();
+    });
 });

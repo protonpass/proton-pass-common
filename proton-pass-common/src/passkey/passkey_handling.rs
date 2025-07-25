@@ -1,5 +1,6 @@
 use super::{PasskeyError, PasskeyResult, ProtonPassKey};
 use passkey::authenticator::{Authenticator, UserValidationMethod};
+use passkey_authenticator::extensions::HmacSecretConfig;
 use passkey_authenticator::UserCheck;
 use passkey_types::ctap2::Ctap2Error;
 use passkey_types::{ctap2::Aaguid, Passkey};
@@ -54,6 +55,7 @@ pub(crate) fn get_authenticator(pk: Option<ProtonPassKey>) -> Authenticator<Opti
 
     let store: Option<Passkey> = pk.map(Passkey::from);
     Authenticator::new(my_aaguid, store, user_validation_method)
+        .hmac_secret(HmacSecretConfig::new_with_uv_only().enable_on_make_credential())
 }
 
 pub(crate) fn serialize_passkey(pk: &ProtonPassKey) -> PasskeyResult<Vec<u8>> {

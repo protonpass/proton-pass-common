@@ -57,6 +57,7 @@ async fn generate_passkey_response(
         .register(origin, request, client_data_hash)
         .await
         .map_err(|e| PasskeyError::GenerationError(format!("failed to generate passkey: {e:?}")))?;
+
     if let Some(pk) = my_client.authenticator().store() {
         let converted = ProtonPassKey::from(pk.clone());
         let key_id = my_webauthn_credential.id.clone();

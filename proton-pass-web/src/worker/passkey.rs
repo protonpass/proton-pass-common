@@ -3,9 +3,10 @@ use proton_pass_common::passkey::{
 };
 
 use proton_pass_common::passkey_types::webauthn::{
-    AuthenticatedPublicKeyCredential, AuthenticationExtensionsClientOutputs, AuthenticatorAssertionResponse,
-    AuthenticatorAttachment, AuthenticatorAttestationResponse, AuthenticatorTransport, CreatedPublicKeyCredential,
-    CredentialPropertiesOutput, PublicKeyCredentialType,
+    AuthenticatedPublicKeyCredential, AuthenticationExtensionsClientOutputs, AuthenticationExtensionsPrfOutputs,
+    AuthenticationExtensionsPrfValues, AuthenticatorAssertionResponse, AuthenticatorAttachment,
+    AuthenticatorAttestationResponse, AuthenticatorTransport, CreatedPublicKeyCredential, CredentialPropertiesOutput,
+    PublicKeyCredentialType,
 };
 
 use serde::{Deserialize, Serialize};
@@ -49,14 +50,54 @@ impl From<PublicKeyCredentialType> for WasmPublicKeyCredentialType {
 #[derive(Tsify, Deserialize, Serialize)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct WasmAuthenticatorExtensionsClientOutputs {
-    #[serde(rename = "credProps")]
+    #[serde(default, rename = "credProps")]
     pub cred_props: Option<WasmCredentialPropertiesOutput>,
+
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub prf: Option<WasmAuthenticationExtensionsPrfOutputs>,
 }
 
 impl From<AuthenticationExtensionsClientOutputs> for WasmAuthenticatorExtensionsClientOutputs {
     fn from(value: AuthenticationExtensionsClientOutputs) -> Self {
         Self {
             cred_props: value.cred_props.map(WasmCredentialPropertiesOutput::from),
+            prf: value.prf.map(WasmAuthenticationExtensionsPrfOutputs::from),
+        }
+    }
+}
+
+#[derive(Tsify, Deserialize, Serialize)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct WasmAuthenticationExtensionsPrfOutputs {
+    #[serde(default)]
+    pub enabled: Option<bool>,
+    #[serde(default)]
+    pub results: Option<WasmAuthenticationExtensionsPrfValues>,
+}
+
+impl From<AuthenticationExtensionsPrfOutputs> for WasmAuthenticationExtensionsPrfOutputs {
+    fn from(value: AuthenticationExtensionsPrfOutputs) -> Self {
+        Self {
+            enabled: value.enabled,
+            results: value.results.map(WasmAuthenticationExtensionsPrfValues::from),
+        }
+    }
+}
+
+#[derive(Tsify, Deserialize, Serialize)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct WasmAuthenticationExtensionsPrfValues {
+    pub first: Vec<u8>,
+
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub second: Option<Vec<u8>>,
+}
+
+impl From<AuthenticationExtensionsPrfValues> for WasmAuthenticationExtensionsPrfValues {
+    fn from(value: AuthenticationExtensionsPrfValues) -> Self {
+        Self {
+            first: value.first.to_vec(),
+            second: value.second.map(|b| b.to_vec()),
         }
     }
 }
@@ -68,15 +109,12 @@ impl From<AuthenticationExtensionsClientOutputs> for WasmAuthenticatorExtensions
 pub struct WasmCredentialPropertiesOutput {
     #[serde(rename = "rk", default, skip_serializing_if = "Option::is_none")]
     pub discoverable: Option<bool>,
-    // #[serde(default, skip_serializing_if = "Option::is_none")]
-    // pub authenticator_display_name: Option<String>,
 }
 
 impl From<CredentialPropertiesOutput> for WasmCredentialPropertiesOutput {
     fn from(value: CredentialPropertiesOutput) -> Self {
         Self {
             discoverable: value.discoverable,
-            // authenticator_display_name: value.authenticator_display_name,
         }
     }
 }

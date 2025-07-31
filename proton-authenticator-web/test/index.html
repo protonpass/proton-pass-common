@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proton Authenticator Importer Test</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Proton Authenticator Importer Test</h1>
+        
+        <div class="controls">
+            <div class="form-group">
+                <label for="importer-select">Select Importer:</label>
+                <select id="importer-select">
+                    <option value="">-- Choose an importer --</option>
+                    <option value="import_from_aegis_json">Aegis JSON</option>
+                    <option value="import_from_aegis_txt">Aegis TXT</option>
+                    <option value="import_from_bitwarden_json">Bitwarden JSON</option>
+                    <option value="import_from_bitwarden_csv">Bitwarden CSV</option>
+                    <option value="import_from_ente_txt">Ente TXT</option>
+                    <option value="import_from_google_qr">Google QR</option>
+                    <option value="import_from_lastpass_json">LastPass JSON</option>
+                    <option value="import_from_proton_authenticator">Proton Authenticator</option>
+                    <option value="import_from_proton_authenticator_with_password">Proton Authenticator (with password)</option>
+                    <option value="import_from_2fas">2FAS</option>
+                    <option value="import_from_pass_zip">Pass ZIP</option>
+                </select>
+            </div>
+            
+            <div class="form-group" id="password-group" style="display: none;">
+                <label for="password">Password:</label>
+                <input type="password" id="password" placeholder="Enter password if required">
+            </div>
+        </div>
+        
+        <div class="drop-zone" id="drop-zone">
+            <div class="drop-zone-content">
+                <p>Drag & drop your file here or click to select</p>
+                <input type="file" id="file-input" style="display: none;">
+                <button id="file-select-btn">Select File</button>
+            </div>
+        </div>
+        
+        <div class="file-info" id="file-info" style="display: none;">
+            <p><strong>Selected file:</strong> <span id="file-name"></span></p>
+            <p><strong>Size:</strong> <span id="file-size"></span></p>
+            <p><strong>Type:</strong> <span id="file-type"></span></p>
+        </div>
+        
+        <div class="actions">
+            <button id="process-btn" disabled>Process</button>
+            <button id="clear-btn">Clear</button>
+        </div>
+        
+        <div class="results" id="results" style="display: none;">
+            <h2>Results</h2>
+            
+            <div class="result-section">
+                <h3>Entries (<span id="entries-count">0</span>)</h3>
+                <div id="entries-container"></div>
+            </div>
+            
+            <div class="result-section">
+                <h3>Errors (<span id="errors-count">0</span>)</h3>
+                <div id="errors-container"></div>
+            </div>
+        </div>
+        
+        <div class="loading" id="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Processing file...</p>
+        </div>
+    </div>
+    
+    <!-- ZXing library for QR code scanning -->
+    <script src="https://unpkg.com/@zxing/browser@latest"></script>
+    <script src="script.js"></script>
+</body>
+</html> 

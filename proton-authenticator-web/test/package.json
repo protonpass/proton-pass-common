@@ -2,6 +2,10 @@
   "name": "protonauthenticatorwebtest",
   "module": "index.ts",
   "type": "module",
+  "scripts": {
+    "internalweb": "bun run build:internal",
+    "build:internal": "mkdir -p dist && cp index.html dist/ && cp styles.css dist/ && cp script.js dist/ && cp -r pkg dist/ && echo 'Internal web build complete. Serve the dist/ folder with a static web server.'"
+  },
   "devDependencies": {
     "@types/node": "^22.13.1",
     "bun-types": "latest"

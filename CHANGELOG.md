@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.25.0
+
+### Features :tada:
+
+- authenticator: add QR scanning capabilities.
+
 ## 0.24.3
 
 ### Fixes :bug:

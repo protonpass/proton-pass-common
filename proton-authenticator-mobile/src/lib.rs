@@ -10,6 +10,7 @@ mod issuer_mapper;
 mod log;
 mod operations;
 mod ordering;
+mod qr;
 
 uniffi::include_scaffolding!("common");
 
@@ -27,3 +28,4 @@ pub use issuer_mapper::*;
 pub use log::*;
 pub use operations::*;
 pub use ordering::*;
+use qr::*;

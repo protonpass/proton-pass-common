@@ -1,0 +1,5 @@
+interface QrCodeScanner {
+    constructor();
+
+    string? scan_qr_code([ByRef] bytes image);
+};

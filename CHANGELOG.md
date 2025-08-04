@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.25.1
+
+### Fixes :bug:
+
+- authenticator: make importers less restrictive.
+
 ## 0.25.0
 
 ### Features :tada:

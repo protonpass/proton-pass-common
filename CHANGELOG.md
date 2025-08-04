@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.25.3
+
+### Fixes :bug:
+
+- authenticator: improve handling of HOTP entries during import so it doesn't crash.
+
 ## 0.25.2
 
 ### Fixes :bug:

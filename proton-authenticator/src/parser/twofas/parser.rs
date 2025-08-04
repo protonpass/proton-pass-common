@@ -37,6 +37,8 @@ enum Otp {
         algorithm: String,
         #[serde(default)]
         label: Option<String>,
+        #[serde(default)]
+        account: Option<String>,
     },
     #[serde(rename = "STEAM")]
     Steam,
@@ -144,9 +146,10 @@ fn parse_entry(obj: TwoFasEntry) -> Result<AuthenticatorEntry, TwoFasImportError
             period,
             algorithm,
             label,
+            account,
             ..
         } => AuthenticatorEntryContent::Totp(TOTP {
-            label: label.or(Some(obj.name)),
+            label: label.or(account.or(Some(obj.name))),
             secret: obj.secret,
             issuer,
             algorithm: match Algorithm::try_from(algorithm.as_str()) {

@@ -9,18 +9,12 @@ use proton_pass_totp::totp::TOTP;
 struct Account {
     #[serde(rename = "issuerName")]
     pub issuer_name: String,
-    #[serde(rename = "originalIssuerName")]
-    pub original_issuer_name: String,
     #[serde(rename = "userName")]
     pub user_name: String,
-    #[serde(rename = "originalUserName")]
-    pub original_user_name: String,
     pub secret: String,
     #[serde(rename = "timeStep")]
     pub time_step: u16,
     pub digits: u8,
-    #[serde(rename = "creationTimestamp")]
-    pub creation_timestamp: u64,
     pub algorithm: String,
 }
 
@@ -75,7 +69,7 @@ pub fn parse_lastpass_json(input: &str) -> Result<ImportResult, LastPassImportEr
             Ok(entry) => entries.push(entry),
             Err(e) => {
                 errors.push(ImportError {
-                    context: format!("Errir in entry {idx}"),
+                    context: format!("Error in entry {idx}"),
                     message: format!("Error parsing account {account:?}: {e:?}"),
                 });
             }

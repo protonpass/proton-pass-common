@@ -35,28 +35,17 @@ enum Otp {
         digits: u32,
         period: u32,
         algorithm: String,
-        source: String,
         #[serde(default)]
         label: Option<String>,
-        #[serde(default)]
-        account: Option<String>,
     },
     #[serde(rename = "STEAM")]
-    Steam {
-        issuer: Option<String>,
-        digits: u32,
-        period: u32,
-        algorithm: String,
-        source: String,
-    },
+    Steam,
 }
 
 #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
 struct TwoFasEntry {
     pub name: String,
     pub secret: String,
-    #[serde(rename = "updatedAt")]
-    pub updated_at: i64,
     pub otp: Otp,
 }
 
@@ -167,7 +156,7 @@ fn parse_entry(obj: TwoFasEntry) -> Result<AuthenticatorEntry, TwoFasImportError
             digits: Some(digits as u8),
             period: Some(period as u16),
         }),
-        Otp::Steam { .. } => {
+        Otp::Steam => {
             let mut steam_totp = SteamTotp::new(&obj.secret).map_err(|_| TwoFasImportError::BadContent)?;
             if !obj.name.trim().is_empty() {
                 steam_totp.set_name(Some(obj.name.trim().to_string()));

@@ -12,10 +12,7 @@ struct Struct {
     pub id: String,
     pub name: String,
     pub notes: Option<String>,
-    #[serde(rename = "type")]
-    pub r#type: i64,
     pub login: Login,
-    pub favorite: bool,
 }
 
 #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]

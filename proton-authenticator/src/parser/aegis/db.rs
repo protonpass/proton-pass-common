@@ -17,12 +17,9 @@ pub struct Info {
 pub struct DbEntry {
     #[serde(rename = "type")]
     pub entry_type: String,
-    pub uuid: String,
     pub name: String,
     pub issuer: String,
     pub note: String,
-    pub favorite: bool,
-    pub icon: Option<String>,
     pub info: Info,
 }
 

@@ -38,12 +38,16 @@ pub enum AuthenticatorEntryContent {
 impl AuthenticatorEntryContent {
     pub fn from_uri(uri: &str) -> Result<AuthenticatorEntryContent, AuthenticatorEntryError> {
         let parsed = url::Url::parse(uri).map_err(|_| AuthenticatorEntryError::UnsupportedUri)?;
+        let host = parsed.host_str();
         match parsed.scheme() {
             "otpauth" => {
-                if parsed.host_str() == Some("steam") {
+                if host == Some("steam") {
                     let steam_parsed =
                         SteamTotp::new_from_otp_uri(&parsed).map_err(|_| AuthenticatorEntryError::ParseError)?;
                     Ok(AuthenticatorEntryContent::Steam(steam_parsed))
+                } else if host == Some("hotp") {
+                    warn!("Received a HOTP uri, which we don't support");
+                    Err(AuthenticatorEntryError::UnsupportedUri)
                 } else {
                     let totp = TOTP::from_uri(uri).map_err(|_| AuthenticatorEntryError::ParseError)?;
                     Ok(AuthenticatorEntryContent::Totp(totp))

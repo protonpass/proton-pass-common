@@ -1,5 +1,6 @@
 pub mod gen;
 
+use crate::parser::google::gen::google_authenticator::migration_payload::OtpType;
 use crate::parser::{ImportError, ImportResult, ThirdPartyImportError};
 use crate::{AuthenticatorEntry, AuthenticatorEntryContent};
 use base64::Engine;
@@ -43,28 +44,45 @@ impl TryFrom<google::OtpParameters> for AuthenticatorEntry {
     type Error = GoogleAuthenticatorParseError;
 
     fn try_from(parameters: google::OtpParameters) -> Result<Self, Self::Error> {
-        let algorithm = parameters
-            .algorithm
+        let otp_type = parameters
+            .type_
             .enum_value()
-            .map_err(|_| GoogleAuthenticatorParseError::Unsupported)?
-            .try_into()?;
+            .map_err(|_| GoogleAuthenticatorParseError::Unsupported)?;
 
-        Ok(Self {
-            content: AuthenticatorEntryContent::Totp(TOTP {
-                label: Some(parameters.name),
-                secret: base32::encode(base32::Alphabet::Rfc4648 { padding: false }, &parameters.secret),
-                issuer: Some(parameters.issuer),
-                algorithm: Some(algorithm),
-                digits: match parameters.digits.enum_value_or_default() {
-                    google::DigitCount::DIGIT_COUNT_UNSPECIFIED => None,
-                    google::DigitCount::DIGIT_COUNT_EIGHT => Some(8),
-                    google::DigitCount::DIGIT_COUNT_SIX => Some(6),
-                },
-                period: Some(30), // Google always uses period=30
-            }),
-            note: None,
-            id: Self::generate_id(),
-        })
+        match otp_type {
+            OtpType::OTP_TYPE_TOTP => {
+                let algorithm = parameters
+                    .algorithm
+                    .enum_value()
+                    .map_err(|_| GoogleAuthenticatorParseError::Unsupported)?
+                    .try_into()?;
+
+                Ok(Self {
+                    content: AuthenticatorEntryContent::Totp(TOTP {
+                        label: Some(parameters.name),
+                        secret: base32::encode(base32::Alphabet::Rfc4648 { padding: false }, &parameters.secret),
+                        issuer: Some(parameters.issuer),
+                        algorithm: Some(algorithm),
+                        digits: match parameters.digits.enum_value_or_default() {
+                            google::DigitCount::DIGIT_COUNT_UNSPECIFIED => None,
+                            google::DigitCount::DIGIT_COUNT_EIGHT => Some(8),
+                            google::DigitCount::DIGIT_COUNT_SIX => Some(6),
+                        },
+                        period: Some(30), // Google always uses period=30
+                    }),
+                    note: None,
+                    id: Self::generate_id(),
+                })
+            }
+            OtpType::OTP_TYPE_HOTP => {
+                warn!("Received HOTP OtpType, which we don't support");
+                Err(GoogleAuthenticatorParseError::Unsupported)
+            }
+            _ => {
+                warn!("Received unsupported OTP OtpType, which we don't support");
+                Err(GoogleAuthenticatorParseError::Unsupported)
+            }
+        }
     }
 }
 
@@ -90,15 +108,14 @@ pub fn parse_google_authenticator_totp(input: &str) -> Result<ImportResult, Goog
     let mut entries = Vec::new();
     let mut errors = Vec::new();
     for (idx, param) in parsed.otp_parameters.into_iter().enumerate() {
-        if let Ok(v) = param.type_.enum_value() {
-            if v == google::OtpType::OTP_TYPE_TOTP {
-                match AuthenticatorEntry::try_from(param.clone()) {
-                    Ok(entry) => entries.push(entry),
-                    Err(e) => errors.push(ImportError {
-                        context: format!("Error in entry {idx}"),
-                        message: format!("param: {param:?} | error: {e:?}"),
-                    }),
-                }
+        match AuthenticatorEntry::try_from(param.clone()) {
+            Ok(entry) => entries.push(entry),
+            Err(e) => {
+                let printable_param = format!("issuer={}|algo={:?}", param.issuer, param.algorithm);
+                errors.push(ImportError {
+                    context: format!("Error in entry {idx}"),
+                    message: format!("param: [{printable_param}] | error: {e:?}"),
+                })
             }
         }
     }
@@ -168,5 +185,14 @@ mod test {
 
         let res = parse_google_authenticator_totp(input).expect_err("should fail");
         assert_eq!(res, GoogleAuthenticatorParseError::BadContent);
+    }
+
+    #[test]
+    fn can_import_skipping_hotp() {
+        let input = "otpauth-migration://offline?data=CisKD23SMN0jCOSRhDdt0huEQRISY29kZSAxIGdvb2dsZSBhdXRoIAEoATACCikKCkhlbGxvId6tvu8SDEdvb2dsZTQgY29kZRoHVGVzdEFwcCACKAEwAgotCgpIZWxsbyHerb7vEhB1c2VyQGV4YW1wbGUuY29tGgdUZXN0QXBwIAIoATACCi0KCkhlbGxvId6tvu8SEHVzZXJAZXhhbXBsZS5jb20aB1Rlc3RBcHAgAigBMAIKLQoKSGVsbG8h3q2%2B7xIQdXNlckBleGFtcGxlLmNvbRoHVGVzdEFwcCABKAEwAgojCg8JUlSVJWySNI0hGEbRpGkSCGhvdHBpdGVtIAEoATABOAEKLgoZfJQ0DaM4zlOOg0jScbbhGEoS3Cm4giOkRRIJaG90cGl0ZW0yIAEoATABOAEQAhgBIAA%3D";
+        let res = parse_google_authenticator_totp(input).expect("should not fail");
+        assert_eq!(res.entries.len(), 5);
+
+        assert_eq!(res.errors.len(), 2);
     }
 }

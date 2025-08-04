@@ -2,18 +2,21 @@ use crate::parser::aegis::AegisImportError;
 use crate::parser::{ImportError, ImportResult};
 use crate::AuthenticatorEntry;
 
+const LINE_START_MAX_LEN: usize = 20;
+
 pub fn parse_aegis_txt(input: &str) -> Result<ImportResult, AegisImportError> {
     let mut entries = Vec::new();
     let mut errors = Vec::new();
     for (idx, line) in input.lines().enumerate() {
         let trimmed = line.trim();
         if !trimmed.is_empty() {
+            let line_start = get_line_start(trimmed);
             match AuthenticatorEntry::from_uri(trimmed, None) {
                 Ok(entry) => entries.push(entry),
                 Err(e) => {
                     errors.push(ImportError {
                         context: format!("Error in line {idx}"),
-                        message: format!("Error in line [{trimmed}] : {e:?}"),
+                        message: format!("Error in line [{line_start}] : {e:?}"),
                     });
                 }
             }
@@ -21,6 +24,11 @@ pub fn parse_aegis_txt(input: &str) -> Result<ImportResult, AegisImportError> {
     }
 
     Ok(ImportResult { entries, errors })
+}
+
+fn get_line_start(line: &str) -> String {
+    let suffix = if line.len() > LINE_START_MAX_LEN { "..." } else { "" }.to_string();
+    format!("{}{}", line.chars().take(20).collect::<String>(), suffix)
 }
 
 #[cfg(test)]

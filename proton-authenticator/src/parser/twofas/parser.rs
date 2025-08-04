@@ -27,21 +27,17 @@ enum TwoFasState {
 }
 
 #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
-#[serde(tag = "tokenType")]
-enum Otp {
-    #[serde(rename = "TOTP")]
-    Totp {
-        issuer: Option<String>,
-        digits: u32,
-        period: u32,
-        algorithm: String,
-        #[serde(default)]
-        label: Option<String>,
-        #[serde(default)]
-        account: Option<String>,
-    },
-    #[serde(rename = "STEAM")]
-    Steam,
+struct Otp {
+    issuer: Option<String>,
+    digits: u32,
+    period: u32,
+    algorithm: String,
+    #[serde(default)]
+    label: Option<String>,
+    #[serde(default)]
+    account: Option<String>,
+    #[serde(rename = "tokenType")]
+    token_type: String,
 }
 
 #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
@@ -84,8 +80,10 @@ fn parse_2fas_export(json_data: &str) -> Result<TwoFasState, TwoFasImportError> 
     } else {
         // If not encrypted, parse the "services" array
         let arr = obj.get("services").ok_or(TwoFasImportError::BadContent)?;
-        let parsed_arr: Vec<TwoFasEntry> =
-            serde_json::from_value(arr.clone()).map_err(|_| TwoFasImportError::BadContent)?;
+        let parsed_arr: Vec<TwoFasEntry> = serde_json::from_value(arr.clone()).map_err(|e| {
+            warn!("Error parsing unencrypted 2FAS export: {}", e);
+            TwoFasImportError::BadContent
+        })?;
 
         Ok(TwoFasState::Decrypted(parsed_arr))
     }
@@ -137,35 +135,34 @@ fn decrypt_2fas_encrypted_state(
     Ok(decrypted_arr)
 }
 
-// Example entry parser
 fn parse_entry(obj: TwoFasEntry) -> Result<AuthenticatorEntry, TwoFasImportError> {
-    let content = match obj.otp {
-        Otp::Totp {
-            issuer,
-            digits,
-            period,
-            algorithm,
-            label,
-            account,
-            ..
-        } => AuthenticatorEntryContent::Totp(TOTP {
-            label: label.or(account.or(Some(obj.name))),
-            secret: obj.secret,
-            issuer,
-            algorithm: match Algorithm::try_from(algorithm.as_str()) {
-                Ok(a) => Some(a),
-                Err(_) => return Err(TwoFasImportError::Unsupported),
-            },
-            digits: Some(digits as u8),
-            period: Some(period as u16),
-        }),
-        Otp::Steam => {
+    let content = match obj.otp.token_type.as_str() {
+        "STEAM" => {
             let mut steam_totp = SteamTotp::new(&obj.secret).map_err(|_| TwoFasImportError::BadContent)?;
             if !obj.name.trim().is_empty() {
                 steam_totp.set_name(Some(obj.name.trim().to_string()));
             }
 
             AuthenticatorEntryContent::Steam(steam_totp)
+        }
+        "TOTP" => {
+            let otp = obj.otp;
+            AuthenticatorEntryContent::Totp(TOTP {
+                label: otp.label.or(otp.account.or(Some(obj.name))),
+                secret: obj.secret,
+                issuer: otp.issuer,
+                algorithm: match Algorithm::try_from(otp.algorithm.as_str()) {
+                    Ok(a) => Some(a),
+                    Err(_) => return Err(TwoFasImportError::Unsupported),
+                },
+                digits: Some(otp.digits as u8),
+                period: Some(otp.period as u16),
+            })
+        }
+        _ => {
+            // Can be a HOTP or another unsupported entry
+            warn!("Unsupported OTP token type: {}", obj.otp.token_type);
+            return Err(TwoFasImportError::Unsupported);
         }
     };
 
@@ -192,7 +189,7 @@ pub fn parse_2fas_file(json_data: &str, password: Option<String>) -> Result<Impo
             Err(e) => {
                 errors.push(ImportError {
                     context: format!("Error parsing entry {idx}"),
-                    message: format!("Error parsing entry {entry:?}: {e:?}"),
+                    message: format!("Error parsing entry {}: {:?}", entry.name, e),
                 });
             }
         }
@@ -234,5 +231,15 @@ mod test {
         let contents = get_file_contents("2fas/encrypted.2fas");
         let err = parse_2fas_file(&contents, None).expect_err("should return an error");
         assert!(matches!(err, TwoFasImportError::MissingPassword));
+    }
+
+    #[test]
+    fn skips_htop_entries() {
+        let contents = get_file_contents("2fas/decrypted_with_hotp.2fas");
+        let res = parse_2fas_file(&contents, None).expect("error parsing");
+        assert_eq!(res.entries.len(), 1);
+
+        assert_eq!(res.errors.len(), 1);
+        assert!(res.errors[0].message.contains("Unsupported"));
     }
 }

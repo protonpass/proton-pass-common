@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.25.2
+
+### Fixes :bug:
+
+- authenticator: improve 2FAS importer.
+
 ## 0.25.1
 
 ### Fixes :bug:

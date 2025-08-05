@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.25.4
+
+### Fixes :bug:
+
+- authenticator: improve Proton Authenticator import for detecting MissingPassword when importing encrypted backups.
+
 ## 0.25.3
 
 ### Fixes :bug:

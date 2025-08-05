@@ -30,7 +30,8 @@ enum TwoFasState {
 struct Otp {
     issuer: Option<String>,
     digits: u32,
-    period: u32,
+    #[serde(default)]
+    period: Option<u32>,
     algorithm: String,
     #[serde(default)]
     label: Option<String>,
@@ -48,7 +49,11 @@ struct TwoFasEntry {
 }
 
 fn parse_2fas_export(json_data: &str) -> Result<TwoFasState, TwoFasImportError> {
-    let obj: serde_json::Value = serde_json::from_str(json_data).map_err(|_| TwoFasImportError::BadContent)?;
+    let obj: serde_json::Value = serde_json::from_str(json_data).map_err(|e| {
+        warn!("Error parsing 2FAS export: {e:?}");
+        TwoFasImportError::BadContent
+    })?;
+
     let version = obj
         .get("schemaVersion")
         .ok_or(TwoFasImportError::BadContent)?
@@ -147,16 +152,27 @@ fn parse_entry(obj: TwoFasEntry) -> Result<AuthenticatorEntry, TwoFasImportError
         }
         "TOTP" => {
             let otp = obj.otp;
+
+            let period = match otp.period {
+                Some(period) => period,
+                None => {
+                    warn!("OTP period for {} is None", obj.name);
+                    return Err(TwoFasImportError::BadContent);
+                }
+            };
             AuthenticatorEntryContent::Totp(TOTP {
                 label: otp.label.or(otp.account.or(Some(obj.name))),
                 secret: obj.secret,
                 issuer: otp.issuer,
                 algorithm: match Algorithm::try_from(otp.algorithm.as_str()) {
                     Ok(a) => Some(a),
-                    Err(_) => return Err(TwoFasImportError::Unsupported),
+                    Err(_) => {
+                        warn!("Unsupported algorithm for 2FAS entry: {}", otp.algorithm);
+                        return Err(TwoFasImportError::Unsupported);
+                    }
                 },
                 digits: Some(otp.digits as u8),
-                period: Some(otp.period as u16),
+                period: Some(period as u16),
             })
         }
         _ => {
@@ -239,6 +255,28 @@ mod test {
         let res = parse_2fas_file(&contents, None).expect("error parsing");
         assert_eq!(res.entries.len(), 1);
 
+        assert_eq!(res.errors.len(), 1);
+        assert!(res.errors[0].message.contains("Unsupported"));
+    }
+
+    #[test]
+    fn skips_entries_with_unsupported_algorithms() {
+        let content = get_file_contents("2fas/decrypted_with_hotp_and_unsupported_algorithms.2fas");
+
+        let res = parse_2fas_file(&content, None).expect("error parsing");
+        assert!(res.entries.is_empty());
+        assert_eq!(res.errors.len(), 2);
+
+        assert!(res.errors[0].message.contains("Unsupported"));
+        assert!(res.errors[1].message.contains("Unsupported"));
+    }
+
+    #[test]
+    fn skips_hotp_entries_with_missing_period_property() {
+        let content = get_file_contents("2fas/decrypted_with_hotp_missing_period.2fas");
+
+        let res = parse_2fas_file(&content, None).expect("error parsing");
+        assert_eq!(res.entries.len(), 3);
         assert_eq!(res.errors.len(), 1);
         assert!(res.errors[0].message.contains("Unsupported"));
     }

@@ -4,9 +4,14 @@
 
 ### Fixes :bug:
 
-- authenticator: detect Proton Authenticator encrypted import with wrong password.
-
 ### Other
+
+## 0.25.6
+
+### Fixes :bug:
+
+- authenticator: detect Proton Authenticator encrypted import with wrong password.
+- authenticator: improve 2FAS importer robustness.
 
 ## 0.25.5
 

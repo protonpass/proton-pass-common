@@ -1,6 +1,6 @@
 use crate::parser::{ImportError, ImportResult};
 use crate::steam::SteamTotp;
-use crate::{AuthenticatorEntry, AuthenticatorEntryContent, AuthenticatorError};
+use crate::{AuthenticatorEntry, AuthenticatorEntryContent, AuthenticatorError, ThirdPartyImportError};
 use proton_pass_totp::totp::TOTP;
 
 #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
@@ -107,7 +107,28 @@ pub fn export_entries(entries: Vec<AuthenticatorEntry>) -> Result<String, Authen
         .map_err(|e| AuthenticatorError::SerializationError(format!("Error exporting entries: {e:?}")))
 }
 
+fn ensure_json_format(input: &str) -> Result<(), AuthenticatorError> {
+    let parsed: serde_json::Value = serde_json::from_str(input)
+        .map_err(|e| AuthenticatorError::SerializationError(format!("Error parsing JSON: {e:?}")))?;
+
+    match parsed {
+        serde_json::Value::Object(obj) => match (obj.get("salt"), obj.get("entries")) {
+            (Some(_), None) => {
+                // Password-protected export
+                Err(AuthenticatorError::Import(ThirdPartyImportError::MissingPassword))
+            }
+            (None, Some(_)) => Ok(()),
+            _ => {
+                // Either has both salt and entries, which is weird, or has none, which means BadContent
+                Err(AuthenticatorError::Import(ThirdPartyImportError::BadContent))
+            }
+        },
+        _ => Err(AuthenticatorError::Import(ThirdPartyImportError::BadContent)),
+    }
+}
+
 fn import_authenticator_entries_v1(input: &str) -> Result<ImportResult, AuthenticatorError> {
+    ensure_json_format(input)?;
     let parsed: AuthenticatorEntriesExport = serde_json::from_str(input)
         .map_err(|e| AuthenticatorError::SerializationError(format!("Error importing entries: {e:?}")))?;
 
@@ -199,5 +220,18 @@ mod tests {
         assert_eq!(steam_id, imported.entries[1].id);
         assert_eq!(Some(steam_note.to_string()), imported.entries[1].note);
         assert_eq!(steam_name.to_string(), imported.entries[1].name());
+    }
+
+    #[test]
+    fn can_detect_password_protected_export() {
+        let input = r#"
+        { "version": 1, "salt": "abcdefg", "content": "abcdefg" }
+        "#;
+
+        let err = import_authenticator_entries_v1(input).expect_err("should return an error");
+        assert!(matches!(
+            err,
+            AuthenticatorError::Import(ThirdPartyImportError::MissingPassword)
+        ));
     }
 }

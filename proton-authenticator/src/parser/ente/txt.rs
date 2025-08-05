@@ -19,12 +19,12 @@ pub fn parse_ente_txt(input: &str) -> Result<ImportResult, EnteImportError> {
                         id: AuthenticatorEntry::generate_id(),
                     }),
                     Err(e) => errors.push(ImportError {
-                        context: format!("Error in line {idx}"),
+                        context: format!("Error in line {}", idx + 1),
                         message: format!("Could not process [{line_start}]: {e:?}"),
                     }),
                 },
                 Err(e) => errors.push(ImportError {
-                    context: format!("Error in line {idx}"),
+                    context: format!("Error in line {}", idx + 1),
                     message: format!("Could not process [{line_start}]: {e:?}"),
                 }),
             };
@@ -43,7 +43,7 @@ fn get_line_start(line: &str) -> String {
     format!("{}{}", line.chars().take(20).collect::<String>(), suffix)
 }
 
-// Ente sometimes adds the issuer as a prefix to the label. MAke sure to remove it
+// Ente sometimes adds the issuer as a prefix to the label. Make sure to remove it
 fn sanitize_content(content: AuthenticatorEntryContent) -> Result<AuthenticatorEntryContent, EnteImportError> {
     match content {
         AuthenticatorEntryContent::Totp(mut totp) => match (&totp.label, &totp.issuer) {
@@ -57,7 +57,7 @@ fn sanitize_content(content: AuthenticatorEntryContent) -> Result<AuthenticatorE
             }
             _ => Ok(AuthenticatorEntryContent::Totp(totp)),
         },
-        _ => Err(EnteImportError::Unsupported),
+        _ => Ok(content),
     }
 }
 
@@ -81,7 +81,21 @@ mod tests {
 
         assert_eq!(res.entries.len(), 5);
         assert_eq!(res.errors.len(), 1);
-        assert_eq!(res.errors[0].context, "Error in line 3");
+        assert_eq!(res.errors[0].context, "Error in line 4");
+        assert!(res.errors[0].message.contains("UnsupportedUri"))
+    }
+
+    #[test]
+    fn can_import_txt_file_with_steam_and_hotp() {
+        let content = get_file_contents("ente/plain_with_steam_and_hotp.txt");
+        let res = parse_ente_txt(content.as_str()).expect("should be able to import");
+
+        assert_eq!(res.entries.len(), 2);
+        assert!(matches!(res.entries[0].content, AuthenticatorEntryContent::Steam(_)));
+        assert!(matches!(res.entries[1].content, AuthenticatorEntryContent::Totp(_)));
+
+        assert_eq!(res.errors.len(), 1);
+        assert_eq!(res.errors[0].context, "Error in line 2");
         assert!(res.errors[0].message.contains("UnsupportedUri"))
     }
 }

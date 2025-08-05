@@ -341,8 +341,6 @@ authenticator-web-test: authenticator-web-setup ## Test the web artifacts
 
 .PHONY: authenticator-mobile-unit-test
 authenticator-mobile-unit-test:  ## Run the unit tests for the authenticator mobile library
-	@sed -e 's:uniffi = { version = "0.29.2":uniffi = { version = "0.28.3":g' proton-authenticator-mobile/Cargo.toml > proton-authenticator-mobile/Cargo.toml.uniffi
-	@mv proton-authenticator-mobile/Cargo.toml.uniffi proton-authenticator-mobile/Cargo.toml
 	@cargo build --release -p proton-authenticator-mobile
 	@rm -rf ${PROJECT_ROOT}/proton-authenticator-mobile/android/libTest/src/main/jniLibs
 	@mkdir -p ${PROJECT_ROOT}/proton-authenticator-mobile/android/libTest/src/main/jniLibs

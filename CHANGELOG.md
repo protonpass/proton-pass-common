@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.25.5
+
+### Fixes :bug:
+
+- authenticator: improve Ente import for handling Steam codes.
+
 ## 0.25.4
 
 ### Fixes :bug:

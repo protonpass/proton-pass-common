@@ -4,6 +4,8 @@
 
 ### Fixes :bug:
 
+- authenticator: detect Proton Authenticator encrypted import with wrong password.
+
 ### Other
 
 ## 0.25.5

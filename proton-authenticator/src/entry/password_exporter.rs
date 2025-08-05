@@ -1,6 +1,6 @@
 use crate::crypto::EncryptionTag;
 use crate::entry::{export_entries, import_authenticator_entries};
-use crate::{crypto, AuthenticatorEntry, AuthenticatorError, ImportResult};
+use crate::{crypto, AuthenticatorEntry, AuthenticatorError, ImportResult, ThirdPartyImportError};
 use argon2::password_hash::rand_core::RngCore;
 use argon2::Algorithm::Argon2id;
 use argon2::Version::V0x13;
@@ -104,9 +104,8 @@ pub fn import_entries_with_password(input: &str, password: &str) -> Result<Impor
         ))
     })?;
     let binary_export = crypto::decrypt(&cypher_text, &aes_key, EncryptionTag::PasswordExport).map_err(|e| {
-        AuthenticatorError::SerializationError(format!(
-            "Error importing authenticator entries, could not decrypt contents: {e:?}"
-        ))
+        warn!("Error importing authenticator entries, could not decrypt export: {e:?}");
+        AuthenticatorError::Import(ThirdPartyImportError::BadPassword)
     })?;
 
     let plain_text = std::str::from_utf8(&binary_export).map_err(|e| {
@@ -121,7 +120,7 @@ pub fn import_entries_with_password(input: &str, password: &str) -> Result<Impor
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::AuthenticatorEntryContent;
+    use crate::{AuthenticatorEntryContent, ThirdPartyImportError};
 
     #[test]
     fn test_export_import_encrypted() {
@@ -148,12 +147,16 @@ mod tests {
     }
 
     #[test]
-    fn test_export_with_different_password_fails() {
+    fn test_export_import_with_different_password_fails() {
         let uri1 = "otpauth://totp/MYLABEL?secret=MYSECRET&issuer=MYISSUER&algorithm=SHA256&digits=8&period=15";
 
         let entries = vec![AuthenticatorEntry::from_uri(uri1, None).unwrap()];
         let exported = export_entries_with_password(entries, "ok").unwrap();
-        let result = import_entries_with_password(&exported, "invalid");
-        assert!(result.is_err());
+        let err = import_entries_with_password(&exported, "invalid").expect_err("should fail");
+
+        assert!(matches!(
+            err,
+            AuthenticatorError::Import(ThirdPartyImportError::BadPassword)
+        ));
     }
 }

@@ -33,6 +33,9 @@ interface AuthenticatorImporter {
 
   [Throws=AuthenticatorImportException]
   AuthenticatorImportResult import_from_ente_txt(string contents);
+          
+  [Throws=AuthenticatorImportException]
+  AuthenticatorImportResult import_from_ente_encrypted(string contents, string password);
 
   [Throws=AuthenticatorImportException]
   AuthenticatorImportResult import_from_google_qr(string contents);

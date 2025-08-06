@@ -93,6 +93,12 @@ impl AuthenticatorImporter {
         Ok(AuthenticatorImportResult::from(res))
     }
 
+    pub fn import_from_ente_encrypted(&self, contents: String, password: String) -> ImportResult {
+        let res =
+            proton_authenticator::parse_ente_encrypted(&contents, &password).map_err(ThirdPartyImportError::from)?;
+        Ok(AuthenticatorImportResult::from(res))
+    }
+
     pub fn import_from_google_qr(&self, contents: String) -> ImportResult {
         let res =
             proton_authenticator::parse_google_authenticator_totp(&contents).map_err(ThirdPartyImportError::from)?;

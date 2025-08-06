@@ -17,7 +17,7 @@ crate-type = ["cdylib", "staticlib"]
 name = "proton_authenticator_common_mobile"
 
 [dependencies]
-proton-authenticator = { path = "../proton-authenticator" }
+proton-authenticator = { path = "../proton-authenticator", features = ["qr"] }
 proton-pass-derive = { path = "../proton-pass-derive" }
 
 tokio.workspace = true

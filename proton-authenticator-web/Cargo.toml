@@ -19,7 +19,7 @@ doctest = false
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-proton-authenticator = { path = "../proton-authenticator" }
+proton-authenticator = { path = "../proton-authenticator", default-features = false }
 
 js-sys.workspace = true
 serde.workspace = true

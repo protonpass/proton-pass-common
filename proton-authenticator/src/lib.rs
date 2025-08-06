@@ -8,6 +8,7 @@ pub mod issuer_mapper;
 pub mod operations;
 pub mod ordering;
 pub mod parser;
+#[cfg(feature = "qr")]
 pub mod qr;
 pub mod steam;
 

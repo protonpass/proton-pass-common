@@ -89,6 +89,11 @@ const IMPORTER_METADATA = {
         requiresPassword: false,
         isBinary: false
     },
+    'import_from_ente_encrypted': {
+        name: 'Ente (Encrypted)',
+        requiresPassword: true,
+        isBinary: false
+    },
     'import_from_google_qr': {
         name: 'Google QR',
         requiresPassword: false,

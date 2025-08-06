@@ -1,10 +1,13 @@
 use crate::parser::ThirdPartyImportError;
 
+mod chacha_decrypt;
+mod encrypted;
 mod txt;
 
 #[derive(Clone, Debug)]
 pub enum EnteImportError {
     BadContent,
+    BadPassword,
     Unsupported,
 }
 
@@ -12,11 +15,13 @@ impl From<EnteImportError> for ThirdPartyImportError {
     fn from(value: EnteImportError) -> Self {
         match value {
             EnteImportError::BadContent => Self::BadContent,
+            EnteImportError::BadPassword => Self::BadPassword,
             EnteImportError::Unsupported => Self::BadContent,
         }
     }
 }
 
+pub use encrypted::parse_ente_encrypted;
 pub use txt::parse_ente_txt;
 
 #[cfg(test)]

@@ -77,7 +77,7 @@ fn decrypt_backup(input: &str, password: &str) -> Result<String, EnteImportError
 
     let key_bytes = derive_key(&backup.kdf_params, password).map_err(|e| {
         warn!("Failed to derive key: {e:?}");
-        EnteImportError::BadContent
+        e
     })?;
 
     let decrypted = decrypt_data(&backup.encrypted_data, &backup.encryption_nonce, key_bytes)?;
@@ -98,7 +98,7 @@ pub fn parse_ente_encrypted(input: &str, password: &str) -> Result<ImportResult,
 mod tests {
     use super::*;
     use crate::test_utils::get_file_contents;
-    use crate::AuthenticatorEntryContent;
+    use crate::{setup_test_logs, AuthenticatorEntryContent};
 
     #[test]
     fn can_import_encrypted_file() {
@@ -129,6 +129,7 @@ mod tests {
 
     #[test]
     fn wrong_password_gives_error() {
+        setup_test_logs!();
         let content = get_file_contents("ente/encrypted.txt");
         let err = parse_ente_encrypted(&content, "wrong_password")
             .expect_err("should not be able to decrypt with wrong password");

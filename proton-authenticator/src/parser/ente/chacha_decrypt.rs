@@ -58,7 +58,12 @@ pub fn decrypt_xchacha20poly1305(data: &[u8], key: &[u8; 32], header: &[u8]) -> 
     // Process the tag block (block 1)
     block.fill(0); // memZero(block[:])
     block[0] = data[0]; // block[0] = cipher[0]
-    cipher.apply_keystream(&mut block); // XORKeyStream with block 1
+
+    // XORKeyStream with block 1
+    if let Err(e) = cipher.try_apply_keystream(&mut block) {
+        warn!("Error decrypting data on block 1: {e:?}");
+        return Err(EnteImportError::BadContent);
+    }
 
     let tag = block[0];
     block[0] = data[0]; // Restore original byte for MAC
@@ -84,13 +89,16 @@ pub fn decrypt_xchacha20poly1305(data: &[u8], key: &[u8; 32], header: &[u8]) -> 
     let stored_mac = &c[mlen..];
 
     if computed_mac.as_slice() != stored_mac {
-        warn!("MAC mismatch");
-        return Err(EnteImportError::BadContent);
+        warn!("MAC mismatch. Usually due to wrong password");
+        return Err(EnteImportError::BadPassword);
     }
 
     // Decrypt the message (block 2+)
     let mut plaintext = c[..mlen].to_vec();
-    cipher.apply_keystream(&mut plaintext);
+    if let Err(e) = cipher.try_apply_keystream(&mut plaintext) {
+        warn!("Error decrypting data on block 2: {e:?}");
+        return Err(EnteImportError::BadContent);
+    }
 
     // Validate tag (should be TAG_FINAL or TAG_MESSAGE for V2)
     if tag != TAG_FINAL && tag != TAG_MESSAGE {

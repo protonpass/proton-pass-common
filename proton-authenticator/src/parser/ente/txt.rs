@@ -4,7 +4,15 @@ use crate::{AuthenticatorEntry, AuthenticatorEntryContent};
 
 const LINE_START_MAX_LEN: usize = 20;
 
+fn check_if_encrypted(input: &str) -> Result<(), EnteImportError> {
+    match serde_json::from_str::<serde_json::Value>(input) {
+        Ok(_) => Err(EnteImportError::MissingPassword),
+        Err(_) => Ok(()),
+    }
+}
+
 pub fn parse_ente_txt(input: &str) -> Result<ImportResult, EnteImportError> {
+    check_if_encrypted(input)?;
     let mut entries = Vec::new();
     let mut errors = Vec::new();
     for (idx, line) in input.lines().enumerate() {
@@ -97,5 +105,12 @@ mod tests {
         assert_eq!(res.errors.len(), 1);
         assert_eq!(res.errors[0].context, "Error in line 2");
         assert!(res.errors[0].message.contains("UnsupportedUri"))
+    }
+
+    #[test]
+    fn can_detect_encrypted_file() {
+        let content = get_file_contents("ente/encrypted.txt");
+        let err = parse_ente_txt(content.as_str()).expect_err("should return an error");
+        assert!(matches!(err, EnteImportError::MissingPassword))
     }
 }

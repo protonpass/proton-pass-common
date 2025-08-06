@@ -9,6 +9,7 @@ pub enum EnteImportError {
     BadContent,
     BadPassword,
     Unsupported,
+    MissingPassword,
 }
 
 impl From<EnteImportError> for ThirdPartyImportError {
@@ -17,6 +18,7 @@ impl From<EnteImportError> for ThirdPartyImportError {
             EnteImportError::BadContent => Self::BadContent,
             EnteImportError::BadPassword => Self::BadPassword,
             EnteImportError::Unsupported => Self::BadContent,
+            EnteImportError::MissingPassword => Self::MissingPassword,
         }
     }
 }

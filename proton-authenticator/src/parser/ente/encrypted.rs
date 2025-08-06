@@ -102,7 +102,7 @@ mod tests {
 
     #[test]
     fn can_import_encrypted_file() {
-        let content = get_file_contents("ente/encrypted.txt");
+        let content = get_file_contents("ente/encrypted.lowcomplexity.txt");
         let password = get_file_contents("ente/password");
         let imported = parse_ente_encrypted(&content, &password).expect("should be able to import");
 
@@ -130,7 +130,7 @@ mod tests {
     #[test]
     fn wrong_password_gives_error() {
         setup_test_logs!();
-        let content = get_file_contents("ente/encrypted.txt");
+        let content = get_file_contents("ente/encrypted.lowcomplexity.txt");
         let err = parse_ente_encrypted(&content, "wrong_password")
             .expect_err("should not be able to decrypt with wrong password");
         assert!(matches!(err, EnteImportError::BadPassword));

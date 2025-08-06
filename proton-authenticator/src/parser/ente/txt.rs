@@ -103,7 +103,7 @@ mod tests {
 
     #[test]
     fn can_detect_encrypted_file() {
-        let content = get_file_contents("ente/encrypted.txt");
+        let content = get_file_contents("ente/encrypted.lowcomplexity.txt");
         let err = parse_ente_txt(content.as_str()).expect_err("should return an error");
         assert!(matches!(err, EnteImportError::MissingPassword))
     }

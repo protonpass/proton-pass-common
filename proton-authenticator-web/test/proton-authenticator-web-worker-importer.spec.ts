@@ -1,11 +1,11 @@
-import { describe, expect, test } from "bun:test";
+import {describe, expect, test} from "bun:test";
 
 import {
     import_from_2fas, import_from_ente_encrypted, import_from_pass_zip, WasmAuthenticatorEntryModel
 } from "./pkg/worker";
 
-import { readFileSync } from "fs";
-import { fileURLToPath } from "url";
+import {readFileSync} from "fs";
+import {fileURLToPath} from "url";
 import path from "path";
 
 function getFilePath(filename: string): string {
@@ -74,7 +74,7 @@ describe("ProtonAuthenticatorWeb WASM importer", () => {
 
     describe("Ente", () => {
         test("Can import encrypted backup", () => {
-            const content = loadFile("ente/encrypted.txt");
+            const content = loadFile("ente/encrypted.lowcomplexity.txt");
             const password = loadFile("ente/password");
             const imported = import_from_ente_encrypted(content, password);
             expect(imported.entries.length).toEqual(2);

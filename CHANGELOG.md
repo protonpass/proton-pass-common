@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.25.8
+
+### Fixes :bug:
+
+- authenticator: improve 2FAS importer.
+
 ## 0.25.7
 
 ### Features :tada:

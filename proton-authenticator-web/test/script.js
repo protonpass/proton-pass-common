@@ -48,6 +48,10 @@ async function loadWasmModule() {
                 delete window.module;
                 delete window.require;
                 delete window.__dirname;
+
+                worker.register_authenticator_logger((level, message) => {
+                    console.log(`[${level}] ${message}`);
+                })
                 
                 resolve(worker);
             };

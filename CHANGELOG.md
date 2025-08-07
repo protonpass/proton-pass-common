@@ -6,6 +6,16 @@
 
 ### Other
 
+## 0.25.7
+
+### Features :tada:
+
+- authenticator: add support for Ente encrypted backup importer.
+
+### Other
+
+- authenticator: improve importers error handling.
+
 ## 0.25.6
 
 ### Fixes :bug:

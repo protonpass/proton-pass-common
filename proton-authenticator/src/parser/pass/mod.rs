@@ -81,7 +81,7 @@ pub fn parse_pass_zip(input: &[u8]) -> Result<ImportResult, PassImportError> {
     let cursor = std::io::Cursor::new(input);
 
     let mut archive = ZipArchive::new(cursor).map_err(|e| {
-        error!("Error opening zip: {e:?}");
+        warn!("Error opening zip: {e:?}");
         PassImportError::BadZip
     })?;
 
@@ -91,13 +91,13 @@ pub fn parse_pass_zip(input: &[u8]) -> Result<ImportResult, PassImportError> {
 
     for i in 0..archive.len() {
         let mut file = archive.by_index(i).map_err(|e| {
-            error!("Error opening file inside zip at index {i}: {e:?}");
+            warn!("Error opening file inside zip at index {i}: {e:?}");
             PassImportError::BadZip
         })?;
         if file.name() == "Proton Pass/data.json" {
             // Read the JSON content
             file.read_to_string(&mut json_content).map_err(|e| {
-                error!("Error reading Pass data file inside zip: {e:?}");
+                warn!("Error reading Pass data file inside zip: {e:?}");
                 PassImportError::BadContent
             })?;
             found_file = true;
@@ -111,7 +111,7 @@ pub fn parse_pass_zip(input: &[u8]) -> Result<ImportResult, PassImportError> {
 
     // Parse the JSON
     let export_data: ProtonPassExport = serde_json::from_str(&json_content).map_err(|e| {
-        error!("Error parsing Proton Pass Export data: {e:?}");
+        warn!("Error parsing Proton Pass Export data: {e:?}");
         PassImportError::BadContent
     })?;
 

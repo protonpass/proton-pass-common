@@ -1,6 +1,7 @@
 use super::BitwardenImportError;
 use crate::parser::{ImportError, ImportResult};
 use crate::steam::SteamTotp;
+use crate::utils::conceal;
 use crate::{AuthenticatorEntry, AuthenticatorEntryContent};
 use csv::StringRecord;
 use proton_pass_totp::totp::TOTP;
@@ -25,14 +26,18 @@ pub fn parse_bitwarden_csv(input: &str) -> Result<ImportResult, BitwardenImportE
         match result {
             Ok(record) => match record.get(totp_idx) {
                 Some(r) => parse_line(&record, r, &mut entries, &mut errors, idx, name_idx),
-                None => errors.push(ImportError {
-                    context: format!("Error in record {idx}"),
-                    message: format!("Malformed line: {record:?}"),
-                }),
+                None => {
+                    let formatted = format!("{record:?}");
+                    let concealed = conceal(&formatted);
+                    errors.push(ImportError {
+                        context: format!("Error in record {idx}"),
+                        message: format!("Malformed line: {concealed}"),
+                    })
+                }
             },
             Err(e) => errors.push(ImportError {
                 context: format!("Error in record {idx}"),
-                message: format!("Malformed line: {e:?}"),
+                message: format!("Malformed content: {e:?}"),
             }),
         }
     }
@@ -63,9 +68,10 @@ fn parse_line(
     } else if uri.starts_with("steam://") {
         parse_steam_line(record, uri, entries, errors, idx, name_idx)
     } else {
+        let concealed = conceal(uri);
         errors.push(ImportError {
             context: format!("Error in record {idx}"),
-            message: format!("Unknown URI format: {uri}"),
+            message: format!("Unknown URI format: {concealed}"),
         });
     }
 }

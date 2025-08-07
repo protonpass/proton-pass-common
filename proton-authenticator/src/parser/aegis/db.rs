@@ -70,7 +70,10 @@ impl TryFrom<DbEntry> for AuthenticatorEntry {
 
         let content = match entry.entry_type.as_str() {
             "steam" => {
-                let mut steam = SteamTotp::new(&entry.info.secret).map_err(|_| AegisImportError::BadContent)?;
+                let mut steam = SteamTotp::new(&entry.info.secret).map_err(|e| {
+                    warn!("Error parsing Steam secret: {e:?}");
+                    AegisImportError::BadContent
+                })?;
                 if !entry.name.trim().is_empty() {
                     steam.set_name(Some(entry.name.trim().to_string()));
                 }
@@ -103,7 +106,7 @@ pub fn parse_aegis_db(db: AegisDbRoot) -> Result<ImportResult, AegisImportError>
         match AuthenticatorEntry::try_from(entry.clone()) {
             Ok(entry) => entries.push(entry),
             Err(e) => {
-                warn!("error importing entry {:?}: {:?}", entry, e);
+                warn!("Error importing entry {}: {:?}", entry.name, e);
                 errors.push(ImportError {
                     context: format!("Error importing entry {idx}"),
                     message: format!("Error importing entry {entry:?}, {e:?}"),

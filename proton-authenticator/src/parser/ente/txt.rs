@@ -1,8 +1,7 @@
 use super::EnteImportError;
 use crate::parser::{ImportError, ImportResult};
+use crate::utils::conceal;
 use crate::{AuthenticatorEntry, AuthenticatorEntryContent};
-
-const LINE_START_MAX_LEN: usize = 20;
 
 fn check_if_encrypted(input: &str) -> Result<(), EnteImportError> {
     match serde_json::from_str::<serde_json::Value>(input) {
@@ -17,7 +16,7 @@ pub fn parse_ente_txt(input: &str) -> Result<ImportResult, EnteImportError> {
     let mut errors = Vec::new();
     for (idx, line) in input.lines().enumerate() {
         let trimmed = line.trim();
-        let line_start = get_line_start(line);
+        let line_start = conceal(line);
         if !trimmed.is_empty() {
             match AuthenticatorEntryContent::from_uri(trimmed) {
                 Ok(content) => match sanitize_content(content) {
@@ -44,11 +43,6 @@ pub fn parse_ente_txt(input: &str) -> Result<ImportResult, EnteImportError> {
     } else {
         Ok(ImportResult { entries, errors })
     }
-}
-
-fn get_line_start(line: &str) -> String {
-    let suffix = if line.len() > LINE_START_MAX_LEN { "..." } else { "" }.to_string();
-    format!("{}{}", line.chars().take(20).collect::<String>(), suffix)
 }
 
 // Ente sometimes adds the issuer as a prefix to the label. Make sure to remove it

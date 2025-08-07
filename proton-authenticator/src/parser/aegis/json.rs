@@ -13,16 +13,21 @@ pub struct CommonRoot {
 }
 
 pub fn parse_aegis_json(input: &str, password: Option<String>) -> Result<ImportResult, AegisImportError> {
-    let root_parsed: CommonRoot = serde_json::from_str(input).map_err(|_| AegisImportError::BadContent)?;
+    let root_parsed: CommonRoot = serde_json::from_str(input).map_err(|e| {
+        warn!("Error parsing aegis backup file: {e:?}");
+        AegisImportError::BadContent
+    })?;
     let db_root = match password {
         Some(p) => {
             if root_parsed.header.slots.is_none() || root_parsed.header.params.is_none() {
+                warn!("Tried to import aegis non-encrypted backup with a password");
                 return Err(AegisImportError::NotEncryptedBackupWithPassword);
             }
             encrypted::decrypt_aegis_encrypted_backup(input, &p)?
         }
         None => {
             if root_parsed.header.slots.is_some() || root_parsed.header.params.is_some() {
+                warn!("Tried to import aegis encrypted backup without a password");
                 return Err(AegisImportError::EncryptedBackupWithNoPassword);
             }
             let root_with_db: db::CommonRootWithDb =

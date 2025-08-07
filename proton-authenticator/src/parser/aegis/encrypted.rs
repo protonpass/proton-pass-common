@@ -41,25 +41,45 @@ pub struct ExportData {
 }
 
 pub fn decrypt_aegis_encrypted_backup(input: &str, password: &str) -> Result<AegisDbRoot, AegisImportError> {
-    let export_data: ExportData = serde_json::from_str(input).map_err(|_| AegisImportError::BadContent)?;
+    let export_data: ExportData = serde_json::from_str(input).map_err(|e| {
+        warn!("Error decoding aegis encrypted backup JSON: {e:?}");
+        AegisImportError::BadContent
+    })?;
     let slot = &export_data.header.slots[0];
 
     // Convert hex salt string to bytes:
-    let salt_bytes = hex::decode(&slot.salt).map_err(|_| AegisImportError::BadContent)?;
+    let salt_bytes = hex::decode(&slot.salt).map_err(|e| {
+        warn!("Error decoding aegis encrypted backup salt: {e:?}");
+        AegisImportError::BadContent
+    })?;
 
     // Build ScryptParams from the provided N, r, p
-    let params = ScryptParams::new(slot.n.trailing_zeros() as u8, slot.r, slot.p, 32)
-        .map_err(|_| AegisImportError::UnableToDecrypt)?;
+    let params = ScryptParams::new(slot.n.trailing_zeros() as u8, slot.r, slot.p, 32).map_err(|e| {
+        warn!("Error creating aegis encrypted backup params: {e:?}");
+        AegisImportError::UnableToDecrypt
+    })?;
 
     // Our derived key length should be 32 bytes for AES-256.
     let mut derived_key = [0u8; 32];
-    scrypt(password.as_bytes(), &salt_bytes, &params, &mut derived_key).map_err(|_| AegisImportError::BadPassword)?;
+    scrypt(password.as_bytes(), &salt_bytes, &params, &mut derived_key).map_err(|e| {
+        warn!("Error creating scrypt key: {e:?}");
+        AegisImportError::BadPassword
+    })?;
 
-    let encrypted_master_key = hex::decode(&slot.key).map_err(|_| AegisImportError::BadContent)?;
+    let encrypted_master_key = hex::decode(&slot.key).map_err(|e| {
+        warn!("Error decoding aegis encrypted backup key: {e:?}");
+        AegisImportError::BadContent
+    })?;
 
     // Convert nonce & tag to bytes
-    let slot_nonce_bytes = hex::decode(&slot.key_params.nonce).expect("bad nonce hex");
-    let slot_tag_bytes = hex::decode(&slot.key_params.tag).expect("bad tag hex");
+    let slot_nonce_bytes = hex::decode(&slot.key_params.nonce).map_err(|e| {
+        warn!("Error decoding aegis encrypted backup slot nonce: {e:?}");
+        AegisImportError::BadContent
+    })?;
+    let slot_tag_bytes = hex::decode(&slot.key_params.tag).map_err(|e| {
+        warn!("Error decoding aegis encrypted backup tag: {e:?}");
+        AegisImportError::BadContent
+    })?;
 
     // Nonce must typically be 12 bytes for GCM:
     let slot_nonce = GenericArray::from_slice(&slot_nonce_bytes);
@@ -82,16 +102,28 @@ pub fn decrypt_aegis_encrypted_backup(input: &str, password: &str) -> Result<Aeg
             &mut master_key_ciphertext,
             aes_gcm::Tag::from_slice(&slot_tag),
         )
-        .map_err(|_| AegisImportError::BadPassword)?;
+        .map_err(|e| {
+            warn!("Error decrypting aegis encrypted backup: {e:?}");
+            AegisImportError::BadPassword
+        })?;
 
     // 5.1 Decode base64 ciphertext
     let db_ciphertext = base64::engine::general_purpose::STANDARD
         .decode(&export_data.db)
-        .map_err(|_| AegisImportError::BadContent)?;
+        .map_err(|e| {
+            warn!("Error decoding encrypted backup DB: {e:?}");
+            AegisImportError::BadContent
+        })?;
 
     // 5.2 Decode the JSON's db nonce & tag from hex
-    let db_nonce_bytes = hex::decode(&export_data.header.params.nonce).map_err(|_| AegisImportError::BadContent)?;
-    let db_tag_bytes = hex::decode(&export_data.header.params.tag).map_err(|_| AegisImportError::BadContent)?;
+    let db_nonce_bytes = hex::decode(&export_data.header.params.nonce).map_err(|e| {
+        warn!("Error decoding encrypted backup nonce: {e:?}");
+        AegisImportError::BadContent
+    })?;
+    let db_tag_bytes = hex::decode(&export_data.header.params.tag).map_err(|e| {
+        warn!("Error decoding encrypted backup tag: {e:?}");
+        AegisImportError::BadContent
+    })?;
 
     // Convert to AES-GCM types
     let db_nonce = GenericArray::from_slice(&db_nonce_bytes);
@@ -111,11 +143,17 @@ pub fn decrypt_aegis_encrypted_backup(input: &str, password: &str) -> Result<Aeg
             &mut db_ciphertext_mut,
             aes_gcm::Tag::from_slice(&db_tag),
         )
-        .map_err(|_| AegisImportError::UnableToDecrypt)?;
+        .map_err(|e| {
+            warn!("Error decrypting aegis encrypted backup: {e:?}");
+            AegisImportError::UnableToDecrypt
+        })?;
 
     let as_str = String::from_utf8_lossy(&db_ciphertext_mut);
 
-    let parsed: AegisDbRoot = serde_json::from_str(&as_str).map_err(|_| AegisImportError::BadContent)?;
+    let parsed: AegisDbRoot = serde_json::from_str(&as_str).map_err(|e| {
+        warn!("Error parsing encrypted backup DB: {e:?}");
+        AegisImportError::BadContent
+    })?;
     Ok(parsed)
 }
 

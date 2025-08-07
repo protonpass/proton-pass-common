@@ -119,7 +119,10 @@ fn decrypt_2fas_encrypted_state(
 
     // 2. Decrypt with AES-GCM. Nonce must be 12 bytes.
     //    If iv.len() != 12, you'll get an error. That means your data is not GCM or your IV is truncated.
-    let cipher = Aes256Gcm::new_from_slice(&derived_key).map_err(|_| TwoFasImportError::UnableToDecrypt)?;
+    let cipher = Aes256Gcm::new_from_slice(&derived_key).map_err(|e| {
+        warn!("Error creating Aes256Gcm: {}", e);
+        TwoFasImportError::UnableToDecrypt
+    })?;
 
     // GCM calls its IV a 'nonce'
     if iv.len() != 12 {
@@ -128,14 +131,20 @@ fn decrypt_2fas_encrypted_state(
     let nonce = Nonce::from_slice(iv);
 
     // The ciphertext in `data` should also include the 16-byte GCM authentication tag at the end.
-    let decrypted = cipher
-        .decrypt(nonce, data.as_ref())
-        .map_err(|_| TwoFasImportError::WrongPassword)?;
+    let decrypted = cipher.decrypt(nonce, data.as_ref()).map_err(|e| {
+        warn!("Error decrypting 2FAS encrypted backup data: {}", e);
+        TwoFasImportError::WrongPassword
+    })?;
 
     // 3. Parse the decrypted JSON array
-    let decrypted_str = String::from_utf8(decrypted).map_err(|_| TwoFasImportError::BadContent)?;
-    let decrypted_arr: Vec<TwoFasEntry> =
-        serde_json::from_str(&decrypted_str).map_err(|_| TwoFasImportError::BadContent)?;
+    let decrypted_str = String::from_utf8(decrypted).map_err(|e| {
+        warn!("Error parsing decrypted 2FAS backup data: {}", e);
+        TwoFasImportError::BadContent
+    })?;
+    let decrypted_arr: Vec<TwoFasEntry> = serde_json::from_str(&decrypted_str).map_err(|e| {
+        warn!("Error parsing decrypted 2FAS encrypted backup data: {}", e);
+        TwoFasImportError::BadContent
+    })?;
 
     Ok(decrypted_arr)
 }

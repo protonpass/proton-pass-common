@@ -1,6 +1,9 @@
 #[macro_use]
 pub mod log;
 
+#[cfg_attr(test, macro_use)]
+pub mod test_utils;
+
 pub mod crypto;
 pub mod entry;
 pub mod generator;
@@ -14,9 +17,6 @@ pub mod steam;
 
 mod client;
 mod utils;
-
-#[cfg_attr(test, macro_use)]
-pub mod test_utils;
 
 pub use client::{AuthenticatorClient, AuthenticatorCodeResponse, AuthenticatorError};
 pub use entry::{

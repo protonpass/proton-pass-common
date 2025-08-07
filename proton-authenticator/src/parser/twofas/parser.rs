@@ -29,10 +29,12 @@ enum TwoFasState {
 #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
 struct Otp {
     issuer: Option<String>,
-    digits: u32,
+    #[serde(default)]
+    digits: Option<u32>,
     #[serde(default)]
     period: Option<u32>,
-    algorithm: String,
+    #[serde(default)]
+    algorithm: Option<String>,
     #[serde(default)]
     label: Option<String>,
     #[serde(default)]
@@ -161,27 +163,22 @@ fn parse_entry(obj: TwoFasEntry) -> Result<AuthenticatorEntry, TwoFasImportError
         }
         "TOTP" => {
             let otp = obj.otp;
-
-            let period = match otp.period {
-                Some(period) => period,
-                None => {
-                    warn!("OTP period for {} is None", obj.name);
-                    return Err(TwoFasImportError::BadContent);
-                }
-            };
             AuthenticatorEntryContent::Totp(TOTP {
                 label: otp.label.or(otp.account.or(Some(obj.name))),
                 secret: obj.secret,
                 issuer: otp.issuer,
-                algorithm: match Algorithm::try_from(otp.algorithm.as_str()) {
-                    Ok(a) => Some(a),
-                    Err(_) => {
-                        warn!("Unsupported algorithm for 2FAS entry: {}", otp.algorithm);
-                        return Err(TwoFasImportError::Unsupported);
-                    }
+                algorithm: match otp.algorithm {
+                    Some(algo) => match Algorithm::try_from(algo.as_str()) {
+                        Ok(a) => Some(a),
+                        Err(_) => {
+                            warn!("Unsupported algorithm for 2FAS entry: {algo}");
+                            return Err(TwoFasImportError::Unsupported);
+                        }
+                    },
+                    None => None,
                 },
-                digits: Some(otp.digits as u8),
-                period: Some(period as u16),
+                digits: otp.digits.map(|v| v as u8),
+                period: otp.period.map(|v| v as u16),
             })
         }
         _ => {
@@ -288,5 +285,13 @@ mod test {
         assert_eq!(res.entries.len(), 3);
         assert_eq!(res.errors.len(), 1);
         assert!(res.errors[0].message.contains("Unsupported"));
+    }
+
+    #[test]
+    fn handles_missing_fields() {
+        let content = get_file_contents("2fas/decrypted_with_missing_fields.2fas");
+        let res = parse_2fas_file(&content, None).expect("error parsing");
+        assert_eq!(res.entries.len(), 1);
+        assert_eq!(res.errors.len(), 0);
     }
 }

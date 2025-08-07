@@ -33,6 +33,10 @@ lint: ## Lint the project
 test: ## Run the library tests
 	@command_exists() { command -v cargo-nextest >/dev/null 2>&1; }; if command_exists cargo-nextest; then cargo nextest run; else cargo test; fi
 
+.PHONY: test-release
+test-release: ## Run the library tests in release mode
+	@command_exists() { command -v cargo-nextest >/dev/null 2>&1; }; if command_exists cargo-nextest; then cargo nextest run --release; else cargo test --release; fi
+
 .PHONY: bench
 bench: ## Run the benchmarks
 	@cargo bench -p proton-pass-common

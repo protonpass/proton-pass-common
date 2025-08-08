@@ -62,7 +62,7 @@ fn decrypt_data(encrypted_data: &str, encoded_nonce: &str, key: [u8; 32]) -> Res
         EnteImportError::BadContent
     })?;
 
-    chacha_decrypt::decrypt_xchacha20poly1305(&encrypted_data, &key, &nonce_bytes)
+    chacha_decrypt::decrypt_custom_ente_xchacha20_poly1305(&encrypted_data, &key, &nonce_bytes)
 }
 
 fn decrypt_backup(input: &str, password: &str) -> Result<String, EnteImportError> {

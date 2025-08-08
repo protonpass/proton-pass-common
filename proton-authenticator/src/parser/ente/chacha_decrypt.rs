@@ -1,3 +1,16 @@
+// Ente Authenticator – custom XChaCha20-Poly1305 decryptor
+//
+// Ente’s backup format does **not** use the wire-compatible
+// `XChaCha20Poly1305` AEAD found in common crypto libraries.
+//
+// Because that format not being wire-compatible with the
+// common crypto crates, we re-implemented it here with the
+// low-level `chacha20` and `poly1305` crates instead of the
+// higher-level `aead` wrappers.
+//
+// Link to the source implementation of the ported methods:
+// https://github.com/ente-io/ente/tree/8c2cb6dcad946e05786cb844acdd6e07370b4048/cli/internal/crypto
+
 use super::EnteImportError;
 use chacha20::cipher::{consts::U10, generic_array::GenericArray};
 use chacha20::{
@@ -13,7 +26,11 @@ const TAG_REKEY: u8 = 0x02;
 const TAG_FINAL: u8 = TAG_PUSH | TAG_REKEY;
 const XCHACHA20POLY1305_IETF_ABYTES: usize = 17; // 16 + 1
 
-pub fn decrypt_xchacha20poly1305(data: &[u8], key: &[u8; 32], header: &[u8]) -> Result<Vec<u8>, EnteImportError> {
+pub fn decrypt_custom_ente_xchacha20_poly1305(
+    data: &[u8],
+    key: &[u8; 32],
+    header: &[u8],
+) -> Result<Vec<u8>, EnteImportError> {
     // Ensure header is 24 bytes for XChaCha20
     if header.len() != 24 {
         warn!("Header must be 24 bytes for XChaCha20");

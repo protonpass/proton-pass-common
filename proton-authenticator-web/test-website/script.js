@@ -103,8 +103,8 @@ const IMPORTER_METADATA = {
         requiresPassword: false,
         isBinary: false
     },
-    'import_from_google_qr_image': {
-        name: 'Google QR (Image)',
+    'import_from_google_authenticator_qr': {
+        name: 'Google Authenticator QR (Image)',
         requiresPassword: false,
         isBinary: true
     },
@@ -140,13 +140,7 @@ function discoverImporters() {
     const importers = {};
     
     for (const funcName in IMPORTER_METADATA) {
-        if (funcName === 'import_from_google_qr_image') {
-            // Special case: this is our custom image QR scanner
-            importers[funcName] = {
-                ...IMPORTER_METADATA[funcName],
-                func: null // Will be handled specially in handleProcess
-            };
-        } else if (typeof worker[funcName] === 'function') {
+        if (typeof worker[funcName] === 'function') {
             importers[funcName] = {
                 ...IMPORTER_METADATA[funcName],
                 func: worker[funcName]
@@ -160,8 +154,8 @@ function discoverImporters() {
 // Get available importers (will be populated after module loads)
 let IMPORTERS = {};
 
-// QR Code scanner instance
-let qrCodeReader = null;
+// QR Code scanner instance (no longer needed - using WASM function)
+// let qrCodeReader = null;
 
 // Utility function to escape HTML
 function escapeHtml(text) {
@@ -203,10 +197,10 @@ async function initialize() {
         // Discover available importers
         IMPORTERS = discoverImporters();
         
-        // Initialize QR code reader
-        if (typeof ZXingBrowser !== 'undefined') {
-            qrCodeReader = new ZXingBrowser.BrowserQRCodeReader();
-        }
+        // Initialize QR code reader (no longer needed - using WASM function)
+        // if (typeof ZXingBrowser !== 'undefined') {
+        //     qrCodeReader = new ZXingBrowser.BrowserQRCodeReader();
+        // }
         
         // Now set up the UI
         setupEventListeners();
@@ -260,8 +254,8 @@ function handleImporterChange(event) {
         passwordInput.value = '';
     }
     
-    // Update file input accept attribute for Google QR (Image)
-    if (importerKey === 'import_from_google_qr_image') {
+    // Update file input accept attribute for Google Authenticator QR (Image)
+    if (importerKey === 'import_from_google_authenticator_qr') {
         fileInput.accept = 'image/*';
     } else {
         fileInput.accept = '';
@@ -331,27 +325,27 @@ function updateProcessButton() {
     processBtn.disabled = !(hasFile && hasImporter && hasRequiredPassword);
 }
 
-// Scan QR code from image
-async function scanQRFromImage(file) {
-    return new Promise((resolve, reject) => {
-        if (!qrCodeReader) {
-            reject(new Error('QR code reader not initialized'));
-            return;
-        }
-        
-        const img = new Image();
-        img.onload = async () => {
-            try {
-                const result = await qrCodeReader.decodeFromImageElement(img);
-                resolve(result.getText());
-            } catch (error) {
-                reject(new Error('No QR code found in image: ' + error.message));
-            }
-        };
-        img.onerror = () => reject(new Error('Failed to load image'));
-        img.src = URL.createObjectURL(file);
-    });
-}
+// Scan QR code from image (no longer needed - using WASM function)
+// async function scanQRFromImage(file) {
+//     return new Promise((resolve, reject) => {
+//         if (!qrCodeReader) {
+//             reject(new Error('QR code reader not initialized'));
+//             return;
+//         }
+//         
+//         const img = new Image();
+//         img.onload = async () => {
+//             try {
+//                 const result = await qrCodeReader.decodeFromImageElement(img);
+//                 resolve(result.getText());
+//             } catch (error) {
+//                 reject(new Error('No QR code found in image: ' + error.message));
+//             }
+//         };
+//         img.onerror = () => reject(new Error('Failed to load image'));
+//         img.src = URL.createObjectURL(file);
+//     });
+// }
 
 // Handle process button click
 async function handleProcess() {
@@ -360,34 +354,23 @@ async function handleProcess() {
     showLoading();
     
     try {
-        // Special handling for Google QR (Image)
-        if (importerSelect.value === 'import_from_google_qr_image') {
-            // Scan QR code from image
-            const qrCodeText = await scanQRFromImage(selectedFile);
+        // Special handling for Google Authenticator QR (Image)
+        if (importerSelect.value === 'import_from_google_authenticator_qr') {
+            // Read image as binary data
+            const imageData = await readFile(selectedFile, true);
             
-            // Display the QR code value for testing
-            console.log('QR Code Value:', qrCodeText);
+            // Convert to Uint8Array for WASM
+            const uint8Array = new Uint8Array(imageData);
             
-            // Add QR code value to results for display
-            const qrDisplayElement = document.createElement('div');
-            qrDisplayElement.className = 'qr-code-value';
-            qrDisplayElement.innerHTML = `<strong>QR Code Detected:</strong><br>${escapeHtml(qrCodeText)}`;
+            // Use the WASM function to scan QR and import
+            const result = currentImporter.func(uint8Array);
             
-            // Insert before results section
-            const resultsSection = document.getElementById('results');
-            if (resultsSection.firstChild) {
-                resultsSection.insertBefore(qrDisplayElement, resultsSection.firstChild);
-            } else {
-                resultsSection.appendChild(qrDisplayElement);
+            if (result === undefined) {
+                throw new Error('No QR code found in the image or failed to parse QR code');
             }
             
-            // Process the QR code text using the regular Google QR importer
-            if (worker.import_from_google_qr) {
-                const result = worker.import_from_google_qr(qrCodeText);
-                displayResults(result);
-            } else {
-                throw new Error('Google QR importer not available');
-            }
+            // Display the results
+            displayResults(result);
         } else {
             // Regular processing for other importers
             const content = await readFile(selectedFile, currentImporter.isBinary);
@@ -443,14 +426,9 @@ function displayResults(result) {
     entriesContainer.innerHTML = '';
     errorsContainer.innerHTML = '';
     
-    // Remove any existing QR code value displays (except for newly added ones)
+    // Remove any existing QR code value displays (no longer needed)
     const existingQrElements = document.querySelectorAll('.qr-code-value');
-    if (existingQrElements.length > 1) {
-        // Keep only the first one (newly added) and remove the rest
-        for (let i = 1; i < existingQrElements.length; i++) {
-            existingQrElements[i].remove();
-        }
-    }
+    existingQrElements.forEach(element => element.remove());
     
     // Display entries
     result.entries.forEach((entry, index) => {

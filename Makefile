@@ -333,15 +333,26 @@ authenticator-web-worker: ## Build the authenticator web worker artifacts
 authenticator-web: authenticator-web-setup authenticator-web-worker ## Build the authenticator web artifacts
 	@cp "${AUTHENTICATOR_WEB_DIR}/package.json" "${AUTHENTICATOR_WEB_BUILD_DIR}/package.json"
 
-.PHONY: authenticator-web-test
-authenticator-web-test: authenticator-web-setup ## Test the web artifacts
+.PHONY: authenticator-web-test-build
+authenticator-web-test-build: authenticator-web-setup ## Build the authenticator web test artifacts
 	@rm -rf "${AUTHENTICATOR_WEB_TEST_BUILD_DIR}" && mkdir -p "${AUTHENTICATOR_WEB_TEST_BUILD_DIR}"
 	@echo "--- Building web-worker"
-	@RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build proton-authenticator-web --scope protontech --target nodejs --out-dir "${AUTHENTICATOR_WEB_TEST_BUILD_DIR}/worker"
+	@RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build proton-authenticator-web --scope protontech --target nodejs --out-dir "${AUTHENTICATOR_WEB_TEST_BUILD_DIR}/worker" --features=qr
 	@sed -i'' -e 's/"name": "@protontech\/proton-authenticator-web",/"name": "worker",/g' "${AUTHENTICATOR_WEB_TEST_BUILD_DIR}/worker/package.json"
-
 	@cp "${AUTHENTICATOR_WEB_DIR}/package.json" "${AUTHENTICATOR_WEB_TEST_BUILD_DIR}/package.json"
+
+.PHONY: authenticator-web-test
+authenticator-web-test: authenticator-web-test-build ## Test the web artifacts
 	@cd ${AUTHENTICATOR_WEB_TEST_DIR} && bun test
+
+.PHONY: authenticator-test-website
+authenticator-test-website: authenticator-web-test-build ## Build the authenticator test website for deployment
+	@rm -rf "${AUTHENTICATOR_WEB_DIR}/test-website/dist" && mkdir -p "${AUTHENTICATOR_WEB_DIR}/test-website/dist/pkg"
+	@echo "--- Copying WASM artifacts to dist"
+	@cp -R "${AUTHENTICATOR_WEB_TEST_BUILD_DIR}"/* "${AUTHENTICATOR_WEB_DIR}/test-website/dist/pkg/"
+	@echo "--- Copying test website files to dist"
+	@cp "${AUTHENTICATOR_WEB_DIR}/test-website"/*.html "${AUTHENTICATOR_WEB_DIR}/test-website"/*.js "${AUTHENTICATOR_WEB_DIR}/test-website"/*.css "${AUTHENTICATOR_WEB_DIR}/test-website/dist/"
+	@echo "--- Test website ready for deployment in ${AUTHENTICATOR_WEB_DIR}/test-website/dist"
 
 .PHONY: authenticator-mobile-unit-test
 authenticator-mobile-unit-test:  ## Run the unit tests for the authenticator mobile library

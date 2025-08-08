@@ -111,7 +111,10 @@ pub fn parse_google_authenticator_totp(input: &str) -> Result<ImportResult, Goog
         match AuthenticatorEntry::try_from(param.clone()) {
             Ok(entry) => entries.push(entry),
             Err(e) => {
-                let printable_param = format!("issuer={}|algo={:?}", param.issuer, param.algorithm);
+                let printable_param = format!(
+                    "issuer={}|algo={:?}|type={:?}",
+                    param.issuer, param.algorithm, param.type_
+                );
                 errors.push(ImportError {
                     context: format!("Error in entry {idx}"),
                     message: format!("param: [{printable_param}] | error: {e:?}"),

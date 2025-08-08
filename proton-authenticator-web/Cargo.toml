@@ -18,6 +18,10 @@ wasm-opt = ["--enable-bulk-memory", "--enable-nontrapping-float-to-int"]
 doctest = false
 crate-type = ["cdylib", "rlib"]
 
+[features]
+default = []
+qr = ["proton-authenticator/qr"]
+
 [dependencies]
 proton-authenticator = { path = "../proton-authenticator", default-features = false }
 

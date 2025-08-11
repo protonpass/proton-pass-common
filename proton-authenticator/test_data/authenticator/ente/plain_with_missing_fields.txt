@@ -1,0 +1,1 @@
+otpauth://totp/:accountname?algorithm=SHA1&digits=6&issuer&period=30&secret=jcxjjxjxjcjxnnn&codeDisplay=%7B%22pinned%22%3Afalse%2C%22trashed%22%3Afalse%2C%22lastUsedAt%22%3A0%2C%22tapCount%22%3A0%2C%22tags%22%3A%5B%5D%2C%22note%22%3A%22notesinputs%22%2C%22position%22%3A0%2C%22iconSrc%22%3A%22customIcon%22%2C%22iconID%22%3A%22%22%7D

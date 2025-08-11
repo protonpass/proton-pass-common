@@ -55,6 +55,19 @@ fn sanitize_content(content: AuthenticatorEntryContent) -> Result<AuthenticatorE
                     let edited_label = label.replace(&issuer_prefix, "");
                     totp.label = Some(edited_label);
                 }
+
+                let issuer = match &totp.issuer {
+                    Some(issuer) => {
+                        if issuer.is_empty() {
+                            totp.label.clone()
+                        } else {
+                            totp.issuer
+                        }
+                    }
+                    None => totp.label.clone(),
+                };
+                totp.issuer = issuer;
+
                 Ok(AuthenticatorEntryContent::Totp(totp))
             }
             _ => Ok(AuthenticatorEntryContent::Totp(totp)),
@@ -106,5 +119,16 @@ mod tests {
         let content = get_file_contents("ente/encrypted.lowcomplexity.txt");
         let err = parse_ente_txt(content.as_str()).expect_err("should return an error");
         assert!(matches!(err, EnteImportError::MissingPassword))
+    }
+
+    #[test]
+    fn can_import_with_missing_fields() {
+        let content = get_file_contents("ente/plain_with_missing_fields.txt");
+        let res = parse_ente_txt(&content).expect("should be able to import");
+        assert!(res.errors.is_empty());
+        assert_eq!(res.entries.len(), 1);
+
+        assert_eq!("accountname", res.entries[0].name());
+        assert_eq!("accountname", res.entries[0].issuer());
     }
 }

@@ -31,9 +31,9 @@ impl TryFrom<Account> for AuthenticatorEntry {
         Ok(AuthenticatorEntry {
             note: None,
             content: Totp(TOTP {
-                label: string_option_if_not_empty(value.user_name),
+                label: string_option_if_not_empty(value.user_name.clone()),
                 secret: value.secret,
-                issuer: string_option_if_not_empty(value.issuer_name),
+                issuer: string_option_if_not_empty(value.issuer_name).or(Some(value.user_name)),
                 algorithm: match Algorithm::try_from(value.algorithm.as_str()) {
                     Ok(a) => Some(a),
                     Err(_) => {
@@ -171,5 +171,17 @@ mod test {
             ),
             _ => panic!("Should be a TOTP"),
         }
+    }
+
+    #[test]
+    fn can_parse_lastpass_with_missing_fields() {
+        let content = get_file_contents("lastpass/lastpass_missing_fields.json");
+        let res = parse_lastpass_json(&content).expect("should be able to parse");
+        assert!(res.errors.is_empty());
+        assert_eq!(res.entries.len(), 1);
+
+        let entry = &res.entries[0];
+        assert_eq!("sometest", entry.issuer());
+        assert_eq!("sometest", entry.name());
     }
 }

@@ -93,4 +93,23 @@ mod test {
 
         assert!(matches!(err, AegisImportError::NotEncryptedBackupWithPassword));
     }
+
+    #[test]
+    fn imports_with_missing_fields() {
+        let content = get_file_contents("aegis/aegis-json-unencrypted-with-missing-fields.json");
+        let res = parse_aegis_json(&content, None).expect("should be able to parse");
+
+        assert!(res.errors.is_empty());
+        assert_eq!(res.entries.len(), 3);
+
+        assert_eq!("Proton", res.entries[0].issuer());
+        assert_eq!("some@test.email", res.entries[0].name());
+
+        assert_eq!("Amazon", res.entries[1].issuer());
+        assert_eq!("some@account.test", res.entries[1].name());
+
+        // Name as fallback issuer
+        assert_eq!("Somename", res.entries[2].issuer());
+        assert_eq!("Somename", res.entries[2].name());
+    }
 }

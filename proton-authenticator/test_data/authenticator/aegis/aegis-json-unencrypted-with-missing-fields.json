@@ -1,0 +1,62 @@
+{
+    "version": 1,
+    "header": {
+        "slots": null,
+        "params": null
+    },
+    "db": {
+        "version": 3,
+        "entries": [
+            {
+                "type": "totp",
+                "uuid": "3682fc0f-e395-4896-8070-40dbbe68d921",
+                "name": "some@test.email",
+                "issuer": "Proton",
+                "note": "",
+                "favorite": false,
+                "icon": null,
+                "info": {
+                    "secret": "AQI55ICZEMJW2W67PAUVQ3BFN7LJBOQD",
+                    "algo": "SHA1",
+                    "digits": 6,
+                    "period": 30
+                },
+                "groups": []
+            },
+            {
+                "type": "totp",
+                "uuid": "bc3070a4-78ac-4dd6-b476-cde2218303be",
+                "name": "some@account.test",
+                "issuer": "Amazon",
+                "note": "",
+                "favorite": false,
+                "icon": null,
+                "info": {
+                    "secret": "IUIUCFKMTXQZUV5U7LE664BVXQ4K7PDSDKHZ4QTZAC5GVIBMMZ6A",
+                    "algo": "SHA1",
+                    "digits": 6,
+                    "period": 30
+                },
+                "groups": []
+            },
+            {
+                "type": "totp",
+                "uuid": "e907aacb-737f-4061-9965-0c0cd643fe69",
+                "name": "Somename",
+                "issuer": "",
+                "note": "Somenote",
+                "favorite": false,
+                "icon": null,
+                "info": {
+                    "secret": "CHJDDHDHXE",
+                    "algo": "SHA256",
+                    "digits": 7,
+                    "period": 30
+                },
+                "groups": []
+            }
+        ],
+        "groups": [],
+        "icons_optimized": true
+    }
+}

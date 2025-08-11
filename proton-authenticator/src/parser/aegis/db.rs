@@ -37,10 +37,16 @@ pub struct CommonRootWithDb {
 impl TryFrom<DbEntry> for TOTP {
     type Error = AegisImportError;
     fn try_from(entry: DbEntry) -> Result<Self, Self::Error> {
+        let issuer = if entry.issuer.is_empty() {
+            entry.name.to_string()
+        } else {
+            entry.issuer
+        };
+
         Ok(Self {
             secret: entry.info.secret,
             label: Some(entry.name),
-            issuer: Some(entry.issuer),
+            issuer: Some(issuer),
             algorithm: match Algorithm::try_from(entry.info.algo.as_str()) {
                 Ok(a) => Some(a),
                 Err(e) => {

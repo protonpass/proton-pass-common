@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.25.9
+
+### Fixes :bug:
+
+- authenticator: improve importer behaviour on missing/empty fields.
+
 ## 0.25.8
 
 ### Fixes :bug:

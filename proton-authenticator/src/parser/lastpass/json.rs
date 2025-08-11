@@ -132,7 +132,14 @@ mod test {
         }
         match &entries[2].content {
             AuthenticatorEntryContent::Totp(totp) => {
-                check_totp(totp, Algorithm::SHA512, 6, 30, Some("sha512 name".to_string()), Some("sha512 name".to_string()));
+                check_totp(
+                    totp,
+                    Algorithm::SHA512,
+                    6,
+                    30,
+                    Some("sha512 name".to_string()),
+                    Some("sha512 name".to_string()),
+                );
             }
             _ => panic!("Should be a TOTP"),
         }

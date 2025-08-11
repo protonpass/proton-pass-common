@@ -57,11 +57,16 @@ impl TryFrom<google::OtpParameters> for AuthenticatorEntry {
                     .map_err(|_| GoogleAuthenticatorParseError::Unsupported)?
                     .try_into()?;
 
+                let issuer = if parameters.issuer.is_empty() {
+                    parameters.name.to_string()
+                } else {
+                    parameters.issuer
+                };
                 Ok(Self {
                     content: AuthenticatorEntryContent::Totp(TOTP {
                         label: Some(parameters.name),
                         secret: base32::encode(base32::Alphabet::Rfc4648 { padding: false }, &parameters.secret),
-                        issuer: Some(parameters.issuer),
+                        issuer: Some(issuer),
                         algorithm: Some(algorithm),
                         digits: match parameters.digits.enum_value_or_default() {
                             google::DigitCount::DIGIT_COUNT_UNSPECIFIED => None,
@@ -197,5 +202,20 @@ mod test {
         assert_eq!(res.entries.len(), 5);
 
         assert_eq!(res.errors.len(), 2);
+    }
+
+    #[test]
+    fn can_import_skipping_missing_field() {
+        let input = "otpauth-migration://offline?data=CjQKCklKlIwjPcIwta0SCWNuY25uY25jbiABKAEwATgBQhMxYWU5YjkxNzUzMTk3NzkyNDQwCmEKIEURQRVMneGaV7T6ye9wNbw4r7xyGo%2BeQnkAumqgLGZ8EhpzdXJ1Y2VhbnVtaWhhaWxsQGdtYWlsLmNvbRoGQW1hem9uIAEoATACQhM2MTRkNzgxNzU0NTc3ODk0NDM0Ck8KFAQR3qBZIxNtW994KVhsJW%2FWkLoDEhRiMmJhY2NvdW50QHByb3Rvbi5tZRoGUHJvdG9uIAEoATACQhNhNWZjNWUxNzU0NTc3OTA5NTE4CjMKC0jSM4zjScZxHuc5EgluYW1lbWlzaGEgASgBMAJCEzk0Mjk1YTE3NTQ5MTI4NDE2OTkQAhgBIAA%3D";
+        let res = parse_google_authenticator_totp(input).expect("should not fail");
+
+        assert_eq!(res.errors.len(), 1);
+        assert_eq!(res.entries.len(), 3);
+
+        assert_eq!("Amazon", res.entries[0].issuer());
+        assert_eq!("Proton", res.entries[1].issuer());
+
+        assert_eq!("namemisha", res.entries[2].issuer());
+        assert_eq!("namemisha", res.entries[2].name());
     }
 }

@@ -41,6 +41,9 @@ struct Otp {
     account: Option<String>,
     #[serde(rename = "tokenType")]
     token_type: String,
+    source: String,
+    #[serde(default)]
+    link: Option<String>,
 }
 
 #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
@@ -151,22 +154,66 @@ fn decrypt_2fas_encrypted_state(
     Ok(decrypted_arr)
 }
 
-fn parse_entry(obj: TwoFasEntry) -> Result<AuthenticatorEntry, TwoFasImportError> {
-    let content = match obj.otp.token_type.as_str() {
+fn calculate_label(label: Option<String>, account: Option<String>, obj_name: String) -> String {
+    if let Some(label_value) = label {
+        if !label_value.is_empty() {
+            return label_value;
+        }
+    }
+
+    if let Some(account_value) = account {
+        if !account_value.is_empty() {
+            return account_value;
+        }
+    }
+
+    obj_name
+}
+
+fn get_content_from_entry(obj: TwoFasEntry) -> Result<AuthenticatorEntryContent, TwoFasImportError> {
+    match obj.otp.token_type.as_str() {
         "STEAM" => {
             let mut steam_totp = SteamTotp::new(&obj.secret).map_err(|_| TwoFasImportError::BadContent)?;
             if !obj.name.trim().is_empty() {
                 steam_totp.set_name(Some(obj.name.trim().to_string()));
             }
 
-            AuthenticatorEntryContent::Steam(steam_totp)
+            Ok(AuthenticatorEntryContent::Steam(steam_totp))
         }
         "TOTP" => {
             let otp = obj.otp;
-            AuthenticatorEntryContent::Totp(TOTP {
-                label: otp.label.or(otp.account.or(Some(obj.name))),
+            if otp.source == "Link" {
+                if let Some(ref uri) = otp.link {
+                    if let Ok(mut totp) = TOTP::from_uri(uri) {
+                        let override_label = otp.label.or(otp.account);
+                        if let Some(overriden) = override_label {
+                            if !overriden.is_empty() {
+                                totp.label = Some(overriden);
+                            }
+                        }
+
+                        return Ok(AuthenticatorEntryContent::Totp(totp));
+                    }
+                }
+            }
+
+            let issuer = match &otp.issuer {
+                Some(issuer) => {
+                    if issuer.is_empty() {
+                        obj.name.to_string()
+                    } else {
+                        issuer.to_string()
+                    }
+                }
+                None => obj.name.to_string(),
+            };
+
+            let label = calculate_label(otp.label, otp.account, obj.name.to_string());
+
+            Ok(AuthenticatorEntryContent::Totp(TOTP {
+                label: Some(label),
                 secret: obj.secret,
-                issuer: otp.issuer,
+                issuer: Some(issuer),
                 algorithm: match otp.algorithm {
                     Some(algo) => match Algorithm::try_from(algo.as_str()) {
                         Ok(a) => Some(a),
@@ -179,14 +226,18 @@ fn parse_entry(obj: TwoFasEntry) -> Result<AuthenticatorEntry, TwoFasImportError
                 },
                 digits: otp.digits.map(|v| v as u8),
                 period: otp.period.map(|v| v as u16),
-            })
+            }))
         }
         _ => {
             // Can be a HOTP or another unsupported entry
             warn!("Unsupported OTP token type: {}", obj.otp.token_type);
-            return Err(TwoFasImportError::Unsupported);
+            Err(TwoFasImportError::Unsupported)
         }
-    };
+    }
+}
+
+fn parse_entry(obj: TwoFasEntry) -> Result<AuthenticatorEntry, TwoFasImportError> {
+    let content = get_content_from_entry(obj)?;
 
     Ok(AuthenticatorEntry {
         content,
@@ -293,5 +344,64 @@ mod test {
         let res = parse_2fas_file(&content, None).expect("error parsing");
         assert_eq!(res.entries.len(), 1);
         assert_eq!(res.errors.len(), 0);
+    }
+
+    #[test]
+    fn handles_manual_entries() {
+        let content = get_file_contents("2fas/decrypted_with_manual_entries.2fas");
+        let res = parse_2fas_file(&content, None).expect("error parsing");
+        assert_eq!(res.entries.len(), 11);
+
+        let entries = res.entries;
+        // [0]
+        assert_eq!("Amazon", entries[0].issuer());
+        // URI: some@random.email
+        // User-edited: some@test.email <-- Should prevail
+        assert_eq!("some@test.email", entries[0].name());
+
+        // [1]
+        assert_eq!("GitHub", entries[1].issuer());
+        assert_eq!("Test-acc", entries[1].name());
+
+        // [2]
+        assert_eq!("Facebook", entries[2].issuer());
+        assert_eq!("random.sometest", entries[2].name());
+
+        // [3]
+        assert_eq!("Google", entries[3].issuer());
+        // URI: some@random.email
+        // User-edited: some@test.email <-- Should prevail
+        assert_eq!("some@test.email", entries[3].name());
+
+        // [4]
+        assert_eq!("LinkedIn", entries[4].issuer());
+        assert_eq!("some@test.email", entries[4].name());
+
+        // [5]
+        assert_eq!("Binance.com", entries[5].issuer());
+        assert_eq!("some@test.email", entries[5].name());
+
+        // [6]
+        assert_eq!("kick", entries[6].issuer());
+        assert_eq!("some@test.email", entries[6].name());
+
+        // [7]
+        assert_eq!("Proton", entries[7].issuer());
+        assert_eq!("sometestaccount@proton.me", entries[7].name());
+
+        // [8]
+        assert_eq!("Reddit", entries[8].issuer());
+        assert_eq!("Some-Account1234", entries[8].name());
+
+        // [9]
+        assert_eq!("20", entries[9].issuer());
+        assert_eq!("20", entries[9].name());
+
+        // [10]
+        assert_eq!("Manual", entries[10].issuer());
+        assert_eq!("Manual", entries[10].name());
+
+        assert_eq!(res.errors.len(), 1);
+        assert!(res.errors[0].message.contains("Unsupported"));
     }
 }

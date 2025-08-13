@@ -54,6 +54,7 @@ clean: ## Remove compile artifacts
 	@rm -rf proton-pass-mobile/src/*.modulemap
 	@rm -rf proton-pass-mobile/android/lib/build
 	@rm -rf proton-pass-mobile/android/lib/src/main/jniLibs
+	@rm -rf proton-pass-mobile/android/build
 	@rm -rf proton-pass-mobile/src/proton/android/pass/commonrust/proton_pass_common_mobile.kt
 	@rm -rf proton-pass-mobile/iOS/frameworks
 	@rm -rf proton-pass-mobile/iOS/headers
@@ -72,6 +73,15 @@ clean: ## Remove compile artifacts
 	@rm -rf proton-authenticator-mobile/iOS/headers
 	@rm -rf proton-authenticator-mobile/iOS/AuthenticatorRustCore/Sources/AuthenticatorRustCore/AuthenticatorRustCore.swift
 	@rm -rf proton-authenticator-mobile/iOS/AuthenticatorRustCore/*.xcframework
+	@rm -rf proton-authenticator-web/test/node_modules/
+	@rm -rf proton-authenticator-web/test/pkg/
+	@rm -rf proton-authenticator-web/test-website/dist/
+	@rm -rf proton-pass-web/test/node_modules/
+	@rm -rf proton-authenticator-mobile/android/build
+	@rm -rf proton-authenticator-mobile/android/lib/src/main/jniLibs
+	@rm -rf proton-authenticator-mobile/android/lib/build
+	@rm -rf proton-authenticator-mobile/android/libTest/build
+	@rm -rf proton-authenticator-mobile/android/libTest/src/main/jniLibs
 
 .PHONY: help
 help: ## Display this help screen

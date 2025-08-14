@@ -131,4 +131,17 @@ mod tests {
         assert_eq!("accountname", res.entries[0].name());
         assert_eq!("accountname", res.entries[0].issuer());
     }
+
+    #[test]
+    fn can_import_with_many_entries() {
+        let content = get_file_contents("ente/plain_20_entries.txt");
+        let res = parse_ente_txt(&content).expect("should be able to import");
+        assert!(res.errors.is_empty());
+        assert_eq!(res.entries.len(), 20);
+
+        for (idx, entry) in res.entries.into_iter().enumerate() {
+            assert_eq!(format!("Account {}", idx + 1), entry.name());
+            assert_eq!("SECRETO", entry.secret());
+        }
+    }
 }

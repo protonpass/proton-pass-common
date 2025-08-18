@@ -115,6 +115,11 @@ mod tests {
     }
 
     #[test]
+    fn parse_big_code_in_screenshot() {
+        parse_google_authenticator_qr("GoogleAuthenticator_ScreenshotBigQR.jpeg")
+    }
+
+    #[test]
     fn parse_invalid_image() {
         let invalid_data = b"not an image";
         let result = parse_qr_code(invalid_data);

@@ -97,21 +97,40 @@ impl TOTP {
             return None;
         }
 
-        match urlencoding::decode(path) {
-            Ok(decoded) => {
-                // Find the last colon to split issuer from label
-                if let Some(last_colon_pos) = decoded.rfind(':') {
-                    let issuer_part = decoded[..last_colon_pos].trim();
-                    if !issuer_part.is_empty() {
-                        Some(issuer_part.to_string())
+        // Find the separator colon in the encoded string first
+        // This handles cases like "issuer%3Awithcolon:label%3Awithcolon"
+        // where we want to split on the unencoded colon, not encoded ones
+        if let Some(separator_pos) = path.find(':') {
+            let issuer_part = &path[..separator_pos];
+            match urlencoding::decode(issuer_part) {
+                Ok(decoded_issuer) => {
+                    let trimmed = decoded_issuer.trim();
+                    if !trimmed.is_empty() {
+                        Some(trimmed.to_string())
                     } else {
                         None
                     }
-                } else {
-                    None
                 }
+                Err(_) => Some(issuer_part.to_string()),
             }
-            Err(_) => Some(path.to_string()),
+        } else {
+            // No unencoded colon found, fall back to old logic
+            // Decode first, then look for colons (for fully encoded paths like "issuer%3Alabel")
+            match urlencoding::decode(path) {
+                Ok(decoded) => {
+                    if let Some(last_colon_pos) = decoded.rfind(':') {
+                        let issuer_part = decoded[..last_colon_pos].trim();
+                        if !issuer_part.is_empty() {
+                            Some(issuer_part.to_string())
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    }
+                }
+                Err(_) => None,
+            }
         }
     }
 
@@ -120,34 +139,69 @@ impl TOTP {
             Some(mut segments) => {
                 if let Some(label) = segments.next_back() {
                     if !label.is_empty() {
-                        match urlencoding::decode(label) {
-                            Ok(decoded) => {
-                                // Check if we should split on colon
-                                if let Some(last_colon_pos) = decoded.rfind(':') {
-                                    let potential_issuer = decoded[..last_colon_pos].trim();
-                                    let potential_label = decoded[last_colon_pos + 1..].trim();
+                        // Find the separator colon in the encoded string first
+                        if let Some(separator_pos) = label.find(':') {
+                            let potential_issuer_encoded = &label[..separator_pos];
+                            let potential_label_encoded = &label[separator_pos + 1..];
 
-                                    // If there's an explicit issuer query parameter, check if it
-                                    // matches to determine whether we need to split and which part
-                                    // to keep
-                                    if let Some(ref query_issuer) = queries.issuer {
-                                        if query_issuer == potential_issuer {
-                                            // Explicit issuer matches path issuer -> only label
-                                            Some(potential_label.to_string())
+                            // Decode both parts
+                            let potential_issuer = match urlencoding::decode(potential_issuer_encoded) {
+                                Ok(decoded) => decoded.trim().to_string(),
+                                Err(_) => potential_issuer_encoded.to_string(),
+                            };
+
+                            let potential_label = match urlencoding::decode(potential_label_encoded) {
+                                Ok(decoded) => decoded.trim().to_string(),
+                                Err(_) => potential_label_encoded.to_string(),
+                            };
+
+                            // If there's an explicit issuer query parameter, check if it
+                            // matches to determine whether we need to split and which part
+                            // to keep
+                            if let Some(ref query_issuer) = queries.issuer {
+                                if query_issuer == &potential_issuer {
+                                    // Explicit issuer matches path issuer -> only label
+                                    Some(potential_label)
+                                } else {
+                                    // Explicit issuer doesn't match, treat whole path as label
+                                    match urlencoding::decode(label) {
+                                        Ok(decoded) => Some(decoded.trim().to_string()),
+                                        Err(_) => Some(label.trim().to_string()),
+                                    }
+                                }
+                            } else {
+                                // No explicit issuer, split on colon
+                                Some(potential_label)
+                            }
+                        } else {
+                            // No unencoded colon found, fall back to old logic
+                            // Decode first, then look for colons (for fully encoded paths like "issuer%3Alabel")
+                            match urlencoding::decode(label) {
+                                Ok(decoded) => {
+                                    if let Some(last_colon_pos) = decoded.rfind(':') {
+                                        let potential_issuer = decoded[..last_colon_pos].trim();
+                                        let potential_label = decoded[last_colon_pos + 1..].trim();
+
+                                        // If there's an explicit issuer query parameter, check if it matches
+                                        if let Some(ref query_issuer) = queries.issuer {
+                                            if query_issuer == potential_issuer {
+                                                // Explicit issuer matches path issuer -> only label
+                                                Some(potential_label.to_string())
+                                            } else {
+                                                // Explicit issuer doesn't match, treat whole path as label
+                                                Some(decoded.trim().to_string())
+                                            }
                                         } else {
-                                            // Explicit issuer doesn't match, treat whole path as label
-                                            Some(decoded.trim().to_string())
+                                            // No explicit issuer, split on colon
+                                            Some(potential_label.to_string())
                                         }
                                     } else {
-                                        // No explicit issuer, split on colon
-                                        Some(potential_label.to_string())
+                                        // No colon, use the whole decoded string
+                                        Some(decoded.trim().to_string())
                                     }
-                                } else {
-                                    // No colon, use the whole decoded string
-                                    Some(decoded.trim().to_string())
                                 }
+                                Err(_) => Some(label.trim().to_string()),
                             }
-                            Err(_) => Some(label.trim().to_string()),
                         }
                     } else {
                         None
@@ -733,6 +787,63 @@ mod test_to_uri {
         assert_eq!(reparsed_totp.label, parsed_totp.label);
         assert_eq!(reparsed_totp.issuer, parsed_totp.issuer);
         assert_eq!(reparsed_totp.secret, parsed_totp.secret);
+    }
+
+    #[test]
+    fn mixed_encoded_unencoded_colons() {
+        // Test mixed scenarios with both encoded and unencoded colons
+        // This tests the edge case where we have:
+        // - Unencoded colon as issuer:label separator
+        // - Encoded colon as part of the actual label content
+
+        // Test case 1: issuer:label%3Awithcolon (no explicit issuer query)
+        // Should parse as issuer="issuer", label="label:withcolon"
+        let uri1 = "otpauth://totp/issuer:label%3Awithcolon?secret=somesecret&algorithm=SHA512&digits=8&period=10";
+        let parsed1 = TOTP::from_uri(uri1).expect("Should parse mixed colon URI");
+
+        assert_eq!(parsed1.issuer, Some("issuer".to_string()));
+        assert_eq!(parsed1.label, Some("label:withcolon".to_string()));
+        assert_eq!(parsed1.secret, "somesecret");
+        assert_eq!(parsed1.algorithm, Some(Algorithm::SHA512));
+        assert_eq!(parsed1.digits, Some(8));
+        assert_eq!(parsed1.period, Some(10));
+
+        // Test case 2: Complex case with multiple colons
+        // Format: issuer%3Awithcolon:label%3Aalso%3Awithcolon
+        // Should parse as issuer="issuer:withcolon", label="label:also:withcolon"
+        let uri2 = "otpauth://totp/issuer%3Awithcolon:label%3Aalso%3Awithcolon?secret=anothersecret&algorithm=SHA1&digits=6&period=30";
+        let parsed2 = TOTP::from_uri(uri2).expect("Should parse complex mixed colon URI");
+
+        assert_eq!(parsed2.issuer, Some("issuer:withcolon".to_string()));
+        assert_eq!(parsed2.label, Some("label:also:withcolon".to_string()));
+        assert_eq!(parsed2.secret, "anothersecret");
+
+        // Test case 3: With explicit issuer query parameter that matches
+        // The explicit issuer should take precedence, and path should be split correctly
+        let uri3 =
+            "otpauth://totp/Company:user%3Aupdated?secret=secret123&issuer=Company&algorithm=SHA256&digits=7&period=45";
+        let parsed3 = TOTP::from_uri(uri3).expect("Should parse with matching explicit issuer");
+
+        assert_eq!(parsed3.issuer, Some("Company".to_string()));
+        assert_eq!(parsed3.label, Some("user:updated".to_string()));
+        assert_eq!(parsed3.secret, "secret123");
+
+        // Test case 4: With explicit issuer query parameter that doesn't match
+        // Should treat the whole path as label since explicit issuer doesn't match path issuer
+        let uri4 = "otpauth://totp/Company:user%3Aupdated?secret=secret456&issuer=Different&algorithm=SHA256&digits=7&period=45";
+        let parsed4 = TOTP::from_uri(uri4).expect("Should parse with non-matching explicit issuer");
+
+        assert_eq!(parsed4.issuer, Some("Different".to_string()));
+        assert_eq!(parsed4.label, Some("Company:user:updated".to_string()));
+        assert_eq!(parsed4.secret, "secret456");
+
+        // Test round-trip behavior for complex cases
+        // Generate URI from parsed data and verify it can be parsed back correctly
+        let regenerated1 = parsed1.to_uri(None, None);
+        let reparsed1 = TOTP::from_uri(&regenerated1).expect("Should parse regenerated URI");
+        assert_eq!(reparsed1.label, parsed1.label);
+        assert_eq!(reparsed1.issuer, parsed1.issuer);
+        assert_eq!(reparsed1.secret, parsed1.secret);
     }
 
     #[test]

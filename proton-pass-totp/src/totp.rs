@@ -864,13 +864,11 @@ mod test_to_uri {
         let uri = original_totp.to_uri(None, None);
         assert!(
             uri.contains("name%3A%20updated"),
-            "URI should contain URL encoded colon: {}",
-            uri
+            "URI should contain URL encoded colon: {uri}"
         );
         assert!(
             uri.contains("issuer=My") && uri.contains("Company"),
-            "URI should have explicit issuer query: {}",
-            uri
+            "URI should have explicit issuer query: {uri}"
         );
 
         // Parse it back - should preserve the colon in the label

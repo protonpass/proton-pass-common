@@ -48,30 +48,31 @@ pub fn parse_ente_txt(input: &str) -> Result<ImportResult, EnteImportError> {
 // Ente sometimes adds the issuer as a prefix to the label. Make sure to remove it
 fn sanitize_content(content: AuthenticatorEntryContent) -> Result<AuthenticatorEntryContent, EnteImportError> {
     match content {
-        AuthenticatorEntryContent::Totp(mut totp) => match (&totp.label, &totp.issuer) {
-            (Some(label), Some(issuer)) => {
+        AuthenticatorEntryContent::Totp(mut totp) => {
+            // Handle issuer prefix removal when both label and issuer exist
+            if let (Some(label), Some(issuer)) = (&totp.label, &totp.issuer) {
                 let issuer_prefix = format!("{issuer}:");
                 if label.starts_with(&issuer_prefix) {
                     let edited_label = label.replace(&issuer_prefix, "");
                     totp.label = Some(edited_label);
                 }
-
-                let issuer = match &totp.issuer {
-                    Some(issuer) => {
-                        if issuer.is_empty() {
-                            totp.label.clone()
-                        } else {
-                            totp.issuer
-                        }
-                    }
-                    None => totp.label.clone(),
-                };
-                totp.issuer = issuer;
-
-                Ok(AuthenticatorEntryContent::Totp(totp))
             }
-            _ => Ok(AuthenticatorEntryContent::Totp(totp)),
-        },
+
+            // Handle empty or missing issuer by using label as fallback
+            let issuer = match &totp.issuer {
+                Some(issuer) => {
+                    if issuer.is_empty() {
+                        totp.label.clone()
+                    } else {
+                        totp.issuer.clone()
+                    }
+                }
+                None => totp.label.clone(),
+            };
+            totp.issuer = issuer;
+
+            Ok(AuthenticatorEntryContent::Totp(totp))
+        }
         _ => Ok(content),
     }
 }

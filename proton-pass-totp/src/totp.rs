@@ -43,9 +43,8 @@ impl TOTP {
         Self::check_scheme(&uri)?;
         Self::check_otp_type(&uri)?;
 
-        let label = Self::parse_label(&uri);
-
         let queries = Self::parse_queries(&uri)?;
+        let label = Self::parse_label(&uri, &queries);
         let issuer = Self::parse_issuer(&uri, &queries);
         let secret = queries.get_secret()?;
         let algorithm = queries.get_algorithm()?;
@@ -100,24 +99,52 @@ impl TOTP {
 
         match urlencoding::decode(path) {
             Ok(decoded) => {
-                let split: Vec<&str> = decoded.split(':').collect();
-                split.first().map(|s| s.to_string()).filter(|_| split.len() > 1)
+                // Find the last colon to split issuer from label
+                if let Some(last_colon_pos) = decoded.rfind(':') {
+                    let issuer_part = decoded[..last_colon_pos].trim();
+                    if !issuer_part.is_empty() {
+                        Some(issuer_part.to_string())
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
             }
             Err(_) => Some(path.to_string()),
         }
     }
 
-    fn parse_label(uri: &Url) -> Option<String> {
+    fn parse_label(uri: &Url, queries: &Queries) -> Option<String> {
         match uri.path_segments() {
             Some(mut segments) => {
                 if let Some(label) = segments.next_back() {
                     if !label.is_empty() {
                         match urlencoding::decode(label) {
                             Ok(decoded) => {
-                                let split: Vec<&str> = decoded.split(":").collect();
-                                match split.last() {
-                                    Some(label) => Some(label.trim().to_string()),
-                                    None => Some(decoded.trim().to_string()),
+                                // Check if we should split on colon
+                                if let Some(last_colon_pos) = decoded.rfind(':') {
+                                    let potential_issuer = decoded[..last_colon_pos].trim();
+                                    let potential_label = decoded[last_colon_pos + 1..].trim();
+
+                                    // If there's an explicit issuer query parameter, check if it
+                                    // matches to determine whether we need to split and which part
+                                    // to keep
+                                    if let Some(ref query_issuer) = queries.issuer {
+                                        if query_issuer == potential_issuer {
+                                            // Explicit issuer matches path issuer -> only label
+                                            Some(potential_label.to_string())
+                                        } else {
+                                            // Explicit issuer doesn't match, treat whole path as label
+                                            Some(decoded.trim().to_string())
+                                        }
+                                    } else {
+                                        // No explicit issuer, split on colon
+                                        Some(potential_label.to_string())
+                                    }
+                                } else {
+                                    // No colon, use the whole decoded string
+                                    Some(decoded.trim().to_string())
                                 }
                             }
                             Err(_) => Some(label.trim().to_string()),
@@ -172,11 +199,11 @@ impl TOTP {
             _ => panic!("Should be able to create Url struct with scheme {OTP_SCHEME} and host {TOTP_HOST}"),
         };
 
-        // Add label path
+        // Add label path (URL encode if it contains special characters like colons)
         if let Some(edited_label) = &self.label {
-            uri.set_path(edited_label.as_str());
+            uri.set_path(&urlencoding::encode(edited_label));
         } else if let Some(original_label) = original_label {
-            uri.set_path(original_label.as_str());
+            uri.set_path(&urlencoding::encode(&original_label));
         }
 
         // Set secret query
@@ -351,9 +378,8 @@ mod test_from_uri {
 
     #[test]
     fn can_parse_label() {
-        // Given
-        let uri =
-            "otpauth://totp/issuer%3Alabel?secret=somesecret&issuer=ProtonMail&algorithm=SHA512&digits=8&period=45";
+        // Given - traditional issuer:label format without explicit issuer query
+        let uri = "otpauth://totp/issuer%3Alabel?secret=somesecret&algorithm=SHA512&digits=8&period=45";
 
         // When
         let sut = make_sut(uri);
@@ -363,10 +389,58 @@ mod test_from_uri {
             Ok(components) => {
                 assert_eq!(components.label, Some("label".to_string()));
                 assert_eq!(components.secret, "somesecret");
-                assert_eq!(components.issuer, Some("ProtonMail".to_string()));
+                assert_eq!(components.issuer, Some("issuer".to_string()));
                 assert_eq!(components.algorithm, Some(Algorithm::SHA512));
                 assert_eq!(components.digits, Some(8));
                 assert_eq!(components.period, Some(45));
+            }
+            _ => panic!("Should be able to parse"),
+        }
+    }
+
+    #[test]
+    fn can_parse_label_with_encoded_colon_and_explicit_issuer() {
+        // Given - URI with URL encoded colon in label AND explicit issuer in query
+        // This represents the new behavior where labels with colons are preserved
+        let uri =
+            "otpauth://totp/name%3A%20updated?secret=somesecret&issuer=My%20Company&algorithm=SHA1&digits=6&period=30";
+
+        // When
+        let sut = make_sut(uri);
+
+        // Then
+        match sut {
+            Ok(components) => {
+                assert_eq!(components.label, Some("name: updated".to_string()));
+                assert_eq!(components.secret, "somesecret");
+                assert_eq!(components.issuer, Some("My Company".to_string()));
+                assert_eq!(components.algorithm, Some(Algorithm::SHA1));
+                assert_eq!(components.digits, Some(6));
+                assert_eq!(components.period, Some(30));
+            }
+            _ => panic!("Should be able to parse"),
+        }
+    }
+
+    #[test]
+    fn can_parse_issuer_with_encoded_colon_and_label() {
+        // Given - URI with URL encoded issuer:label format (traditional format)
+        // This should continue to work for backward compatibility
+        let uri =
+            "otpauth://totp/My%3A%20Company%3Auser%40example.com?secret=somesecret&algorithm=SHA1&digits=6&period=30";
+
+        // When
+        let sut = make_sut(uri);
+
+        // Then
+        match sut {
+            Ok(components) => {
+                assert_eq!(components.label, Some("user@example.com".to_string()));
+                assert_eq!(components.secret, "somesecret");
+                assert_eq!(components.issuer, Some("My: Company".to_string()));
+                assert_eq!(components.algorithm, Some(Algorithm::SHA1));
+                assert_eq!(components.digits, Some(6));
+                assert_eq!(components.period, Some(30));
             }
             _ => panic!("Should be able to parse"),
         }
@@ -565,6 +639,160 @@ mod test_to_uri {
             .to_uri(Some("john.doe".to_string()), Some("Proton".to_string())),
             "otpauth://totp/jane.doe?secret=some_secret&issuer=Proton&algorithm=SHA512&digits=8&period=30".to_string()
         );
+    }
+
+    #[test]
+    fn to_uri_with_colon_in_label() {
+        // Test that labels with colons get URL encoded
+        assert_eq!(
+            TOTP {
+                label: Some("name: updated".to_string()),
+                secret: "some_secret".to_string(),
+                issuer: None,
+                algorithm: None,
+                digits: None,
+                period: None,
+            }
+            .to_uri(None, None),
+            "otpauth://totp/name%3A%20updated?secret=some_secret&algorithm=SHA1&digits=6&period=30".to_string()
+        );
+
+        // Test that original labels with colons get URL encoded
+        assert_eq!(
+            TOTP {
+                label: None,
+                secret: "some_secret".to_string(),
+                issuer: None,
+                algorithm: None,
+                digits: None,
+                period: None,
+            }
+            .to_uri(Some("original: name".to_string()), None),
+            "otpauth://totp/original%3A%20name?secret=some_secret&algorithm=SHA1&digits=6&period=30".to_string()
+        );
+
+        // Test that edited labels take precedence and get URL encoded
+        assert_eq!(
+            TOTP {
+                label: Some("edited: name".to_string()),
+                secret: "some_secret".to_string(),
+                issuer: None,
+                algorithm: None,
+                digits: None,
+                period: None,
+            }
+            .to_uri(Some("original: name".to_string()), None),
+            "otpauth://totp/edited%3A%20name?secret=some_secret&algorithm=SHA1&digits=6&period=30".to_string()
+        );
+    }
+
+    #[test]
+    fn round_trip_with_colon_in_label() {
+        // Test that we can generate a URI with a colon in the label and parse it back correctly
+        let original_totp = TOTP {
+            label: Some("name: updated".to_string()),
+            secret: "JBSWY3DPEHPK3PXP".to_string(),
+            issuer: Some("My Company".to_string()),
+            algorithm: Some(Algorithm::SHA256),
+            digits: Some(8),
+            period: Some(60),
+        };
+
+        // Generate URI
+        let uri = original_totp.to_uri(None, None);
+
+        // Parse it back
+        let parsed_totp = TOTP::from_uri(&uri).expect("Should be able to parse generated URI");
+
+        // Verify all fields are preserved
+        assert_eq!(parsed_totp.label, original_totp.label);
+        assert_eq!(parsed_totp.secret, original_totp.secret);
+        assert_eq!(parsed_totp.issuer, original_totp.issuer);
+        assert_eq!(parsed_totp.algorithm, original_totp.algorithm);
+        assert_eq!(parsed_totp.digits, original_totp.digits);
+        assert_eq!(parsed_totp.period, original_totp.period);
+    }
+
+    #[test]
+    fn round_trip_maintains_issuer_label_parsing() {
+        // Test that the traditional issuer:label format still works after our changes
+        let uri =
+            "otpauth://totp/GitHub%3Auser%40example.com?secret=JBSWY3DPEHPK3PXP&algorithm=SHA1&digits=6&period=30";
+
+        let parsed_totp = TOTP::from_uri(uri).expect("Should be able to parse");
+
+        // Verify issuer and label are parsed correctly from issuer:label format
+        assert_eq!(parsed_totp.label, Some("user@example.com".to_string()));
+        assert_eq!(parsed_totp.issuer, Some("GitHub".to_string()));
+        assert_eq!(parsed_totp.secret, "JBSWY3DPEHPK3PXP");
+
+        // Generate URI back and verify it can be parsed again
+        let regenerated_uri = parsed_totp.to_uri(None, None);
+        let reparsed_totp = TOTP::from_uri(&regenerated_uri).expect("Should be able to parse regenerated URI");
+
+        assert_eq!(reparsed_totp.label, parsed_totp.label);
+        assert_eq!(reparsed_totp.issuer, parsed_totp.issuer);
+        assert_eq!(reparsed_totp.secret, parsed_totp.secret);
+    }
+
+    #[test]
+    fn integration_test_colon_fix() {
+        // This is the main integration test for the colon fix
+
+        // Test 1: Entry names with colons should be preserved when generating/parsing URIs
+        let original_totp = TOTP {
+            label: Some("name: updated".to_string()),
+            secret: "JBSWY3DPEHPK3PXP".to_string(),
+            issuer: Some("My Company".to_string()),
+            algorithm: Some(Algorithm::SHA256),
+            digits: Some(8),
+            period: Some(60),
+        };
+
+        // Generate URI - should URL encode the colon in the label
+        let uri = original_totp.to_uri(None, None);
+        assert!(
+            uri.contains("name%3A%20updated"),
+            "URI should contain URL encoded colon: {}",
+            uri
+        );
+        assert!(
+            uri.contains("issuer=My") && uri.contains("Company"),
+            "URI should have explicit issuer query: {}",
+            uri
+        );
+
+        // Parse it back - should preserve the colon in the label
+        let parsed_totp = TOTP::from_uri(&uri).expect("Should be able to parse generated URI");
+        assert_eq!(
+            parsed_totp.label,
+            Some("name: updated".to_string()),
+            "Label with colon should be preserved"
+        );
+        assert_eq!(
+            parsed_totp.issuer,
+            Some("My Company".to_string()),
+            "Issuer should be preserved"
+        );
+        assert_eq!(parsed_totp.secret, original_totp.secret);
+
+        // Test 2: Traditional issuer:label format should still work for backward compatibility
+        let traditional_uri = "otpauth://totp/GitHub%3Auser%40example.com?secret=JBSWY3DPEHPK3PXP";
+        let traditional_parsed = TOTP::from_uri(traditional_uri).expect("Should parse traditional format");
+        assert_eq!(traditional_parsed.label, Some("user@example.com".to_string()));
+        assert_eq!(traditional_parsed.issuer, Some("GitHub".to_string()));
+
+        // Test 3: When explicit issuer matches path issuer, should split (backward compatibility)
+        let compat_uri = "otpauth://totp/Company%3Auser?secret=SECRET&issuer=Company";
+        let compat_parsed = TOTP::from_uri(compat_uri).expect("Should parse compatibility format");
+        assert_eq!(compat_parsed.label, Some("user".to_string()));
+        assert_eq!(compat_parsed.issuer, Some("Company".to_string()));
+
+        // Test 4: When explicit issuer doesn't match path issuer, treat path as full label
+        let new_uri = "otpauth://totp/name%3A%20updated?secret=SECRET&issuer=Different%20Company";
+        let new_parsed = TOTP::from_uri(new_uri).expect("Should parse new format");
+        assert_eq!(new_parsed.label, Some("name: updated".to_string()));
+        assert_eq!(new_parsed.issuer, Some("Different Company".to_string()));
     }
 }
 

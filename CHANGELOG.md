@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.25.10
+
+### Fixes :bug:
+
+- totp: improve handling of special characters in TOTP label.
+
 ## 0.25.9
 
 ### Fixes :bug:

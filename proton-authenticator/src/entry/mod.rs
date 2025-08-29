@@ -183,3 +183,76 @@ impl AuthenticatorEntry {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn can_handle_colon_in_label_when_parsing() {
+        let input =
+            "otpauth://totp/issuer:label%3Awith%3Acolons?secret=MYSECRET&issuer=issuer&algorithm=SHA256&digits=8&period=15";
+        let parsed = AuthenticatorEntry::from_uri(input, None).expect("Should be able to parse");
+        assert_eq!("label:with:colons", parsed.name());
+        assert_eq!("issuer", parsed.issuer());
+
+        // Same uri without the repeated issuer in the path
+        let expected =
+            "otpauth://totp/label%3Awith%3Acolons?secret=MYSECRET&issuer=issuer&algorithm=SHA256&digits=8&period=15";
+        let uri = parsed.uri();
+        assert_eq!(expected, uri);
+    }
+
+    #[test]
+    fn handles_colon_when_creating_from_params() {
+        let input = AuthenticatorEntryTotpCreateParameters {
+            name: "label:withcolon".to_string(),
+            secret: "MYSECRET".to_string(),
+            issuer: "issuer".to_string(),
+            period: None,
+            digits: None,
+            algorithm: None,
+            note: None,
+        };
+        let entry = AuthenticatorEntry::new_totp_entry_from_params(input.clone()).expect("Should be able to create");
+        assert_eq!("label:withcolon", entry.name());
+
+        let expected =
+            "otpauth://totp/label%3Awithcolon?secret=MYSECRET&issuer=issuer&algorithm=SHA1&digits=6&period=30";
+        let uri = entry.uri();
+        assert_eq!(expected, uri);
+    }
+
+    #[test]
+    fn handles_colon_when_updating() {
+        let input = AuthenticatorEntryTotpCreateParameters {
+            name: "label".to_string(),
+            secret: "MYSECRET".to_string(),
+            issuer: "issuer".to_string(),
+            period: None,
+            digits: None,
+            algorithm: None,
+            note: None,
+        };
+        let mut entry =
+            AuthenticatorEntry::new_totp_entry_from_params(input.clone()).expect("Should be able to create");
+
+        entry
+            .update(AuthenticatorEntryUpdateContents {
+                name: "label:withcolon".to_string(),
+                secret: "MYSECRET".to_string(),
+                issuer: "issuer".to_string(),
+                period: 30,
+                digits: 6,
+                algorithm: Algorithm::SHA1,
+                note: None,
+                entry_type: AuthenticatorEntryType::Totp,
+            })
+            .expect("Should be able to update");
+
+        let expected =
+            "otpauth://totp/label%3Awithcolon?secret=MYSECRET&issuer=issuer&algorithm=SHA1&digits=6&period=30";
+        let uri = entry.uri();
+        assert_eq!(expected, uri);
+    }
+}

@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.25.11
+
+### Fixes :bug:
+
+- totp: improve parsing of TOTP uri with literal `null` values.
+
 ## 0.25.10
 
 ### Fixes :bug:

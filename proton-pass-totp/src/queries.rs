@@ -31,9 +31,13 @@ impl Queries {
 
     pub fn get_algorithm(&self) -> Result<Option<Algorithm>, TOTPError> {
         if let Some(value) = self.algorithm.clone() {
-            match Algorithm::try_from(&*value) {
-                Ok(algo) => Ok(Some(algo)),
-                Err(error) => Err(error),
+            if value == "null" {
+                Ok(None)
+            } else {
+                match Algorithm::try_from(&*value) {
+                    Ok(algo) => Ok(Some(algo)),
+                    Err(error) => Err(error),
+                }
             }
         } else {
             Ok(None)
@@ -42,32 +46,45 @@ impl Queries {
 
     pub fn get_digits(&self) -> Result<Option<u8>, TOTPError> {
         match self.digits {
-            Some(ref period) => match period.parse::<u8>() {
-                Ok(digits) => {
-                    if digits > 0 && digits <= 9 {
-                        Ok(Some(digits))
-                    } else {
-                        Err(TOTPError::InvalidDigits)
+            Some(ref digits) => {
+                if digits == "null" {
+                    Ok(None)
+                } else {
+                    match digits.parse::<u8>() {
+                        Ok(digits) => {
+                            if digits > 0 && digits <= 9 {
+                                Ok(Some(digits))
+                            } else {
+                                Err(TOTPError::InvalidDigits)
+                            }
+                        }
+
+                        Err(_) => Err(TOTPError::InvalidDigits),
                     }
                 }
-                Err(_) => Err(TOTPError::InvalidDigits),
-            },
+            }
             None => Ok(None),
         }
     }
 
     pub fn get_period(&self) -> Result<Option<u16>, TOTPError> {
         match self.period {
-            Some(ref period) => match period.parse::<u16>() {
-                Ok(period) => {
-                    if period > 0 {
-                        Ok(Some(period))
-                    } else {
-                        Err(TOTPError::InvalidPeriod)
+            Some(ref period) => {
+                if period == "null" {
+                    Ok(None)
+                } else {
+                    match period.parse::<u16>() {
+                        Ok(period) => {
+                            if period > 0 {
+                                Ok(Some(period))
+                            } else {
+                                Err(TOTPError::InvalidPeriod)
+                            }
+                        }
+                        Err(_) => Err(TOTPError::InvalidPeriod),
                     }
                 }
-                Err(_) => Err(TOTPError::InvalidPeriod),
-            },
+            }
             None => Ok(None),
         }
     }

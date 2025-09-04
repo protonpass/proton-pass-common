@@ -82,6 +82,7 @@ mod tests {
     use super::*;
     use crate::parser::ente::test::check_ente_entries;
     use crate::test_utils::get_file_contents;
+    use proton_pass_totp::Algorithm;
 
     #[test]
     fn can_import_txt_file() {
@@ -144,5 +145,22 @@ mod tests {
             assert_eq!(format!("Account {}", idx + 1), entry.name());
             assert_eq!("SECRETO", entry.secret());
         }
+    }
+
+    #[test]
+    fn can_import_entry_with_literal_nulls() {
+        let content = "otpauth://totp/COMPANYNAME:SOMELABEL?secret=XXXXXXXXXXXX&issuer=COMPANYNAME&algorithm=null&digits=null&period=null&codeDisplay=%7B%22pinned%22%3Afalse%2C%22trashed%22%3Afalse%2C%22lastUsedAt%22%3A0%2C%22tapCount%22%3A0%2C%22tags%22%3A%5B%5D%7D";
+        let res = parse_ente_txt(content).expect("should be able to import");
+        assert!(res.errors.is_empty());
+        assert_eq!(res.entries.len(), 1);
+
+        let entry = &res.entries[0];
+        assert_eq!("COMPANYNAME", entry.issuer());
+        assert_eq!("XXXXXXXXXXXX", entry.secret());
+
+        let totp_params = entry.get_totp_parameters().unwrap();
+        assert_eq!(Algorithm::SHA1, totp_params.algorithm);
+        assert_eq!(30, totp_params.period);
+        assert_eq!(6, totp_params.digits);
     }
 }

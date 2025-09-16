@@ -77,7 +77,7 @@ signing {
 
 dependencies {
     val COROUTINES = "1.6.4"
-    val JNA = "5.15.0"
+    val JNA = "5.17.0"
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${COROUTINES}")
     implementation("net.java.dev.jna:jna:${JNA}@aar")

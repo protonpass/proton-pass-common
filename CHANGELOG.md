@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.25.12
+
+### Fixes :bug:
+
+- common: 16KB alignment
+
 ## 0.25.11
 
 ### Fixes :bug:

@@ -1536,7 +1536,7 @@ dependencies = [
 
 [[package]]
 name = "icon_fetcher"
-version = "0.25.12"
+version = "0.25.13"
 dependencies = [
  "futures",
  "indicatif",
@@ -2755,7 +2755,7 @@ checksum = "95067976aca6421a523e491fce939a3e65249bac4b977adee0ee9771568e8aa3"
 
 [[package]]
 name = "proton-authenticator"
-version = "0.25.12"
+version = "0.25.13"
 dependencies = [
  "aes-gcm",
  "argon2",
@@ -2791,7 +2791,7 @@ dependencies = [
 
 [[package]]
 name = "proton-authenticator-mobile"
-version = "0.25.12"
+version = "0.25.13"
 dependencies = [
  "chrono",
  "proton-authenticator",
@@ -2802,7 +2802,7 @@ dependencies = [
 
 [[package]]
 name = "proton-authenticator-web"
-version = "0.25.12"
+version = "0.25.13"
 dependencies = [
  "js-sys",
  "proton-authenticator",
@@ -2814,7 +2814,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-common"
-version = "0.25.12"
+version = "0.25.13"
 dependencies = [
  "async-trait",
  "coset",
@@ -2842,7 +2842,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-derive"
-version = "0.25.12"
+version = "0.25.13"
 dependencies = [
  "quote",
  "syn",
@@ -2850,7 +2850,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-mobile"
-version = "0.25.12"
+version = "0.25.13"
 dependencies = [
  "proton-pass-common",
  "proton-pass-derive",
@@ -2860,7 +2860,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-totp"
-version = "0.25.12"
+version = "0.25.13"
 dependencies = [
  "criterion",
  "proton-pass-derive",
@@ -2873,7 +2873,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-web"
-version = "0.25.12"
+version = "0.25.13"
 dependencies = [
  "js-sys",
  "proton-pass-common",

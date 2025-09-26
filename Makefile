@@ -126,7 +126,7 @@ ios-min-xcframework: ios-lib-ios-sim ## Build a minimal xcframework for iOS arm 
                -library "target/aarch64-apple-ios-sim/release/${IOS_LIB_NAME}" \
                -headers proton-pass-mobile/iOS/headers \
                -output "${IOS_FRAMEWORK_DIR}/${IOS_XCFRAMEWORK_NAME}"
-	@cp -R "${IOS_FRAMEWORK_DIR}/${IOS_XCFRAMEWORK_NAME}" "${IOS_PACKAGE_DIR}/${IOS_XCFRAMEWORK_NAME}"
+	@mv "${IOS_FRAMEWORK_DIR}/${IOS_XCFRAMEWORK_NAME}" "${IOS_PACKAGE_DIR}/${IOS_XCFRAMEWORK_NAME}"
 
 .PHONY: ios-xcframework
 ios-xcframework: ios-lib-macos ios-lib-ios ios-lib-ios-sim ## Build the iOS xcframework
@@ -138,6 +138,7 @@ ios-xcframework: ios-lib-macos ios-lib-ios ios-lib-ios-sim ## Build the iOS xcfr
                -library "target/aarch64-apple-darwin/release/${IOS_LIB_NAME}" \
                -headers proton-pass-mobile/iOS/headers \
                -output "${IOS_FRAMEWORK_DIR}/${IOS_XCFRAMEWORK_NAME}"
+	@mv "${IOS_FRAMEWORK_DIR}/${IOS_XCFRAMEWORK_NAME}" "${IOS_PACKAGE_DIR}/${IOS_XCFRAMEWORK_NAME}"
 
 .PHONY: ios-package
 ios-package: clean swift-bindings ios-xcframework ## Update the iOS package
@@ -293,7 +294,7 @@ authenticator-ios-xcframework: authenticator-ios-lib-macos authenticator-ios-lib
                -library "target/aarch64-apple-darwin/release/${AUTHENTICATOR_IOS_LIB_NAME}" \
                -headers proton-authenticator-mobile/iOS/headers \
                -output "${AUTHENTICATOR_IOS_FRAMEWORK_DIR}/${AUTHENTICATOR_IOS_XCFRAMEWORK_NAME}"
-	@cp -R "${AUTHENTICATOR_IOS_FRAMEWORK_DIR}/${AUTHENTICATOR_IOS_XCFRAMEWORK_NAME}" "${AUTHENTICATOR_IOS_PACKAGE_DIR}/${AUTHENTICATOR_IOS_XCFRAMEWORK_NAME}"
+	@mv "${AUTHENTICATOR_IOS_FRAMEWORK_DIR}/${AUTHENTICATOR_IOS_XCFRAMEWORK_NAME}" "${AUTHENTICATOR_IOS_PACKAGE_DIR}/${AUTHENTICATOR_IOS_XCFRAMEWORK_NAME}"
 
 .PHONY: authenticator-ios-package
 authenticator-ios-package: clean authenticator-swift-bindings authenticator-ios-xcframework ## Update the iOS package

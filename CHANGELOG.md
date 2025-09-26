@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.25.13
+
+### Fixes :bug:
+
+- pass-mobile: fix iOS artifacts not containing the prebuilt binaries.
+
 ## 0.25.12
 
 ### Fixes :bug:

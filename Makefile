@@ -140,8 +140,8 @@ ios-xcframework: ios-lib-macos ios-lib-maccatalyst ios-lib-ios ios-lib-ios-sim #
                -library "target/aarch64-apple-ios-sim/release/${IOS_LIB_NAME}" \
                -headers proton-pass-mobile/iOS/headers \
                -library "target/aarch64-apple-darwin/release/${IOS_LIB_NAME}" \
-			   -headers proton-pass-mobile/iOS/headers \
-	           -library "target/aarch64-apple-ios-macabi/release/${IOS_LIB_NAME}" \
+               -headers proton-pass-mobile/iOS/headers \
+               -library "target/aarch64-apple-ios-macabi/release/${IOS_LIB_NAME}" \
                -headers proton-pass-mobile/iOS/headers \
                -output "${IOS_FRAMEWORK_DIR}/${IOS_XCFRAMEWORK_NAME}"
 	@mv "${IOS_FRAMEWORK_DIR}/${IOS_XCFRAMEWORK_NAME}" "${IOS_PACKAGE_DIR}/${IOS_XCFRAMEWORK_NAME}"

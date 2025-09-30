@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.25.14
+
+### Other
+
+- pass-mobile: add support for macCatalyst.
+
 ## 0.25.13
 
 ### Fixes :bug:

@@ -1,6 +1,6 @@
 [package]
 name = "proton-pass-totp"
-version = "0.25.13"
+version = "0.25.14"
 edition = "2021"
 
 [lib]

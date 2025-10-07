@@ -43,7 +43,7 @@ fn domain_2fa(mut dst: &File, const_name: &str, filename: &str) {
     dst.write_all(b": &[&str] = &[")
         .expect("Error writing common 2fa domain list");
 
-    let src = BufReader::new(File::open(filename).unwrap_or_else(|e| panic!("Error opening {}: {}", filename, e)));
+    let src = BufReader::new(File::open(filename).unwrap_or_else(|e| panic!("Error opening {filename}: {e}")));
 
     for line in src.lines() {
         let password = line.expect("Error reading line from file");
@@ -121,8 +121,5 @@ fn eff_wordlist(mut f_dest: &File, const_name: &str, fname_src: &str) {
     }
 
     f_dest.write_all(b"];").expect("Error writing wordlist");
-    println!(
-        "cargo:warning=Generated wordlist with {} words ({} words filtered out)",
-        word_count, filtered_count
-    );
+    println!("cargo:warning=Generated wordlist with {word_count} words ({filtered_count} words filtered out)");
 }

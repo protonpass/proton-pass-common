@@ -122,7 +122,7 @@ impl TotpGenerator {
             let should_generate = if !has_generated {
                 true
             } else if only_on_code_change {
-                entries.iter().any(|e| now % e.period() as u64 == 0)
+                entries.iter().any(|e| now.is_multiple_of(e.period() as u64))
             } else {
                 true
             };

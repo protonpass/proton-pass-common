@@ -12,9 +12,9 @@ pub enum WasmWifiSecurity {
     WEP,
 }
 
-impl Into<WifiSecurity> for WasmWifiSecurity {
-    fn into(self) -> WifiSecurity {
-        match self {
+impl From<WasmWifiSecurity> for WifiSecurity {
+    fn from(val: WasmWifiSecurity) -> Self {
+        match val {
             WasmWifiSecurity::Unspecified => WifiSecurity::Unspecified,
             WasmWifiSecurity::WPA => WifiSecurity::WPA,
             WasmWifiSecurity::WPA2 => WifiSecurity::WPA2,

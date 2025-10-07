@@ -71,7 +71,7 @@ pub fn generate_wifi_svg_qr_code(
     password: String,
     security: WasmWifiSecurity,
 ) -> Result<String, JsError> {
-    let uri = generate_wifi_uri(&ssid, &password, security.into()).map_err(|e| JsError::from(e))?;
+    let uri = generate_wifi_uri(&ssid, &password, security.into()).map_err(JsError::from)?;
     generate_svg_qr_code(uri)
 }
 

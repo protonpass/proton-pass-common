@@ -2,6 +2,8 @@
 
 ### Features :tada:
 
+- pass-common: add wordlist filtering for removing unwanted words from password list.
+
 ### Fixes :bug:
 
 ### Other

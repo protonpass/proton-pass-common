@@ -1,6 +1,6 @@
 {
   "name": "@protontech/authenticator-rust-core",
-  "version": "0.25.14",
+  "version": "0.26.0",
   "workspaces": [
     "worker"
   ]

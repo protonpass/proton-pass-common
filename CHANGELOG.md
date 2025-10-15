@@ -2,11 +2,20 @@
 
 ### Features :tada:
 
-- pass-common: add wordlist filtering for removing unwanted words from password list.
-
 ### Fixes :bug:
 
 ### Other
+
+## 0.26.0
+
+### Features :tada:
+
+- pass-common: add wordlist filtering for removing unwanted words from password list.
+- pass-common: upgrade passkeys dependency.
+
+### Other
+
+- General dependency upgrade
 
 ## 0.25.14
 

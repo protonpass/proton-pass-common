@@ -30,7 +30,7 @@ hmac = "0.12"
 pbkdf2 = "0.12.2"
 poly1305 = "0.8"
 protobuf = "3.7.1"
-rand = "0.8"
+rand = "0.9.0"
 rxing = { version = "0.8.0", features = ["default", "wasm_support"], optional = true }
 scrypt = "0.11.0"
 sha2 = "0.10"
@@ -45,7 +45,7 @@ uuid = { version = "1.15.1", features = ["v4"] }
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures.workspace = true
 
-getrandom = { version = "0.2.15", features = ["js"] }
+getrandom = { version = "0.3.4", features = ["wasm_js"] }
 gloo-timers = { version = "0.3.0", features = ["futures"] }
 uuid = { version = "1.15.1", features = ["v4", "js"] }
 

@@ -194,6 +194,7 @@ pub fn calculate_operations_to_perform(remote: Vec<RemoteEntry>, local: Vec<Loca
 mod tests {
     use super::*;
     use crate::AuthenticatorEntryContent;
+    use rand::rngs::ThreadRng;
 
     const NOW: i64 = 1_700_000_000; // 2023-11-14T06:13:20Z
     const LATE: i64 = NOW + 1_000; // a bit later
@@ -256,7 +257,7 @@ mod tests {
         let mut res = String::new();
         let dict = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         for _ in 0..10 {
-            let idx = rand::thread_rng().next_u32() as usize % dict.chars().count();
+            let idx = ThreadRng::default().next_u32() as usize % dict.chars().count();
             res.push(dict.chars().nth(idx).unwrap());
         }
 

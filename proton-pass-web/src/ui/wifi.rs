@@ -2,6 +2,7 @@ use proton_pass_common::wifi::WifiSecurity;
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Tsify, Deserialize, Serialize)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub enum WasmWifiSecurity {

@@ -1,5 +1,6 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
 use proton_pass_common::password::check_score;
+use std::hint::black_box;
 
 fn password_scorer(c: &mut Criterion) {
     c.bench_function("score weak password", |b| b.iter(|| black_box(check_score("qwerty"))));

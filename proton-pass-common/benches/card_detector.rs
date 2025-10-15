@@ -1,5 +1,6 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
 use proton_pass_common::creditcard::CreditCardDetector;
+use std::hint::black_box;
 
 fn card_detector(c: &mut Criterion) {
     let detector = CreditCardDetector::default();

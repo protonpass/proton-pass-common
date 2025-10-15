@@ -1,10 +1,10 @@
-use password::{
+use password_types::{
     WasmPassphraseConfig, WasmPasswordScore, WasmPasswordScoreList, WasmPasswordScoreResult, WasmRandomPasswordConfig,
 };
 use proton_pass_common::password::{get_generator, PassphraseConfig, RandomPasswordConfig};
 use wasm_bindgen::prelude::*;
 
-mod password;
+mod password_types;
 
 #[wasm_bindgen]
 pub fn generate_password(config: WasmRandomPasswordConfig) -> Result<String, JsError> {

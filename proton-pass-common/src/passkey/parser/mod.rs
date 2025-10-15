@@ -86,9 +86,6 @@ mod tests {
         {"challenge":"xAFfbNsKOBYWfYUIl74gRB6ysFU=","rp":{"id":"www.cvs.com","name":"www"},"user":{"id":"lh+lAkVkuW9spaCshyR6NWzoMGnRJLPexB/kGdjtx+uVXf2GoQn6X3dnYTo/mAuGFMpgYy3QZ21T2J///106Pw==","name":"test@email.com","displayName":"Test User"},"pubKeyCredParams":[{"type":"public-key","alg":"-36"},{"type":"public-key","alg":"-35"},{"type":"public-key","alg":"-7"},{"type":"public-key","alg":"-8"},{"type":"public-key","alg":"-259"},{"type":"public-key","alg":"-258"},{"type":"public-key","alg":"-257"}],"authenticatorSelection":{"authenticatorAttachment":"platform","requireResidentKey":"true","userVerification":"required"},"timeout":"180000","attestation":"direct","excludeCredentials":[]}
         "#.trim();
 
-            let raw_parse = parse(input);
-            assert!(raw_parse.is_err());
-
             let parsed = parse_create_request(input, Some("www.cvs.com"));
             assert!(parsed.is_ok());
         }

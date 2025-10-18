@@ -650,6 +650,7 @@ metal.equinix;metal.equinix.com;https://t0.gstatic.com/faviconV2?client=SOCIAL&t
 metamask;metamask.io;https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://metamask.io&size=256
 metorik;metorik.com;https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://metorik.com&size=256
 mexc;mexc.com;https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://mexc.com&size=256
+microsoft;microsoft.com;https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://microsoft.com&size=256
 microworkers;microworkers.com;https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://microworkers.com&size=256
 migadu;migadu.com;https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://migadu.com&size=256
 migros;migros.ch;https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://migros.ch&size=256

@@ -6,6 +6,16 @@
 
 ### Other
 
+## 0.27.0
+
+### Features :tada:
+
+- pass-common: allow to generate SSH keys and verify whether they are valid (exposed to pass-mobile and pass-web too).
+
+### Other
+
+- authenticator: added icon mapping for Microsoft issuer.
+
 ## 0.26.0
 
 ### Features :tada:

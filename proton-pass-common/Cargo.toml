@@ -19,13 +19,14 @@ email_address = "0.2.9"
 file-format = { version = "0.28.0", features = ["reader"] }
 lazy_static = "1.5.0"
 luhn = "1.0.1"
-passkey = { git = "https://github.com/1Password/passkey-rs.git", branch = "passkey-rs-update" }
-passkey-authenticator = { git = "https://github.com/1Password/passkey-rs.git", branch = "passkey-rs-update" }
-passkey-types = { git = "https://github.com/1Password/passkey-rs.git", branch = "passkey-rs-update", features = ["serialize_bytes_as_base64_string"] }
-public-suffix = { git = "https://github.com/1Password/passkey-rs.git", branch = "passkey-rs-update" }
+passkey = { git = "https://github.com/1Password/passkey-rs.git", rev = "d4c5cc50adb750216d4891646e5322843cf95e54" }
+passkey-authenticator = { git = "https://github.com/1Password/passkey-rs.git", rev = "d4c5cc50adb750216d4891646e5322843cf95e54" }
+passkey-types = { git = "https://github.com/1Password/passkey-rs.git", rev = "d4c5cc50adb750216d4891646e5322843cf95e54", features = ["serialize_bytes_as_base64_string"] }
+public-suffix = { git = "https://github.com/1Password/passkey-rs.git", rev = "d4c5cc50adb750216d4891646e5322843cf95e54" }
 rand = "0.9.0"
 regex-lite = "0.1.6"
 rmp-serde = "1.3.0"
+ssh-key = { version = "0.6", features = ["std", "crypto", "ed25519", "rsa", "encryption", "alloc"] }
 url = "2.5.4"
 qrcode = "0.14.1"
 

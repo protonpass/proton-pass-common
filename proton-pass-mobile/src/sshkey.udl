@@ -1,0 +1,28 @@
+[Error]
+enum SshKeyError {
+    "InvalidPublicKey",
+    "InvalidPrivateKey",
+    "GenerationFailed",
+};
+
+enum SshKeyType {
+    "RSA2048",
+    "RSA4096",
+    "Ed25519",
+};
+
+dictionary SshKeyPair {
+    string public_key;
+    string private_key;
+};
+
+interface SshKeyManager {
+    constructor();
+    [Throws=SshKeyError]
+    void validate_public_key(string key);
+    [Throws=SshKeyError]
+    void validate_private_key(string key);
+    [Throws=SshKeyError]
+    SshKeyPair generate_ssh_key(string name, string email, SshKeyType key_type, string? passphrase);
+};
+

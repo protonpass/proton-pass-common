@@ -6,6 +6,7 @@ use passkey::WasmCreatePasskeyData;
 use passkey::{PasskeyManager, WasmGeneratePasskeyResponse, WasmResolvePasskeyChallengeResponse};
 
 mod passkey;
+mod sshkey;
 mod totp;
 
 #[wasm_bindgen]

@@ -51,14 +51,13 @@ pub fn validate_private_ssh_key(key: String) -> Result<(), JsError> {
 
 #[wasm_bindgen]
 pub fn generate_ssh_key_pair(
-    name: String,
-    email: String,
+    comment: String,
     key_type: WasmSshKeyType,
     passphrase: Option<String>,
 ) -> Result<WasmSshKeyPair, JsError> {
     let ssh_key_type = SshKeyType::from(key_type);
     let result =
-        generate_ssh_key(name, email, ssh_key_type, passphrase).map_err(|e| JsError::new(&format!("{:?}", e)))?;
+        generate_ssh_key(comment, ssh_key_type, passphrase).map_err(|e| JsError::new(&format!("{:?}", e)))?;
     Ok(WasmSshKeyPair::from(result))
 }
 

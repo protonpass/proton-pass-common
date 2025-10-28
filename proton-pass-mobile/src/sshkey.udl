@@ -24,7 +24,7 @@ interface SshKeyManager {
     [Throws=SshKeyError]
     void validate_private_key(string key);
     [Throws=SshKeyError]
-    SshKeyPair generate_ssh_key(string name, string email, SshKeyType key_type, string? passphrase);
+    SshKeyPair generate_ssh_key(string comment, SshKeyType key_type, string? passphrase);
     [Throws=SshKeyError]
     string decrypt_private_key(string encrypted_key, string password);
 };

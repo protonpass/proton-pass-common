@@ -75,8 +75,7 @@ pub fn decrypt_private_key(encrypted_key: &str, password: &str) -> Result<String
 }
 
 pub fn generate_ssh_key(
-    name: String,
-    email: String,
+    comment: String,
     key_type: SshKeyType,
     passphrase: Option<String>,
 ) -> Result<SshKeyPair, SshKeyError> {
@@ -92,8 +91,8 @@ pub fn generate_ssh_key(
         }
     };
 
-    let comment = format!("{} <{}>", name, email);
-    private_key.set_comment(comment);
+    let sanitized_comment = comment.replace('\n', " ").replace('\r', " ").trim().to_string();
+    private_key.set_comment(sanitized_comment);
 
     let public_key = private_key.public_key();
 
@@ -143,8 +142,7 @@ mod tests {
     #[test]
     fn test_generate_ed25519_key() {
         let result = generate_ssh_key(
-            "Test User".to_string(),
-            "test@example.com".to_string(),
+            "Test User <test@example.com>".to_string(),
             SshKeyType::Ed25519,
             None,
         );
@@ -159,8 +157,7 @@ mod tests {
     #[test]
     fn test_generate_rsa2048_key() {
         let result = generate_ssh_key(
-            "Test User".to_string(),
-            "test@example.com".to_string(),
+            "Test User <test@example.com>".to_string(),
             SshKeyType::RSA2048,
             None,
         );
@@ -174,23 +171,20 @@ mod tests {
     #[test]
     fn test_generate_key_with_passphrase() {
         let result = generate_ssh_key(
-            "Test User".to_string(),
-            "test@example.com".to_string(),
+            "Test User <test@example.com>".to_string(),
             SshKeyType::Ed25519,
             Some("test-passphrase".to_string()),
         );
         assert!(result.is_ok());
 
         let key_pair = result.unwrap();
-        // Encrypted keys still have the OPENSSH PRIVATE KEY header
         assert!(key_pair.private_key.contains("OPENSSH PRIVATE KEY"));
     }
 
     #[test]
     fn test_validate_generated_keys() {
         let key_pair = generate_ssh_key(
-            "Test User".to_string(),
-            "test@example.com".to_string(),
+            "Test User <test@example.com>".to_string(),
             SshKeyType::Ed25519,
             None,
         )
@@ -204,8 +198,7 @@ mod tests {
     fn test_decrypt_rsa2048_key_with_passphrase() {
         let passphrase = "test-passphrase".to_string();
         let key_pair = generate_ssh_key(
-            "Test User".to_string(),
-            "test@example.com".to_string(),
+            "Test User <test@example.com>".to_string(),
             SshKeyType::RSA2048,
             Some(passphrase.clone()),
         )
@@ -221,8 +214,7 @@ mod tests {
     fn test_decrypt_ed25519_key_with_passphrase() {
         let passphrase = "secure-password".to_string();
         let key_pair = generate_ssh_key(
-            "Alice".to_string(),
-            "alice@example.com".to_string(),
+            "Alice <alice@example.com>".to_string(),
             SshKeyType::Ed25519,
             Some(passphrase.clone()),
         )
@@ -238,8 +230,7 @@ mod tests {
     fn test_decrypt_with_wrong_password() {
         let passphrase = "correct-password".to_string();
         let key_pair = generate_ssh_key(
-            "Bob".to_string(),
-            "bob@example.com".to_string(),
+            "Bob <bob@example.com>".to_string(),
             SshKeyType::Ed25519,
             Some(passphrase),
         )
@@ -257,8 +248,7 @@ mod tests {
     #[test]
     fn test_decrypt_unencrypted_key() {
         let key_pair = generate_ssh_key(
-            "Charlie".to_string(),
-            "charlie@example.com".to_string(),
+            "Charlie <charlie@example.com>".to_string(),
             SshKeyType::Ed25519,
             None,
         )

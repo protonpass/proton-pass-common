@@ -36,8 +36,7 @@ describe("ProtonPassWeb WASM - SSH Key Management", () => {
 
     test("Should generate an Ed25519 SSH key pair without passphrase", () => {
         const keyPair = generate_ssh_key_pair(
-            "Test User",
-            "test@example.com",
+            "Test User <test@example.com>",
             "Ed25519",
             undefined
         );
@@ -52,8 +51,7 @@ describe("ProtonPassWeb WASM - SSH Key Management", () => {
 
     test("Should generate an Ed25519 SSH key pair with passphrase", () => {
         const keyPair = generate_ssh_key_pair(
-            "Test User",
-            "test@example.com",
+            "Test User <test@example.com>",
             "Ed25519",
             "my-secure-passphrase"
         );
@@ -66,8 +64,7 @@ describe("ProtonPassWeb WASM - SSH Key Management", () => {
 
     test("Should generate an RSA2048 SSH key pair", () => {
         const keyPair = generate_ssh_key_pair(
-            "Alice",
-            "alice@example.com",
+            "Alice <alice@example.com>",
             "RSA2048",
             undefined
         );
@@ -80,8 +77,7 @@ describe("ProtonPassWeb WASM - SSH Key Management", () => {
 
     test("Generated public keys should be valid", () => {
         const keyPair = generate_ssh_key_pair(
-            "Test",
-            "test@example.com",
+            "Test <test@example.com>",
             "Ed25519",
             undefined
         );
@@ -91,8 +87,7 @@ describe("ProtonPassWeb WASM - SSH Key Management", () => {
 
     test("Generated private keys should be valid", () => {
         const keyPair = generate_ssh_key_pair(
-            "Test",
-            "test@example.com",
+            "Test <test@example.com>",
             "Ed25519",
             undefined
         );
@@ -102,8 +97,7 @@ describe("ProtonPassWeb WASM - SSH Key Management", () => {
 
     test("Should validate generated RSA2048 keys", () => {
         const keyPair = generate_ssh_key_pair(
-            "Test",
-            "test@example.com",
+            "Test <test@example.com>",
             "RSA2048",
             undefined
         );
@@ -119,14 +113,12 @@ describe("ProtonPassWeb WASM - SSH Key Management", () => {
 
     test("Should generate unique keys", () => {
         const keyPair1 = generate_ssh_key_pair(
-            "User1",
-            "user1@example.com",
+            "User1 <user1@example.com>",
             "Ed25519",
             undefined
         );
         const keyPair2 = generate_ssh_key_pair(
-            "User2",
-            "user2@example.com",
+            "User2 <user2@example.com>",
             "Ed25519",
             undefined
         );
@@ -135,25 +127,21 @@ describe("ProtonPassWeb WASM - SSH Key Management", () => {
         expect(keyPair1.private_key).not.toEqual(keyPair2.private_key);
     });
 
-    test("Should include name and email in public key comment", () => {
-        const name = "John Doe";
-        const email = "john@example.com";
+    test("Should include comment in public key", () => {
+        const comment = "John Doe <john@example.com>";
         const keyPair = generate_ssh_key_pair(
-            name,
-            email,
+            comment,
             "Ed25519",
             undefined
         );
 
-        const expectedComment = `${name} <${email}>`;
-        expect(keyPair.public_key).toContain(expectedComment);
+        expect(keyPair.public_key).toContain(comment);
     });
 
     test("Should decrypt RSA2048 key with correct passphrase", () => {
         const passphrase = "test-passphrase";
         const keyPair = generate_ssh_key_pair(
-            "Test User",
-            "test@example.com",
+            "Test User <test@example.com>",
             "RSA2048",
             passphrase
         );
@@ -167,8 +155,7 @@ describe("ProtonPassWeb WASM - SSH Key Management", () => {
     test("Should decrypt Ed25519 key with correct passphrase", () => {
         const passphrase = "secure-password";
         const keyPair = generate_ssh_key_pair(
-            "Alice",
-            "alice@example.com",
+            "Alice <alice@example.com>",
             "Ed25519",
             passphrase
         );
@@ -182,8 +169,7 @@ describe("ProtonPassWeb WASM - SSH Key Management", () => {
     test("Should throw on wrong passphrase", () => {
         const passphrase = "correct-password";
         const keyPair = generate_ssh_key_pair(
-            "Bob",
-            "bob@example.com",
+            "Bob <bob@example.com>",
             "Ed25519",
             passphrase
         );
@@ -199,8 +185,7 @@ describe("ProtonPassWeb WASM - SSH Key Management", () => {
     test("Decrypted key should be valid and unencrypted", () => {
         const passphrase = "test-pass";
         const keyPair = generate_ssh_key_pair(
-            "Charlie",
-            "charlie@example.com",
+            "Charlie <charlie@example.com>",
             "Ed25519",
             passphrase
         );

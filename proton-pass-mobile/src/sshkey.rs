@@ -74,13 +74,12 @@ impl SshKeyManager {
 
     pub fn generate_ssh_key(
         &self,
-        name: String,
-        email: String,
+        comment: String,
         key_type: SshKeyType,
         passphrase: Option<String>,
     ) -> Result<SshKeyPair> {
         let common_key_type = CommonSshKeyType::from(key_type);
-        let result = common_generate_ssh_key(name, email, common_key_type, passphrase)?;
+        let result = common_generate_ssh_key(comment, common_key_type, passphrase)?;
         Ok(SshKeyPair::from(result))
     }
 

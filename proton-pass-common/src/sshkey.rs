@@ -91,7 +91,7 @@ pub fn generate_ssh_key(
         }
     };
 
-    let sanitized_comment = comment.replace('\n', " ").replace('\r', " ").trim().to_string();
+    let sanitized_comment = comment.replace(['\n', '\r'], " ").trim().to_string();
     private_key.set_comment(sanitized_comment);
 
     let public_key = private_key.public_key();
@@ -141,11 +141,7 @@ mod tests {
 
     #[test]
     fn test_generate_ed25519_key() {
-        let result = generate_ssh_key(
-            "Test User <test@example.com>".to_string(),
-            SshKeyType::Ed25519,
-            None,
-        );
+        let result = generate_ssh_key("Test User <test@example.com>".to_string(), SshKeyType::Ed25519, None);
         assert!(result.is_ok());
 
         let key_pair = result.unwrap();
@@ -156,11 +152,7 @@ mod tests {
 
     #[test]
     fn test_generate_rsa2048_key() {
-        let result = generate_ssh_key(
-            "Test User <test@example.com>".to_string(),
-            SshKeyType::RSA2048,
-            None,
-        );
+        let result = generate_ssh_key("Test User <test@example.com>".to_string(), SshKeyType::RSA2048, None);
         assert!(result.is_ok());
 
         let key_pair = result.unwrap();
@@ -183,12 +175,7 @@ mod tests {
 
     #[test]
     fn test_validate_generated_keys() {
-        let key_pair = generate_ssh_key(
-            "Test User <test@example.com>".to_string(),
-            SshKeyType::Ed25519,
-            None,
-        )
-        .unwrap();
+        let key_pair = generate_ssh_key("Test User <test@example.com>".to_string(), SshKeyType::Ed25519, None).unwrap();
 
         assert!(validate_public_key(&key_pair.public_key).is_ok());
         assert!(validate_private_key(&key_pair.private_key).is_ok());
@@ -247,12 +234,8 @@ mod tests {
 
     #[test]
     fn test_decrypt_unencrypted_key() {
-        let key_pair = generate_ssh_key(
-            "Charlie <charlie@example.com>".to_string(),
-            SshKeyType::Ed25519,
-            None,
-        )
-        .unwrap();
+        let key_pair =
+            generate_ssh_key("Charlie <charlie@example.com>".to_string(), SshKeyType::Ed25519, None).unwrap();
 
         let result = decrypt_private_key(&key_pair.private_key, "any-password").unwrap();
 

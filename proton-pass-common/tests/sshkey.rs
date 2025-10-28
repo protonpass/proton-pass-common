@@ -8,13 +8,7 @@ fn test_validate_valid_ed25519_public_key() {
 
 #[test]
 fn test_validate_valid_rsa_public_key() {
-    let key_pair = generate_ssh_key(
-        "Test".to_string(),
-        "test@example.com".to_string(),
-        SshKeyType::RSA2048,
-        None,
-    )
-    .unwrap();
+    let key_pair = generate_ssh_key("Test <test@example.com>".to_string(), SshKeyType::RSA2048, None).unwrap();
     assert!(validate_public_key(&key_pair.public_key).is_ok());
 }
 
@@ -38,13 +32,7 @@ fn test_validate_malformed_public_key() {
 
 #[test]
 fn test_validate_valid_private_key_openssh_format() {
-    let key_pair = generate_ssh_key(
-        "Test".to_string(),
-        "test@example.com".to_string(),
-        SshKeyType::Ed25519,
-        None,
-    )
-    .unwrap();
+    let key_pair = generate_ssh_key("Test <test@example.com>".to_string(), SshKeyType::Ed25519, None).unwrap();
 
     assert!(validate_private_key(&key_pair.private_key).is_ok());
 }
@@ -63,12 +51,7 @@ fn test_validate_empty_private_key() {
 
 #[test]
 fn test_generate_ed25519_key_without_passphrase() {
-    let result = generate_ssh_key(
-        "John Doe".to_string(),
-        "john@example.com".to_string(),
-        SshKeyType::Ed25519,
-        None,
-    );
+    let result = generate_ssh_key("John Doe <john@example.com>".to_string(), SshKeyType::Ed25519, None);
 
     assert!(result.is_ok());
     let key_pair = result.unwrap();
@@ -90,8 +73,7 @@ fn test_generate_ed25519_key_without_passphrase() {
 #[test]
 fn test_generate_ed25519_key_with_passphrase() {
     let result = generate_ssh_key(
-        "Jane Doe".to_string(),
-        "jane@example.com".to_string(),
+        "Jane Doe <jane@example.com>".to_string(),
         SshKeyType::Ed25519,
         Some("my-secure-passphrase".to_string()),
     );
@@ -113,12 +95,7 @@ fn test_generate_ed25519_key_with_passphrase() {
 
 #[test]
 fn test_generate_rsa2048_key_without_passphrase() {
-    let result = generate_ssh_key(
-        "Alice".to_string(),
-        "alice@example.com".to_string(),
-        SshKeyType::RSA2048,
-        None,
-    );
+    let result = generate_ssh_key("Alice <alice@example.com>".to_string(), SshKeyType::RSA2048, None);
 
     assert!(result.is_ok());
     let key_pair = result.unwrap();
@@ -144,7 +121,7 @@ fn test_generate_all_key_types() {
     ];
 
     for key_type in key_types {
-        let result = generate_ssh_key("Test User".to_string(), "test@example.com".to_string(), key_type, None);
+        let result = generate_ssh_key("Test User <test@example.com>".to_string(), key_type, None);
 
         assert!(result.is_ok(), "Failed to generate key");
         let key_pair = result.unwrap();
@@ -160,21 +137,9 @@ fn test_generate_all_key_types() {
 
 #[test]
 fn test_generated_keys_are_unique() {
-    let key_pair1 = generate_ssh_key(
-        "User1".to_string(),
-        "user1@example.com".to_string(),
-        SshKeyType::Ed25519,
-        None,
-    )
-    .unwrap();
+    let key_pair1 = generate_ssh_key("User1 <user1@example.com>".to_string(), SshKeyType::Ed25519, None).unwrap();
 
-    let key_pair2 = generate_ssh_key(
-        "User2".to_string(),
-        "user2@example.com".to_string(),
-        SshKeyType::Ed25519,
-        None,
-    )
-    .unwrap();
+    let key_pair2 = generate_ssh_key("User2 <user2@example.com>".to_string(), SshKeyType::Ed25519, None).unwrap();
 
     // Keys should be different
     assert_ne!(key_pair1.public_key, key_pair2.public_key);
@@ -183,10 +148,8 @@ fn test_generated_keys_are_unique() {
 
 #[test]
 fn test_comment_included_in_public_key() {
-    let name = "Test Name";
-    let email = "test@domain.com";
-    let key_pair = generate_ssh_key(name.to_string(), email.to_string(), SshKeyType::Ed25519, None).unwrap();
+    let comment = "Test Name <test@domain.com>";
+    let key_pair = generate_ssh_key(comment.to_string(), SshKeyType::Ed25519, None).unwrap();
 
-    let expected_comment = format!("{} <{}>", name, email);
-    assert!(key_pair.public_key.contains(&expected_comment));
+    assert!(key_pair.public_key.contains(comment));
 }

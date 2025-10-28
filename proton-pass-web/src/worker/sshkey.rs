@@ -56,8 +56,7 @@ pub fn generate_ssh_key_pair(
     passphrase: Option<String>,
 ) -> Result<WasmSshKeyPair, JsError> {
     let ssh_key_type = SshKeyType::from(key_type);
-    let result =
-        generate_ssh_key(comment, ssh_key_type, passphrase).map_err(|e| JsError::new(&format!("{:?}", e)))?;
+    let result = generate_ssh_key(comment, ssh_key_type, passphrase).map_err(|e| JsError::new(&format!("{:?}", e)))?;
     Ok(WasmSshKeyPair::from(result))
 }
 

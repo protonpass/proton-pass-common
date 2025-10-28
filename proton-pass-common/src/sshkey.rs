@@ -8,6 +8,7 @@ pub enum SshKeyError {
     InvalidPublicKey(String),
     InvalidPrivateKey(String),
     GenerationFailed(String),
+    InvalidPassword(String),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -52,6 +53,27 @@ pub fn validate_private_key(key: &str) -> Result<(), SshKeyError> {
         .map_err(|e| SshKeyError::InvalidPrivateKey(e.to_string()))
 }
 
+pub fn decrypt_private_key(encrypted_key: &str, password: &str) -> Result<String, SshKeyError> {
+    let private_key =
+        PrivateKey::from_openssh(encrypted_key).map_err(|e| SshKeyError::InvalidPrivateKey(e.to_string()))?;
+
+    if !private_key.is_encrypted() {
+        return private_key
+            .to_openssh(LineEnding::LF)
+            .map(|s| s.to_string())
+            .map_err(|e| SshKeyError::InvalidPrivateKey(e.to_string()));
+    }
+
+    let decrypted = private_key
+        .decrypt(password)
+        .map_err(|e| SshKeyError::InvalidPassword(e.to_string()))?;
+
+    decrypted
+        .to_openssh(LineEnding::LF)
+        .map(|s| s.to_string())
+        .map_err(|e| SshKeyError::InvalidPrivateKey(e.to_string()))
+}
+
 pub fn generate_ssh_key(
     name: String,
     email: String,
@@ -70,7 +92,6 @@ pub fn generate_ssh_key(
         }
     };
 
-    // Set the comment (name <email>)
     let comment = format!("{} <{}>", name, email);
     private_key.set_comment(comment);
 
@@ -177,5 +198,87 @@ mod tests {
 
         assert!(validate_public_key(&key_pair.public_key).is_ok());
         assert!(validate_private_key(&key_pair.private_key).is_ok());
+    }
+
+    #[test]
+    fn test_decrypt_rsa2048_key_with_passphrase() {
+        let passphrase = "test-passphrase".to_string();
+        let key_pair = generate_ssh_key(
+            "Test User".to_string(),
+            "test@example.com".to_string(),
+            SshKeyType::RSA2048,
+            Some(passphrase.clone()),
+        )
+        .unwrap();
+
+        let decrypted = decrypt_private_key(&key_pair.private_key, &passphrase).unwrap();
+
+        assert!(decrypted.contains("OPENSSH PRIVATE KEY"));
+        assert!(validate_private_key(&decrypted).is_ok());
+    }
+
+    #[test]
+    fn test_decrypt_ed25519_key_with_passphrase() {
+        let passphrase = "secure-password".to_string();
+        let key_pair = generate_ssh_key(
+            "Alice".to_string(),
+            "alice@example.com".to_string(),
+            SshKeyType::Ed25519,
+            Some(passphrase.clone()),
+        )
+        .unwrap();
+
+        let decrypted = decrypt_private_key(&key_pair.private_key, &passphrase).unwrap();
+
+        assert!(decrypted.contains("OPENSSH PRIVATE KEY"));
+        assert!(validate_private_key(&decrypted).is_ok());
+    }
+
+    #[test]
+    fn test_decrypt_with_wrong_password() {
+        let passphrase = "correct-password".to_string();
+        let key_pair = generate_ssh_key(
+            "Bob".to_string(),
+            "bob@example.com".to_string(),
+            SshKeyType::Ed25519,
+            Some(passphrase),
+        )
+        .unwrap();
+
+        let result = decrypt_private_key(&key_pair.private_key, "wrong-password");
+
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            SshKeyError::InvalidPassword(_) => (),
+            _ => panic!("Expected InvalidPassword error"),
+        }
+    }
+
+    #[test]
+    fn test_decrypt_unencrypted_key() {
+        let key_pair = generate_ssh_key(
+            "Charlie".to_string(),
+            "charlie@example.com".to_string(),
+            SshKeyType::Ed25519,
+            None,
+        )
+        .unwrap();
+
+        let result = decrypt_private_key(&key_pair.private_key, "any-password").unwrap();
+
+        assert_eq!(result, key_pair.private_key);
+        assert!(validate_private_key(&result).is_ok());
+    }
+
+    #[test]
+    fn test_decrypt_invalid_key() {
+        let invalid_key = "invalid-private-key-data";
+        let result = decrypt_private_key(invalid_key, "password");
+
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            SshKeyError::InvalidPrivateKey(_) => (),
+            _ => panic!("Expected InvalidPrivateKey error"),
+        }
     }
 }

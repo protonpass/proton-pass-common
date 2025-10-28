@@ -3,6 +3,7 @@ enum SshKeyError {
     "InvalidPublicKey",
     "InvalidPrivateKey",
     "GenerationFailed",
+    "InvalidPassword",
 };
 
 enum SshKeyType {
@@ -24,5 +25,7 @@ interface SshKeyManager {
     void validate_private_key(string key);
     [Throws=SshKeyError]
     SshKeyPair generate_ssh_key(string name, string email, SshKeyType key_type, string? passphrase);
+    [Throws=SshKeyError]
+    string decrypt_private_key(string encrypted_key, string password);
 };
 

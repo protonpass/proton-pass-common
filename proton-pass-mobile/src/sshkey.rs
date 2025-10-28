@@ -1,7 +1,7 @@
 use proton_pass_common::sshkey::{
-    generate_ssh_key as common_generate_ssh_key, validate_private_key as common_validate_private_key,
-    validate_public_key as common_validate_public_key, SshKeyError as CommonSshKeyError,
-    SshKeyPair as CommonSshKeyPair, SshKeyType as CommonSshKeyType,
+    decrypt_private_key as common_decrypt_private_key, generate_ssh_key as common_generate_ssh_key,
+    validate_private_key as common_validate_private_key, validate_public_key as common_validate_public_key,
+    SshKeyError as CommonSshKeyError, SshKeyPair as CommonSshKeyPair, SshKeyType as CommonSshKeyType,
 };
 
 #[derive(Debug, proton_pass_derive::Error)]
@@ -9,6 +9,7 @@ pub enum SshKeyError {
     InvalidPublicKey(String),
     InvalidPrivateKey(String),
     GenerationFailed(String),
+    InvalidPassword(String),
 }
 
 impl From<CommonSshKeyError> for SshKeyError {
@@ -17,6 +18,7 @@ impl From<CommonSshKeyError> for SshKeyError {
             CommonSshKeyError::InvalidPublicKey(s) => SshKeyError::InvalidPublicKey(s),
             CommonSshKeyError::InvalidPrivateKey(s) => SshKeyError::InvalidPrivateKey(s),
             CommonSshKeyError::GenerationFailed(s) => SshKeyError::GenerationFailed(s),
+            CommonSshKeyError::InvalidPassword(s) => SshKeyError::InvalidPassword(s),
         }
     }
 }
@@ -80,5 +82,9 @@ impl SshKeyManager {
         let common_key_type = CommonSshKeyType::from(key_type);
         let result = common_generate_ssh_key(name, email, common_key_type, passphrase)?;
         Ok(SshKeyPair::from(result))
+    }
+
+    pub fn decrypt_private_key(&self, encrypted_key: String, password: String) -> Result<String> {
+        Ok(common_decrypt_private_key(&encrypted_key, &password)?)
     }
 }

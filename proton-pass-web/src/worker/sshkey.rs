@@ -1,4 +1,6 @@
-use proton_pass_common::sshkey::{generate_ssh_key, validate_private_key, validate_public_key, SshKeyPair, SshKeyType};
+use proton_pass_common::sshkey::{
+    decrypt_private_key, generate_ssh_key, validate_private_key, validate_public_key, SshKeyPair, SshKeyType,
+};
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
@@ -58,4 +60,9 @@ pub fn generate_ssh_key_pair(
     let result =
         generate_ssh_key(name, email, ssh_key_type, passphrase).map_err(|e| JsError::new(&format!("{:?}", e)))?;
     Ok(WasmSshKeyPair::from(result))
+}
+
+#[wasm_bindgen]
+pub fn decrypt_private_ssh_key(encrypted_key: String, password: String) -> Result<String, JsError> {
+    decrypt_private_key(&encrypted_key, &password).map_err(|e| JsError::new(&format!("{:?}", e)))
 }

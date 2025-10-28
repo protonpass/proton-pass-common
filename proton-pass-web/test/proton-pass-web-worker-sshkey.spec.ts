@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import * as packageJSON from "./pkg/package.json";
 
 import {
+    decrypt_private_ssh_key,
     generate_ssh_key_pair,
     library_version,
     validate_private_ssh_key,
@@ -146,6 +147,70 @@ describe("ProtonPassWeb WASM - SSH Key Management", () => {
 
         const expectedComment = `${name} <${email}>`;
         expect(keyPair.public_key).toContain(expectedComment);
+    });
+
+    test("Should decrypt RSA2048 key with correct passphrase", () => {
+        const passphrase = "test-passphrase";
+        const keyPair = generate_ssh_key_pair(
+            "Test User",
+            "test@example.com",
+            "RSA2048",
+            passphrase
+        );
+
+        const decrypted = decrypt_private_ssh_key(keyPair.private_key, passphrase);
+
+        expect(decrypted).toContain("OPENSSH PRIVATE KEY");
+        expect(() => validate_private_ssh_key(decrypted)).not.toThrow();
+    });
+
+    test("Should decrypt Ed25519 key with correct passphrase", () => {
+        const passphrase = "secure-password";
+        const keyPair = generate_ssh_key_pair(
+            "Alice",
+            "alice@example.com",
+            "Ed25519",
+            passphrase
+        );
+
+        const decrypted = decrypt_private_ssh_key(keyPair.private_key, passphrase);
+
+        expect(decrypted).toContain("OPENSSH PRIVATE KEY");
+        expect(() => validate_private_ssh_key(decrypted)).not.toThrow();
+    });
+
+    test("Should throw on wrong passphrase", () => {
+        const passphrase = "correct-password";
+        const keyPair = generate_ssh_key_pair(
+            "Bob",
+            "bob@example.com",
+            "Ed25519",
+            passphrase
+        );
+
+        expect(() => decrypt_private_ssh_key(keyPair.private_key, "wrong-password")).toThrow();
+    });
+
+    test("Should throw on invalid encrypted key", () => {
+        const invalidKey = "invalid-private-key-data";
+        expect(() => decrypt_private_ssh_key(invalidKey, "password")).toThrow();
+    });
+
+    test("Decrypted key should be valid and unencrypted", () => {
+        const passphrase = "test-pass";
+        const keyPair = generate_ssh_key_pair(
+            "Charlie",
+            "charlie@example.com",
+            "Ed25519",
+            passphrase
+        );
+
+        const decrypted = decrypt_private_ssh_key(keyPair.private_key, passphrase);
+
+        expect(() => validate_private_ssh_key(decrypted)).not.toThrow();
+
+        const redecrypted = decrypt_private_ssh_key(decrypted, "any-password");
+        expect(redecrypted).toEqual(decrypted);
     });
 });
 

@@ -2,6 +2,10 @@
 let MarkdownEditor = null;
 let editor = null;
 
+// Undo batching - save state after user stops typing or on word boundaries
+let undoBatchTimer = null;
+const UNDO_BATCH_DELAY = 1000; // 1 second after typing stops
+
 // Function to load the WASM module (ES modules for browser)
 async function loadWasmModule() {
     try {
@@ -47,21 +51,37 @@ function bytePositionToStringPosition(text, bytePos) {
     return stringPos;
 }
 
+// Schedule saving an undo state after a delay (batching)
+function scheduleUndoSave() {
+    // Clear existing timer
+    if (undoBatchTimer) {
+        clearTimeout(undoBatchTimer);
+    }
+
+    // Schedule new save
+    undoBatchTimer = setTimeout(() => {
+        if (editor) {
+            editor.saveUndoState();
+            updateInfo(); // Update undo/redo button states
+        }
+    }, UNDO_BATCH_DELAY);
+}
+
 // Update editor state
-function updateEditor() {
+function updateEditor(event) {
     if (!editor) return;
-    
+
     const textarea = document.getElementById('editor');
     const text = textarea.value;
-    
-    // Sync text to editor
+
+    // Sync text to editor (does NOT save undo state)
     editor.setText(text);
-    
+
     // Sync cursor position
     try {
         const cursorBytes = getCursorPositionInBytes(textarea);
         editor.setCursor(cursorBytes);
-        
+
         // Check if there's a selection
         if (textarea.selectionStart !== textarea.selectionEnd) {
             const startBytes = utf8ByteLength(text.substring(0, textarea.selectionStart));
@@ -71,9 +91,27 @@ function updateEditor() {
     } catch (e) {
         console.warn('Failed to update cursor:', e);
     }
-    
+
     updatePreview();
     updateInfo();
+
+    // Smart undo batching: save state on word boundaries or after delay
+    if (event && event.type === 'input') {
+        const lastChar = event.data;
+
+        // Save immediately on space (end of word) or newline
+        if (lastChar === ' ' || lastChar === '\n' || lastChar === '\t') {
+            if (undoBatchTimer) {
+                clearTimeout(undoBatchTimer);
+                undoBatchTimer = null;
+            }
+            editor.saveUndoState();
+            updateInfo();
+        } else {
+            // Schedule save after typing stops
+            scheduleUndoSave();
+        }
+    }
 }
 
 // Update preview

@@ -1,7 +1,10 @@
+use std::rc::Rc;
+
 /// Represents a snapshot of the editor state for undo/redo
+/// Uses Rc<String> to avoid copying the entire text on every state save
 #[derive(Debug, Clone, PartialEq)]
 pub struct EditorState {
-    pub text: String,
+    pub text: Rc<String>,
     pub cursor: u32,
     pub selection: Option<(u32, u32)>,
 }
@@ -9,7 +12,7 @@ pub struct EditorState {
 impl EditorState {
     pub fn new(text: String, cursor: u32, selection: Option<(u32, u32)>) -> Self {
         Self {
-            text,
+            text: Rc::new(text),
             cursor,
             selection,
         }
@@ -100,11 +103,13 @@ mod tests {
 
         // Undo should return state1
         let undone = stack.undo(state2.clone());
-        assert_eq!(undone, Some(state1.clone()));
+        assert_eq!(undone.as_ref().map(|s| s.text.as_str()), Some("hello"));
+        assert_eq!(undone.as_ref().map(|s| s.cursor), Some(5));
 
         // Redo should return state2
         let redone = stack.redo(state1);
-        assert_eq!(redone, Some(state2));
+        assert_eq!(redone.as_ref().map(|s| s.text.as_str()), Some("hello world"));
+        assert_eq!(redone.as_ref().map(|s| s.cursor), Some(11));
     }
 
     #[test]
@@ -135,7 +140,7 @@ mod tests {
 
         // Should only keep last 3
         assert_eq!(stack.undo_stack.len(), 3);
-        assert_eq!(stack.undo_stack[0].text, "2");
-        assert_eq!(stack.undo_stack[2].text, "4");
+        assert_eq!(stack.undo_stack[0].text.as_str(), "2");
+        assert_eq!(stack.undo_stack[2].text.as_str(), "4");
     }
 }

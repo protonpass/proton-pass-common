@@ -97,10 +97,10 @@ impl MarkdownEditor {
 
     /// Set the entire text content (useful when syncing from native text input)
     /// This replaces all text and preserves the cursor position if valid.
-    /// Saves state for undo.
+    /// NOTE: Does NOT save state for undo - use this for syncing with native inputs
+    /// where the user is typing. For programmatic changes that should be undoable,
+    /// use text editing methods like insert_text() or apply_operation().
     pub fn set_text(&mut self, text: String) {
-        self.save_state();
-
         // Preserve cursor if it's still valid, otherwise move to end
         if (self.cursor as usize) > text.len() {
             self.cursor = text.len() as u32;
@@ -266,7 +266,8 @@ impl MarkdownEditor {
         let current_state = EditorState::new(self.text.clone(), self.cursor, self.selection);
 
         if let Some(prev_state) = self.undo_stack.undo(current_state) {
-            self.text = prev_state.text;
+            // Extract string from Rc
+            self.text = (*prev_state.text).clone();
             self.cursor = prev_state.cursor;
             self.selection = prev_state.selection;
             true
@@ -280,7 +281,8 @@ impl MarkdownEditor {
         let current_state = EditorState::new(self.text.clone(), self.cursor, self.selection);
 
         if let Some(next_state) = self.undo_stack.redo(current_state) {
-            self.text = next_state.text;
+            // Extract string from Rc
+            self.text = (*next_state.text).clone();
             self.cursor = next_state.cursor;
             self.selection = next_state.selection;
             true
@@ -297,6 +299,12 @@ impl MarkdownEditor {
     /// Check if redo is available
     pub fn can_redo(&self) -> bool {
         self.undo_stack.can_redo()
+    }
+
+    /// Manually save the current state to the undo stack
+    /// Use this to create undo points for batched text input (e.g., after typing a word or sentence)
+    pub fn save_undo_state(&mut self) {
+        self.save_state();
     }
 
     /// Insert a newline at the current cursor position with smart list continuation

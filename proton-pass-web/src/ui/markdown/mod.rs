@@ -113,6 +113,13 @@ impl MarkdownEditor {
         self.editor.can_redo()
     }
 
+    /// Manually save the current state to the undo stack
+    /// Use this to create undo points for batched text input (e.g., after typing a word or sentence)
+    #[wasm_bindgen(js_name = saveUndoState)]
+    pub fn save_undo_state(&mut self) {
+        self.editor.save_undo_state();
+    }
+
     /// Render the current markdown text to styled spans
     pub fn render(&self) -> Vec<WasmMarkdownStyledSpan> {
         self.editor

@@ -295,12 +295,15 @@ fn test_set_text() {
     let mut editor = MarkdownEditor::new("Hello".to_string());
     assert_eq!(editor.get_cursor(), 5);
 
-    // Set new text
+    // Save state before changing text
+    editor.save_undo_state();
+
+    // Set new text (does not auto-save state)
     editor.set_text("World".to_string());
     assert_eq!(editor.get_text(), "World");
     assert_eq!(editor.get_cursor(), 5); // Cursor at end
 
-    // Undo should restore
+    // Undo should restore to saved state
     assert!(editor.undo());
     assert_eq!(editor.get_text(), "Hello");
     assert_eq!(editor.get_cursor(), 5);

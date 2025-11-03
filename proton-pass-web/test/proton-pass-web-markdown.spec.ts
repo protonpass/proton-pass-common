@@ -705,11 +705,14 @@ describe('MarkdownEditor - Text Editing Methods', () => {
     test('should set text and preserve cursor', () => {
         const editor = new MarkdownEditor('Hello');
         expect(editor.getCursor()).toBe(5);
-        
+
+        // Save state before changing text (setText doesn't auto-save)
+        editor.saveUndoState();
+
         editor.setText('World');
         expect(editor.getText()).toBe('World');
         expect(editor.getCursor()).toBe(5); // Cursor at end
-        
+
         // Should be undoable
         expect(editor.undo()).toBe(true);
         expect(editor.getText()).toBe('Hello');

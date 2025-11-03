@@ -85,6 +85,7 @@ pub enum MarkdownSpanStyle {
     OrderedListItem,
     UnorderedListItem,
     Blockquote,
+    MarkdownMarker,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -125,6 +126,7 @@ impl From<CommonStyledSpan> for MarkdownStyledSpan {
                 (MarkdownSpanStyle::UnorderedListItem, Some(level), None, None)
             }
             CommonSpanStyle::Blockquote => (MarkdownSpanStyle::Blockquote, None, None, None),
+            CommonSpanStyle::MarkdownMarker => (MarkdownSpanStyle::MarkdownMarker, None, None, None),
         };
 
         MarkdownStyledSpan {

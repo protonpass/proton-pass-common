@@ -32,7 +32,7 @@ impl CursorUtils {
             .iter()
             .position(|&pos| pos > cursor)
             .unwrap_or(graphemes.len());
-        
+
         // Check what's to the LEFT of cursor (the character before cursor position)
         let grapheme_before_cursor = if grapheme_after_cursor > 0 {
             grapheme_after_cursor - 1
@@ -48,7 +48,7 @@ impl CursorUtils {
             }
             return (cursor, cursor);
         }
-        
+
         // We're in the middle of a word, use the grapheme before cursor for word detection
         let cursor_grapheme_idx = grapheme_before_cursor;
 
@@ -90,24 +90,24 @@ impl CursorUtils {
             .iter()
             .position(|&pos| pos >= cursor)
             .unwrap_or(graphemes.len());
-        
+
         // If we're exactly at a position, move back one to get the grapheme before cursor
         if cursor_idx < byte_positions.len() && byte_positions[cursor_idx] == cursor && cursor_idx > 0 {
             cursor_idx -= 1;
         }
-        
+
         // Skip backward over any word boundaries (spaces/punctuation)
         while cursor_idx > 0 && Self::is_word_boundary(graphemes[cursor_idx]) {
             cursor_idx -= 1;
         }
-        
+
         if cursor_idx >= graphemes.len() || Self::is_word_boundary(graphemes[cursor_idx]) {
             return (cursor, cursor);
         }
 
         // Now we're at a non-boundary character, find the start and end of this word
         let end_idx = cursor_idx + 1; // End is after this character
-        
+
         // Find start of word
         while cursor_idx > 0 && !Self::is_word_boundary(graphemes[cursor_idx - 1]) {
             cursor_idx -= 1;

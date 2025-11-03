@@ -66,10 +66,13 @@
         <div class="editor-container">
             <div class="editor-pane">
                 <div class="pane-header">
-                    <h3>✏️ Editor</h3>
+                    <h3>✏️ Editor (Hybrid Mode)</h3>
                     <span class="cursor-info" id="cursor-info">Line 1, Col 1</span>
                 </div>
-                <textarea id="editor" placeholder="Start typing your markdown here..."></textarea>
+                <div class="editor-wrapper">
+                    <div class="styled-overlay" id="styled-overlay"></div>
+                    <textarea id="editor" placeholder="Start typing your markdown here..."></textarea>
+                </div>
                 <div class="markdown-preview" id="markdown-display"></div>
             </div>
 

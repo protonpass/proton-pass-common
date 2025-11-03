@@ -100,19 +100,19 @@ impl MarkdownEditor {
     /// Saves state for undo.
     pub fn set_text(&mut self, text: String) {
         self.save_state();
-        
+
         // Preserve cursor if it's still valid, otherwise move to end
         if (self.cursor as usize) > text.len() {
             self.cursor = text.len() as u32;
         }
-        
+
         // Clear selection if it's no longer valid
         if let Some((start, end)) = self.selection {
             if (start as usize) > text.len() || (end as usize) > text.len() {
                 self.selection = None;
             }
         }
-        
+
         self.text = text;
     }
 
@@ -120,9 +120,9 @@ impl MarkdownEditor {
     /// Saves state for undo.
     pub fn insert_text(&mut self, text: &str) -> Result<()> {
         self.save_state();
-        
+
         let cursor_pos = self.cursor as usize;
-        
+
         // If there's a selection, replace it
         if let Some((start, end)) = self.selection {
             let start = start as usize;
@@ -139,11 +139,11 @@ impl MarkdownEditor {
                     self.text.len()
                 )));
             }
-            
+
             self.text.insert_str(cursor_pos, text);
             self.cursor = (cursor_pos + text.len()) as u32;
         }
-        
+
         Ok(())
     }
 
@@ -151,27 +151,29 @@ impl MarkdownEditor {
     /// Saves state for undo.
     pub fn delete_range(&mut self, start: u32, end: u32) -> Result<()> {
         self.save_state();
-        
+
         let start_pos = start as usize;
         let end_pos = end as usize;
-        
+
         if start_pos > self.text.len() || end_pos > self.text.len() {
             return Err(MarkdownError::InvalidSelection(format!(
                 "Range ({}, {}) is beyond text length {}",
-                start, end, self.text.len()
+                start,
+                end,
+                self.text.len()
             )));
         }
-        
+
         if start_pos > end_pos {
             return Err(MarkdownError::InvalidSelection(
                 "Start position is greater than end position".to_string(),
             ));
         }
-        
+
         self.text.replace_range(start_pos..end_pos, "");
         self.cursor = start;
         self.selection = None;
-        
+
         Ok(())
     }
 
@@ -191,27 +193,29 @@ impl MarkdownEditor {
     /// Saves state for undo.
     pub fn replace_range(&mut self, start: u32, end: u32, text: &str) -> Result<()> {
         self.save_state();
-        
+
         let start_pos = start as usize;
         let end_pos = end as usize;
-        
+
         if start_pos > self.text.len() || end_pos > self.text.len() {
             return Err(MarkdownError::InvalidSelection(format!(
                 "Range ({}, {}) is beyond text length {}",
-                start, end, self.text.len()
+                start,
+                end,
+                self.text.len()
             )));
         }
-        
+
         if start_pos > end_pos {
             return Err(MarkdownError::InvalidSelection(
                 "Start position is greater than end position".to_string(),
             ));
         }
-        
+
         self.text.replace_range(start_pos..end_pos, text);
         self.cursor = (start_pos + text.len()) as u32;
         self.selection = None;
-        
+
         Ok(())
     }
 
@@ -230,9 +234,11 @@ impl MarkdownEditor {
 
         // Apply the operation
         let result = match operation {
-            Operation::Bold | Operation::Italic | Operation::Strikethrough | Operation::Header(_) | Operation::Blockquote => {
-                MarkdownOperations::apply_inline_formatting(&self.text, start, end, operation)
-            }
+            Operation::Bold
+            | Operation::Italic
+            | Operation::Strikethrough
+            | Operation::Header(_)
+            | Operation::Blockquote => MarkdownOperations::apply_inline_formatting(&self.text, start, end, operation),
             Operation::CreateOrderedList | Operation::CreateUnorderedList => {
                 ListOperations::create_list(&self.text, start, end, operation)
             }

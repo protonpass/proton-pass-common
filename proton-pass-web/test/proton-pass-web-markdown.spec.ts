@@ -909,17 +909,169 @@ describe("Blockquote Operations", () => {
     test("Should support undo/redo with blockquote", () => {
         const editor = new MarkdownEditor("Some text");
         editor.setCursor(4);
-        
+
         // Apply blockquote
         editor.applyOperation("blockquote");
         expect(editor.getText()).toBe("> Some text");
-        
+
         // Undo
         expect(editor.undo()).toBe(true);
         expect(editor.getText()).toBe("Some text");
-        
+
         // Redo
         expect(editor.redo()).toBe(true);
         expect(editor.getText()).toBe("> Some text");
+    });
+
+    describe("Hybrid Mode - Markdown Markers", () => {
+        test("Should render marker spans for bold", () => {
+            const editor = new MarkdownEditor("**bold**");
+            const spans = editor.render();
+
+            // Should have bold span + 2 marker spans
+            const boldSpan = spans.find(s => s.style === "bold");
+            const markerSpans = spans.filter(s => s.style === "markdownMarker");
+
+            expect(boldSpan).toBeDefined();
+            expect(markerSpans.length).toBe(2);
+
+            // Opening **
+            expect(markerSpans[0].start).toBe(0);
+            expect(markerSpans[0].end).toBe(2);
+
+            // Closing **
+            expect(markerSpans[1].start).toBe(6);
+            expect(markerSpans[1].end).toBe(8);
+        });
+
+        test("Should render marker spans for italic", () => {
+            const editor = new MarkdownEditor("*italic*");
+            const spans = editor.render();
+
+            const italicSpan = spans.find(s => s.style === "italic");
+            const markerSpans = spans.filter(s => s.style === "markdownMarker");
+
+            expect(italicSpan).toBeDefined();
+            expect(markerSpans.length).toBe(2);
+
+            // Opening *
+            expect(markerSpans[0].start).toBe(0);
+            expect(markerSpans[0].end).toBe(1);
+
+            // Closing *
+            expect(markerSpans[1].start).toBe(7);
+            expect(markerSpans[1].end).toBe(8);
+        });
+
+        test("Should render marker spans for strikethrough", () => {
+            const editor = new MarkdownEditor("~~strike~~");
+            const spans = editor.render();
+
+            const strikeSpan = spans.find(s => s.style === "strikethrough");
+            const markerSpans = spans.filter(s => s.style === "markdownMarker");
+
+            expect(strikeSpan).toBeDefined();
+            expect(markerSpans.length).toBe(2);
+
+            // Opening ~~
+            expect(markerSpans[0].start).toBe(0);
+            expect(markerSpans[0].end).toBe(2);
+
+            // Closing ~~
+            expect(markerSpans[1].start).toBe(8);
+            expect(markerSpans[1].end).toBe(10);
+        });
+
+        test("Should render marker span for header", () => {
+            const editor = new MarkdownEditor("# Header");
+            const spans = editor.render();
+
+            const headerSpan = spans.find(s => s.style === "header1");
+            const markerSpans = spans.filter(s => s.style === "markdownMarker");
+
+            expect(headerSpan).toBeDefined();
+            expect(markerSpans.length).toBe(1);
+
+            // # and space
+            expect(markerSpans[0].start).toBe(0);
+            expect(markerSpans[0].end).toBe(2);
+        });
+
+        test("Should render marker span for unordered list", () => {
+            const editor = new MarkdownEditor("- Item");
+            const spans = editor.render();
+
+            const listSpan = spans.find(s => s.style === "unorderedListItem");
+            const markerSpans = spans.filter(s => s.style === "markdownMarker");
+
+            expect(listSpan).toBeDefined();
+            expect(markerSpans.length).toBe(1);
+
+            // - and space
+            expect(markerSpans[0].start).toBe(0);
+            expect(markerSpans[0].end).toBe(2);
+        });
+
+        test("Should render marker span for ordered list", () => {
+            const editor = new MarkdownEditor("1. Item");
+            const spans = editor.render();
+
+            const listSpan = spans.find(s => s.style === "orderedListItem");
+            const markerSpans = spans.filter(s => s.style === "markdownMarker");
+
+            expect(listSpan).toBeDefined();
+            expect(markerSpans.length).toBe(1);
+
+            // 1. and space
+            expect(markerSpans[0].start).toBe(0);
+            expect(markerSpans[0].end).toBe(3);
+        });
+
+        test("Should render marker spans for inline code", () => {
+            const editor = new MarkdownEditor("`code`");
+            const spans = editor.render();
+
+            const codeSpan = spans.find(s => s.style === "code");
+            const markerSpans = spans.filter(s => s.style === "markdownMarker");
+
+            expect(codeSpan).toBeDefined();
+            expect(markerSpans.length).toBe(2);
+
+            // Opening `
+            expect(markerSpans[0].start).toBe(0);
+            expect(markerSpans[0].end).toBe(1);
+
+            // Closing `
+            expect(markerSpans[1].start).toBe(5);
+            expect(markerSpans[1].end).toBe(6);
+        });
+
+        test("Should render marker span for blockquote", () => {
+            const editor = new MarkdownEditor("> Quote");
+            const spans = editor.render();
+
+            const quoteSpan = spans.find(s => s.style === "blockquote");
+            const markerSpans = spans.filter(s => s.style === "markdownMarker");
+
+            expect(quoteSpan).toBeDefined();
+            expect(markerSpans.length).toBe(1);
+
+            // > and space
+            expect(markerSpans[0].start).toBe(0);
+            expect(markerSpans[0].end).toBe(2);
+        });
+
+        test("Should render both content and marker spans for complex text", () => {
+            const editor = new MarkdownEditor("This is **bold** and *italic* text");
+            const spans = editor.render();
+
+            const boldSpan = spans.find(s => s.style === "bold");
+            const italicSpan = spans.find(s => s.style === "italic");
+            const markerSpans = spans.filter(s => s.style === "markdownMarker");
+
+            expect(boldSpan).toBeDefined();
+            expect(italicSpan).toBeDefined();
+            expect(markerSpans.length).toBe(4); // 2 for bold, 2 for italic
+        });
     });
 });

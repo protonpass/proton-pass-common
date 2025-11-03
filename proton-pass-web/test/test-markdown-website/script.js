@@ -79,22 +79,166 @@ function updateEditor() {
 // Update preview
 function updatePreview() {
     if (!editor) return;
-    
+
     const previewDiv = document.getElementById('preview');
     const rawHtmlDiv = document.getElementById('raw-html');
     const markdownDisplay = document.getElementById('markdown-display');
-    
+
     // Render HTML
     const html = editor.renderToHtml();
     previewDiv.innerHTML = html;
     rawHtmlDiv.textContent = html;
-    
+
     // Show markdown with styling
     const text = editor.getText();
     markdownDisplay.textContent = text || 'Raw markdown will appear here...';
-    
+
+    // Update styled overlay for hybrid mode
+    updateStyledOverlay();
+
     // Update spans display
     updateSpansDisplay();
+}
+
+// Update the styled overlay with hybrid mode rendering
+function updateStyledOverlay() {
+    if (!editor) return;
+
+    const overlay = document.getElementById('styled-overlay');
+    const text = editor.getText();
+    const spans = editor.render();
+
+    if (!text) {
+        overlay.innerHTML = '';
+        return;
+    }
+
+    // Convert byte offsets to character offsets
+    const encoder = new TextEncoder();
+    const byteToCharMap = buildByteToCharMap(text);
+
+    // Build a character-level style map
+    const charStyles = new Array(text.length).fill(null).map(() => new Set());
+
+    // First pass: collect all styles for each character (converting byte offsets)
+    spans.forEach(span => {
+        const charStart = byteToCharMap[span.start] ?? 0;
+        const charEnd = byteToCharMap[span.end] ?? text.length;
+
+        for (let i = charStart; i < charEnd && i < text.length; i++) {
+            charStyles[i].add(span.style);
+        }
+    });
+
+    // Build HTML with proper style priority (markers override content)
+    let html = '';
+    let currentClasses = new Set();
+
+    for (let i = 0; i < text.length; i++) {
+        const styles = charStyles[i];
+        const newClasses = new Set();
+
+        // Check if this character is a marker - if so, ONLY apply marker style
+        if (styles.has('markdownMarker')) {
+            newClasses.add('md-marker');
+        } else {
+            // Not a marker, apply content styles
+            styles.forEach(style => {
+                const className = getStyleClass(style);
+                if (className) {
+                    newClasses.add(className);
+                }
+            });
+        }
+
+        // Check if we need to close/open spans
+        const classesChanged = !setsEqual(currentClasses, newClasses);
+
+        if (classesChanged) {
+            // Close previous spans
+            if (currentClasses.size > 0) {
+                html += '</span>';
+            }
+
+            // Open new spans
+            if (newClasses.size > 0) {
+                const classList = Array.from(newClasses).join(' ');
+                html += `<span class="${classList}">`;
+            }
+
+            currentClasses = newClasses;
+        }
+
+        // Add the character (escape HTML)
+        html += escapeHtml(text[i]);
+    }
+
+    // Close any remaining spans
+    if (currentClasses.size > 0) {
+        html += '</span>';
+    }
+
+    overlay.innerHTML = html;
+}
+
+// Build a map from byte offset to character offset
+function buildByteToCharMap(text) {
+    const encoder = new TextEncoder();
+    const map = {};
+    let byteOffset = 0;
+
+    for (let charOffset = 0; charOffset <= text.length; charOffset++) {
+        map[byteOffset] = charOffset;
+
+        if (charOffset < text.length) {
+            const char = text[charOffset];
+            const charBytes = encoder.encode(char).length;
+            byteOffset += charBytes;
+        }
+    }
+
+    // Add final mapping
+    map[byteOffset] = text.length;
+
+    return map;
+}
+
+// Helper: Convert span style to CSS class
+function getStyleClass(style) {
+    const styleMap = {
+        'bold': 'md-bold',
+        'italic': 'md-italic',
+        'strikethrough': 'md-strikethrough',
+        'header1': 'md-header',
+        'header2': 'md-header',
+        'header3': 'md-header',
+        'header4': 'md-header',
+        'header5': 'md-header',
+        'header6': 'md-header',
+        'code': 'md-code',
+        'link': 'md-link',
+        'orderedListItem': 'md-list',
+        'unorderedListItem': 'md-list',
+        'blockquote': 'md-blockquote',
+        'markdownMarker': 'md-marker',
+    };
+    return styleMap[style] || '';
+}
+
+// Helper: Compare two sets
+function setsEqual(a, b) {
+    if (a.size !== b.size) return false;
+    for (let item of a) {
+        if (!b.has(item)) return false;
+    }
+    return true;
+}
+
+// Helper: Escape HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // Update info panel
@@ -286,15 +430,25 @@ cd test-markdown-website
 // Setup event listeners
 function setupEventListeners() {
     const textarea = document.getElementById('editor');
-    
-    // Editor events
+    const overlay = document.getElementById('styled-overlay');
+
+    // Editor events - update immediately on any change
     textarea.addEventListener('input', updateEditor);
+    textarea.addEventListener('paste', () => setTimeout(updateEditor, 0));
+    textarea.addEventListener('cut', () => setTimeout(updateEditor, 0));
     textarea.addEventListener('selectionchange', updateInfo);
     textarea.addEventListener('keyup', updateCursorInfo);
     textarea.addEventListener('mouseup', updateCursorInfo);
-    
-    // Keyboard shortcuts
+
+    // Sync scroll between textarea and overlay
+    textarea.addEventListener('scroll', () => {
+        overlay.scrollTop = textarea.scrollTop;
+        overlay.scrollLeft = textarea.scrollLeft;
+    });
+
+    // Keyboard shortcuts + immediate updates for certain keys
     textarea.addEventListener('keydown', (e) => {
+        // Handle keyboard shortcuts first
         if (e.ctrlKey || e.metaKey) {
             switch (e.key.toLowerCase()) {
                 case 'b':

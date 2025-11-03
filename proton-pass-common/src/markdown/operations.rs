@@ -43,20 +43,49 @@ impl MarkdownOperations {
         let wrapper_len = wrapper.len();
         let selected_text = &text[start..end];
 
-        // Check if the selection is already wrapped
-        let is_wrapped = start >= wrapper_len
-            && end + wrapper_len <= text.len()
-            && &text[start - wrapper_len..start] == wrapper
-            && &text[end..end + wrapper_len] == wrapper;
+        // Special case: Handle *** (bold+italic combined)
+        // Search for *** even if there are other wrappers in between
+        if wrapper == "*" || wrapper == "**" {
+            if let Some(triple_star_pos) = Self::find_triple_star_positions(text, start, end) {
+                let (opening_pos, closing_pos) = triple_star_pos;
+                if wrapper == "*" {
+                    // Remove one * from *** to leave **
+                    let mut new_text = String::new();
+                    new_text.push_str(&text[..opening_pos]);
+                    new_text.push_str("**");
+                    new_text.push_str(&text[opening_pos + 3..closing_pos]);
+                    new_text.push_str("**");
+                    new_text.push_str(&text[closing_pos + 3..]);
 
-        if is_wrapped {
+                    let new_cursor = (closing_pos - 1) as u32;
+                    return Ok((new_text, new_cursor, None));
+                } else {
+                    // Remove two * from *** to leave *
+                    let mut new_text = String::new();
+                    new_text.push_str(&text[..opening_pos]);
+                    new_text.push('*');
+                    new_text.push_str(&text[opening_pos + 3..closing_pos]);
+                    new_text.push('*');
+                    new_text.push_str(&text[closing_pos + 3..]);
+
+                    let new_cursor = (closing_pos - 2) as u32;
+                    return Ok((new_text, new_cursor, None));
+                }
+            }
+        }
+
+        // Search for the wrapper, potentially nested within other markdown syntax
+        // We need to find matching wrappers that aren't immediately adjacent
+        let wrapper_positions = Self::find_wrapper_positions(text, start, end, wrapper);
+
+        if let Some((wrapper_start, wrapper_end)) = wrapper_positions {
             // Remove the wrapper
             let mut new_text = String::new();
-            new_text.push_str(&text[..start - wrapper_len]);
-            new_text.push_str(selected_text);
-            new_text.push_str(&text[end + wrapper_len..]);
+            new_text.push_str(&text[..wrapper_start]);
+            new_text.push_str(&text[wrapper_start + wrapper_len..wrapper_end]);
+            new_text.push_str(&text[wrapper_end + wrapper_len..]);
 
-            let new_cursor = end as u32 - wrapper_len as u32;
+            let new_cursor = wrapper_end as u32 - wrapper_len as u32;
             // Clear selection after unwrapping
             let new_selection = None;
 
@@ -76,6 +105,179 @@ impl MarkdownOperations {
 
             Ok((new_text, new_cursor, new_selection))
         }
+    }
+
+    /// Find wrapper positions around a selection, searching through nested markdown
+    /// Returns Some((start_pos, end_pos)) if wrapper is found, where positions point to the start of each wrapper
+    fn find_wrapper_positions(text: &str, start: usize, end: usize, wrapper: &str) -> Option<(usize, usize)> {
+        let wrapper_len = wrapper.len();
+
+        // Known markdown wrappers to skip over when searching
+        let wrappers = ["**", "~~", "*", "`"];
+
+        // Search backwards from start for the opening wrapper
+        let mut search_start = start;
+        let opening_pos = loop {
+            if search_start < wrapper_len {
+                break None;
+            }
+
+            let check_pos = search_start - wrapper_len;
+            if &text[check_pos..search_start] == wrapper {
+                // Special case: if looking for "*", make sure it's not part of "**"
+                if wrapper == "*" {
+                    // Check if there's another * before or after this one
+                    let has_star_before = check_pos > 0 && &text[check_pos - 1..check_pos] == "*";
+                    let has_star_after = search_start < text.len() && &text[search_start..search_start + 1] == "*";
+
+                    if has_star_before || has_star_after {
+                        // This is part of **, not a standalone *, skip over it
+                        search_start = check_pos;
+                        continue;
+                    }
+                }
+                // Found it!
+                break Some(check_pos);
+            }
+
+            // Check if we hit another markdown wrapper - skip over it
+            let mut found_other = false;
+            for other_wrapper in &wrappers {
+                if *other_wrapper != wrapper && search_start >= other_wrapper.len() {
+                    let other_check_pos = search_start - other_wrapper.len();
+                    if &text[other_check_pos..search_start] == *other_wrapper {
+                        search_start = other_check_pos;
+                        found_other = true;
+                        break;
+                    }
+                }
+            }
+
+            if !found_other {
+                // Not a markdown wrapper, give up
+                break None;
+            }
+        };
+
+        let opening_pos = opening_pos?;
+
+        // Search forwards from end for the closing wrapper
+        let mut search_end = end;
+        let closing_pos = loop {
+            if search_end + wrapper_len > text.len() {
+                break None;
+            }
+
+            if &text[search_end..search_end + wrapper_len] == wrapper {
+                // Special case: if looking for "*", make sure it's not part of "**"
+                if wrapper == "*" {
+                    // Check if there's another * before or after this one
+                    let has_star_before = search_end > 0 && &text[search_end - 1..search_end] == "*";
+                    let has_star_after = search_end + 1 < text.len() && &text[search_end + 1..search_end + 2] == "*";
+
+                    if has_star_before || has_star_after {
+                        // This is part of **, not a standalone *, skip over it
+                        search_end += wrapper_len;
+                        continue;
+                    }
+                }
+                // Found it!
+                break Some(search_end);
+            }
+
+            // Check if we hit another markdown wrapper - skip over it
+            let mut found_other = false;
+            for other_wrapper in &wrappers {
+                if *other_wrapper != wrapper && search_end + other_wrapper.len() <= text.len()
+                    && &text[search_end..search_end + other_wrapper.len()] == *other_wrapper {
+                        search_end += other_wrapper.len();
+                        found_other = true;
+                        break;
+                    }
+            }
+
+            if !found_other {
+                // Not a markdown wrapper, give up
+                break None;
+            }
+        };
+
+        let closing_pos = closing_pos?;
+
+        Some((opening_pos, closing_pos))
+    }
+
+    /// Find *** (bold+italic) positions, searching through other markdown wrappers
+    fn find_triple_star_positions(text: &str, start: usize, end: usize) -> Option<(usize, usize)> {
+        // Known markdown wrappers to skip over when searching
+        let wrappers = ["**", "~~", "`"];
+
+        // Search backwards from start for ***
+        let mut search_start = start;
+        let opening_pos = loop {
+            if search_start < 3 {
+                break None;
+            }
+
+            let check_pos = search_start - 3;
+            if &text[check_pos..search_start] == "***" {
+                // Found it!
+                break Some(check_pos);
+            }
+
+            // Check if we hit another markdown wrapper - skip over it
+            let mut found_other = false;
+            for other_wrapper in &wrappers {
+                if search_start >= other_wrapper.len() {
+                    let other_check_pos = search_start - other_wrapper.len();
+                    if &text[other_check_pos..search_start] == *other_wrapper {
+                        search_start = other_check_pos;
+                        found_other = true;
+                        break;
+                    }
+                }
+            }
+
+            if !found_other {
+                // Not a markdown wrapper, give up
+                break None;
+            }
+        };
+
+        let opening_pos = opening_pos?;
+
+        // Search forwards from end for ***
+        let mut search_end = end;
+        let closing_pos = loop {
+            if search_end + 3 > text.len() {
+                break None;
+            }
+
+            if &text[search_end..search_end + 3] == "***" {
+                // Found it!
+                break Some(search_end);
+            }
+
+            // Check if we hit another markdown wrapper - skip over it
+            let mut found_other = false;
+            for other_wrapper in &wrappers {
+                if search_end + other_wrapper.len() <= text.len()
+                    && &text[search_end..search_end + other_wrapper.len()] == *other_wrapper {
+                        search_end += other_wrapper.len();
+                        found_other = true;
+                        break;
+                    }
+            }
+
+            if !found_other {
+                // Not a markdown wrapper, give up
+                break None;
+            }
+        };
+
+        let closing_pos = closing_pos?;
+
+        Some((opening_pos, closing_pos))
     }
 
     /// Apply or toggle a header to the line(s) containing the selection
@@ -142,7 +344,7 @@ impl MarkdownOperations {
         // Check if line already has blockquote
         let line_prefix = &text[line_start..];
         let blockquote_prefix = "> ";
-        
+
         let has_blockquote = line_prefix.starts_with(blockquote_prefix);
 
         let mut new_text = String::new();
@@ -159,7 +361,7 @@ impl MarkdownOperations {
             // Add blockquote
             new_text.push_str(blockquote_prefix);
             new_text.push_str(&text[line_start..]);
-            
+
             let new_cursor = (start + blockquote_prefix.len()) as u32;
             Ok((new_text, new_cursor, None))
         }
@@ -264,30 +466,27 @@ mod tests {
     #[test]
     fn test_apply_blockquote() {
         let text = "hello world";
-        let (new_text, _, _) =
-            MarkdownOperations::apply_inline_formatting(text, 0, 5, Operation::Blockquote).unwrap();
-        
+        let (new_text, _, _) = MarkdownOperations::apply_inline_formatting(text, 0, 5, Operation::Blockquote).unwrap();
+
         assert_eq!(new_text, "> hello world");
     }
 
     #[test]
     fn test_remove_blockquote() {
         let text = "> hello world";
-        let (new_text, _, _) =
-            MarkdownOperations::apply_inline_formatting(text, 2, 7, Operation::Blockquote).unwrap();
-        
+        let (new_text, _, _) = MarkdownOperations::apply_inline_formatting(text, 2, 7, Operation::Blockquote).unwrap();
+
         assert_eq!(new_text, "hello world");
     }
 
     #[test]
     fn test_toggle_blockquote() {
         let text = "line of text";
-        
+
         // Apply blockquote
-        let (new_text, _, _) =
-            MarkdownOperations::apply_inline_formatting(text, 0, 4, Operation::Blockquote).unwrap();
+        let (new_text, _, _) = MarkdownOperations::apply_inline_formatting(text, 0, 4, Operation::Blockquote).unwrap();
         assert_eq!(new_text, "> line of text");
-        
+
         // Remove blockquote
         let (final_text, _, _) =
             MarkdownOperations::apply_inline_formatting(&new_text, 2, 6, Operation::Blockquote).unwrap();
@@ -299,7 +498,7 @@ mod tests {
         let text = "first line\nsecond line";
         let (new_text, _, _) =
             MarkdownOperations::apply_inline_formatting(text, 11, 17, Operation::Blockquote).unwrap();
-        
+
         assert_eq!(new_text, "first line\n> second line");
     }
 
@@ -308,7 +507,7 @@ mod tests {
         let text = "text";
         let (new_text, cursor, _) =
             MarkdownOperations::apply_inline_formatting(text, 2, 2, Operation::Blockquote).unwrap();
-        
+
         // Empty selection should return unchanged
         assert_eq!(new_text, "text");
         assert_eq!(cursor, 2);

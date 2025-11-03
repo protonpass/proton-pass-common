@@ -41,6 +41,7 @@ pub enum WasmMarkdownSpanStyle {
     OrderedListItem,
     UnorderedListItem,
     Blockquote,
+    MarkdownMarker,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Tsify)]

@@ -132,7 +132,7 @@ impl MarkdownEditor {
         options.insert(Options::ENABLE_TABLES);
         options.insert(Options::ENABLE_FOOTNOTES);
         options.insert(Options::ENABLE_TASKLISTS);
-        
+
         let parser = Parser::new_ext(text, options);
         let mut html_output = String::new();
         html::push_html(&mut html_output, parser);
@@ -169,6 +169,7 @@ impl From<CommonStyledSpan> for WasmMarkdownStyledSpan {
                 (WasmMarkdownSpanStyle::UnorderedListItem, Some(level), None, None)
             }
             CommonSpanStyle::Blockquote => (WasmMarkdownSpanStyle::Blockquote, None, None, None),
+            CommonSpanStyle::MarkdownMarker => (WasmMarkdownSpanStyle::MarkdownMarker, None, None, None),
         };
 
         WasmMarkdownStyledSpan {

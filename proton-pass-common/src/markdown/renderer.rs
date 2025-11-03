@@ -20,13 +20,22 @@ pub enum SpanStyle {
     Header(u8), // 1-6
     Code,
     CodeBlock,
-    Link { url: String },
-    OrderedListItem { level: u8, number: u32 },
-    UnorderedListItem { level: u8 },
+    Link {
+        url: String,
+    },
+    OrderedListItem {
+        level: u8,
+        number: u32,
+    },
+    UnorderedListItem {
+        level: u8,
+    },
     Blockquote,
+    /// Markdown syntax markers (**, *, ~~, #, -, `, etc.) - styled differently for hybrid mode
+    MarkdownMarker,
 }
 
-/// Render markdown text into styled spans
+/// Render markdown text into styled spans (hybrid mode: shows markers + applies styles)
 pub fn render_markdown(text: &str) -> Vec<StyledSpan> {
     let mut spans = Vec::new();
     let mut options = pulldown_cmark::Options::empty();
@@ -105,6 +114,10 @@ pub fn render_markdown(text: &str) -> Vec<StyledSpan> {
                     if let Some((style, start)) = stack.pop() {
                         // Only create span if there's actual content
                         if range.end > start {
+                            // Add marker spans for hybrid mode
+                            add_marker_spans(text, start, range.end, &style, &mut spans);
+
+                            // Add the content span with styling
                             spans.push(StyledSpan {
                                 start: start as u32,
                                 end: range.end as u32,
@@ -115,18 +128,278 @@ pub fn render_markdown(text: &str) -> Vec<StyledSpan> {
                 }
             }
             Event::Code(_) => {
-                // Inline code
-                spans.push(StyledSpan {
-                    start: range.start as u32,
-                    end: range.end as u32,
-                    style: SpanStyle::Code,
-                });
+                // Inline code - add marker and content spans
+                if range.end > range.start {
+                    // Add marker for backticks
+                    add_marker_spans(text, range.start, range.end, &SpanStyle::Code, &mut spans);
+
+                    spans.push(StyledSpan {
+                        start: range.start as u32,
+                        end: range.end as u32,
+                        style: SpanStyle::Code,
+                    });
+                }
             }
             _ => {}
         }
     }
 
     spans
+}
+
+/// Add marker spans for a styled region (hybrid mode)
+fn add_marker_spans(text: &str, start: usize, end: usize, style: &SpanStyle, spans: &mut Vec<StyledSpan>) {
+    if start >= end || end > text.len() {
+        return;
+    }
+
+    let region = &text[start..end];
+
+    match style {
+        SpanStyle::Bold => {
+            // Check for ** or __
+            if region.starts_with("**") && region.ends_with("**") && region.len() >= 4 {
+                // Opening **
+                spans.push(StyledSpan {
+                    start: start as u32,
+                    end: (start + 2) as u32,
+                    style: SpanStyle::MarkdownMarker,
+                });
+                // Closing **
+                spans.push(StyledSpan {
+                    start: (end - 2) as u32,
+                    end: end as u32,
+                    style: SpanStyle::MarkdownMarker,
+                });
+            } else if region.starts_with("__") && region.ends_with("__") && region.len() >= 4 {
+                // Opening __
+                spans.push(StyledSpan {
+                    start: start as u32,
+                    end: (start + 2) as u32,
+                    style: SpanStyle::MarkdownMarker,
+                });
+                // Closing __
+                spans.push(StyledSpan {
+                    start: (end - 2) as u32,
+                    end: end as u32,
+                    style: SpanStyle::MarkdownMarker,
+                });
+            }
+        }
+        SpanStyle::Italic => {
+            // Check for * or _
+            if region.starts_with('*') && region.ends_with('*') && region.len() >= 2 {
+                // Opening *
+                spans.push(StyledSpan {
+                    start: start as u32,
+                    end: (start + 1) as u32,
+                    style: SpanStyle::MarkdownMarker,
+                });
+                // Closing *
+                spans.push(StyledSpan {
+                    start: (end - 1) as u32,
+                    end: end as u32,
+                    style: SpanStyle::MarkdownMarker,
+                });
+            } else if region.starts_with('_') && region.ends_with('_') && region.len() >= 2 {
+                // Opening _
+                spans.push(StyledSpan {
+                    start: start as u32,
+                    end: (start + 1) as u32,
+                    style: SpanStyle::MarkdownMarker,
+                });
+                // Closing _
+                spans.push(StyledSpan {
+                    start: (end - 1) as u32,
+                    end: end as u32,
+                    style: SpanStyle::MarkdownMarker,
+                });
+            }
+        }
+        SpanStyle::Strikethrough => {
+            // Check for ~~
+            if region.starts_with("~~") && region.ends_with("~~") && region.len() >= 4 {
+                // Opening ~~
+                spans.push(StyledSpan {
+                    start: start as u32,
+                    end: (start + 2) as u32,
+                    style: SpanStyle::MarkdownMarker,
+                });
+                // Closing ~~
+                spans.push(StyledSpan {
+                    start: (end - 2) as u32,
+                    end: end as u32,
+                    style: SpanStyle::MarkdownMarker,
+                });
+            }
+        }
+        SpanStyle::Header(level) => {
+            // Headers start with # (1-6 times)
+            let level = *level as usize;
+            let prefix = "#".repeat(level);
+            if region.starts_with(&prefix) {
+                // Mark the # symbols and following space if present
+                let mut marker_end = start + level;
+                if text[marker_end..].starts_with(' ') {
+                    marker_end += 1;
+                }
+                spans.push(StyledSpan {
+                    start: start as u32,
+                    end: marker_end as u32,
+                    style: SpanStyle::MarkdownMarker,
+                });
+            }
+        }
+        SpanStyle::Code => {
+            // Inline code with backticks
+            if region.starts_with('`') && region.ends_with('`') && region.len() >= 2 {
+                // Opening `
+                spans.push(StyledSpan {
+                    start: start as u32,
+                    end: (start + 1) as u32,
+                    style: SpanStyle::MarkdownMarker,
+                });
+                // Closing `
+                spans.push(StyledSpan {
+                    start: (end - 1) as u32,
+                    end: end as u32,
+                    style: SpanStyle::MarkdownMarker,
+                });
+            }
+        }
+        SpanStyle::CodeBlock => {
+            // Code blocks with ```
+            if region.starts_with("```") {
+                // Find the end of the first line (opening fence + language identifier)
+                if let Some(newline_pos) = region.find('\n') {
+                    spans.push(StyledSpan {
+                        start: start as u32,
+                        end: (start + newline_pos + 1) as u32,
+                        style: SpanStyle::MarkdownMarker,
+                    });
+                }
+            }
+            if region.ends_with("```") {
+                // Find the start of the last line (closing fence)
+                if let Some(newline_pos) = region.rfind('\n') {
+                    spans.push(StyledSpan {
+                        start: (start + newline_pos) as u32,
+                        end: end as u32,
+                        style: SpanStyle::MarkdownMarker,
+                    });
+                }
+            }
+        }
+        SpanStyle::UnorderedListItem { level } => {
+            // Find the list marker (-, *, or +) and mark it
+            let indent = "  ".repeat(*level as usize);
+            let after_indent = if region.starts_with(&indent) {
+                &region[indent.len()..]
+            } else {
+                region
+            };
+
+            if let Some(marker_char) = after_indent.chars().next() {
+                if matches!(marker_char, '-' | '*' | '+') {
+                    let marker_start = start + indent.len();
+                    let marker_end = marker_start + 1;
+                    // Include the space after the marker
+                    let marker_end = if text.get(marker_end..marker_end + 1) == Some(" ") {
+                        marker_end + 1
+                    } else {
+                        marker_end
+                    };
+
+                    spans.push(StyledSpan {
+                        start: marker_start as u32,
+                        end: marker_end as u32,
+                        style: SpanStyle::MarkdownMarker,
+                    });
+                }
+            }
+        }
+        SpanStyle::OrderedListItem { level, number } => {
+            // Find the list number and mark it
+            let indent = "  ".repeat(*level as usize);
+            let after_indent = if region.starts_with(&indent) {
+                &region[indent.len()..]
+            } else {
+                region
+            };
+
+            // Find the number and period
+            let number_str = number.to_string();
+            if after_indent.starts_with(&number_str) && after_indent.len() > number_str.len() {
+                let marker_start = start + indent.len();
+                let mut marker_end = marker_start + number_str.len();
+                // Include the period
+                if text.get(marker_end..marker_end + 1) == Some(".") {
+                    marker_end += 1;
+                    // Include the space after the period
+                    if text.get(marker_end..marker_end + 1) == Some(" ") {
+                        marker_end += 1;
+                    }
+                }
+
+                spans.push(StyledSpan {
+                    start: marker_start as u32,
+                    end: marker_end as u32,
+                    style: SpanStyle::MarkdownMarker,
+                });
+            }
+        }
+        SpanStyle::Blockquote => {
+            // Find > markers at the start of lines
+            let mut pos = start;
+            for line in region.lines() {
+                if line.trim_start().starts_with('>') {
+                    let line_start = pos;
+                    // Find the > character
+                    let whitespace_len = line.len() - line.trim_start().len();
+                    let marker_start = line_start + whitespace_len;
+                    let mut marker_end = marker_start + 1;
+                    // Include the space after >
+                    if text.get(marker_end..marker_end + 1) == Some(" ") {
+                        marker_end += 1;
+                    }
+
+                    spans.push(StyledSpan {
+                        start: marker_start as u32,
+                        end: marker_end as u32,
+                        style: SpanStyle::MarkdownMarker,
+                    });
+                }
+                pos += line.len() + 1; // +1 for newline
+            }
+        }
+        SpanStyle::Link { .. } => {
+            // Links: [text](url)
+            // Find [ and ] for link text, ( and ) for URL
+            if let Some(bracket_end) = region.find("](") {
+                // Opening [
+                spans.push(StyledSpan {
+                    start: start as u32,
+                    end: (start + 1) as u32,
+                    style: SpanStyle::MarkdownMarker,
+                });
+                // ](
+                spans.push(StyledSpan {
+                    start: (start + bracket_end) as u32,
+                    end: (start + bracket_end + 2) as u32,
+                    style: SpanStyle::MarkdownMarker,
+                });
+                // Closing )
+                if region.ends_with(')') {
+                    spans.push(StyledSpan {
+                        start: (end - 1) as u32,
+                        end: end as u32,
+                        style: SpanStyle::MarkdownMarker,
+                    });
+                }
+            }
+        }
+        _ => {}
+    }
 }
 
 #[derive(Debug)]
@@ -144,11 +417,24 @@ mod tests {
         let text = "This is **bold** text";
         let spans = render_markdown(text);
 
+        // Should have: 1 bold span + 2 marker spans (opening and closing **)
         let bold_span = spans.iter().find(|s| matches!(s.style, SpanStyle::Bold));
         assert!(bold_span.is_some());
 
         let bold_span = bold_span.unwrap();
         assert_eq!(&text[bold_span.start as usize..bold_span.end as usize], "**bold**");
+
+        // Check for marker spans
+        let markers: Vec<_> = spans
+            .iter()
+            .filter(|s| matches!(s.style, SpanStyle::MarkdownMarker))
+            .collect();
+        assert_eq!(markers.len(), 2); // Opening and closing **
+
+        // Opening **
+        assert_eq!(&text[markers[0].start as usize..markers[0].end as usize], "**");
+        // Closing **
+        assert_eq!(&text[markers[1].start as usize..markers[1].end as usize], "**");
     }
 
     #[test]
@@ -270,5 +556,123 @@ mod tests {
             .collect();
 
         assert!(!quote_spans.is_empty());
+    }
+
+    #[test]
+    fn test_hybrid_mode_bold_with_markers() {
+        let text = "**bold**";
+        let spans = render_markdown(text);
+
+        // Should have 3 spans: opening **, content span (full), closing **
+        assert!(spans.len() >= 3);
+
+        // Find the bold span (covers everything)
+        let bold = spans.iter().find(|s| matches!(s.style, SpanStyle::Bold)).unwrap();
+        assert_eq!(&text[bold.start as usize..bold.end as usize], "**bold**");
+
+        // Find marker spans
+        let markers: Vec<_> = spans
+            .iter()
+            .filter(|s| matches!(s.style, SpanStyle::MarkdownMarker))
+            .collect();
+        assert_eq!(markers.len(), 2);
+        assert_eq!(&text[markers[0].start as usize..markers[0].end as usize], "**");
+        assert_eq!(&text[markers[1].start as usize..markers[1].end as usize], "**");
+    }
+
+    #[test]
+    fn test_hybrid_mode_italic_with_markers() {
+        let text = "*italic*";
+        let spans = render_markdown(text);
+
+        // Find the italic span
+        let italic = spans.iter().find(|s| matches!(s.style, SpanStyle::Italic)).unwrap();
+        assert_eq!(&text[italic.start as usize..italic.end as usize], "*italic*");
+
+        // Find marker spans
+        let markers: Vec<_> = spans
+            .iter()
+            .filter(|s| matches!(s.style, SpanStyle::MarkdownMarker))
+            .collect();
+        assert_eq!(markers.len(), 2);
+    }
+
+    #[test]
+    fn test_hybrid_mode_header_with_markers() {
+        let text = "# Header";
+        let spans = render_markdown(text);
+
+        // Find the header span
+        let header = spans.iter().find(|s| matches!(s.style, SpanStyle::Header(1))).unwrap();
+        assert_eq!(&text[header.start as usize..header.end as usize], "# Header");
+
+        // Find marker span (# and space)
+        let markers: Vec<_> = spans
+            .iter()
+            .filter(|s| matches!(s.style, SpanStyle::MarkdownMarker))
+            .collect();
+        assert_eq!(markers.len(), 1);
+        assert_eq!(&text[markers[0].start as usize..markers[0].end as usize], "# ");
+    }
+
+    #[test]
+    fn test_hybrid_mode_list_with_markers() {
+        let text = "- Item 1";
+        let spans = render_markdown(text);
+
+        // Find the list item span
+        let _list_item = spans
+            .iter()
+            .find(|s| matches!(s.style, SpanStyle::UnorderedListItem { .. }))
+            .unwrap();
+
+        // Find marker span (- and space)
+        let markers: Vec<_> = spans
+            .iter()
+            .filter(|s| matches!(s.style, SpanStyle::MarkdownMarker))
+            .collect();
+        assert_eq!(markers.len(), 1);
+        assert_eq!(&text[markers[0].start as usize..markers[0].end as usize], "- ");
+    }
+
+    #[test]
+    fn test_hybrid_mode_strikethrough_with_markers() {
+        let text = "~~strike~~";
+        let spans = render_markdown(text);
+
+        // Find the strikethrough span
+        let strike = spans
+            .iter()
+            .find(|s| matches!(s.style, SpanStyle::Strikethrough))
+            .unwrap();
+        assert_eq!(&text[strike.start as usize..strike.end as usize], "~~strike~~");
+
+        // Find marker spans
+        let markers: Vec<_> = spans
+            .iter()
+            .filter(|s| matches!(s.style, SpanStyle::MarkdownMarker))
+            .collect();
+        assert_eq!(markers.len(), 2);
+        assert_eq!(&text[markers[0].start as usize..markers[0].end as usize], "~~");
+        assert_eq!(&text[markers[1].start as usize..markers[1].end as usize], "~~");
+    }
+
+    #[test]
+    fn test_hybrid_mode_inline_code_with_markers() {
+        let text = "`code`";
+        let spans = render_markdown(text);
+
+        // Find the code span
+        let code = spans.iter().find(|s| matches!(s.style, SpanStyle::Code)).unwrap();
+        assert_eq!(&text[code.start as usize..code.end as usize], "`code`");
+
+        // Find marker spans (backticks)
+        let markers: Vec<_> = spans
+            .iter()
+            .filter(|s| matches!(s.style, SpanStyle::MarkdownMarker))
+            .collect();
+        assert_eq!(markers.len(), 2);
+        assert_eq!(&text[markers[0].start as usize..markers[0].end as usize], "`");
+        assert_eq!(&text[markers[1].start as usize..markers[1].end as usize], "`");
     }
 }

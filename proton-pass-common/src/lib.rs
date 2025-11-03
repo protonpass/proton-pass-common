@@ -11,6 +11,7 @@ pub mod file;
 pub mod host;
 pub mod invite;
 pub mod login;
+pub mod markdown;
 pub mod passkey;
 pub use passkey_types;
 pub mod password;

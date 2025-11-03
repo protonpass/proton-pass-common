@@ -19,6 +19,7 @@ mod totp;
 
 #[cfg(feature = "experimental")]
 mod login;
+pub mod markdown;
 #[cfg(feature = "experimental")]
 mod wifi;
 

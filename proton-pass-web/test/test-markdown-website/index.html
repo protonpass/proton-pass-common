@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proton Pass Markdown Editor Test</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎨 Proton Pass Markdown Editor</h1>
+            <p class="subtitle">WYSIWYG Markdown Editor powered by Rust + WASM</p>
+        </header>
+
+        <div class="toolbar">
+            <div class="toolbar-group">
+                <button id="btn-bold" title="Bold (Ctrl+B)" class="toolbar-btn">
+                    <strong>B</strong>
+                </button>
+                <button id="btn-italic" title="Italic (Ctrl+I)" class="toolbar-btn">
+                    <em>I</em>
+                </button>
+                <button id="btn-strikethrough" title="Strikethrough" class="toolbar-btn">
+                    <s>S</s>
+                </button>
+            </div>
+
+            <div class="toolbar-divider"></div>
+
+            <div class="toolbar-group">
+                <button id="btn-h1" title="Header 1" class="toolbar-btn">H1</button>
+                <button id="btn-h2" title="Header 2" class="toolbar-btn">H2</button>
+                <button id="btn-h3" title="Header 3" class="toolbar-btn">H3</button>
+            </div>
+
+            <div class="toolbar-divider"></div>
+
+            <div class="toolbar-group">
+                <button id="btn-blockquote" title="Blockquote" class="toolbar-btn">❝ Quote</button>
+            </div>
+
+            <div class="toolbar-divider"></div>
+
+            <div class="toolbar-group">
+                <button id="btn-ul" title="Unordered List" class="toolbar-btn">• List</button>
+                <button id="btn-ol" title="Ordered List" class="toolbar-btn">1. List</button>
+                <button id="btn-indent" title="Indent" class="toolbar-btn">→</button>
+                <button id="btn-unindent" title="Unindent" class="toolbar-btn">←</button>
+            </div>
+
+            <div class="toolbar-divider"></div>
+
+            <div class="toolbar-group">
+                <button id="btn-undo" title="Undo (Ctrl+Z)" class="toolbar-btn" disabled>↶ Undo</button>
+                <button id="btn-redo" title="Redo (Ctrl+Y)" class="toolbar-btn" disabled>↷ Redo</button>
+            </div>
+
+            <div class="toolbar-divider"></div>
+
+            <div class="toolbar-group">
+                <button id="btn-clear" title="Clear all" class="toolbar-btn danger">Clear</button>
+            </div>
+        </div>
+
+        <div class="editor-container">
+            <div class="editor-pane">
+                <div class="pane-header">
+                    <h3>✏️ Editor</h3>
+                    <span class="cursor-info" id="cursor-info">Line 1, Col 1</span>
+                </div>
+                <textarea id="editor" placeholder="Start typing your markdown here..."></textarea>
+                <div class="markdown-preview" id="markdown-display"></div>
+            </div>
+
+            <div class="preview-pane">
+                <div class="pane-header">
+                    <h3>👁️ HTML Preview</h3>
+                    <label class="toggle">
+                        <input type="checkbox" id="toggle-view" checked>
+                        <span>HTML</span>
+                    </label>
+                </div>
+                <div class="preview-content" id="preview"></div>
+                <div class="raw-html" id="raw-html"></div>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <div class="info-section">
+                <h3>📊 Editor State</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Characters:</span>
+                        <span class="info-value" id="char-count">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Words:</span>
+                        <span class="info-value" id="word-count">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Selection:</span>
+                        <span class="info-value" id="selection-info">None</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Undo Stack:</span>
+                        <span class="info-value" id="undo-info">0 / 0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>🎨 Styled Spans</h3>
+                <div class="spans-container" id="spans-container">
+                    <p class="empty-state">No styled content yet</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Loading WASM module...</p>
+        </div>
+
+        <div class="error-message" id="error-message" style="display: none;">
+            <strong>Error:</strong> <span id="error-text"></span>
+        </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
+

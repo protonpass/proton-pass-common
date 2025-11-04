@@ -78,15 +78,14 @@ function updateEditor(event) {
     editor.setText(text);
 
     // Sync cursor position
+    // NOTE: Rust library now uses UTF-16 offsets, which match JavaScript's native string indexing
+    // So we can use selectionStart/selectionEnd directly without conversion!
     try {
-        const cursorBytes = getCursorPositionInBytes(textarea);
-        editor.setCursor(cursorBytes);
-
         // Check if there's a selection
         if (textarea.selectionStart !== textarea.selectionEnd) {
-            const startBytes = utf8ByteLength(text.substring(0, textarea.selectionStart));
-            const endBytes = utf8ByteLength(text.substring(0, textarea.selectionEnd));
-            editor.setSelection(startBytes, endBytes);
+            editor.setSelection(textarea.selectionStart, textarea.selectionEnd);
+        } else {
+            editor.setCursor(textarea.selectionStart);
         }
     } catch (e) {
         console.warn('Failed to update cursor:', e);
@@ -356,35 +355,37 @@ function updateSpansDisplay() {
 // Apply operation
 function applyOperation(operation) {
     if (!editor) return;
-    
+
     const textarea = document.getElementById('editor');
-    
+
     try {
         // Set selection in editor
-        const startBytes = utf8ByteLength(textarea.value.substring(0, textarea.selectionStart));
-        const endBytes = utf8ByteLength(textarea.value.substring(0, textarea.selectionEnd));
-        
-        if (startBytes !== endBytes) {
-            editor.setSelection(startBytes, endBytes);
+        // NOTE: Rust library now uses UTF-16 offsets, which match JavaScript's native string indexing
+        // So we can use selectionStart/selectionEnd directly without conversion!
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+
+        if (start !== end) {
+            editor.setSelection(start, end);
         } else {
-            editor.setCursor(startBytes);
+            editor.setCursor(start);
         }
-        
+
         // Apply operation
         editor.applyOperation(operation);
-        
+
         // Update textarea
         const newText = editor.getText();
         textarea.value = newText;
-        
+
         // Set cursor position
-        const newCursorBytes = editor.getCursor();
-        const newCursorPos = bytePositionToStringPosition(newText, newCursorBytes);
+        // Rust library returns UTF-16 offset directly, no conversion needed
+        const newCursorPos = editor.getCursor();
         textarea.selectionStart = newCursorPos;
         textarea.selectionEnd = newCursorPos;
-        
+
         textarea.focus();
-        
+
         updatePreview();
         updateInfo();
     } catch (error) {
@@ -555,18 +556,18 @@ function setupEventListeners() {
 // Handle undo
 function handleUndo() {
     if (!editor || !editor.canUndo()) return;
-    
+
     editor.undo();
-    
+
     const textarea = document.getElementById('editor');
     textarea.value = editor.getText();
-    
+
     // Update cursor
-    const cursorBytes = editor.getCursor();
-    const cursorPos = bytePositionToStringPosition(textarea.value, cursorBytes);
+    // Rust library returns UTF-16 offset directly, no conversion needed
+    const cursorPos = editor.getCursor();
     textarea.selectionStart = cursorPos;
     textarea.selectionEnd = cursorPos;
-    
+
     textarea.focus();
     updatePreview();
     updateInfo();
@@ -575,18 +576,18 @@ function handleUndo() {
 // Handle redo
 function handleRedo() {
     if (!editor || !editor.canRedo()) return;
-    
+
     editor.redo();
-    
+
     const textarea = document.getElementById('editor');
     textarea.value = editor.getText();
-    
+
     // Update cursor
-    const cursorBytes = editor.getCursor();
-    const cursorPos = bytePositionToStringPosition(textarea.value, cursorBytes);
+    // Rust library returns UTF-16 offset directly, no conversion needed
+    const cursorPos = editor.getCursor();
     textarea.selectionStart = cursorPos;
     textarea.selectionEnd = cursorPos;
-    
+
     textarea.focus();
     updatePreview();
     updateInfo();

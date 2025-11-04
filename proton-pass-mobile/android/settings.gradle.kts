@@ -19,4 +19,4 @@ dependencyResolutionManagement {
 rootProject.name = "ProtonPassCommonRust"
 include(":lib")
 include(":libTest")
- 
+include(":sample-app")

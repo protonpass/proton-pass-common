@@ -93,12 +93,20 @@ fn test_header_levels() {
 
 #[test]
 fn test_emoji_handling() {
-    let mut editor = MarkdownEditor::new("hello 👋🏽 world".to_string());
+    let text = "hello 👋🏽 world";
+    let mut editor = MarkdownEditor::new(text.to_string());
 
-    let emoji_start = "hello ".len();
-    let emoji_end = emoji_start + "👋🏽".len();
+    // Calculate UTF-16 offsets for the emoji
+    let emoji_start_utf8 = "hello ".len();
+    let emoji_end_utf8 = emoji_start_utf8 + "👋🏽".len();
 
-    editor.set_selection(emoji_start as u32, emoji_end as u32).unwrap();
+    // Convert to UTF-16 for the API
+    let emoji_start_utf16 = text[..emoji_start_utf8].encode_utf16().count();
+    let emoji_end_utf16 = text[..emoji_end_utf8].encode_utf16().count();
+
+    editor
+        .set_selection(emoji_start_utf16 as u32, emoji_end_utf16 as u32)
+        .unwrap();
     editor.apply_operation(Operation::Bold).unwrap();
 
     assert!(editor.get_text().contains("**👋🏽**"));
@@ -205,13 +213,18 @@ fn test_ordered_list_numbering() {
 #[test]
 fn test_complex_emoji_family() {
     // Family emoji with skin tone modifiers
-    let mut editor = MarkdownEditor::new("Look 👨‍👩‍👧‍👦 here".to_string());
+    let text = "Look 👨‍👩‍👧‍👦 here";
+    let mut editor = MarkdownEditor::new(text.to_string());
 
-    let emoji_start = "Look ".len();
+    let emoji_start_utf8 = "Look ".len();
     let emoji = "👨‍👩‍👧‍👦";
-    let emoji_end = emoji_start + emoji.len();
+    let emoji_end_utf8 = emoji_start_utf8 + emoji.len();
 
-    editor.set_selection(emoji_start as u32, emoji_end as u32).unwrap();
+    // Convert to UTF-16 offsets
+    let emoji_start_utf16 = text[..emoji_start_utf8].encode_utf16().count() as u32;
+    let emoji_end_utf16 = text[..emoji_end_utf8].encode_utf16().count() as u32;
+
+    editor.set_selection(emoji_start_utf16, emoji_end_utf16).unwrap();
     editor.apply_operation(Operation::Bold).unwrap();
 
     // Should preserve the emoji correctly
@@ -472,10 +485,12 @@ fn test_cursor_at_end_of_text() {
 
 #[test]
 fn test_cursor_at_end_with_emoji() {
-    let mut editor = MarkdownEditor::new("test👋 next".to_string());
-    // Cursor right after emoji
-    let emoji_end = "test👋".len() as u32;
-    editor.set_cursor(emoji_end).unwrap();
+    let text = "test👋 next";
+    let mut editor = MarkdownEditor::new(text.to_string());
+    // Cursor right after emoji - convert UTF-8 to UTF-16
+    let emoji_end_utf8 = "test👋".len();
+    let emoji_end_utf16 = text[..emoji_end_utf8].encode_utf16().count() as u32;
+    editor.set_cursor(emoji_end_utf16).unwrap();
 
     // Should bold "test👋"
     editor.apply_operation(Operation::Bold).unwrap();

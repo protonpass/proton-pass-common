@@ -1,10 +1,11 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 /// Represents a snapshot of the editor state for undo/redo
-/// Uses Rc<String> to avoid copying the entire text on every state save
+/// Uses Arc<String> to avoid copying the entire text on every state save
+/// Arc is used instead of Rc to allow Send + Sync for thread-safe access (required by UniFFI)
 #[derive(Debug, Clone, PartialEq)]
 pub struct EditorState {
-    pub text: Rc<String>,
+    pub text: Arc<String>,
     pub cursor: u32,
     pub selection: Option<(u32, u32)>,
 }
@@ -12,7 +13,7 @@ pub struct EditorState {
 impl EditorState {
     pub fn new(text: String, cursor: u32, selection: Option<(u32, u32)>) -> Self {
         Self {
-            text: Rc::new(text),
+            text: Arc::new(text),
             cursor,
             selection,
         }

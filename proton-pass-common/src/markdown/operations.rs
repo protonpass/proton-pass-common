@@ -188,12 +188,14 @@ impl MarkdownOperations {
             // Check if we hit another markdown wrapper - skip over it
             let mut found_other = false;
             for other_wrapper in &wrappers {
-                if *other_wrapper != wrapper && search_end + other_wrapper.len() <= text.len()
-                    && &text[search_end..search_end + other_wrapper.len()] == *other_wrapper {
-                        search_end += other_wrapper.len();
-                        found_other = true;
-                        break;
-                    }
+                if *other_wrapper != wrapper
+                    && search_end + other_wrapper.len() <= text.len()
+                    && &text[search_end..search_end + other_wrapper.len()] == *other_wrapper
+                {
+                    search_end += other_wrapper.len();
+                    found_other = true;
+                    break;
+                }
             }
 
             if !found_other {
@@ -262,11 +264,12 @@ impl MarkdownOperations {
             let mut found_other = false;
             for other_wrapper in &wrappers {
                 if search_end + other_wrapper.len() <= text.len()
-                    && &text[search_end..search_end + other_wrapper.len()] == *other_wrapper {
-                        search_end += other_wrapper.len();
-                        found_other = true;
-                        break;
-                    }
+                    && &text[search_end..search_end + other_wrapper.len()] == *other_wrapper
+                {
+                    search_end += other_wrapper.len();
+                    found_other = true;
+                    break;
+                }
             }
 
             if !found_other {

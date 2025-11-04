@@ -122,7 +122,10 @@ fn test_unicode_edge_cases() {
 
     for (text, description) in test_cases {
         let mut editor = MarkdownEditor::new(text.to_string());
-        editor.set_selection(0, text.len() as u32).unwrap();
+
+        // Convert UTF-8 length to UTF-16 length for selection
+        let utf16_len = text.encode_utf16().count() as u32;
+        editor.set_selection(0, utf16_len).unwrap();
 
         // Should not panic
         let result = editor.apply_operation(Operation::Bold);

@@ -151,19 +151,18 @@ function updateStyledOverlay() {
         return;
     }
 
-    // Convert byte offsets to character offsets
-    const encoder = new TextEncoder();
-    const byteToCharMap = buildByteToCharMap(text);
+    // NOTE: Rust library now returns UTF-16 offsets directly, which match JavaScript's string indexing!
+    // No conversion needed - we can use span.start and span.end directly as string indices.
 
     // Build a character-level style map
     const charStyles = new Array(text.length).fill(null).map(() => new Set());
 
-    // First pass: collect all styles for each character (converting byte offsets)
+    // First pass: collect all styles for each character (offsets are already UTF-16)
     spans.forEach(span => {
-        const charStart = byteToCharMap[span.start] ?? 0;
-        const charEnd = byteToCharMap[span.end] ?? text.length;
+        const charStart = Math.min(span.start, text.length);
+        const charEnd = Math.min(span.end, text.length);
 
-        for (let i = charStart; i < charEnd && i < text.length; i++) {
+        for (let i = charStart; i < charEnd; i++) {
             charStyles[i].add(span.style);
         }
     });
@@ -217,28 +216,6 @@ function updateStyledOverlay() {
     }
 
     overlay.innerHTML = html;
-}
-
-// Build a map from byte offset to character offset
-function buildByteToCharMap(text) {
-    const encoder = new TextEncoder();
-    const map = {};
-    let byteOffset = 0;
-
-    for (let charOffset = 0; charOffset <= text.length; charOffset++) {
-        map[byteOffset] = charOffset;
-
-        if (charOffset < text.length) {
-            const char = text[charOffset];
-            const charBytes = encoder.encode(char).length;
-            byteOffset += charBytes;
-        }
-    }
-
-    // Add final mapping
-    map[byteOffset] = text.length;
-
-    return map;
 }
 
 // Helper: Convert span style to CSS class
@@ -486,7 +463,37 @@ function setupEventListeners() {
 
     // Keyboard shortcuts + immediate updates for certain keys
     textarea.addEventListener('keydown', (e) => {
-        // Handle keyboard shortcuts first
+        // Handle Enter key for smart list continuation
+        if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+
+            try {
+                // Use smart newline insertion from Rust
+                editor.insertNewline();
+
+                // Sync the text and cursor back to textarea
+                const newText = editor.getText();
+                const cursorPos = editor.getCursor();  // Now returns UTF-16 offset directly
+
+                textarea.value = newText;
+
+                // Rust library now returns UTF-16 offsets (which JS uses natively)
+                textarea.setSelectionRange(cursorPos, cursorPos);
+
+                // Update displays
+                updatePreview();
+                updateInfo();
+            } catch (e) {
+                console.error('Failed to insert newline:', e);
+                // Fallback: let default behavior happen
+                textarea.value = textarea.value.substring(0, textarea.selectionStart) + '\n' +
+                                 textarea.value.substring(textarea.selectionEnd);
+                textarea.selectionStart = textarea.selectionEnd = textarea.selectionStart + 1;
+            }
+            return;
+        }
+
+        // Handle keyboard shortcuts
         if (e.ctrlKey || e.metaKey) {
             switch (e.key.toLowerCase()) {
                 case 'b':

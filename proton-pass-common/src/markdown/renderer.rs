@@ -1,11 +1,12 @@
+use super::utf16;
 use pulldown_cmark::{Event, Parser, Tag, TagEnd};
 
 /// Represents a styled span in the rendered markdown
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StyledSpan {
-    /// Start byte offset in the text
+    /// Start position in the text (UTF-16 code unit offset for client compatibility)
     pub start: u32,
-    /// End byte offset in the text
+    /// End position in the text (UTF-16 code unit offset for client compatibility)
     pub end: u32,
     /// The style to apply
     pub style: SpanStyle,
@@ -144,7 +145,20 @@ pub fn render_markdown(text: &str) -> Vec<StyledSpan> {
         }
     }
 
+    // Convert all UTF-8 byte offsets to UTF-16 code unit offsets for client compatibility
+    convert_spans_to_utf16(text, spans)
+}
+
+/// Convert all spans from UTF-8 byte offsets to UTF-16 code unit offsets
+fn convert_spans_to_utf16(text: &str, spans: Vec<StyledSpan>) -> Vec<StyledSpan> {
     spans
+        .into_iter()
+        .map(|span| StyledSpan {
+            start: utf16::utf8_to_utf16_offset(text, span.start as usize) as u32,
+            end: utf16::utf8_to_utf16_offset(text, span.end as usize) as u32,
+            style: span.style,
+        })
+        .collect()
 }
 
 /// Add marker spans for a styled region (hybrid mode)
@@ -291,24 +305,20 @@ fn add_marker_spans(text: &str, start: usize, end: usize, style: &SpanStyle, spa
             }
         }
         SpanStyle::UnorderedListItem { level } => {
-            // Find the list marker (-, *, or +) and mark it
-            let indent = "  ".repeat(*level as usize);
-            let after_indent = if region.starts_with(&indent) {
-                &region[indent.len()..]
-            } else {
-                region
-            };
+            // Find the list marker (-, *, or +) by searching in the actual text
+            let expected_indent = *level as usize * 2; // 2 spaces per level
 
-            if let Some(marker_char) = after_indent.chars().next() {
-                if matches!(marker_char, '-' | '*' | '+') {
-                    let marker_start = start + indent.len();
-                    let marker_end = marker_start + 1;
+            // Search for the marker pattern in the region
+            if let Some(marker_pos) = region.find(['-', '*', '+']) {
+                // Verify the marker is at the expected indentation
+                let spaces_before = region[..marker_pos].chars().filter(|c| *c == ' ').count();
+                if spaces_before == expected_indent {
+                    let marker_start = start + marker_pos;
+                    let mut marker_end = marker_start + 1;
                     // Include the space after the marker
-                    let marker_end = if text.get(marker_end..marker_end + 1) == Some(" ") {
-                        marker_end + 1
-                    } else {
-                        marker_end
-                    };
+                    if text.get(marker_end..marker_end + 1) == Some(" ") {
+                        marker_end += 1;
+                    }
 
                     spans.push(StyledSpan {
                         start: marker_start as u32,
@@ -319,33 +329,32 @@ fn add_marker_spans(text: &str, start: usize, end: usize, style: &SpanStyle, spa
             }
         }
         SpanStyle::OrderedListItem { level, number } => {
-            // Find the list number and mark it
-            let indent = "  ".repeat(*level as usize);
-            let after_indent = if region.starts_with(&indent) {
-                &region[indent.len()..]
-            } else {
-                region
-            };
-
-            // Find the number and period
+            // Find the list number by searching in the actual text
+            let expected_indent = *level as usize * 2; // 2 spaces per level
             let number_str = number.to_string();
-            if after_indent.starts_with(&number_str) && after_indent.len() > number_str.len() {
-                let marker_start = start + indent.len();
-                let mut marker_end = marker_start + number_str.len();
-                // Include the period
-                if text.get(marker_end..marker_end + 1) == Some(".") {
-                    marker_end += 1;
-                    // Include the space after the period
-                    if text.get(marker_end..marker_end + 1) == Some(" ") {
-                        marker_end += 1;
-                    }
-                }
 
-                spans.push(StyledSpan {
-                    start: marker_start as u32,
-                    end: marker_end as u32,
-                    style: SpanStyle::MarkdownMarker,
-                });
+            // Search for the number pattern in the region
+            if let Some(number_pos) = region.find(&number_str) {
+                // Verify the number is at the expected indentation
+                let spaces_before = region[..number_pos].chars().filter(|c| *c == ' ').count();
+                if spaces_before == expected_indent {
+                    let marker_start = start + number_pos;
+                    let mut marker_end = marker_start + number_str.len();
+                    // Include the period
+                    if text.get(marker_end..marker_end + 1) == Some(".") {
+                        marker_end += 1;
+                        // Include the space after the period
+                        if text.get(marker_end..marker_end + 1) == Some(" ") {
+                            marker_end += 1;
+                        }
+                    }
+
+                    spans.push(StyledSpan {
+                        start: marker_start as u32,
+                        end: marker_end as u32,
+                        style: SpanStyle::MarkdownMarker,
+                    });
+                }
             }
         }
         SpanStyle::Blockquote => {

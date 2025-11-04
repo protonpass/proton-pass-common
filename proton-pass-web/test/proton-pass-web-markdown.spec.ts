@@ -322,15 +322,13 @@ describe("ProtonPassWeb Markdown WASM", () => {
     });
 
     describe("Unicode and Emoji Handling", () => {
-        // Helper function to get UTF-8 byte length
-        const utf8ByteLength = (str: string): number => {
-            return new TextEncoder().encode(str).length;
-        };
+        // Note: The Rust API now uses UTF-16 offsets, which match JavaScript's string.length
+        // So we can use string length directly!
 
         test("Should handle simple emoji", () => {
             const editor = new MarkdownEditor("hello 👋 world");
-            const start = utf8ByteLength("hello ");
-            const end = utf8ByteLength("hello 👋");
+            const start = "hello ".length;
+            const end = "hello 👋".length;
             editor.setSelection(start, end);
             editor.applyOperation("bold");
             expect(editor.getText()).toContain("**👋**");
@@ -338,8 +336,8 @@ describe("ProtonPassWeb Markdown WASM", () => {
 
         test("Should handle emoji with skin tone", () => {
             const editor = new MarkdownEditor("wave 👋🏽 here");
-            const start = utf8ByteLength("wave ");
-            const end = utf8ByteLength("wave 👋🏽");
+            const start = "wave ".length;
+            const end = "wave 👋🏽".length;
             editor.setSelection(start, end);
             editor.applyOperation("bold");
             expect(editor.getText()).toContain("**👋🏽**");
@@ -347,8 +345,8 @@ describe("ProtonPassWeb Markdown WASM", () => {
 
         test("Should handle family emoji", () => {
             const editor = new MarkdownEditor("family 👨‍👩‍👧‍👦 here");
-            const start = utf8ByteLength("family ");
-            const end = utf8ByteLength("family 👨‍👩‍👧‍👦");
+            const start = "family ".length;
+            const end = "family 👨‍👩‍👧‍👦".length;
             editor.setSelection(start, end);
             editor.applyOperation("bold");
             expect(editor.getText()).toContain("👨‍👩‍👧‍👦");
@@ -358,7 +356,7 @@ describe("ProtonPassWeb Markdown WASM", () => {
         test("Should handle Japanese characters", () => {
             const editor = new MarkdownEditor("こんにちは world");
             const start = 0;
-            const end = utf8ByteLength("こんにちは");
+            const end = "こんにちは".length;
             editor.setSelection(start, end);
             editor.applyOperation("bold");
             expect(editor.getText()).toContain("**こんにちは**");
@@ -368,7 +366,7 @@ describe("ProtonPassWeb Markdown WASM", () => {
             const text = "Hello 世界 👋🏽!";
             const editor = new MarkdownEditor(text);
             const start = 0;
-            const end = utf8ByteLength(text);
+            const end = text.length;
             editor.setSelection(start, end);
             editor.applyOperation("bold");
             expect(editor.getText()).toContain("**");
@@ -438,8 +436,8 @@ describe("ProtonPassWeb Markdown WASM", () => {
 
         test("Should handle cursor at end with emoji", () => {
             const editor = new MarkdownEditor("test👋 next");
-            const utf8ByteLength = (str: string) => new TextEncoder().encode(str).length;
-            const emojiEnd = utf8ByteLength("test👋");
+            // Use UTF-16 length (JavaScript string length)
+            const emojiEnd = "test👋".length;
             editor.setCursor(emojiEnd); // Right after emoji
             editor.applyOperation("bold");
             expect(editor.getText()).toContain("**test👋**");

@@ -98,6 +98,12 @@ pub struct MarkdownStyledSpan {
     pub url: Option<String>,
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub struct MarkdownSelection {
+    pub start: u32,
+    pub end: u32,
+}
+
 impl From<CommonStyledSpan> for MarkdownStyledSpan {
     fn from(span: CommonStyledSpan) -> Self {
         let (style, level, number, url) = match span.style {
@@ -161,6 +167,14 @@ impl MarkdownEditor {
         self.editor.lock().unwrap().get_cursor()
     }
 
+    pub fn get_selection(&self) -> Option<MarkdownSelection> {
+        self.editor
+            .lock()
+            .unwrap()
+            .get_selection()
+            .map(|(start, end)| MarkdownSelection { start, end })
+    }
+
     pub fn set_cursor(&self, position: u32) -> Result<()> {
         Ok(self.editor.lock().unwrap().set_cursor(position)?)
     }
@@ -191,6 +205,10 @@ impl MarkdownEditor {
 
     pub fn can_redo(&self) -> bool {
         self.editor.lock().unwrap().can_redo()
+    }
+
+    pub fn save_undo_state(&self) {
+        self.editor.lock().unwrap().save_undo_state();
     }
 
     pub fn render(&self) -> Vec<MarkdownStyledSpan> {

@@ -4,14 +4,22 @@ use super::newline::NewlineHandler;
 use super::operations::MarkdownOperations;
 use super::renderer::{render_markdown, StyledSpan};
 use super::undo::{EditorState, UndoStack};
+use super::utf16;
 use super::{MarkdownError, Operation, Result};
 
 /// The main markdown editor with undo/redo support
+///
+/// **Important**: This editor uses UTF-8 byte offsets internally for all operations,
+/// but the public API accepts and returns UTF-16 code unit offsets to match the native
+/// string indexing in Kotlin, Swift, and TypeScript/JavaScript.
+///
+/// All conversions between UTF-8 and UTF-16 happen at the API boundary.
 #[derive(Debug, Clone)]
 pub struct MarkdownEditor {
+    // Internal state uses UTF-8 byte offsets
     text: String,
-    cursor: u32,
-    selection: Option<(u32, u32)>,
+    cursor: u32,                   // UTF-8 byte offset
+    selection: Option<(u32, u32)>, // UTF-8 byte offsets
     undo_stack: UndoStack,
 }
 
@@ -32,56 +40,66 @@ impl MarkdownEditor {
         &self.text
     }
 
-    /// Get the current cursor position
+    /// Get the current cursor position (UTF-16 code unit offset)
     pub fn get_cursor(&self) -> u32 {
-        self.cursor
+        utf16::utf8_to_utf16_offset(&self.text, self.cursor as usize) as u32
     }
 
-    /// Get the current selection, if any
+    /// Get the current selection, if any (UTF-16 code unit offsets)
     pub fn get_selection(&self) -> Option<(u32, u32)> {
-        self.selection
+        self.selection.map(|(start, end)| {
+            let start_utf16 = utf16::utf8_to_utf16_offset(&self.text, start as usize) as u32;
+            let end_utf16 = utf16::utf8_to_utf16_offset(&self.text, end as usize) as u32;
+            (start_utf16, end_utf16)
+        })
     }
 
-    /// Set the cursor position
-    pub fn set_cursor(&mut self, position: u32) -> Result<()> {
-        let pos = position as usize;
-        if pos > self.text.len() {
+    /// Set the cursor position (accepts UTF-16 code unit offset)
+    pub fn set_cursor(&mut self, position_utf16: u32) -> Result<()> {
+        // Validate UTF-16 offset is within bounds
+        let text_utf16_len = self.text.encode_utf16().count();
+        if position_utf16 as usize > text_utf16_len {
             return Err(MarkdownError::InvalidCursorPosition(format!(
-                "Position {} is beyond text length {}",
-                position,
-                self.text.len()
+                "UTF-16 position {} is beyond text length {} (UTF-16 length: {})",
+                position_utf16,
+                self.text.len(),
+                text_utf16_len
             )));
         }
 
+        // Convert UTF-16 offset to UTF-8 byte offset
+        let pos = utf16::utf16_to_utf8_offset(&self.text, position_utf16 as usize);
+
         if !CursorUtils::is_char_boundary(&self.text, pos) {
             return Err(MarkdownError::InvalidCursorPosition(
-                "Position is not at a valid UTF-8 character boundary".to_string(),
+                "Position is not at a valid character boundary".to_string(),
             ));
         }
 
-        self.cursor = position;
+        self.cursor = pos as u32;
         self.selection = None;
         Ok(())
     }
 
-    /// Set the selection range
-    pub fn set_selection(&mut self, start: u32, end: u32) -> Result<()> {
-        let start_pos = start as usize;
-        let end_pos = end as usize;
-
-        if start_pos > self.text.len() || end_pos > self.text.len() {
+    /// Set the selection range (accepts UTF-16 code unit offsets)
+    pub fn set_selection(&mut self, start_utf16: u32, end_utf16: u32) -> Result<()> {
+        // Validate UTF-16 offsets are within bounds
+        let text_utf16_len = self.text.encode_utf16().count();
+        if start_utf16 as usize > text_utf16_len || end_utf16 as usize > text_utf16_len {
             return Err(MarkdownError::InvalidSelection(format!(
-                "Selection ({}, {}) is beyond text length {}",
-                start,
-                end,
-                self.text.len()
+                "Selection ({}, {}) is beyond UTF-16 text length {}",
+                start_utf16, end_utf16, text_utf16_len
             )));
         }
+
+        // Convert UTF-16 offsets to UTF-8 byte offsets
+        let start_pos = utf16::utf16_to_utf8_offset(&self.text, start_utf16 as usize);
+        let end_pos = utf16::utf16_to_utf8_offset(&self.text, end_utf16 as usize);
 
         if !CursorUtils::is_char_boundary(&self.text, start_pos) || !CursorUtils::is_char_boundary(&self.text, end_pos)
         {
             return Err(MarkdownError::InvalidSelection(
-                "Selection is not at valid UTF-8 character boundaries".to_string(),
+                "Selection is not at valid character boundaries".to_string(),
             ));
         }
 

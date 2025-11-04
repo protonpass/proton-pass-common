@@ -52,15 +52,21 @@ dictionary MarkdownStyledSpan {
     string? url;
 };
 
+dictionary MarkdownSelection {
+    u32 start;
+    u32 end;
+};
+
 interface MarkdownEditor {
     constructor(string text);
-    
+
     string get_text();
     u32 get_cursor();
-    
+    MarkdownSelection? get_selection();
+
     [Throws=MarkdownError]
     void set_cursor(u32 position);
-    
+
     [Throws=MarkdownError]
     void set_selection(u32 start, u32 end);
     
@@ -74,7 +80,8 @@ interface MarkdownEditor {
     boolean redo();
     boolean can_undo();
     boolean can_redo();
-    
+    void save_undo_state();
+
     sequence<MarkdownStyledSpan> render();
     
     // Text editing methods for syncing with native text inputs

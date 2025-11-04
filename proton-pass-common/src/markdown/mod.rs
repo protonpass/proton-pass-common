@@ -5,6 +5,7 @@ mod newline;
 mod operations;
 mod renderer;
 mod undo;
+mod utf16;
 
 #[cfg(test)]
 mod tests;

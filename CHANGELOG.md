@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.28.0
+
+### Features :tada:
+
+- pass-common: offer a utility function to check for overlaping shares.
+
 ## 0.27.0
 
 ### Features :tada:

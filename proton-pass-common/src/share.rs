@@ -17,9 +17,9 @@ pub enum TargetType {
     Folder,
 }
 
-const ROLE_ADMIN: &'static str = "1";
-const ROLE_WRITE: &'static str = "2";
-const ROLE_READ: &'static str = "3";
+const ROLE_ADMIN: &str = "1";
+const ROLE_WRITE: &str = "2";
+const ROLE_READ: &str = "3";
 
 fn role_priority(role: &str) -> u8 {
     match role.to_ascii_uppercase().as_str() {
@@ -30,12 +30,23 @@ fn role_priority(role: &str) -> u8 {
     }
 }
 
+#[derive(Debug, Hash, Eq, PartialEq)]
+struct ShareTriplet<'a> {
+    vault_id: &'a str,
+    target_type: &'a TargetType,
+    target_id: &'a str,
+}
+
 pub fn visible_share_ids(shares: &[Share]) -> Vec<&str> {
     // Deduplicate per (vault_id, target_type, target_id)
-    let mut best_per_triplet: HashMap<(&String, &TargetType, &String), &Share> = HashMap::new();
+    let mut best_per_triplet: HashMap<ShareTriplet, &Share> = HashMap::new();
 
     for share in shares {
-        let key = (&share.vault_id, &share.target_type, &share.target_id);
+        let key = ShareTriplet {
+            vault_id: &share.vault_id,
+            target_type: &share.target_type,
+            target_id: &share.target_id,
+        };
         best_per_triplet
             .entry(key)
             .and_modify(|existing| {

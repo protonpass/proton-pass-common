@@ -1,6 +1,4 @@
-use proton_pass_common::share::{
-    Share as CommonShare, TargetType as CommonTargetType, visible_share_ids,
-};
+use proton_pass_common::share::{visible_share_ids, Share as CommonShare, TargetType as CommonTargetType};
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
@@ -55,4 +53,3 @@ pub fn get_visible_shares(shares: Vec<Share>) -> Vec<String> {
         .map(|s| s.to_string())
         .collect()
 }
-

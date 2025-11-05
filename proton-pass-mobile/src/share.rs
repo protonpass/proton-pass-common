@@ -1,6 +1,4 @@
-use proton_pass_common::share::{
-    Share as CommonShare, TargetType as CommonTargetType, visible_share_ids,
-};
+use proton_pass_common::share::{visible_share_ids, Share as CommonShare, TargetType as CommonTargetType};
 
 // START MAPPING TYPES
 
@@ -82,4 +80,3 @@ impl ShareOverrideCalculator {
             .collect()
     }
 }
-

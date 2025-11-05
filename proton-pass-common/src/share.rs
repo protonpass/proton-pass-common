@@ -14,7 +14,6 @@ pub struct Share {
 pub enum TargetType {
     Vault,
     Item,
-    Folder,
 }
 
 const ROLE_ADMIN: &str = "1";
@@ -97,8 +96,14 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_empty_list() {
+        let out = visible_share_ids(&[]);
+        assert_eq!(out.len(), 0);
+    }
+
+    #[test]
     fn test_simple_return_for_all_types() {
-        for target_type in [TargetType::Vault, TargetType::Item, TargetType::Folder] {
+        for target_type in [TargetType::Vault, TargetType::Item] {
             let s = Share {
                 share_id: "a".to_owned(),
                 vault_id: "v".to_owned(),
@@ -116,7 +121,7 @@ mod tests {
 
     #[test]
     fn test_shadow_target_with_worse_role() {
-        for target_type in [TargetType::Vault, TargetType::Item, TargetType::Folder] {
+        for target_type in [TargetType::Vault, TargetType::Item] {
             let role_tests = [
                 (ROLE_ADMIN, ROLE_WRITE),
                 (ROLE_ADMIN, ROLE_READ),

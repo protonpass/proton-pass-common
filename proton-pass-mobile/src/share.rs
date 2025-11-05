@@ -1,7 +1,5 @@
 use proton_pass_common::share::{visible_share_ids, Share as CommonShare, TargetType as CommonTargetType};
 
-// START MAPPING TYPES
-
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum TargetType {
     Vault,
@@ -62,8 +60,6 @@ impl From<Share> for CommonShare {
         }
     }
 }
-
-// END MAPPING TYPES
 
 pub struct ShareOverrideCalculator;
 

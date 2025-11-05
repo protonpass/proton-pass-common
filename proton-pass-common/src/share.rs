@@ -16,13 +16,13 @@ pub enum TargetType {
     Item,
 }
 
-const ROLE_ADMIN: &str = "1";
+const ROLE_MANAGER: &str = "1";
 const ROLE_WRITE: &str = "2";
 const ROLE_READ: &str = "3";
 
 fn role_priority(role: &str) -> u8 {
     match role.to_ascii_uppercase().as_str() {
-        ROLE_ADMIN => 3,
+        ROLE_MANAGER => 3,
         ROLE_WRITE => 2,
         ROLE_READ => 1,
         _ => 0,
@@ -109,7 +109,7 @@ mod tests {
                 vault_id: "v".to_owned(),
                 target_type,
                 target_id: "1".to_owned(),
-                role: ROLE_ADMIN.to_string(),
+                role: ROLE_MANAGER.to_string(),
                 permissions: 0,
             };
             let shares = [s];
@@ -123,8 +123,8 @@ mod tests {
     fn test_shadow_target_with_worse_role() {
         for target_type in [TargetType::Vault, TargetType::Item] {
             let role_tests = [
-                (ROLE_ADMIN, ROLE_WRITE),
-                (ROLE_ADMIN, ROLE_READ),
+                (ROLE_MANAGER, ROLE_WRITE),
+                (ROLE_MANAGER, ROLE_READ),
                 (ROLE_WRITE, ROLE_READ),
             ];
             for (best_role, worse_role) in role_tests.iter() {
@@ -233,7 +233,7 @@ mod tests {
             vault_id: "v0".to_owned(),
             target_type: TargetType::Vault,
             target_id: "v0".to_owned(),
-            role: ROLE_ADMIN.to_string(),
+            role: ROLE_MANAGER.to_string(),
             permissions: 0,
         };
         let item = Share {
@@ -260,7 +260,7 @@ mod tests {
             vault_id: "v0".to_owned(),
             target_type: TargetType::Vault,
             target_id: "v0".to_owned(),
-            role: ROLE_ADMIN.to_string(),
+            role: ROLE_MANAGER.to_string(),
             permissions: 0,
         };
         // Superseded by vault_0_admin

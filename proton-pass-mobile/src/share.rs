@@ -11,7 +11,6 @@ impl From<CommonTargetType> for TargetType {
         match t {
             CommonTargetType::Vault => Self::Vault,
             CommonTargetType::Item => Self::Item,
-            CommonTargetType::Folder => Self::Item, // Map Folder to Item for mobile
         }
     }
 }

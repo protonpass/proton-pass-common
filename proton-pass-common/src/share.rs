@@ -107,7 +107,7 @@ mod tests {
             let s = Share {
                 share_id: "a".to_owned(),
                 vault_id: "v".to_owned(),
-                target_type: target_type,
+                target_type,
                 target_id: "1".to_owned(),
                 role: ROLE_ADMIN.to_string(),
                 permissions: 0,

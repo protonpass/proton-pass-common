@@ -1,0 +1,18 @@
+enum TargetType {
+    "Vault",
+    "Item",
+};
+
+dictionary Share {
+    string share_id;
+    string vault_id;
+    TargetType target_type;
+    string target_id;
+    string role_id;
+    u16 permissions;
+};
+
+interface ShareOverrideCalculator {
+    constructor();
+    sequence<string> get_visible_shares(sequence<Share> shares);
+};

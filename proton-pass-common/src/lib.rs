@@ -10,6 +10,7 @@ pub mod passkey;
 pub use passkey_types;
 pub mod password;
 pub mod qr;
+pub mod share;
 pub mod sshkey;
 pub mod twofa;
 pub mod wifi;

@@ -1,0 +1,296 @@
+use std::collections::HashMap;
+
+#[derive(Debug, Clone)]
+pub struct Share {
+    pub share_id: String,
+    pub vault_id: String,
+    pub target_type: TargetType,
+    pub target_id: String,
+    pub role: String,
+    pub permissions: u16,
+}
+
+#[derive(Debug, Clone, Hash, Eq, PartialEq)]
+pub enum TargetType {
+    Vault,
+    Item,
+    Folder,
+}
+
+const ROLE_ADMIN: &'static str = "1";
+const ROLE_WRITE: &'static str = "2";
+const ROLE_READ: &'static str = "3";
+
+fn role_priority(role: &str) -> u8 {
+    match role.to_ascii_uppercase().as_str() {
+        ROLE_ADMIN => 3,
+        ROLE_WRITE => 2,
+        ROLE_READ => 1,
+        _ => 0,
+    }
+}
+
+pub fn visible_share_ids(shares: &[Share]) -> Vec<&str> {
+    // Deduplicate per (vault_id, target_type, target_id)
+    let mut best_per_triplet: HashMap<(&String, &TargetType, &String), &Share> = HashMap::new();
+
+    for share in shares {
+        let key = (&share.vault_id, &share.target_type, &share.target_id);
+        best_per_triplet
+            .entry(key)
+            .and_modify(|existing| {
+                let share_role_prio = role_priority(&share.role);
+                let existing_role_prio = role_priority(&existing.role);
+                if share_role_prio > existing_role_prio
+                    || (share_role_prio == existing_role_prio && share.vault_id < existing.vault_id)
+                {
+                    *existing = share;
+                }
+            })
+            .or_insert_with(|| share);
+    }
+
+    // Build lookup by vault_id for vault shares
+    let mut vault_role_priorities: HashMap<&String, u8> = HashMap::new();
+    for share in best_per_triplet.values() {
+        if share.target_type == TargetType::Vault {
+            vault_role_priorities.insert(&share.vault_id, role_priority(&share.role));
+        }
+    }
+
+    // Apply vault vs non-vault visibility rules
+    let mut visible: Vec<&str> = Vec::new();
+
+    for share in best_per_triplet.values() {
+        if share.target_type == TargetType::Vault {
+            // Always keep vault shares
+            visible.push(&share.share_id);
+        } else if let Some(&vault_role_prio) = vault_role_priorities.get(&share.vault_id) {
+            let share_role_prio = role_priority(&share.role);
+            if share_role_prio > vault_role_prio {
+                // Keep if share has more permissions
+                visible.push(&share.share_id);
+            }
+            // Otherwise skip (hidden by higher vault)
+        } else {
+            // No parent vault there. Keep it
+            visible.push(&share.share_id);
+        }
+    }
+
+    visible
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_simple_return_for_all_types() {
+        for target_type in [TargetType::Vault, TargetType::Item, TargetType::Folder] {
+            let s = Share {
+                share_id: "a".to_owned(),
+                vault_id: "v".to_owned(),
+                target_type: target_type,
+                target_id: "1".to_owned(),
+                role: ROLE_ADMIN.to_string(),
+                permissions: 0,
+            };
+            let shares = [s];
+            let out = visible_share_ids(&shares);
+            assert_eq!(out.len(), 1);
+            assert_eq!(out[0], shares[0].share_id);
+        }
+    }
+
+    #[test]
+    fn test_shadow_target_with_worse_role() {
+        for target_type in [TargetType::Vault, TargetType::Item, TargetType::Folder] {
+            let role_tests = [
+                (ROLE_ADMIN, ROLE_WRITE),
+                (ROLE_ADMIN, ROLE_READ),
+                (ROLE_WRITE, ROLE_READ),
+            ];
+            for (best_role, worse_role) in role_tests.iter() {
+                let best_role_share = Share {
+                    share_id: format!("a{:?}{}", &target_type, worse_role),
+                    vault_id: "v0".to_owned(),
+                    target_type: target_type.clone(),
+                    target_id: "1".to_owned(),
+                    role: best_role.to_string(),
+                    permissions: 0,
+                };
+                let worse_role_share = Share {
+                    share_id: format!("b{:?}{}", &target_type, worse_role),
+                    vault_id: "v0".to_owned(),
+                    target_type: target_type.clone(),
+                    target_id: "1".to_owned(),
+                    role: worse_role.to_string(),
+                    permissions: 0,
+                };
+                let best_share_id = best_role_share.share_id.clone();
+                let shares = [
+                    worse_role_share.clone(),
+                    best_role_share.clone(),
+                    worse_role_share,
+                    best_role_share,
+                ];
+                let out = visible_share_ids(&shares);
+                assert_eq!(out.len(), 1);
+                assert_eq!(out[0], best_share_id);
+            }
+        }
+    }
+
+    #[test]
+    fn test_vault_masks_item_with_less_perms() {
+        let write_vault = Share {
+            share_id: "vault_share".to_string(),
+            vault_id: "v0".to_owned(),
+            target_type: TargetType::Vault,
+            target_id: "v0".to_owned(),
+            role: ROLE_WRITE.to_string(),
+            permissions: 0,
+        };
+        let read_item = Share {
+            share_id: "item_read".to_string(),
+            vault_id: "v0".to_owned(),
+            target_type: TargetType::Item,
+            target_id: "1".to_owned(),
+            role: ROLE_READ.to_string(),
+            permissions: 0,
+        };
+        let write_item = Share {
+            share_id: "item_write".to_string(),
+            vault_id: "v0".to_owned(),
+            target_type: TargetType::Item,
+            target_id: "1".to_owned(),
+            role: ROLE_WRITE.to_string(),
+            permissions: 0,
+        };
+        let share_id_to_keep = write_vault.share_id.clone();
+        let shares = [write_vault, write_item, read_item];
+        let out = visible_share_ids(&shares);
+        assert_eq!(out.len(), 1);
+        assert_eq!(out[0], share_id_to_keep);
+    }
+
+    #[test]
+    fn test_vault_masks_item_with_more_perms() {
+        let read_vault = Share {
+            share_id: "vault_share".to_string(),
+            vault_id: "v0".to_owned(),
+            target_type: TargetType::Vault,
+            target_id: "v0".to_owned(),
+            role: ROLE_READ.to_string(),
+            permissions: 0,
+        };
+        let read_item = Share {
+            share_id: "item_read".to_string(),
+            vault_id: "v0".to_owned(),
+            target_type: TargetType::Item,
+            target_id: "1".to_owned(),
+            role: ROLE_READ.to_string(),
+            permissions: 0,
+        };
+        let write_item = Share {
+            share_id: "item_write".to_string(),
+            vault_id: "v0".to_owned(),
+            target_type: TargetType::Item,
+            target_id: "1".to_owned(),
+            role: ROLE_WRITE.to_string(),
+            permissions: 0,
+        };
+        let vault_share_id = read_vault.share_id.clone();
+        let item_share_id = write_item.share_id.clone();
+        let shares = [read_vault, write_item, read_item];
+        let out = visible_share_ids(&shares);
+        assert_eq!(out.len(), 2);
+        assert_eq!(1, out.iter().filter(|share_id| (*share_id).eq(&vault_share_id)).count());
+        assert_eq!(1, out.iter().filter(|share_id| (*share_id).eq(&item_share_id)).count());
+    }
+
+    #[test]
+    fn test_keep_items_in_other_vault() {
+        let vault = Share {
+            share_id: "vault_share".to_string(),
+            vault_id: "v0".to_owned(),
+            target_type: TargetType::Vault,
+            target_id: "v0".to_owned(),
+            role: ROLE_ADMIN.to_string(),
+            permissions: 0,
+        };
+        let item = Share {
+            share_id: "item_read".to_string(),
+            vault_id: "v1".to_owned(),
+            target_type: TargetType::Item,
+            target_id: "1".to_owned(),
+            role: ROLE_READ.to_string(),
+            permissions: 0,
+        };
+        let vault_share_id = vault.share_id.clone();
+        let item_share_id = item.share_id.clone();
+        let shares = [vault, item];
+        let out = visible_share_ids(&shares);
+        assert_eq!(out.len(), 2);
+        assert_eq!(1, out.iter().filter(|share_id| (*share_id).eq(&vault_share_id)).count());
+        assert_eq!(1, out.iter().filter(|share_id| (*share_id).eq(&item_share_id)).count());
+    }
+
+    #[test]
+    fn test_mixed_vault_and_item_shares_are_kept_if_item_has_more_perms() {
+        let vault_0_admin = Share {
+            share_id: "vault_share".to_string(),
+            vault_id: "v0".to_owned(),
+            target_type: TargetType::Vault,
+            target_id: "v0".to_owned(),
+            role: ROLE_ADMIN.to_string(),
+            permissions: 0,
+        };
+        // Superseded by vault_0_admin
+        let vault_0_write = Share {
+            share_id: "vault_share".to_string(),
+            vault_id: "v0".to_owned(),
+            target_type: TargetType::Vault,
+            target_id: "v0".to_owned(),
+            role: ROLE_WRITE.to_string(),
+            permissions: 0,
+        };
+        // Item in vault 1 that we don't have share for
+        let item = Share {
+            share_id: "item_read".to_string(),
+            vault_id: "v1".to_owned(),
+            target_type: TargetType::Item,
+            target_id: "1".to_owned(),
+            role: ROLE_READ.to_string(),
+            permissions: 0,
+        };
+        // Only one share for this vault
+        let vault_2_write = Share {
+            share_id: "vault_2_share".to_string(),
+            vault_id: "v2".to_owned(),
+            target_type: TargetType::Vault,
+            target_id: "v2".to_owned(),
+            role: ROLE_WRITE.to_string(),
+            permissions: 0,
+        };
+        // Item in vault 2 with the same access as vault.
+        let item_2_write = Share {
+            share_id: "item_2_write".to_string(),
+            vault_id: "v2".to_owned(),
+            target_type: TargetType::Item,
+            target_id: "2".to_owned(),
+            role: ROLE_WRITE.to_string(),
+            permissions: 0,
+        };
+        let shares_to_keep = [
+            vault_0_admin.share_id.clone(),
+            item.share_id.clone(),
+            vault_2_write.share_id.clone(),
+        ];
+        let shares = [vault_2_write, vault_0_write, vault_0_admin, item, item_2_write];
+        let out = visible_share_ids(&shares);
+        assert_eq!(out.len(), shares_to_keep.len());
+        assert!(shares_to_keep.iter().all(|s| out.contains(&s.as_str())));
+    }
+}

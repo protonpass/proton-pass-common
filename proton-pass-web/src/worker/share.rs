@@ -8,7 +8,6 @@ use wasm_bindgen::prelude::*;
 pub enum TargetType {
     Vault,
     Item,
-    Folder,
 }
 
 impl From<TargetType> for CommonTargetType {
@@ -16,7 +15,6 @@ impl From<TargetType> for CommonTargetType {
         match value {
             TargetType::Vault => CommonTargetType::Vault,
             TargetType::Item => CommonTargetType::Item,
-            TargetType::Folder => CommonTargetType::Folder,
         }
     }
 }

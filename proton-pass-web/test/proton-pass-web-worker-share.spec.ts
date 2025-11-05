@@ -1,6 +1,6 @@
-import { describe, expect, test } from "bun:test";
+import {describe, expect, test} from "bun:test";
 
-import { get_visible_shares } from "./pkg/worker";
+import {get_visible_shares} from "./pkg/worker";
 
 describe("ProtonPassWeb WASM - Share", () => {
     test("Should return single share", () => {
@@ -145,23 +145,6 @@ describe("ProtonPassWeb WASM - Share", () => {
         expect(result).toHaveLength(2);
         expect(result).toContain("vault1_admin");
         expect(result).toContain("vault2_item_read");
-    });
-
-    test("Should handle Folder target type", () => {
-        const shares = [
-            {
-                share_id: "folder_share",
-                vault_id: "vault1",
-                target_type: "Folder",
-                target_id: "folder1",
-                role: "2", // Write
-                permissions: 0,
-            },
-        ];
-
-        const result = get_visible_shares(shares);
-        expect(result).toHaveLength(1);
-        expect(result[0]).toEqual("folder_share");
     });
 
     test("Should handle complex scenario with multiple vaults and items", () => {

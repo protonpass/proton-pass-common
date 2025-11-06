@@ -42,29 +42,25 @@ struct ShareTriplet<'a> {
 pub fn visible_share_ids(shares: &[Share], filter_hidden: bool) -> Vec<&str> {
     // Deduplicate per (vault_id, target_type, target_id)
     let mut best_per_triplet: HashMap<ShareTriplet, &Share> = HashMap::new();
-    let mut hidden_triplets: HashSet<ShareTriplet> = HashSet::new();
+    let mut hidden_vaults: HashSet<&str> = HashSet::new();
 
     if filter_hidden {
         for share in shares {
             if (share.flags & FLAG_HIDDEN) == FLAG_HIDDEN {
-                hidden_triplets.insert(ShareTriplet {
-                    vault_id: &share.vault_id,
-                    target_type: &share.target_type,
-                    target_id: &share.target_id,
-                });
+                hidden_vaults.insert(&share.vault_id);
             }
         }
     }
 
     for share in shares {
+        if hidden_vaults.contains(&share.vault_id.as_str()) {
+            continue;
+        }
         let key = ShareTriplet {
             vault_id: &share.vault_id,
             target_type: &share.target_type,
             target_id: &share.target_id,
         };
-        if hidden_triplets.contains(&key) {
-            continue;
-        }
         best_per_triplet
             .entry(key)
             .and_modify(|existing| {
@@ -169,11 +165,11 @@ mod tests {
     }
 
     #[test]
-    fn test_hidden_matches_all_triplets() {
+    fn test_hidden_matches_all_shares_for_vault() {
         for target_type in [TargetType::Vault, TargetType::Item] {
             let s_hidden = Share {
                 share_id: "sh".to_owned(),
-                vault_id: "v".to_owned(),
+                vault_id: "v1".to_owned(),
                 target_type: target_type.clone(),
                 target_id: "1".to_owned(),
                 role: ROLE_MANAGER.to_string(),
@@ -182,17 +178,64 @@ mod tests {
             };
             let s_visible = Share {
                 share_id: "sv".to_owned(),
-                vault_id: "v".to_owned(),
-                target_type,
+                vault_id: "v1".to_owned(),
+                target_type: target_type.clone(),
                 target_id: "1".to_owned(),
                 role: ROLE_READ.to_string(),
                 permissions: 0,
                 flags: 0,
             };
-            let shares = [s_visible, s_hidden];
+            let s_other = Share {
+                share_id: "so".to_owned(),
+                vault_id: "v2".to_owned(),
+                target_type: target_type.clone(),
+                target_id: "1".to_owned(),
+                role: ROLE_READ.to_string(),
+                permissions: 0,
+                flags: 0,
+            };
+            let other_share_id = s_other.share_id.clone();
+            let shares = [s_visible, s_hidden, s_other];
             let out = visible_share_ids(&shares, true);
-            assert_eq!(out.len(), 0);
+            assert_eq!(out.len(), 1);
+            assert_eq!(out[0], other_share_id);
         }
+    }
+
+    #[test]
+    fn test_hidden_matches_items_in_vault() {
+        let vault_hidden = Share {
+            share_id: "sh".to_owned(),
+            vault_id: "v1".to_owned(),
+            target_type: TargetType::Vault,
+            target_id: "1".to_owned(),
+            role: ROLE_MANAGER.to_string(),
+            permissions: 0,
+            flags: FLAG_HIDDEN,
+        };
+        let item_in_hidden_vault = Share {
+            share_id: "sv".to_owned(),
+            vault_id: "v1".to_owned(),
+            target_type: TargetType::Item,
+            target_id: "32".to_owned(),
+            role: ROLE_READ.to_string(),
+            permissions: 0,
+            flags: 0,
+        };
+        let item_in_other_vault = Share {
+            share_id: "so".to_owned(),
+            vault_id: "v2".to_owned(),
+            target_type: TargetType::Item,
+            target_id: "1".to_owned(),
+            role: ROLE_READ.to_string(),
+            permissions: 0,
+            flags: 0,
+        };
+        let other_share_id = item_in_other_vault.share_id.clone();
+        let shares = [vault_hidden, item_in_hidden_vault, item_in_other_vault];
+        let out = visible_share_ids(&shares, true);
+        assert_eq!(out.len(), 1);
+        assert_eq!(out[0], other_share_id);
     }
 
     #[test]

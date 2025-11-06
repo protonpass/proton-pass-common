@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 #[derive(Debug, Clone)]
 pub struct Share {
@@ -39,19 +39,32 @@ struct ShareTriplet<'a> {
     target_id: &'a str,
 }
 
-pub fn visible_share_ids(shares: &[Share]) -> Vec<&str> {
+pub fn visible_share_ids(shares: &[Share], filter_hidden: bool) -> Vec<&str> {
     // Deduplicate per (vault_id, target_type, target_id)
     let mut best_per_triplet: HashMap<ShareTriplet, &Share> = HashMap::new();
+    let mut hidden_triplets: HashSet<ShareTriplet> = HashSet::new();
+
+    if (filter_hidden) {
+        for share in shares {
+            if (share.flags & FLAG_HIDDEN) == FLAG_HIDDEN {
+                hidden_triplets.insert(ShareTriplet {
+                    vault_id: &share.vault_id,
+                    target_type: &share.target_type,
+                    target_id: &share.target_id,
+                });
+            }
+        }
+    }
 
     for share in shares {
-        if (share.flags & FLAG_HIDDEN) == FLAG_HIDDEN {
-            continue;
-        }
         let key = ShareTriplet {
             vault_id: &share.vault_id,
             target_type: &share.target_type,
             target_id: &share.target_id,
         };
+        if hidden_triplets.contains(&key) {
+            continue;
+        }
         best_per_triplet
             .entry(key)
             .and_modify(|existing| {
@@ -103,7 +116,7 @@ mod tests {
 
     #[test]
     fn test_empty_list() {
-        let out = visible_share_ids(&[]);
+        let out = visible_share_ids(&[], false);
         assert_eq!(out.len(), 0);
     }
 
@@ -120,14 +133,42 @@ mod tests {
                 flags: 0,
             };
             let shares = [s];
-            let out = visible_share_ids(&shares);
+            let out = visible_share_ids(&shares, false);
             assert_eq!(out.len(), 1);
             assert_eq!(out[0], shares[0].share_id);
         }
     }
 
     #[test]
-    fn test_hidden_preceeds_priority_calculation() {
+    fn test_disabled_filter_hidden_works() {
+        for target_type in [TargetType::Vault, TargetType::Item] {
+            let s_visible = Share {
+                share_id: "sv".to_owned(),
+                vault_id: "v".to_owned(),
+                target_type: target_type.clone(),
+                target_id: "1".to_owned(),
+                role: ROLE_READ.to_string(),
+                permissions: 0,
+                flags: 0,
+            };
+            let s_hidden = Share {
+                share_id: "sh".to_owned(),
+                vault_id: "v".to_owned(),
+                target_type: target_type.clone(),
+                target_id: "1".to_owned(),
+                role: ROLE_MANAGER.to_string(),
+                permissions: 0,
+                flags: FLAG_HIDDEN,
+            };
+            let shares = [s_visible, s_hidden];
+            let out = visible_share_ids(&shares, false);
+            assert_eq!(out.len(), 1);
+            assert_eq!(out[0], shares[1].share_id);
+        }
+    }
+
+    #[test]
+    fn test_hidden_matches_all_triplets() {
         for target_type in [TargetType::Vault, TargetType::Item] {
             let s_hidden = Share {
                 share_id: "sh".to_owned(),
@@ -147,11 +188,9 @@ mod tests {
                 permissions: 0,
                 flags: 0,
             };
-
             let shares = [s_visible, s_hidden];
-            let out = visible_share_ids(&shares);
-            assert_eq!(out.len(), 1);
-            assert_eq!(out[0], shares[0].share_id);
+            let out = visible_share_ids(&shares, true);
+            assert_eq!(out.len(), 0);
         }
     }
 
@@ -189,7 +228,7 @@ mod tests {
                     worse_role_share,
                     best_role_share,
                 ];
-                let out = visible_share_ids(&shares);
+                let out = visible_share_ids(&shares, false);
                 assert_eq!(out.len(), 1);
                 assert_eq!(out[0], best_share_id);
             }
@@ -227,7 +266,7 @@ mod tests {
         };
         let share_id_to_keep = write_vault.share_id.clone();
         let shares = [write_vault, write_item, read_item];
-        let out = visible_share_ids(&shares);
+        let out = visible_share_ids(&shares, false);
         assert_eq!(out.len(), 1);
         assert_eq!(out[0], share_id_to_keep);
     }
@@ -264,7 +303,7 @@ mod tests {
         let vault_share_id = read_vault.share_id.clone();
         let item_share_id = write_item.share_id.clone();
         let shares = [read_vault, write_item, read_item];
-        let out = visible_share_ids(&shares);
+        let out = visible_share_ids(&shares, false);
         assert_eq!(out.len(), 2);
         assert_eq!(1, out.iter().filter(|share_id| (*share_id).eq(&vault_share_id)).count());
         assert_eq!(1, out.iter().filter(|share_id| (*share_id).eq(&item_share_id)).count());
@@ -293,7 +332,7 @@ mod tests {
         let vault_share_id = vault.share_id.clone();
         let item_share_id = item.share_id.clone();
         let shares = [vault, item];
-        let out = visible_share_ids(&shares);
+        let out = visible_share_ids(&shares, false);
         assert_eq!(out.len(), 2);
         assert_eq!(1, out.iter().filter(|share_id| (*share_id).eq(&vault_share_id)).count());
         assert_eq!(1, out.iter().filter(|share_id| (*share_id).eq(&item_share_id)).count());
@@ -356,7 +395,7 @@ mod tests {
             vault_2_write.share_id.clone(),
         ];
         let shares = [vault_2_write, vault_0_write, vault_0_admin, item, item_2_write];
-        let out = visible_share_ids(&shares);
+        let out = visible_share_ids(&shares, false);
         assert_eq!(out.len(), shares_to_keep.len());
         assert!(shares_to_keep.iter().all(|s| out.contains(&s.as_str())));
     }

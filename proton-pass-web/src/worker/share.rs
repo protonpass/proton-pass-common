@@ -28,6 +28,7 @@ pub struct Share {
     pub target_id: String,
     pub role: String,
     pub permissions: u16,
+    pub flags: u16,
 }
 
 impl From<Share> for CommonShare {
@@ -39,6 +40,7 @@ impl From<Share> for CommonShare {
             target_id: value.target_id,
             role: value.role,
             permissions: value.permissions,
+            flags: value.flags,
         }
     }
 }

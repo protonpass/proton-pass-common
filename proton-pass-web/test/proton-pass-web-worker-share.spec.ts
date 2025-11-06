@@ -12,6 +12,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 target_id: "vault1",
                 role: "1", // Admin
                 permissions: 0,
+                flags: 0,
             },
         ];
 
@@ -29,6 +30,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 target_id: "item1",
                 role: "3", // Read
                 permissions: 0,
+                flags: 0,
             },
             {
                 share_id: "share_write",
@@ -37,6 +39,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 target_id: "item1",
                 role: "2", // Write
                 permissions: 0,
+                flags: 0,
             },
             {
                 share_id: "share_admin",
@@ -45,6 +48,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 target_id: "item1",
                 role: "1", // Admin
                 permissions: 0,
+                flags: 0,
             },
         ];
 
@@ -62,6 +66,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 target_id: "vault1",
                 role: "2", // Write
                 permissions: 0,
+                flags: 0,
             },
             {
                 share_id: "item_read",
@@ -70,6 +75,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 target_id: "item1",
                 role: "3", // Read
                 permissions: 0,
+                flags: 0,
             },
             {
                 share_id: "item_write",
@@ -78,6 +84,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 target_id: "item2",
                 role: "2", // Write
                 permissions: 0,
+                flags: 0,
             },
         ];
 
@@ -95,6 +102,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 target_id: "vault1",
                 role: "3", // Read
                 permissions: 0,
+                flags: 0,
             },
             {
                 share_id: "item_write",
@@ -103,6 +111,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 target_id: "item1",
                 role: "2", // Write
                 permissions: 0,
+                flags: 0,
             },
             {
                 share_id: "item_admin",
@@ -111,6 +120,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 target_id: "item2",
                 role: "1", // Admin
                 permissions: 0,
+                flags: 0,
             },
         ];
 
@@ -130,6 +140,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 target_id: "vault1",
                 role: "1", // Admin
                 permissions: 0,
+                flags: 0,
             },
             {
                 share_id: "vault2_item_read",
@@ -138,6 +149,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 target_id: "item1",
                 role: "3", // Read
                 permissions: 0,
+                flags: 0,
             },
         ];
 
@@ -157,6 +169,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 target_id: "vault1",
                 role: "1",
                 permissions: 0,
+                flags: 0,
             },
             // Vault 1: Item with read (should be hidden by vault admin)
             {
@@ -166,6 +179,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 target_id: "item1",
                 role: "3",
                 permissions: 0,
+                flags: 0,
             },
             // Vault 2: Read access
             {
@@ -175,6 +189,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 target_id: "vault2",
                 role: "3",
                 permissions: 0,
+                flags: 0,
             },
             // Vault 2: Item with write (should be kept as it's better than vault read)
             {
@@ -184,6 +199,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 target_id: "item2",
                 role: "2",
                 permissions: 0,
+                flags: 0,
             },
             // Vault 3: No vault share, only item
             {
@@ -193,6 +209,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 target_id: "item3",
                 role: "1",
                 permissions: 0,
+                flags: 0,
             },
         ];
 

@@ -10,6 +10,7 @@ dictionary Share {
     string target_id;
     string role_id;
     u16 permissions;
+    u16 flags;
 };
 
 interface ShareOverrideCalculator {

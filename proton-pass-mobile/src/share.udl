@@ -15,5 +15,5 @@ dictionary Share {
 
 interface ShareOverrideCalculator {
     constructor();
-    sequence<string> get_visible_shares(sequence<Share> shares, bool filter_hidden);
+    sequence<string> get_visible_shares(sequence<Share> shares, boolean filter_hidden);
 };

@@ -16,7 +16,7 @@ describe("ProtonPassWeb WASM - Share", () => {
             },
         ];
 
-        const result = get_visible_shares(shares);
+        const result = get_visible_shares(shares, false);
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual("share1");
     });
@@ -52,7 +52,7 @@ describe("ProtonPassWeb WASM - Share", () => {
             },
         ];
 
-        const result = get_visible_shares(shares);
+        const result = get_visible_shares(shares, false);
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual("share_admin");
     });
@@ -124,7 +124,7 @@ describe("ProtonPassWeb WASM - Share", () => {
             },
         ];
 
-        const result = get_visible_shares(shares);
+        const result = get_visible_shares(shares, false);
         expect(result).toHaveLength(3);
         expect(result).toContain("vault_read");
         expect(result).toContain("item_write");
@@ -153,7 +153,7 @@ describe("ProtonPassWeb WASM - Share", () => {
             },
         ];
 
-        const result = get_visible_shares(shares);
+        const result = get_visible_shares(shares, false);
         expect(result).toHaveLength(2);
         expect(result).toContain("vault1_admin");
         expect(result).toContain("vault2_item_read");
@@ -213,7 +213,7 @@ describe("ProtonPassWeb WASM - Share", () => {
             },
         ];
 
-        const result = get_visible_shares(shares);
+        const result = get_visible_shares(shares, false);
         expect(result).toHaveLength(4);
         expect(result).toContain("v1_admin");
         expect(result).toContain("v2_read");

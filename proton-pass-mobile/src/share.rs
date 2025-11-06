@@ -70,9 +70,9 @@ impl ShareOverrideCalculator {
         Self
     }
 
-    pub fn get_visible_shares(&self, shares: Vec<Share>) -> Vec<String> {
+    pub fn get_visible_shares(&self, shares: Vec<Share>, filter_hidden: bool) -> Vec<String> {
         let common_shares: Vec<CommonShare> = shares.into_iter().map(CommonShare::from).collect();
-        visible_share_ids(&common_shares)
+        visible_share_ids(&common_shares, filter_hidden)
             .into_iter()
             .map(|s| s.to_string())
             .collect()

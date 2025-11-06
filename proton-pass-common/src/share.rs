@@ -44,7 +44,7 @@ pub fn visible_share_ids(shares: &[Share], filter_hidden: bool) -> Vec<&str> {
     let mut best_per_triplet: HashMap<ShareTriplet, &Share> = HashMap::new();
     let mut hidden_triplets: HashSet<ShareTriplet> = HashSet::new();
 
-    if (filter_hidden) {
+    if filter_hidden {
         for share in shares {
             if (share.flags & FLAG_HIDDEN) == FLAG_HIDDEN {
                 hidden_triplets.insert(ShareTriplet {

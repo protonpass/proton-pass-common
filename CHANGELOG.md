@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.28.1
+
+### Features :tada:
+
+- pass-common: improve share overlap calculation taking flags into account.
+
 ## 0.28.0
 
 ### Features :tada:

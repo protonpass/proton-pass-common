@@ -59,7 +59,7 @@ android {
 
 mavenPublishing {
     group = "me.proton.authenticator.common"
-    version = "0.28.0"
+    version = "0.28.1"
     pom {
         scm {
             connection.set(gitHubDomain)

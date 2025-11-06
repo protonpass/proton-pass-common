@@ -160,10 +160,11 @@ mod tests {
                 permissions: 0,
                 flags: FLAG_HIDDEN,
             };
+            let hidden_share_id = s_hidden.share_id.clone();
             let shares = [s_visible, s_hidden];
             let out = visible_share_ids(&shares, false);
             assert_eq!(out.len(), 1);
-            assert_eq!(out[0], shares[1].share_id);
+            assert_eq!(out[0], hidden_share_id);
         }
     }
 

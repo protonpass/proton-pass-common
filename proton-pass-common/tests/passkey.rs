@@ -68,3 +68,45 @@ fn with_prf() {
     let prf = res.credential.client_extension_results.prf;
     assert!(prf.is_some());
 }
+
+#[test]
+fn create_passkey_with_exclude_credentials() {
+    let input = r#"
+{
+  "user": {
+    "id": "OWNiODgzZjE2ZDc1MjhiMzdmMmQ0NzE2YzQyYmZhZjA4OWQ0NmU1ODIwZjc3YWFlYzRlM2YyYmQ4YmRlNDA3MQ==",
+    "name": "someuser@email.test",
+    "displayName": "someuseremail.test"
+  },
+  "challenge": "RKLiWkAVCwjfkZjc2eROB5/rIIp6sREy",
+  "timeout": 300000,
+  "pubKeyCredParams": [
+    {
+      "type": "public-key",
+      "alg": -7
+    }
+  ],
+  "authenticatorSelection": {
+    "userVerification": "preferred",
+    "residentKey": "required"
+  },
+  "excludeCredentials": [
+    {
+      "id": "1T8fggYjSvC9HthqI4vHgA==",
+      "type": "public-key",
+      "transports": [
+        "internal",
+        "hybrid"
+      ]
+    }
+  ],
+  "attestation": "direct",
+  "rp": {
+    "name": "Amazon",
+    "id": "amazon.com"
+  }
+}
+    "#;
+    let res = generate_passkey("amazon.com", input).expect("Should be able to generate a passkey");
+    assert!(!res.passkey.is_empty());
+}

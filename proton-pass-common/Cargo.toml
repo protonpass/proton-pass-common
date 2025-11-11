@@ -19,10 +19,10 @@ email_address = "0.2.9"
 file-format = { version = "0.28.0", features = ["reader"] }
 lazy_static = "1.5.0"
 luhn = "1.0.1"
-passkey = { git = "https://github.com/1Password/passkey-rs.git", rev = "f4658180a55cc183217141a99596f9c148abd4eb" }
-passkey-authenticator = { git = "https://github.com/1Password/passkey-rs.git", rev = "f4658180a55cc183217141a99596f9c148abd4eb" }
-passkey-types = { git = "https://github.com/1Password/passkey-rs.git", rev = "f4658180a55cc183217141a99596f9c148abd4eb", features = ["serialize_bytes_as_base64_string"] }
-public-suffix = { git = "https://github.com/1Password/passkey-rs.git", rev = "f4658180a55cc183217141a99596f9c148abd4eb" }
+passkey = { git = "https://github.com/cquintana92/passkey-rs.git", rev = "a8aef90f33981715f100ae4f59f6884e8a54ca4f" }
+passkey-authenticator = { git = "https://github.com/cquintana92/passkey-rs.git", rev = "a8aef90f33981715f100ae4f59f6884e8a54ca4f" }
+passkey-types = { git = "https://github.com/cquintana92/passkey-rs.git", rev = "a8aef90f33981715f100ae4f59f6884e8a54ca4f", features = ["serialize_bytes_as_base64_string"] }
+public-suffix = { git = "https://github.com/cquintana92/passkey-rs.git", rev = "a8aef90f33981715f100ae4f59f6884e8a54ca4f" }
 rand = "0.9.0"
 regex-lite = "0.1.6"
 rmp-serde = "1.3.0"

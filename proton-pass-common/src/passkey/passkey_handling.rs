@@ -1,7 +1,7 @@
 use super::{PasskeyError, PasskeyResult, ProtonPassKey};
 use passkey::authenticator::{Authenticator, UserValidationMethod};
 use passkey_authenticator::extensions::HmacSecretConfig;
-use passkey_authenticator::UserCheck;
+use passkey_authenticator::{UiHint, UserCheck};
 use passkey_types::ctap2::Ctap2Error;
 use passkey_types::{ctap2::Aaguid, Passkey};
 use url::{ParseError, Url};
@@ -30,7 +30,7 @@ impl UserValidationMethod for MyUserValidationMethod {
 
     async fn check_user<'a>(
         &self,
-        _credential: Option<&'a Self::PasskeyItem>,
+        _credential: UiHint<'a, Self::PasskeyItem>,
         _presence: bool,
         _verification: bool,
     ) -> Result<UserCheck, Ctap2Error> {

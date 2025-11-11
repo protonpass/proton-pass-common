@@ -1,6 +1,6 @@
 [package]
 name = "proton-pass-common"
-version = "0.28.1"
+version = "0.28.2"
 edition = "2021"
 
 [lib]

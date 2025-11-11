@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.28.2
+
+### Fixes :bug:
+
+- pass-common: update passkeys dependency to fix some creation issues when `excludeCredentials` had content.
+
 ## 0.28.1
 
 ### Features :tada:

@@ -20,9 +20,24 @@ fn try_fix_request(request: &str) -> PasskeyResult<String> {
         .map_err(|e| PasskeyError::SerializationError(format!("Error parsing JSON for fixing: {e:?}")))?;
 
     fix_json_value(&mut json_value);
+    fix_null_display_name(&mut json_value);
 
     serde_json::to_string(&json_value)
         .map_err(|e| PasskeyError::SerializationError(format!("Error serializing fixed JSON: {e:?}")))
+}
+
+fn fix_null_display_name(json_value: &mut serde_json::Value) {
+    if let Some(obj) = json_value.as_object_mut() {
+        if let Some(user_obj) = obj.get_mut("user") {
+            if let Some(user_obj) = user_obj.as_object_mut() {
+                if let Some(display_name_value) = user_obj.get_mut("displayName") {
+                    if let serde_json::Value::Null = display_name_value {
+                        *display_name_value = serde_json::Value::String("null".to_string());
+                    }
+                }
+            }
+        }
+    }
 }
 
 fn fix_json_value(value: &mut serde_json::Value) {

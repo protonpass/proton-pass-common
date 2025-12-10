@@ -110,3 +110,85 @@ fn create_passkey_with_exclude_credentials() {
     let res = generate_passkey("amazon.com", input).expect("Should be able to generate a passkey");
     assert!(!res.passkey.is_empty());
 }
+
+#[test]
+fn create_passkey_with_null_display_name() {
+    let input = r#"
+{
+  "rp": {
+    "id": "some.web.com",
+    "name": "Fido2PasswordlessTest"
+  },
+  "user": {
+    "name": "sometest@account.test",
+    "id": "MTY0OTI1MGMtMGNhNS00MDhjLTk1ZGItMjc4ZTlkOWRkYjg5",
+    "displayName": null
+  },
+  "challenge": "vtPVXKnHdW6/gnQ7ZzdEKg==",
+  "pubKeyCredParams": [
+    {
+      "type": "public-key",
+      "alg": -7
+    },
+    {
+      "type": "public-key",
+      "alg": -257
+    },
+    {
+      "type": "public-key",
+      "alg": -37
+    },
+    {
+      "type": "public-key",
+      "alg": -35
+    },
+    {
+      "type": "public-key",
+      "alg": -258
+    },
+    {
+      "type": "public-key",
+      "alg": -38
+    },
+    {
+      "type": "public-key",
+      "alg": -36
+    },
+    {
+      "type": "public-key",
+      "alg": -259
+    },
+    {
+      "type": "public-key",
+      "alg": -39
+    },
+    {
+      "type": "public-key",
+      "alg": -8
+    }
+  ],
+  "timeout": 60000,
+  "attestation": "none",
+  "authenticatorSelection": {
+    "authenticatorAttachment": "platform",
+    "requireResidentKey": false,
+    "userVerification": "preferred"
+  },
+  "excludeCredentials": [
+    {
+      "type": "public-key",
+      "id": "zV8kTlzGt48TOWsJ+EDgMcHHxYklBvtoSsvnjGDJk+A="
+    }
+  ],
+  "extensions": {
+    "exts": true,
+    "uvm": true
+  },
+  "status": "ok",
+  "errorMessage": ""
+}
+    "#;
+
+    let res = generate_passkey("some.web.com", input).expect("Should be able to generate a passkey");
+    assert!(!res.passkey.is_empty());
+}

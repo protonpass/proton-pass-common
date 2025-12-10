@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.28.3
+
+### Fixes :bug:
+
+- pass-common: try to handle missing `displayName` property on passkey creation request.
+
 ## 0.28.2
 
 ### Fixes :bug:

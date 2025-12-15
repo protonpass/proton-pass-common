@@ -6,6 +6,13 @@
 
 ### Other
 
+## 0.28.4
+
+### Other
+
+- pass-common: update dependencies.
+- pass-web: reduce bundle size.
+
 ## 0.28.3
 
 ### Fixes :bug:

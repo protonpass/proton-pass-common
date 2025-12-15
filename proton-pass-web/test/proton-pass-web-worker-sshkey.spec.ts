@@ -7,7 +7,7 @@ import {
     library_version,
     validate_private_ssh_key,
     validate_public_ssh_key,
-} from "./pkg/worker";
+} from "./pkg/worker/proton_pass_web";
 
 describe("ProtonPassWeb WASM - SSH Key Management", () => {
     test("Library version", () => {

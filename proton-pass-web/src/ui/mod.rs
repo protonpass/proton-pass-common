@@ -1,9 +1,16 @@
 use crate::ui::file::WasmFileGroup;
-// use crate::ui::wifi::WasmWifiSecurity;
+
 use creditcard::*;
-// use login::WasmLogin;
+
 use proton_pass_common::file::{get_file_group_from_mime_type, get_mime_type_from_content, sanitize_name};
-// use proton_pass_common::wifi::generate_wifi_uri;
+
+#[cfg(feature = "experimental")]
+use crate::ui::wifi::WasmWifiSecurity;
+#[cfg(feature = "experimental")]
+use login::WasmLogin;
+#[cfg(feature = "experimental")]
+use proton_pass_common::wifi::generate_wifi_uri;
+
 use wasm_bindgen::prelude::*;
 
 mod creditcard;

@@ -7,7 +7,8 @@ use passkey::{PasskeyManager, WasmGeneratePasskeyResponse, WasmResolvePasskeyCha
 
 mod passkey;
 mod share;
-// mod sshkey;
+#[cfg(feature = "experimental")]
+mod sshkey;
 mod totp;
 
 #[wasm_bindgen]

@@ -7,7 +7,7 @@ use passkey::{PasskeyManager, WasmGeneratePasskeyResponse, WasmResolvePasskeyCha
 
 mod passkey;
 mod share;
-mod sshkey;
+// mod sshkey;
 mod totp;
 
 #[wasm_bindgen]

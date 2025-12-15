@@ -31,3 +31,4 @@ wasm-bindgen-futures.workspace = true
 web_password = []
 web_ui = []
 web_worker = ["web_password"]
+experimental = []

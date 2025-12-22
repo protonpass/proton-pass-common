@@ -2,65 +2,50 @@ use crate::error::TOTPError;
 use crate::totp::TOTP;
 use url::Url;
 
-/// Take an original URI string and convert it to a string for user to edit.
+/// Converts a TOTP URI or secret to a human-readable format for display purposes.
 ///
-/// - Original URI is invalid or has custom params
-///   => Return the URI as-is
-///
-/// - Original URI has default params (missing optional params or params with default values)
-///   => Return only the secret
-pub fn uri_for_editing(original_uri: &str) -> String {
+/// * Valid TOTP URI with default parameters => returns just the secret
+/// * Valid TOTP URI with custom parameters => returns the full URI
+/// * Invalid input => returns the input unchanged
+pub fn human_readable_otp(uri_or_secret: &str) -> String {
     let components;
-    if let Ok(value) = TOTP::from_uri(original_uri) {
+    if let Ok(value) = TOTP::from_uri(uri_or_secret) {
         components = value
     } else {
-        return original_uri.to_string();
+        return uri_or_secret.to_string();
     }
 
     if components.has_default_params() {
         return components.secret;
     }
 
-    original_uri.to_string()
+    uri_or_secret.to_string()
 }
 
-/// Sanitize the user input URI before saving.
+/// Sanitizes and normalizes TOTP URI or secret input for consistent storage.
 ///
-/// - Invalid
-///   => Treat as secret, sanitize and add default params
-///
-/// - Valid with no params
-///   => Add default params
-///
-/// - Valid with default params
-///   => Return as-is
-///
-/// - Valid with custom params
-///   => Return as-is
-pub fn uri_for_saving(original_uri: &str, edited_uri: &str) -> Result<String, TOTPError> {
-    let trimmed_edited_uri = edited_uri.trim();
+/// * Empty input => returns empty string
+/// * Invalid URI => treats as secret, sanitizes and creates URI with default parameters
+/// * Valid TOTP URI => returns normalized URI with default parameters filled in
+/// * Valid non-TOTP URL => returns error
+pub fn sanitize_otp(uri_or_secret: &str, label: Option<String>, issuer: Option<String>) -> Result<String, TOTPError> {
+    let uri_or_secret = uri_or_secret.trim();
 
-    if trimmed_edited_uri.is_empty() {
+    if uri_or_secret.is_empty() {
         return Ok("".to_string());
     }
 
-    let (original_label, original_issuer) = match TOTP::from_uri(original_uri) {
-        Ok(original_totp) => (original_totp.label, original_totp.issuer),
-        _ => (None, None),
-    };
-
-    let edited_totp: Option<TOTP> = match TOTP::from_uri(trimmed_edited_uri) {
+    let parsed_otp: Option<TOTP> = match TOTP::from_uri(uri_or_secret) {
         Ok(value) => Ok(Some(value)),
         Err(error) => {
             match error {
                 TOTPError::EmptySecret => Ok(None),
                 _ => {
-                    if Url::parse(trimmed_edited_uri).is_ok() {
+                    if Url::parse(uri_or_secret).is_ok() {
                         Err(TOTPError::NotTotpUri)
                     } else {
-                        // Invalid URI
-                        // => treat as secret, sanitize and add default params
-                        let sanitized_secret = sanitize_secret(trimmed_edited_uri);
+                        // Invalid URI => treat as secret, sanitize and add default params
+                        let sanitized_secret = sanitize_secret(uri_or_secret);
                         Ok(Some(TOTP {
                             label: None,
                             secret: sanitized_secret,
@@ -75,13 +60,15 @@ pub fn uri_for_saving(original_uri: &str, edited_uri: &str) -> Result<String, TO
         }
     }?;
 
-    if let Some(edited_totp) = edited_totp {
-        Ok(edited_totp.to_uri(original_label, original_issuer))
+    if let Some(parsed_otp) = parsed_otp {
+        Ok(parsed_otp.to_uri(label, issuer))
     } else {
         Ok("".to_string())
     }
 }
 
+/// Sanitizes a raw secret string by removing spaces, dashes, underscores,
+/// trailing '=' padding, and converts to uppercase.
 pub fn sanitize_secret(secret: &str) -> String {
     secret
         .replace([' ', '-', '_'], "")

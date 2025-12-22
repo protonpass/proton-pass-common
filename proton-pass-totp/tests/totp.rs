@@ -1,135 +1,139 @@
 use proton_pass_totp::error::TOTPError;
-use proton_pass_totp::sanitizer::{sanitize_secret, uri_for_editing, uri_for_saving};
+use proton_pass_totp::sanitizer::{human_readable_otp, sanitize_otp, sanitize_secret};
 
 #[test]
-fn for_editing() {
+fn human_readable_otp_test() {
     // Empty
-    assert_eq!(uri_for_editing(""), "");
+    assert_eq!(human_readable_otp(""), "");
 
     // Invalid
-    assert_eq!(uri_for_editing("invalid uri"), "invaliduri");
+    assert_eq!(human_readable_otp("invalid uri"), "invaliduri");
 
     // Unsupported protocol
-    assert_eq!(uri_for_editing("https://proton.me"), "https://proton.me");
+    assert_eq!(human_readable_otp("https://proton.me"), "https://proton.me");
 
     // No label, no params
-    assert_eq!(uri_for_editing("otpauth://totp/?secret=some_secret"), "some_secret");
+    assert_eq!(human_readable_otp("otpauth://totp/?secret=some_secret"), "some_secret");
 
     // With label, no params
     assert_eq!(
-        uri_for_editing("otpauth://totp/john.doe?secret=some_secret"),
+        human_readable_otp("otpauth://totp/john.doe?secret=some_secret"),
         "some_secret"
     );
 
     // No label, default params
     assert_eq!(
-        uri_for_editing("otpauth://totp/?secret=some_secret&algorithm=SHA1&digits=6&period=30"),
+        human_readable_otp("otpauth://totp/?secret=some_secret&algorithm=SHA1&digits=6&period=30"),
         "some_secret"
     );
 
     // With label, default params
     assert_eq!(
-        uri_for_editing("otpauth://totp/john.doe?secret=some_secret&algorithm=SHA1&digits=6&period=30"),
+        human_readable_otp("otpauth://totp/john.doe?secret=some_secret&algorithm=SHA1&digits=6&period=30"),
         "some_secret"
     );
 
     // No label, custom params
     assert_eq!(
-        uri_for_editing("otpauth://totp/?secret=some_secret&algorithm=SHA256&digits=6&period=30"),
+        human_readable_otp("otpauth://totp/?secret=some_secret&algorithm=SHA256&digits=6&period=30"),
         "otpauth://totp/?secret=some_secret&algorithm=SHA256&digits=6&period=30"
     );
 
     // With label, custom params
     assert_eq!(
-        uri_for_editing("otpauth://totp/john.doe?secret=some_secret&algorithm=SHA256&digits=6&period=30"),
+        human_readable_otp("otpauth://totp/john.doe?secret=some_secret&algorithm=SHA256&digits=6&period=30"),
         "otpauth://totp/john.doe?secret=some_secret&algorithm=SHA256&digits=6&period=30"
     )
 }
 
 #[test]
-fn for_saving() {
-    // Empty edited URI
+fn sanitize_otp_test() {
+    // Empty input
     // => save as empty string
-    assert_eq!(uri_for_saving("invalid original", "  "), Ok("".to_string()));
+    assert_eq!(sanitize_otp("  ", None, None), Ok("".to_string()));
 
-    // Invalid original, edit with secret only
+    // Invalid URI treated as secret
     // => sanitize secret and add default params
     assert_eq!(
-        uri_for_saving("invalid original", " some secret "),
+        sanitize_otp(" some secret ", None, None),
         Ok("otpauth://totp/?secret=somesecret&algorithm=SHA1&digits=6&period=30".to_string())
     );
 
-    // Invalid original, edit with valid URI
-    // => save the edited URI as-is
+    // Valid TOTP URI
+    // => normalize and fill in default params
     assert_eq!(
-        uri_for_saving(
-            "invalid original",
-            "otpauth://totp/?secret=somesecret&algorithm=SHA1&digits=6&period=30"
-        ),
+        sanitize_otp("otpauth://totp/?secret=somesecret", None, None),
         Ok("otpauth://totp/?secret=somesecret&algorithm=SHA1&digits=6&period=30".to_string())
     );
 
-    // Invalid original, edit with not TOTP URI
-    // => save the edited URI as-is
+    // Valid non-TOTP URL
+    // => return error
     assert_eq!(
-        uri_for_saving(
-            "invalid original",
-            "https://totp/?secret=somesecret&algorithm=SHA1&digits=6&period=30"
+        sanitize_otp(
+            "https://totp/?secret=somesecret&algorithm=SHA1&digits=6&period=30",
+            None,
+            None
         ),
         Err(TOTPError::NotTotpUri)
     );
 
-    // Valid original with no params, edit with secret only
-    // => sanitize secret and add default params
+    // Raw secret with label
+    // => sanitize secret and add default params with label
     assert_eq!(
-        uri_for_saving("otpauth://totp/?secret=original_secret", "new secret"),
-        Ok("otpauth://totp/?secret=newsecret&algorithm=SHA1&digits=6&period=30".to_string())
+        sanitize_otp("new secret", Some("john.doe".to_string()), None),
+        Ok("otpauth://totp/john.doe?secret=newsecret&algorithm=SHA1&digits=6&period=30".to_string())
     );
 
-    // Valid original with issuer and no params, edit with secret only
-    // => sanitize secret, use the original issuer and add default params
+    // Raw secret with issuer
+    // => sanitize secret and add default params with issuer
     assert_eq!(
-        uri_for_saving(
-            "otpauth://totp/?secret=original_secret&issuer=original_issuer",
-            "new secret"
+        sanitize_otp("new secret", None, Some("test".to_string())),
+        Ok("otpauth://totp/?secret=newsecret&issuer=test&algorithm=SHA1&digits=6&period=30".to_string())
+    );
+
+    // Raw secret with label and issuer
+    // => sanitize secret and add default params with both
+    assert_eq!(
+        sanitize_otp(
+            "new secret",
+            Some("test_label".to_string()),
+            Some("test_issuer".to_string())
         ),
-        Ok("otpauth://totp/?secret=newsecret&issuer=original_issuer&algorithm=SHA1&digits=6&period=30".to_string())
+        Ok(
+            "otpauth://totp/test_label?secret=newsecret&issuer=test_issuer&algorithm=SHA1&digits=6&period=30"
+                .to_string()
+        )
     );
 
-    // Valid original with default params, edit with secret only
-    // => sanitize secret and add default params
+    // Valid TOTP URI with custom params
+    // => preserve custom params
     assert_eq!(
-        uri_for_saving(
-            "otpauth://totp/?secret=original_secret&algorithm=SHA1&digits=6&period=30",
-            "new secret"
-        ),
-        Ok("otpauth://totp/?secret=newsecret&algorithm=SHA1&digits=6&period=30".to_string())
-    );
-
-    // Valid original with custom params, edit with secret only
-    // => sanitize secret and add default params
-    assert_eq!(
-        uri_for_saving(
+        sanitize_otp(
             "otpauth://totp/?secret=original_secret&algorithm=SHA256&digits=8&period=45",
-            "new secret"
+            None,
+            None
         ),
-        Ok("otpauth://totp/?secret=newsecret&algorithm=SHA1&digits=6&period=30".to_string())
+        Ok("otpauth://totp/?secret=original_secret&algorithm=SHA256&digits=8&period=45".to_string())
     );
 
-    // Valid original with custom params, edit with custom params and issuer
-    // => save the edited URI as-is
+    // Valid TOTP URI with custom params and provided label/issuer
+    // => use provided label/issuer with custom params
     assert_eq!(
-        uri_for_saving(
-            "otpauth://totp/?secret=original_secret&algorithm=SHA256&digits=8&period=45",
-            "otpauth://totp/?secret=new_secret&issuer=new_issuer&algorithm=SHA1&digits=8&period=45"
+        sanitize_otp(
+            "otpauth://totp/?secret=secret123&algorithm=SHA256&digits=8&period=45",
+            Some("newuser".to_string()),
+            Some("NewIssuer".to_string())
         ),
-        Ok("otpauth://totp/?secret=new_secret&issuer=new_issuer&algorithm=SHA1&digits=8&period=45".to_string())
+        Ok("otpauth://totp/newuser?secret=secret123&issuer=NewIssuer&algorithm=SHA256&digits=8&period=45".to_string())
     );
 
+    // TOTP URI with empty secret
+    // => return empty string
     assert_eq!(
-        uri_for_saving(
-            "anything",
-            "otpauth://totp/?secret=&algorithm=SHA256&digits=6&period=30"
+        sanitize_otp(
+            "otpauth://totp/?secret=&algorithm=SHA256&digits=6&period=30",
+            None,
+            None
         ),
         Ok("".to_string())
     );
@@ -141,5 +145,6 @@ fn sanitizing_secret() {
     assert_eq!(sanitize_secret("ABC-ABC-ABC"), "ABCABCABC");
     assert_eq!(sanitize_secret("ABC_ABC_ABC"), "ABCABCABC");
     assert_eq!(sanitize_secret(" ABC-ABC_ABC "), "ABCABCABC");
-    assert_eq!(sanitize_secret("r9vTGRUEc9OBof8Gkp2x"), "R9VTGRUEC9OBOF8GKP2X")
+    assert_eq!(sanitize_secret("r9vTGRUEc9OBof8Gkp2x"), "R9VTGRUEC9OBOF8GKP2X");
+    assert_eq!(sanitize_secret("MFRGG43FMZXW6==="), "MFRGG43FMZXW6");
 }

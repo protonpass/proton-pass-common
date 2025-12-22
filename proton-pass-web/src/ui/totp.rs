@@ -3,11 +3,7 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub fn sanitize_otp(uri_or_secret: String, label: Option<String>, issuer: Option<String>) -> Result<String, JsError> {
-    Ok(sanitizer::sanitize_otp(
-        &uri_or_secret,
-        label,
-        issuer,
-    )?)
+    Ok(sanitizer::sanitize_otp(&uri_or_secret, label, issuer)?)
 }
 
 #[wasm_bindgen]

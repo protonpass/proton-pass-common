@@ -15,6 +15,7 @@ use wasm_bindgen::prelude::*;
 
 mod creditcard;
 mod file;
+mod totp;
 
 #[cfg(feature = "experimental")]
 mod login;

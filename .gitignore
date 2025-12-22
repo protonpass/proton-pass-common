@@ -2,6 +2,7 @@
 .idea/
 /target
 .cargo/
+.vscode
 
 # Pass mobile
 proton-pass-mobile/android/lib/**/*.kt

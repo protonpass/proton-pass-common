@@ -6,6 +6,13 @@
 
 ### Other
 
+## 0.28.5
+
+### Other
+
+- pass-mobile: support macOS x86_64 arch.
+- pass-web: add OTP validators to web-ui.
+
 ## 0.28.4
 
 ### Other

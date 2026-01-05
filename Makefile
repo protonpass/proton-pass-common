@@ -133,18 +133,24 @@ ios-min-xcframework: ios-lib-ios-sim ## Build a minimal xcframework for iOS arm 
                -output "${IOS_FRAMEWORK_DIR}/${IOS_XCFRAMEWORK_NAME}"
 	@mv "${IOS_FRAMEWORK_DIR}/${IOS_XCFRAMEWORK_NAME}" "${IOS_PACKAGE_DIR}/${IOS_XCFRAMEWORK_NAME}"
 
+.PHONY: ios-lipo-macos
+ios-lipo-macos: ios-lib-macos ## Create universal macOS library (arm64 + x86_64)
+	@mkdir -p target/universal-macos/release
+	@lipo -create \
+		"target/aarch64-apple-darwin/release/${IOS_LIB_NAME}" \
+		"target/x86_64-apple-darwin/release/${IOS_LIB_NAME}" \
+		-output "target/universal-macos/release/${IOS_LIB_NAME}"
+
 .PHONY: ios-xcframework
-ios-xcframework: ios-lib-macos ios-lib-maccatalyst ios-lib-ios ios-lib-ios-sim ## Build the iOS xcframework
+ios-xcframework: ios-lipo-macos ios-lib-maccatalyst ios-lib-ios ios-lib-ios-sim ## Build the iOS xcframework
 	@xcodebuild -create-xcframework \
                -library "target/aarch64-apple-ios/release/${IOS_LIB_NAME}" \
                -headers proton-pass-mobile/iOS/headers \
                -library "target/aarch64-apple-ios-sim/release/${IOS_LIB_NAME}" \
                -headers proton-pass-mobile/iOS/headers \
-               -library "target/aarch64-apple-darwin/release/${IOS_LIB_NAME}" \
+               -library "target/universal-macos/release/${IOS_LIB_NAME}" \
                -headers proton-pass-mobile/iOS/headers \
                -library "target/aarch64-apple-ios-macabi/release/${IOS_LIB_NAME}" \
-               -headers proton-pass-mobile/iOS/headers \
-			   -library "target/x86_64-apple-darwin/release/${IOS_LIB_NAME}" \
                -headers proton-pass-mobile/iOS/headers \
                -output "${IOS_FRAMEWORK_DIR}/${IOS_XCFRAMEWORK_NAME}"
 	@mv "${IOS_FRAMEWORK_DIR}/${IOS_XCFRAMEWORK_NAME}" "${IOS_PACKAGE_DIR}/${IOS_XCFRAMEWORK_NAME}"

@@ -10,7 +10,7 @@ fn get_runtime() -> tokio::runtime::Runtime {
 
 fn generate_passkey(domain: &str, input: &str) -> PasskeyResult<CreatePasskeyResponse> {
     let rt = get_runtime();
-    rt.block_on(async move { proton_pass_common::passkey::generate_passkey_for_domain(domain, input).await })
+    rt.block_on(async move { proton_pass_common::passkey::generate_passkey_for_domain(domain, input, false).await })
 }
 
 #[test]

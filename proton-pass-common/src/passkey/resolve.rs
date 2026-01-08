@@ -19,13 +19,18 @@ impl ResolveChallengeResponse {
     }
 }
 
-async fn resolve_challenge(origin: Url, pk: &ProtonPassKey, request: &str) -> PasskeyResult<ResolveChallengeResponse> {
+async fn resolve_challenge(
+    origin: Url,
+    pk: &ProtonPassKey,
+    request: &str,
+    allows_insecure_localhost: bool,
+) -> PasskeyResult<ResolveChallengeResponse> {
     let parsed = parse_authenticate_request(request)?;
 
     let credential_request = CredentialRequestOptions { public_key: parsed };
 
     let authenticator = get_authenticator(Some(pk.clone()));
-    let mut client = Client::new(authenticator);
+    let mut client = Client::new(authenticator).allows_insecure_localhost(allows_insecure_localhost);
 
     let res = client
         .authenticate(&origin, credential_request, None)
@@ -131,8 +136,9 @@ pub async fn resolve_challenge_for_domain(
     url: &str,
     pk: &[u8],
     request: &str,
+    allows_insecure_localhost: bool,
 ) -> PasskeyResult<ResolveChallengeResponse> {
     let origin = parse_url(url)?;
     let deserialized = deserialize_passkey(pk)?;
-    resolve_challenge(origin, &deserialized, request).await
+    resolve_challenge(origin, &deserialized, request, allows_insecure_localhost).await
 }

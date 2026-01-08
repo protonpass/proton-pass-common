@@ -39,6 +39,7 @@ async fn generate_passkey_response(
     origin: &Url,
     request: CredentialCreationOptions,
     client_data_hash: Option<Vec<u8>>,
+    allows_insecure_localhost: bool,
 ) -> PasskeyResult<CreatePasskeyResponse> {
     let rp_id = request.public_key.rp.id.clone();
     let rp_name = request.public_key.rp.name.clone();
@@ -51,14 +52,14 @@ async fn generate_passkey_response(
     };
 
     let authenticator = get_authenticator(None);
-    let mut my_client = Client::new(authenticator);
+    let mut client = Client::new(authenticator).allows_insecure_localhost(allows_insecure_localhost);
 
-    let my_webauthn_credential = my_client
+    let my_webauthn_credential = client
         .register(origin, request, client_data_hash)
         .await
         .map_err(|e| PasskeyError::GenerationError(format!("failed to generate passkey: {e:?}")))?;
 
-    if let Some(pk) = my_client.authenticator().store() {
+    if let Some(pk) = client.authenticator().store() {
         let converted = ProtonPassKey::from(pk.clone());
         let key_id = my_webauthn_credential.id.clone();
         let serialized = serialize_passkey(&converted)?;
@@ -91,12 +92,17 @@ async fn generate_passkey_response(
 async fn generate_passkey(
     origin: Url,
     request: PublicKeyCredentialCreationOptions,
+    allows_insecure_localhost: bool,
 ) -> PasskeyResult<CreatePasskeyResponse> {
     let request = CredentialCreationOptions { public_key: request };
-    generate_passkey_response(&origin, request, None).await
+    generate_passkey_response(&origin, request, None, allows_insecure_localhost).await
 }
 
-pub async fn generate_passkey_for_domain(url: &str, request: &str) -> PasskeyResult<CreatePasskeyResponse> {
+pub async fn generate_passkey_for_domain(
+    url: &str,
+    request: &str,
+    allows_insecure_localhost: bool,
+) -> PasskeyResult<CreatePasskeyResponse> {
     let origin = parse_url(url)?;
 
     let mut parsed = parse_create_request(request, Some(url))?;
@@ -115,7 +121,7 @@ pub async fn generate_passkey_for_domain(url: &str, request: &str) -> PasskeyRes
         ];
     }
 
-    generate_passkey(origin, parsed).await
+    generate_passkey(origin, parsed, allows_insecure_localhost).await
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -163,7 +169,7 @@ pub async fn generate_passkey_for_ios(ios_request: CreatePasskeyIosRequest) -> P
     };
 
     let request = CredentialCreationOptions { public_key: options };
-    generate_passkey_response(&url, request, Some(ios_request.client_data_hash)).await
+    generate_passkey_response(&url, request, Some(ios_request.client_data_hash), false).await
 }
 
 pub struct CreatePasskeyData {

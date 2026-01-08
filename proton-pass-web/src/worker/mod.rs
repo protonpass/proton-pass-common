@@ -36,8 +36,12 @@ pub fn create_new_user_invite_signature_body(email: String, vault_key: js_sys::U
 }
 
 #[wasm_bindgen]
-pub async fn generate_passkey(domain: String, request: String) -> Result<WasmGeneratePasskeyResponse, JsError> {
-    Ok(PasskeyManager::generate_passkey(domain, request).await?)
+pub async fn generate_passkey(
+    domain: String,
+    request: String,
+    allows_insecure_localhost: bool,
+) -> Result<WasmGeneratePasskeyResponse, JsError> {
+    Ok(PasskeyManager::generate_passkey(domain, request, allows_insecure_localhost).await?)
 }
 
 #[wasm_bindgen]
@@ -45,9 +49,10 @@ pub async fn resolve_passkey_challenge(
     domain: String,
     passkey: js_sys::Uint8Array,
     request: String,
+    allows_insecure_localhost: bool,
 ) -> Result<WasmResolvePasskeyChallengeResponse, JsError> {
     let passkey_as_vec = passkey.to_vec();
-    Ok(PasskeyManager::resolve_challenge(domain, passkey_as_vec, request).await?)
+    Ok(PasskeyManager::resolve_challenge(domain, passkey_as_vec, request, allows_insecure_localhost).await?)
 }
 
 #[wasm_bindgen]

@@ -160,7 +160,7 @@ impl PasskeyManager {
 
     pub fn generate_passkey(&self, url: String, request: String) -> PasskeyResult<CreatePasskeyResponse> {
         self.rt.handle().block_on(async move {
-            match generate_passkey_for_domain(&url, &request).await {
+            match generate_passkey_for_domain(&url, &request, false).await {
                 Ok(r) => match r.response() {
                     Ok(response) => Ok(CreatePasskeyResponse {
                         response,

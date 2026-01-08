@@ -274,8 +274,12 @@ pub struct WasmCreatePasskeyData {
 pub struct PasskeyManager;
 
 impl PasskeyManager {
-    pub async fn generate_passkey(url: String, request: String) -> PasskeyResult<WasmGeneratePasskeyResponse> {
-        let res = generate_passkey_for_domain(&url, &request).await?;
+    pub async fn generate_passkey(
+        url: String,
+        request: String,
+        allows_insecure_localhost: bool,
+    ) -> PasskeyResult<WasmGeneratePasskeyResponse> {
+        let res = generate_passkey_for_domain(&url, &request, allows_insecure_localhost).await?;
 
         let credential = WasmPublicKeyCredentialAttestation::from(res.credential);
 
@@ -300,8 +304,9 @@ impl PasskeyManager {
         url: String,
         passkey: Vec<u8>,
         request: String,
+        allows_insecure_localhost: bool,
     ) -> PasskeyResult<WasmResolvePasskeyChallengeResponse> {
-        let res = resolve_challenge_for_domain(&url, &passkey, &request).await?;
+        let res = resolve_challenge_for_domain(&url, &passkey, &request, allows_insecure_localhost).await?;
 
         let credential = WasmPublicKeyCredentialAssertion::from(res.response);
 

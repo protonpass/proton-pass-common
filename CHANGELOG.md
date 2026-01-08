@@ -10,7 +10,8 @@
 
 ### Fixes :bug:
 
-- pass-web: add support unsecure localhost RPID
+- pass-web: add support unsecure localhost RPID.
+- pass-common: add more default parameter handling on null passkey request fields.
 
 ## 0.28.5
 

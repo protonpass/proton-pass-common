@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.28.6
+
+### Fixes :bug:
+
+- pass-web: add support unsecure localhost RPID
+
 ## 0.28.5
 
 ### Other
@@ -164,14 +170,14 @@
 
 ### Fixes :bug:
 
-- pass-common: improve passkey handling in some sites. 
+- pass-common: improve passkey handling in some sites.
 
 ## 0.24.2
 
 ### Fixes :bug:
 
-- authenticator: move bulk encryption/decryption methods to the common implementation. 
-- authenticator: fix entry equality check to handle null and empty string. 
+- authenticator: move bulk encryption/decryption methods to the common implementation.
+- authenticator: fix entry equality check to handle null and empty string.
 
 ## 0.24.1
 
@@ -240,7 +246,7 @@
 ### Fixes :bug:
 
 - authenticator: reduce log level of TOTP generator messages.
-- authenticator: add name property of Steam entries when exporting/importing. 
+- authenticator: add name property of Steam entries when exporting/importing.
 
 ### Other
 
@@ -427,7 +433,7 @@
 
 ### Fixes :bug:
 
-- common: on the password scorer, publish the penalties regardless of the common password replacements (thanks Mattias Svanström). 
+- common: on the password scorer, publish the penalties regardless of the common password replacements (thanks Mattias Svanström).
 
 ### Other
 

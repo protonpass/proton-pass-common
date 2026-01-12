@@ -1,6 +1,6 @@
 use super::passkey_handling::{deserialize_passkey, get_authenticator, parse_url};
 use super::{PasskeyError, PasskeyResult, ProtonPassKey};
-use crate::passkey::authentication_parser::parse_authenticate_request;
+use crate::passkey::authentication_parser::{parse_authenticate_request, parse_authenticate_request_with_passkey};
 use passkey::client::Client;
 use passkey_types::webauthn::{
     AuthenticatedPublicKeyCredential, CredentialRequestOptions, PublicKeyCredentialRequestOptions,
@@ -25,7 +25,7 @@ async fn resolve_challenge(
     request: &str,
     allows_insecure_localhost: bool,
 ) -> PasskeyResult<ResolveChallengeResponse> {
-    let parsed = parse_authenticate_request(request)?;
+    let parsed = parse_authenticate_request_with_passkey(request, Some(pk))?;
 
     let credential_request = CredentialRequestOptions { public_key: parsed };
 

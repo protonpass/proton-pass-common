@@ -1,4 +1,4 @@
-use proton_pass_common::passkey::{CreatePasskeyResponse, PasskeyResult};
+use proton_pass_common::passkey::{CreatePasskeyResponse, PasskeyResult, ResolveChallengeResponse};
 
 const EXAMPLE_JSON: &str = r#"
 {"attestation":"none","authenticatorSelection":{"residentKey":"preferred","userVerification":"preferred"},"challenge":"D-5y7y_E4V8NQBJrFnnhd7NCvRGhO5sBGwzfh23y8D4a_hSMyRRuTAp0hmSm6_eimM71XoYF84VUiY8e9kqavA","excludeCredentials":[],"extensions":{"credProps":true},"pubKeyCredParams":[{"alg":-7,"type":"public-key"},{"alg":-257,"type":"public-key"}],"rp":{"id":"webauthn.io","name":"webauthn.io"},"user":{"displayName":"uyguyhj","id":"ZFhsbmRYbG9hZw","name":"uyguyhj"}}
@@ -11,6 +11,14 @@ fn get_runtime() -> tokio::runtime::Runtime {
 fn generate_passkey(domain: &str, input: &str) -> PasskeyResult<CreatePasskeyResponse> {
     let rt = get_runtime();
     rt.block_on(async move { proton_pass_common::passkey::generate_passkey_for_domain(domain, input, false).await })
+}
+
+fn authenticate_with_passkey(domain: &str, passkey: &[u8], input: &str) -> PasskeyResult<ResolveChallengeResponse> {
+    let rt = get_runtime();
+    let passkey_clone = passkey.to_vec();
+    rt.block_on(async move {
+        proton_pass_common::passkey::resolve_challenge_for_domain(domain, &passkey_clone, input, false).await
+    })
 }
 
 #[test]
@@ -191,4 +199,50 @@ fn create_passkey_with_null_display_name() {
 
     let res = generate_passkey("some.web.com", input).expect("Should be able to generate a passkey");
     assert!(!res.passkey.is_empty());
+}
+
+#[test]
+fn register_without_prf_authenticate_with_prf() {
+    let input = r#"
+    {
+      "rp": {
+        "name": "Google",
+        "id": "google.com"
+      },
+      "user": {
+        "id": "ZFhsbmRYbG9hZw",
+        "name": "google_user",
+        "displayName": "Google User"
+      },
+      "pubKeyCredParams": [
+        {
+          "type": "public-key",
+          "alg": -7
+        },
+        {
+          "type": "public-key",
+          "alg": -8
+        },
+        {
+          "type": "public-key",
+          "alg": -257
+        }
+      ],
+      "timeout": 60000,
+      "authenticatorSelection": {
+        "residentKey": "required"
+      },
+      "challenge": "Rnm5npHqYiIxZSD0cAMeXrBMQzlgiomT90D3IsnwObQ="
+    }
+ "#;
+
+    let passkey = generate_passkey("google.com", input).expect("Should be able to generate a passkey");
+
+    let authentication_input = r#"
+{ "challenge": "AIOPnthlZndH+wKvyBlmu0PVkXa/nwDMXS22Q7pWp+FIiEtytGZv5eF4KLiHX2dHy5H4jiM5N9MgEbyGG7X+U4MjteFMaZhaZHQL2yAH6FEFZ7mej+ThDsxsh32ZNc8sHMiAU4SG+sCp/8FHDWTX2O4x4zAt0Hl7tQCzCw==", "rpId": "google.com", "timeout": 600000, "extensions": { "prf": { "eval": { "first": "R29vZ2xlU2lnbkluUHJmSW5wdXQ=" } } } }
+    "#;
+    let res = authenticate_with_passkey("google.com", &passkey.passkey, authentication_input)
+        .expect("Should be able to authenticate");
+    assert!(!res.response.response.signature.is_empty());
+    assert!(res.response.client_extension_results.prf.is_none());
 }

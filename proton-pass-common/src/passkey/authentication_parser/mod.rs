@@ -1,5 +1,5 @@
 use crate::passkey::utils::transform_byte_array;
-use crate::passkey::{PasskeyError, PasskeyResult};
+use crate::passkey::{PasskeyError, PasskeyResult, ProtonPassKey};
 use passkey_types::webauthn::PublicKeyCredentialRequestOptions;
 use serde_json::Value;
 
@@ -19,9 +19,17 @@ fn sanitize_challenge(request: &str) -> PasskeyResult<String> {
 }
 
 pub fn parse_authenticate_request(request: &str) -> PasskeyResult<PublicKeyCredentialRequestOptions> {
-    match serde_json::from_str(request) {
+    parse_authenticate_request_with_passkey(request, None)
+}
+
+pub fn parse_authenticate_request_with_passkey(
+    request: &str,
+    passkey: Option<&ProtonPassKey>,
+) -> PasskeyResult<PublicKeyCredentialRequestOptions> {
+    let adapted = adapt_request_with_prf_to_passkey(request, passkey)?;
+    let parsed = match serde_json::from_str(&adapted) {
         Ok(request) => Ok(request),
-        Err(_) => match sanitize_challenge(request) {
+        Err(_) => match sanitize_challenge(&adapted) {
             Ok(sanitized) => match serde_json::from_str(&sanitized) {
                 Ok(request) => Ok(request),
                 Err(e) => Err(PasskeyError::SerializationError(format!(
@@ -32,7 +40,43 @@ pub fn parse_authenticate_request(request: &str) -> PasskeyResult<PublicKeyCrede
                 "Error parsing request: {e:?}"
             ))),
         },
+    }?;
+
+    Ok(parsed)
+}
+
+// In order to adapt to some authentication requests containing PRF while their creation requests
+// didn't, if the authentication request contains PRF and the passkey doesn't support PRF, strip the
+// PRF extension (if it matches the domains we know that have this issue)
+fn adapt_request_with_prf_to_passkey(request: &str, passkey: Option<&ProtonPassKey>) -> PasskeyResult<String> {
+    let passkey = match passkey {
+        Some(p) => p,
+        None => return Ok(request.to_string()),
+    };
+
+    // Check if the request contains the PRF extension
+    if let Ok(mut value) = serde_json::from_str::<Value>(request) {
+        // Check if the request is for one of the domains we know about
+        let rp_id = value.get("rpId").and_then(|v| v.as_str()).unwrap_or_default();
+        if should_perform_prf_sanitizing(rp_id) {
+            if let Some(extensions) = value.get_mut("extensions") {
+                if let Some(ext_obj) = extensions.as_object_mut() {
+                    if ext_obj.contains_key("prf") && passkey.extensions.hmac_secret.is_none() {
+                        // Request contains PRF and passkey doesn't have it. Strip it
+                        ext_obj.remove("prf");
+
+                        return Ok(serde_json::to_string(&value).unwrap_or(request.to_string()));
+                    }
+                }
+            }
+        }
     }
+
+    Ok(request.to_string())
+}
+
+fn should_perform_prf_sanitizing(rp_id: &str) -> bool {
+    rp_id.contains("google")
 }
 
 #[cfg(test)]

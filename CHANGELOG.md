@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.28.7
+
+### Fixes :bug:
+
+- pass-common: fix passkey authentication requests with PRF extension when passkey doesn't contain hmac_secret.
+
 ## 0.28.6
 
 ### Fixes :bug:

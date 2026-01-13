@@ -1,6 +1,6 @@
 [package]
 name = "proton-authenticator-web"
-version = "0.28.6"
+version = "0.28.7"
 edition = "2021"
 
 # Flags for cargo-release

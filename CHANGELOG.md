@@ -6,6 +6,12 @@
 
 ### Other
 
+## 0.28.8
+
+### Fixes :bug:
+
+- authenticator-common: handle HOTP fields in Aegis imports.
+
 ## 0.28.7
 
 ### Fixes :bug:

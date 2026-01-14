@@ -30,8 +30,10 @@ pub fn parse_aegis_json(input: &str, password: Option<String>) -> Result<ImportR
                 warn!("Tried to import aegis encrypted backup without a password");
                 return Err(AegisImportError::EncryptedBackupWithNoPassword);
             }
-            let root_with_db: db::CommonRootWithDb =
-                serde_json::from_str(input).map_err(|_| AegisImportError::BadContent)?;
+            let root_with_db: db::CommonRootWithDb = serde_json::from_str(input).map_err(|e| {
+                warn!("Error importing aegis backup file: {e:?}");
+                AegisImportError::BadContent
+            })?;
             root_with_db.db
         }
     };
@@ -111,5 +113,17 @@ mod test {
         // Name as fallback issuer
         assert_eq!("Somename", res.entries[2].issuer());
         assert_eq!("Somename", res.entries[2].name());
+    }
+
+    #[test]
+    fn imports_unencrypted_json_with_hotp() {
+        let content = get_file_contents("aegis/aegis-json-unencrypted-hotp.json");
+        let res = parse_aegis_json(&content, None).expect("should be able to parse");
+
+        assert_eq!(1, res.entries.len());
+        assert_eq!("Test", res.entries[0].name());
+        assert_eq!("Test", res.entries[0].issuer());
+        assert_eq!(1, res.errors.len());
+        assert!(res.errors[0].message.contains("Unsupported"));
     }
 }

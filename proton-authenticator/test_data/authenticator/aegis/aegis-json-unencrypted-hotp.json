@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "header": {
+    "slots": null,
+    "params": null
+  },
+  "db": {
+    "version": 3,
+    "entries": [
+      {
+        "type": "totp",
+        "uuid": "3c1a9e47-57a7-4c13-b38a-2c9a9298942e",
+        "name": "Test",
+        "issuer": "",
+        "note": "",
+        "favorite": false,
+        "icon": null,
+        "info": {
+          "secret": "ABCDEFA",
+          "algo": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        "groups": []
+      },
+      {
+        "type": "hotp",
+        "uuid": "6d24b20b-d1e7-4d0b-9d53-1bf356425980",
+        "name": "HotpOne",
+        "issuer": "",
+        "note": "",
+        "favorite": false,
+        "icon": null,
+        "info": {
+          "secret": "KNCUGUSF",
+          "algo": "SHA1",
+          "digits": 6,
+          "counter": 10
+        },
+        "groups": []
+      }
+    ],
+    "groups": [],
+    "icons_optimized": true
+  }
+}

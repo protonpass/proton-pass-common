@@ -1,69 +1,30 @@
-// We'll load the WASM module by including it as a script tag
-// and providing the necessary CommonJS shims
+// Load the WASM module using ES module imports
 let worker = {};
 
 // Function to load the WASM module
 async function loadWasmModule() {
-    return new Promise(async (resolve, reject) => {
-        try {
-            // First, we need to load the WASM binary
-            const wasmResponse = await fetch('./pkg/worker/proton_authenticator_web_bg.wasm');
-            const wasmBytes = await wasmResponse.arrayBuffer();
-            
-            // Create CommonJS environment
-            const fakeModule = { exports: {} };
-            const fakeRequire = (dep) => {
-                if (dep === 'util') {
-                    return { 
-                        TextEncoder: globalThis.TextEncoder || window.TextEncoder,
-                        TextDecoder: globalThis.TextDecoder || window.TextDecoder
-                    };
-                }
-                if (dep === 'fs') {
-                    return { 
-                        readFileSync: (path) => {
-                            // Return the WASM bytes we already loaded
-                            return new Uint8Array(wasmBytes);
-                        }
-                    };
-                }
-                if (dep === 'path') {
-                    return { join: (...args) => args.join('/') };
-                }
-                return {};
-            };
-            
-            // Set up globals
-            window.module = fakeModule;
-            window.require = fakeRequire;
-            window.__dirname = './pkg/worker';
-            
-            // Load the JavaScript wrapper
-            const script = document.createElement('script');
-            script.src = './pkg/worker/proton_authenticator_web.js';
-            script.onload = () => {
-                worker = fakeModule.exports;
-                
-                // Clean up globals
-                delete window.module;
-                delete window.require;
-                delete window.__dirname;
+    try {
+        // Dynamically import the WASM module (ES module)
+        const wasmModule = await import('./pkg/worker/proton_authenticator_web.js');
 
-                worker.register_authenticator_logger((level, message) => {
-                    console.log(`[${level}] ${message}`);
-                })
-                
-                resolve(worker);
-            };
-            script.onerror = () => {
-                reject(new Error('Failed to load WASM module'));
-            };
-            
-            document.head.appendChild(script);
-        } catch (error) {
-            reject(error);
+        // Initialize the WASM module
+        await wasmModule.default();
+
+        // Store the module exports
+        worker = wasmModule;
+
+        // Register the logger
+        if (typeof worker.register_authenticator_logger === 'function') {
+            worker.register_authenticator_logger((level, message) => {
+                console.log(`[${level}] ${message}`);
+            });
         }
-    });
+
+        return worker;
+    } catch (error) {
+        console.error('Failed to load WASM module:', error);
+        throw new Error('Failed to load WASM module: ' + error.message);
+    }
 }
 
 // Configuration for importers with metadata

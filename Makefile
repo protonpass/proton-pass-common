@@ -367,12 +367,20 @@ authenticator-web-test-build: authenticator-web-setup ## Build the authenticator
 	@sed -i'' -e 's/"name": "@protontech\/proton-authenticator-web",/"name": "worker",/g' "${AUTHENTICATOR_WEB_TEST_BUILD_DIR}/worker/package.json"
 	@cp "${AUTHENTICATOR_WEB_DIR}/package.json" "${AUTHENTICATOR_WEB_TEST_BUILD_DIR}/package.json"
 
+.PHONY: authenticator-test-website-build
+authenticator-test-website-build: authenticator-web-setup ## Build the authenticator web artifacts for browser
+	@rm -rf "${AUTHENTICATOR_WEB_TEST_BUILD_DIR}" && mkdir -p "${AUTHENTICATOR_WEB_TEST_BUILD_DIR}"
+	@echo "--- Building web-worker for browser"
+	@wasm-pack build proton-authenticator-web --scope protontech --target web --out-dir "${AUTHENTICATOR_WEB_TEST_BUILD_DIR}/worker" --features=qr
+	@sed -i'' -e 's/"name": "@protontech\/proton-authenticator-web",/"name": "worker",/g' "${AUTHENTICATOR_WEB_TEST_BUILD_DIR}/worker/package.json"
+	@cp "${AUTHENTICATOR_WEB_DIR}/package.json" "${AUTHENTICATOR_WEB_TEST_BUILD_DIR}/package.json"
+
 .PHONY: authenticator-web-test
 authenticator-web-test: authenticator-web-test-build ## Test the web artifacts
 	@cd ${AUTHENTICATOR_WEB_TEST_DIR} && bun test
 
 .PHONY: authenticator-test-website
-authenticator-test-website: authenticator-web-test-build ## Build the authenticator test website for deployment
+authenticator-test-website: authenticator-test-website-build ## Build the authenticator test website for deployment
 	@rm -rf "${AUTHENTICATOR_WEB_DIR}/test-website/dist" && mkdir -p "${AUTHENTICATOR_WEB_DIR}/test-website/dist/pkg"
 	@echo "--- Copying WASM artifacts to dist"
 	@cp -R "${AUTHENTICATOR_WEB_TEST_BUILD_DIR}"/* "${AUTHENTICATOR_WEB_DIR}/test-website/dist/pkg/"

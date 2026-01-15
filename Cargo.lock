@@ -2473,7 +2473,8 @@ dependencies = [
 [[package]]
 name = "passkey"
 version = "0.5.0"
-source = "git+https://github.com/1Password/passkey-rs.git?rev=8ffc0590b05c79aee23b433d6bfd2244d167dac1#8ffc0590b05c79aee23b433d6bfd2244d167dac1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e47eb8971740eff7e395beb540a88a0fc302c205b433ff437f2c4759cba0c5ec"
 dependencies = [
  "passkey-authenticator",
  "passkey-client",
@@ -2484,7 +2485,8 @@ dependencies = [
 [[package]]
 name = "passkey-authenticator"
 version = "0.5.0"
-source = "git+https://github.com/1Password/passkey-rs.git?rev=8ffc0590b05c79aee23b433d6bfd2244d167dac1#8ffc0590b05c79aee23b433d6bfd2244d167dac1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "20bf5800e3f6287580da985fb88e678f37c078d62242cb536941c44d852ab37c"
 dependencies = [
  "async-trait",
  "coset",
@@ -2497,7 +2499,8 @@ dependencies = [
 [[package]]
 name = "passkey-client"
 version = "0.5.0"
-source = "git+https://github.com/1Password/passkey-rs.git?rev=8ffc0590b05c79aee23b433d6bfd2244d167dac1#8ffc0590b05c79aee23b433d6bfd2244d167dac1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1d99509cbbdfe526c617e8265716fba277562a7d771fef047ac9e25686d1c502"
 dependencies = [
  "ciborium",
  "coset",
@@ -2514,12 +2517,14 @@ dependencies = [
 [[package]]
 name = "passkey-transports"
 version = "0.1.0"
-source = "git+https://github.com/1Password/passkey-rs.git?rev=8ffc0590b05c79aee23b433d6bfd2244d167dac1#8ffc0590b05c79aee23b433d6bfd2244d167dac1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8e04110fadc73577990f04153a2508989242d9c90a645aeaad98ef30e0decfbb"
 
 [[package]]
 name = "passkey-types"
 version = "0.5.0"
-source = "git+https://github.com/1Password/passkey-rs.git?rev=8ffc0590b05c79aee23b433d6bfd2244d167dac1#8ffc0590b05c79aee23b433d6bfd2244d167dac1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c2a1fae06bd6bc619675d30b50cb38ca649837cc9e6a92a00b14743cfbdb1390"
 dependencies = [
  "bitflags",
  "ciborium",
@@ -3022,7 +3027,8 @@ dependencies = [
 [[package]]
 name = "public-suffix"
 version = "0.1.3"
-source = "git+https://github.com/1Password/passkey-rs.git?rev=8ffc0590b05c79aee23b433d6bfd2244d167dac1#8ffc0590b05c79aee23b433d6bfd2244d167dac1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "51315bca45305dd8aa64b831b33e71abac528ca8058c0651346a39b8d3009498"
 
 [[package]]
 name = "pxfm"

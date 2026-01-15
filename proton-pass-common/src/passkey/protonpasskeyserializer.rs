@@ -20,6 +20,8 @@ impl From<Passkey> for ProtonPassKey {
             user_handle: value.user_handle.map(|v| v.to_vec()),
             counter: value.counter,
             extensions: ProtonPassCredentialExtensions::from(value.extensions),
+            user_display_name: value.user_display_name,
+            username: value.username,
         }
     }
 }

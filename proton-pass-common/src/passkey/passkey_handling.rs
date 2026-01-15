@@ -144,6 +144,8 @@ mod test {
             user_handle: None,
             counter: None,
             extensions: ProtonPassCredentialExtensions::default(),
+            username: None,
+            user_display_name: None,
         }
     }
 
@@ -190,6 +192,56 @@ mod test {
                     cred_without_uv: Some(vec![0x05, 0x06, 0x07, 0x08]),
                 }),
             },
+            username: None,
+            user_display_name: None,
+        }
+    }
+
+    fn get_sample_passkey_v3() -> ProtonPassKey {
+        ProtonPassKey {
+            key: ProtonKey {
+                kty: ProtonRegisteredLabelKeyType::Assigned(ProtonKeyType::EC2),
+                key_id: vec![1, 2, 3],
+                alg: None,
+                key_ops: vec![ProtonRegisteredLabelKeyOperation::Text("some".to_string())],
+                base_iv: vec![1, 2, 3],
+                params: vec![
+                    (
+                        ProtonLabel::Text("label".to_string()),
+                        ProtonValue::Integer(ProtonInteger::from(123456i128)),
+                    ),
+                    (
+                        ProtonLabel::Int(123456789i64),
+                        ProtonValue::Array(vec![
+                            ProtonValue::Text("a value".to_string()),
+                            ProtonValue::Bytes(vec![0x01, 0x02, 0x03]),
+                        ]),
+                    ),
+                    (
+                        ProtonLabel::Text("value is tag".to_string()),
+                        ProtonValue::Tag(54u64, Box::new(ProtonValue::Bool(true))),
+                    ),
+                    (
+                        ProtonLabel::Text("value is map".to_string()),
+                        ProtonValue::Map(vec![
+                            (ProtonValue::Float(1.234f64), ProtonValue::Bool(false)),
+                            (ProtonValue::Integer(ProtonInteger::from(987i128)), ProtonValue::Null),
+                        ]),
+                    ),
+                ],
+            },
+            credential_id: vec![1, 2, 3, 4, 5],
+            rp_id: "some_rp_id".to_string(),
+            user_handle: None,
+            counter: None,
+            extensions: ProtonPassCredentialExtensions {
+                hmac_secret: Some(ProtonPassStoredHmacSecret {
+                    cred_with_uv: vec![0x01, 0x02, 0x03, 0x04],
+                    cred_without_uv: Some(vec![0x05, 0x06, 0x07, 0x08]),
+                }),
+            },
+            username: Some("username".to_string()),
+            user_display_name: Some("user_display_name".to_string()),
         }
     }
 
@@ -254,6 +306,35 @@ mod test {
         148, 5, 6, 7, 8, 161, 118, 1,
     ];
 
+    const SERIALIZED_V3: [u8; 609] = [
+        130, 161, 99, 220, 1, 208, 204, 136, 204, 163, 107, 101, 121, 204, 134, 204, 163, 107, 116, 121, 204, 130, 204,
+        161, 116, 204, 166, 97, 115, 115, 105, 103, 110, 204, 161, 99, 204, 163, 69, 67, 50, 204, 163, 107, 105, 100,
+        204, 147, 1, 2, 3, 204, 163, 97, 108, 103, 204, 192, 204, 164, 107, 111, 112, 115, 204, 145, 204, 130, 204,
+        161, 116, 204, 163, 116, 120, 116, 204, 161, 99, 204, 164, 115, 111, 109, 101, 204, 163, 98, 105, 118, 204,
+        147, 1, 2, 3, 204, 163, 112, 97, 114, 204, 148, 204, 146, 204, 130, 204, 161, 116, 204, 163, 116, 120, 116,
+        204, 161, 99, 204, 165, 108, 97, 98, 101, 108, 204, 130, 204, 161, 116, 204, 163, 105, 110, 116, 204, 161, 99,
+        204, 129, 204, 165, 105, 110, 110, 101, 114, 204, 220, 0, 16, 64, 204, 204, 204, 226, 1, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 204, 146, 204, 130, 204, 161, 116, 204, 163, 105, 110, 116, 204, 161, 99, 204, 206, 7, 91,
+        204, 205, 21, 204, 130, 204, 161, 116, 204, 165, 97, 114, 114, 97, 121, 204, 161, 99, 204, 146, 204, 130, 204,
+        161, 116, 204, 163, 116, 120, 116, 204, 161, 99, 204, 167, 97, 32, 118, 97, 108, 117, 101, 204, 130, 204, 161,
+        116, 204, 165, 98, 121, 116, 101, 115, 204, 161, 99, 204, 147, 1, 2, 3, 204, 146, 204, 130, 204, 161, 116, 204,
+        163, 116, 120, 116, 204, 161, 99, 204, 172, 118, 97, 108, 117, 101, 32, 105, 115, 32, 116, 97, 103, 204, 130,
+        204, 161, 116, 204, 163, 116, 97, 103, 204, 161, 99, 204, 146, 54, 204, 130, 204, 161, 116, 204, 164, 98, 111,
+        111, 108, 204, 161, 99, 204, 195, 204, 146, 204, 130, 204, 161, 116, 204, 163, 116, 120, 116, 204, 161, 99,
+        204, 172, 118, 97, 108, 117, 101, 32, 105, 115, 32, 109, 97, 112, 204, 130, 204, 161, 116, 204, 163, 109, 97,
+        112, 204, 161, 99, 204, 146, 204, 146, 204, 130, 204, 161, 116, 204, 165, 102, 108, 111, 97, 116, 204, 161, 99,
+        204, 203, 63, 204, 243, 204, 190, 118, 204, 200, 204, 180, 57, 88, 204, 130, 204, 161, 116, 204, 164, 98, 111,
+        111, 108, 204, 161, 99, 204, 194, 204, 146, 204, 130, 204, 161, 116, 204, 163, 105, 110, 116, 204, 161, 99,
+        204, 129, 204, 165, 105, 110, 110, 101, 114, 204, 220, 0, 16, 204, 204, 204, 219, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 204, 129, 204, 161, 116, 204, 164, 110, 117, 108, 108, 204, 163, 99, 105, 100, 204, 149, 1, 2,
+        3, 4, 5, 204, 163, 114, 105, 100, 204, 170, 115, 111, 109, 101, 95, 114, 112, 95, 105, 100, 204, 163, 117, 104,
+        100, 204, 192, 204, 163, 99, 110, 116, 204, 192, 204, 163, 101, 120, 116, 204, 129, 204, 171, 104, 109, 97, 99,
+        95, 115, 101, 99, 114, 101, 116, 204, 130, 204, 172, 99, 114, 101, 100, 95, 119, 105, 116, 104, 95, 117, 118,
+        204, 148, 1, 2, 3, 4, 204, 175, 99, 114, 101, 100, 95, 119, 105, 116, 104, 111, 117, 116, 95, 117, 118, 204,
+        148, 5, 6, 7, 8, 204, 163, 117, 100, 110, 204, 177, 117, 115, 101, 114, 95, 100, 105, 115, 112, 108, 97, 121,
+        95, 110, 97, 109, 101, 204, 162, 117, 110, 204, 168, 117, 115, 101, 114, 110, 97, 109, 101, 161, 118, 1,
+    ];
+
     #[test]
     fn deserialization_regression_test_v1() {
         let expected = get_sample_passkey_v1();
@@ -276,18 +357,31 @@ mod test {
     }
 
     #[test]
-    fn serialization_regression_test_v2() {
-        let expected = get_sample_passkey_v2();
-
-        let serialized = serialize_passkey(&expected).expect("should be able to serialize");
-        assert_eq!(SERIALIZED_V2.to_vec(), serialized);
-    }
-
-    #[test]
     fn deserialization_regression_test_v2() {
         let expected = get_sample_passkey_v2();
 
         let deserialized = deserialize_passkey(&SERIALIZED_V2).expect("should be able to deserialize");
         assert_eq!(expected, deserialized);
+    }
+
+    #[test]
+    fn deserialize_v3_matches_all_v2_fields() {
+        let expected = get_sample_passkey_v2();
+
+        let deserialized_v3 = deserialize_passkey(&SERIALIZED_V3).expect("should be able to deserialize");
+
+        assert_eq!(expected.key, deserialized_v3.key);
+        assert_eq!(expected.credential_id, deserialized_v3.credential_id);
+        assert_eq!(expected.rp_id, deserialized_v3.rp_id);
+        assert_eq!(expected.user_handle, deserialized_v3.user_handle);
+        assert_eq!(expected.counter, deserialized_v3.counter);
+    }
+
+    #[test]
+    fn serialization_regression_test_v3() {
+        let expected = get_sample_passkey_v3();
+
+        let serialized = serialize_passkey(&expected).expect("should be able to serialize");
+        assert_eq!(SERIALIZED_V3.to_vec(), serialized);
     }
 }

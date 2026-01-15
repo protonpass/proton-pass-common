@@ -15,6 +15,12 @@ pub struct ProtonPassKey {
     #[serde(rename = "ext")]
     #[serde(default)]
     pub extensions: ProtonPassCredentialExtensions,
+    #[serde(rename = "udn")]
+    #[serde(default)]
+    pub user_display_name: Option<String>,
+    #[serde(rename = "un")]
+    #[serde(default)]
+    pub username: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]

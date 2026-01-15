@@ -21,6 +21,8 @@ impl From<ProtonPassKey> for Passkey {
             user_handle: value.user_handle.map(Bytes::from),
             counter: value.counter,
             extensions: CredentialExtensions::from(value.extensions),
+            user_display_name: value.user_display_name,
+            username: value.username,
         }
     }
 }

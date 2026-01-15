@@ -12,19 +12,19 @@ impl MobileTotpBenchmark {
     }
 
     pub fn run(&self, entry: AuthenticatorEntryModel) -> u64 {
-        let start = chrono::Utc::now();
+        let start = jiff::Timestamp::now();
         let as_entry = entry.to_entry().unwrap();
 
         let mut count = 0;
         let entries = vec![as_entry];
         loop {
-            let now = chrono::Utc::now();
-            if (now - start).num_milliseconds() > self.milliseconds as i64 {
+            let now = jiff::Timestamp::now();
+            if (now - start).get_milliseconds() > self.milliseconds as i64 {
                 break;
             }
 
             let codes = AuthenticatorClient
-                .generate_codes(&entries, now.timestamp() as u64)
+                .generate_codes(&entries, now.as_second() as u64)
                 .unwrap();
             black_box(codes);
             count += 1;

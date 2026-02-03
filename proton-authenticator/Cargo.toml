@@ -35,7 +35,7 @@ rxing = { version = "0.8.0", features = ["default", "wasm_support"], optional = 
 scrypt = "0.11.0"
 sha2 = "0.10"
 url = "2.5.4"
-zip = { version ="4.6.1", default-features = false, features = [ "deflate" ] }
+zip = { version = "7", default-features = false, features = [ "deflate" ] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio.workspace = true

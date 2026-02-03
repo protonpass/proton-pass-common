@@ -10,7 +10,7 @@ tokio = { version = "1.44.0", features = ["full"] }
 tokio-stream = "0.1.17"
 
 # HTTP client
-reqwest = { version = "0.12.15", features = ["json", "stream", "rustls-tls", "blocking"] }
+reqwest = { version = "0.13.1", features = ["json", "stream", "blocking"] }
 
 # Futures
 futures = "0.3.31"

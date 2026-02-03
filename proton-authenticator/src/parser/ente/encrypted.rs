@@ -98,7 +98,7 @@ pub fn parse_ente_encrypted(input: &str, password: &str) -> Result<ImportResult,
 mod tests {
     use super::*;
     use crate::test_utils::get_file_contents;
-    use crate::{setup_test_logs, AuthenticatorEntryContent};
+    use crate::AuthenticatorEntryContent;
 
     #[test]
     fn can_import_encrypted_file() {

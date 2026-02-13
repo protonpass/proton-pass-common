@@ -22,7 +22,7 @@ ifeq ($(UNAME_S), Darwin)
 LIBRARY_EXT = dylib
 JNA_OS = darwin
 else ifeq ($(UNAME_S), Linux)
-LIBRARY_EXT = so
+LIBRARY_EXT = a
 JNA_OS = linux
 endif
 
@@ -162,6 +162,9 @@ pass-mobile-unit-test:  ## Run the unit tests for the pass mobile library
 		--language kotlin \
 		--out-dir ${PROJECT_ROOT}tmp-bindings \
 		--no-format
+	ls -la ${PROJECT_ROOT}target/release
+	ls -la ${PROJECT_ROOT}tmp-bindings || true
+	mkdir -p ${PROJECT_ROOT}proton-pass-mobile/android/libTest/src/main/kotlin/
 	mv ${PROJECT_ROOT}tmp-bindings/* ${PROJECT_ROOT}proton-pass-mobile/android/libTest/src/main/kotlin/
 	rm -rf ${PROJECT_ROOT}tmp-bindings
 
@@ -485,6 +488,9 @@ authenticator-mobile-unit-test:  ## Run the unit tests for the authenticator mob
 		--language kotlin \
 		--out-dir ${PROJECT_ROOT}tmp-bindings \
 		--no-format
+	ls -la ${PROJECT_ROOT}target/release
+	ls -la ${PROJECT_ROOT}tmp-bindings || true
+	mkdir -p ${PROJECT_ROOT}proton-authenticator-mobile/android/libTest/src/main/kotlin/
 	mv ${PROJECT_ROOT}tmp-bindings/* ${PROJECT_ROOT}proton-authenticator-mobile/android/libTest/src/main/kotlin/
 	rm -rf ${PROJECT_ROOT}tmp-bindings
 

@@ -1,7 +1,7 @@
 package proton.android.authenticator
 
-import uniffi.proton_authenticator_common_mobile.AuthenticatorEntryModel
-import uniffi.proton_authenticator_common_mobile.AuthenticatorMobileClient
+import proton.android.authenticator.AuthenticatorEntryModel
+import proton.android.authenticator.commonrust.AuthenticatorMobileClient
 
 object TestUtils {
 

@@ -1,14 +1,23 @@
 use crate::AuthenticatorEntryModel;
-use proton_pass_derive::Error;
 
-#[derive(Clone, Debug, Error)]
+#[derive(Clone, Debug, uniffi::Error)]
+#[uniffi(flat_error)]
 pub enum AuthenticatorCryptoError {
     CryptoError,
 }
 
+impl std::fmt::Display for AuthenticatorCryptoError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+#[derive(uniffi::Object)]
 pub struct AuthenticatorCrypto;
 
+#[uniffi::export]
 impl AuthenticatorCrypto {
+    #[uniffi::constructor]
     pub fn new() -> Self {
         Self
     }

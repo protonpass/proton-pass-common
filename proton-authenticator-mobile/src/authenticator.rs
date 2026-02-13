@@ -1,15 +1,9 @@
-use crate::{AuthenticatorEntryModel, AuthenticatorEntryType};
+use crate::AuthenticatorEntryModel;
 use proton_authenticator::entry::AuthenticatorInvalidDataParam;
-use proton_authenticator::{
-    warn, Algorithm, AuthenticatorClient, AuthenticatorCodeResponse as CommonAuthenticatorCodeResponse,
-    AuthenticatorEntry, AuthenticatorEntryContent,
-    AuthenticatorEntrySteamCreateParameters as CommonSteamCreateParameters,
-    AuthenticatorEntryTotpCreateParameters as CommonTotpCreateParameters,
-    AuthenticatorEntryTotpParameters as CommonTotpParameters, AuthenticatorEntryUpdateContents as CommonUpdateContents,
-};
-use proton_pass_derive::Error;
+use proton_authenticator::{warn, AuthenticatorClient, AuthenticatorEntry};
 
-#[derive(Debug, Error)]
+#[derive(Debug, uniffi::Error)]
+#[uniffi(flat_error)]
 pub enum AuthenticatorError {
     NoEntries,
     UnsupportedUri,
@@ -23,6 +17,12 @@ pub enum AuthenticatorError {
     ImportBadPassword,
     ImportMissingPassword,
     ImportDecryptionFailed,
+}
+
+impl std::fmt::Display for AuthenticatorError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 impl From<proton_authenticator::AuthenticatorError> for AuthenticatorError {
@@ -55,162 +55,26 @@ impl From<proton_authenticator::AuthenticatorEntryError> for AuthenticatorError 
     }
 }
 
-impl From<AuthenticatorEntry> for AuthenticatorEntryModel {
-    fn from(entry: AuthenticatorEntry) -> Self {
-        Self {
-            id: entry.id.to_string(),
-            name: entry.name(),
-            note: entry.note.clone(),
-            uri: entry.uri(),
-            issuer: entry.issuer(),
-            period: entry.period(),
-            secret: entry.secret(),
-            entry_type: match entry.content {
-                AuthenticatorEntryContent::Totp(_) => AuthenticatorEntryType::TOTP,
-                AuthenticatorEntryContent::Steam(_) => AuthenticatorEntryType::Steam,
-            },
-        }
-    }
-}
+// Re-export core types directly
+pub use proton_authenticator::{
+    Algorithm as AuthenticatorTotpAlgorithm, AuthenticatorEntrySteamCreateParameters,
+    AuthenticatorEntryTotpCreateParameters, AuthenticatorEntryTotpParameters, AuthenticatorEntryType,
+    AuthenticatorEntryUpdateContents,
+};
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum AuthenticatorTotpAlgorithm {
-    SHA1,
-    SHA256,
-    SHA512,
-}
+// Re-export the model version from core
+pub use proton_authenticator::AuthenticatorCodeResponseModel as AuthenticatorCodeResponse;
 
-impl From<AuthenticatorTotpAlgorithm> for Algorithm {
-    fn from(value: AuthenticatorTotpAlgorithm) -> Self {
-        match value {
-            AuthenticatorTotpAlgorithm::SHA1 => Algorithm::SHA1,
-            AuthenticatorTotpAlgorithm::SHA256 => Algorithm::SHA256,
-            AuthenticatorTotpAlgorithm::SHA512 => Algorithm::SHA512,
-        }
-    }
-}
+// These types are now re-exported from the core crate above
 
-impl From<Algorithm> for AuthenticatorTotpAlgorithm {
-    fn from(value: Algorithm) -> Self {
-        match value {
-            Algorithm::SHA1 => AuthenticatorTotpAlgorithm::SHA1,
-            Algorithm::SHA256 => AuthenticatorTotpAlgorithm::SHA256,
-            Algorithm::SHA512 => AuthenticatorTotpAlgorithm::SHA512,
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct AuthenticatorEntryTotpCreateParameters {
-    pub name: String,
-    pub secret: String,
-    pub issuer: String,
-    pub period: Option<u16>,
-    pub digits: Option<u8>,
-    pub algorithm: Option<AuthenticatorTotpAlgorithm>,
-    pub note: Option<String>,
-}
-
-impl From<AuthenticatorEntryTotpCreateParameters> for CommonTotpCreateParameters {
-    fn from(value: AuthenticatorEntryTotpCreateParameters) -> Self {
-        Self {
-            name: value.name,
-            secret: value.secret,
-            issuer: value.issuer,
-            period: value.period,
-            digits: value.digits,
-            algorithm: value.algorithm.map(Algorithm::from),
-            note: value.note,
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct AuthenticatorEntrySteamCreateParameters {
-    pub name: String,
-    pub secret: String,
-    pub note: Option<String>,
-}
-
-impl From<AuthenticatorEntrySteamCreateParameters> for CommonSteamCreateParameters {
-    fn from(value: AuthenticatorEntrySteamCreateParameters) -> Self {
-        Self {
-            name: value.name,
-            secret: value.secret,
-            note: value.note,
-        }
-    }
-}
-
-pub struct AuthenticatorCodeResponse {
-    pub current_code: String,
-    pub next_code: String,
-    pub entry: AuthenticatorEntryModel,
-}
-
-impl From<CommonAuthenticatorCodeResponse> for AuthenticatorCodeResponse {
-    fn from(value: CommonAuthenticatorCodeResponse) -> Self {
-        Self {
-            current_code: value.current_code,
-            next_code: value.next_code,
-            entry: AuthenticatorEntryModel::from(value.entry),
-        }
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct AuthenticatorEntryTotpParameters {
-    pub secret: String,
-    pub issuer: String,
-    pub period: u16,
-    pub digits: u8,
-    pub algorithm: AuthenticatorTotpAlgorithm,
-}
-
-impl From<CommonTotpParameters> for AuthenticatorEntryTotpParameters {
-    fn from(value: CommonTotpParameters) -> Self {
-        Self {
-            secret: value.secret,
-            issuer: value.issuer.unwrap_or_default(),
-            period: value.period,
-            digits: value.digits,
-            algorithm: AuthenticatorTotpAlgorithm::from(value.algorithm),
-        }
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct AuthenticatorEntryUpdateContents {
-    pub name: String,
-    pub secret: String,
-    pub issuer: String,
-    pub period: u16,
-    pub digits: u8,
-    pub algorithm: AuthenticatorTotpAlgorithm,
-    pub note: Option<String>,
-    pub entry_type: AuthenticatorEntryType,
-}
-
-impl From<AuthenticatorEntryUpdateContents> for CommonUpdateContents {
-    fn from(value: AuthenticatorEntryUpdateContents) -> Self {
-        Self {
-            name: value.name,
-            secret: value.secret,
-            issuer: value.issuer,
-            period: value.period,
-            digits: value.digits,
-            algorithm: Algorithm::from(value.algorithm),
-            note: value.note,
-            entry_type: proton_authenticator::AuthenticatorEntryType::from(value.entry_type),
-        }
-    }
-}
-
+#[derive(uniffi::Object)]
 pub struct AuthenticatorMobileClient {
     inner: AuthenticatorClient,
 }
 
+#[uniffi::export]
 impl AuthenticatorMobileClient {
+    #[uniffi::constructor]
     pub fn new() -> Self {
         Self {
             inner: AuthenticatorClient::new(),
@@ -226,8 +90,7 @@ impl AuthenticatorMobileClient {
         &self,
         params: AuthenticatorEntryTotpCreateParameters,
     ) -> Result<AuthenticatorEntryModel, AuthenticatorError> {
-        let mapped_params = CommonTotpCreateParameters::from(params);
-        let entry = AuthenticatorEntry::new_totp_entry_from_params(mapped_params)?;
+        let entry = AuthenticatorEntry::new_totp_entry_from_params(params)?;
         Ok(entry.into())
     }
 
@@ -235,8 +98,7 @@ impl AuthenticatorMobileClient {
         &self,
         params: AuthenticatorEntrySteamCreateParameters,
     ) -> Result<AuthenticatorEntryModel, AuthenticatorError> {
-        let mapped_params = CommonSteamCreateParameters::from(params);
-        let entry = AuthenticatorEntry::new_steam_entry_from_params(mapped_params)?;
+        let entry = AuthenticatorEntry::new_steam_entry_from_params(params)?;
         Ok(entry.into())
     }
 
@@ -312,7 +174,7 @@ impl AuthenticatorMobileClient {
     ) -> Result<AuthenticatorEntryTotpParameters, AuthenticatorError> {
         let as_entry = entry.to_entry()?;
         let parameters = as_entry.get_totp_parameters()?;
-        Ok(AuthenticatorEntryTotpParameters::from(parameters))
+        Ok(parameters)
     }
 
     pub fn update_entry(
@@ -320,9 +182,8 @@ impl AuthenticatorMobileClient {
         entry: AuthenticatorEntryModel,
         update: AuthenticatorEntryUpdateContents,
     ) -> Result<AuthenticatorEntryModel, AuthenticatorError> {
-        let mapped_update = CommonUpdateContents::from(update);
         let mut as_entry = entry.to_entry()?;
-        as_entry.update(mapped_update)?;
+        as_entry.update(update)?;
 
         Ok(as_entry.into())
     }

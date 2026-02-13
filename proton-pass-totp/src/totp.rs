@@ -2,8 +2,10 @@ use crate::algorithm::Algorithm;
 use crate::error::TOTPError;
 use crate::queries::Queries;
 use crate::sanitizer::sanitize_secret;
+use proton_pass_derive::ffi_type;
 use url::Url;
 
+#[ffi_type]
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct TOTP {
     pub label: Option<String>,

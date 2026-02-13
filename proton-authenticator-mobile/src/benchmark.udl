@@ -1,4 +1,0 @@
-interface MobileTotpBenchmark {
-  constructor(u64 milliseconds);
-  u64 run(AuthenticatorEntryModel model);
-};

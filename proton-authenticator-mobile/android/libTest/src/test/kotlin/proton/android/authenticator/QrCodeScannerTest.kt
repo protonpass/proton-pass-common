@@ -2,7 +2,7 @@ package proton.android.authenticator
 
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import uniffi.proton_authenticator_common_mobile.QrCodeScanner
+import proton.android.authenticator.commonrust.QrCodeScanner
 import java.io.File
 
 class QrCodeScannerTest {

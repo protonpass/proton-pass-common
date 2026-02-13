@@ -3,7 +3,7 @@ use proton_pass_common::file::{get_file_group_from_mime_type, get_mime_type_from
 
 // START MAPPING TYPES
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, uniffi::Enum)]
 pub enum FileGroup {
     Image,
     Photo,
@@ -44,9 +44,12 @@ impl From<CommonFileGroup> for FileGroup {
 
 // END MAPPING TYPES
 
+#[derive(uniffi::Object)]
 pub struct FileDecoder;
 
+#[uniffi::export]
 impl FileDecoder {
+    #[uniffi::constructor]
     pub fn new() -> Self {
         Self
     }

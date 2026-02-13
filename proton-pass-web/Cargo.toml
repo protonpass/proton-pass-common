@@ -19,7 +19,7 @@ doctest = false
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-proton-pass-common = { path = "../proton-pass-common" }
+proton-pass-common = { path = "../proton-pass-common", default-features = false, features = ["wasm"] }
 
 js-sys.workspace = true
 serde.workspace = true

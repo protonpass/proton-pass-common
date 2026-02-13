@@ -17,8 +17,9 @@ mod totp;
 mod twofa;
 mod wifi;
 
-uniffi::include_scaffolding!("common");
+uniffi::setup_scaffolding!();
 
+#[uniffi::export]
 pub fn library_version() -> String {
     proton_pass_common::library_version()
 }

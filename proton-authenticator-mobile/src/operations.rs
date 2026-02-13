@@ -4,6 +4,7 @@ use proton_authenticator::operations::{
     LocalEntry as CommonLocalEntry, RemoteEntry as CommonRemoteEntry,
 };
 
+#[derive(uniffi::Enum)]
 pub enum LocalEntryState {
     Synced,
     PendingSync,
@@ -20,6 +21,7 @@ impl From<LocalEntryState> for CommonEntryState {
     }
 }
 
+#[derive(uniffi::Record)]
 pub struct LocalEntry {
     pub entry: AuthenticatorEntryModel,
     pub state: LocalEntryState,
@@ -40,6 +42,7 @@ impl TryFrom<LocalEntry> for CommonLocalEntry {
     }
 }
 
+#[derive(uniffi::Record)]
 pub struct RemoteEntry {
     pub remote_id: String,
     pub revision: u32,
@@ -60,6 +63,7 @@ impl TryFrom<RemoteEntry> for CommonRemoteEntry {
     }
 }
 
+#[derive(uniffi::Enum)]
 pub enum OperationType {
     Upsert,
     DeleteLocal,
@@ -78,6 +82,7 @@ impl From<AuthenticatorOperation> for OperationType {
     }
 }
 
+#[derive(uniffi::Record)]
 pub struct EntryOperation {
     pub remote_id: Option<String>,
     pub revision: Option<u32>,
@@ -96,9 +101,12 @@ impl From<CommonEntryOperation> for EntryOperation {
     }
 }
 
+#[derive(uniffi::Object)]
 pub struct SyncOperationChecker;
 
+#[uniffi::export]
 impl SyncOperationChecker {
+    #[uniffi::constructor]
     pub fn new() -> Self {
         Self
     }

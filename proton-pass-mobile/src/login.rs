@@ -1,5 +1,6 @@
 use proton_pass_common::login::{Login as CommonLogin, LoginError as CommonLoginError};
 
+#[derive(uniffi::Record)]
 pub struct Login {
     pub title: String,
     pub username: String,
@@ -20,7 +21,8 @@ impl From<Login> for CommonLogin {
     }
 }
 
-#[derive(Debug, proton_pass_derive::Error, PartialEq, Eq)]
+#[derive(Debug, proton_pass_derive::Error, PartialEq, Eq, uniffi::Error)]
+#[uniffi(flat_error)]
 pub enum LoginError {
     InvalidTOTP,
     InvalidURL,
@@ -35,9 +37,12 @@ impl From<CommonLoginError> for LoginError {
     }
 }
 
+#[derive(uniffi::Object)]
 pub struct LoginValidator;
 
+#[uniffi::export]
 impl LoginValidator {
+    #[uniffi::constructor]
     pub fn new() -> Self {
         Self
     }

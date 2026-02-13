@@ -1,8 +1,10 @@
 use crate::entry::AuthenticatorInvalidDataParam;
 use crate::steam::SteamTotp;
 use crate::{AuthenticatorEntry, AuthenticatorEntryContent, AuthenticatorEntryError};
+use proton_pass_derive::ffi_type;
 use proton_pass_totp::{Algorithm, TOTP};
 
+#[ffi_type]
 #[derive(Debug, Clone)]
 pub struct AuthenticatorEntryTotpCreateParameters {
     pub name: String,
@@ -14,6 +16,7 @@ pub struct AuthenticatorEntryTotpCreateParameters {
     pub note: Option<String>,
 }
 
+#[ffi_type]
 #[derive(Debug, Clone)]
 pub struct AuthenticatorEntrySteamCreateParameters {
     pub name: String,

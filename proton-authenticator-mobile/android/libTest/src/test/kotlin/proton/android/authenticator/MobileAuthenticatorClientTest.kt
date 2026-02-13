@@ -3,11 +3,11 @@ package proton.android.authenticator
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test
-import uniffi.proton_authenticator_common_mobile.AuthenticatorEntrySteamCreateParameters
-import uniffi.proton_authenticator_common_mobile.AuthenticatorEntryType
-import uniffi.proton_authenticator_common_mobile.AuthenticatorEntryUpdateContents
-import uniffi.proton_authenticator_common_mobile.AuthenticatorMobileClient
-import uniffi.proton_authenticator_common_mobile.AuthenticatorTotpAlgorithm
+import proton.android.authenticator.AuthenticatorEntrySteamCreateParameters
+import proton.android.authenticator.AuthenticatorEntryType
+import proton.android.authenticator.AuthenticatorEntryUpdateContents
+import proton.android.authenticator.commonrust.AuthenticatorMobileClient
+import proton.android.pass.totp.Algorithm
 
 class MobileAuthenticatorClientTest {
 
@@ -45,7 +45,7 @@ class MobileAuthenticatorClientTest {
         assertThat(params.period.toInt()).isEqualTo(15)
         assertThat(params.digits.toInt()).isEqualTo(8)
         assertThat(params.secret).isEqualTo("MYSECRET")
-        assertThat(params.algorithm).isEqualTo(AuthenticatorTotpAlgorithm.SHA256)
+        assertThat(params.algorithm).isEqualTo(Algorithm.SHA256)
         assertThat(params.issuer).isEqualTo("MYISSUER")
     }
 
@@ -112,7 +112,7 @@ class MobileAuthenticatorClientTest {
         ))
 
         val params = client.getTotpParams(entry)
-        assertThat(params.algorithm).isEqualTo(AuthenticatorTotpAlgorithm.SHA1)
+        assertThat(params.algorithm).isEqualTo(Algorithm.SHA1)
         assertThat(params.issuer).isEqualTo("Steam")
         assertThat(params.digits.toInt()).isEqualTo(5)
         assertThat(params.period.toInt()).isEqualTo(30)
@@ -147,7 +147,7 @@ class MobileAuthenticatorClientTest {
             issuer = "NEW_ISSUER",
             period = 8u,
             digits = 4.toUByte(),
-            algorithm = AuthenticatorTotpAlgorithm.SHA1,
+            algorithm = Algorithm.SHA1,
             note = "NEW_NOTE",
             entryType = AuthenticatorEntryType.TOTP
         )
@@ -180,7 +180,7 @@ class MobileAuthenticatorClientTest {
             issuer = "NEW_ISSUER",
             period = 8u,
             digits = 4.toUByte(),
-            algorithm = AuthenticatorTotpAlgorithm.SHA1,
+            algorithm = Algorithm.SHA1,
             entryType = AuthenticatorEntryType.STEAM
         )
         val updated = client.updateEntry(entry, update)
@@ -207,7 +207,7 @@ class MobileAuthenticatorClientTest {
             issuer = "NEW_ISSUER",
             period = 8u,
             digits = 4.toUByte(),
-            algorithm = AuthenticatorTotpAlgorithm.SHA512,
+            algorithm = Algorithm.SHA512,
             entryType = AuthenticatorEntryType.STEAM
         )
         val updated = client.updateEntry(entry, update)
@@ -222,7 +222,7 @@ class MobileAuthenticatorClientTest {
         assertThat(updated.issuer).isEqualTo("Steam") // Issuer gets ignored
 
         val totpParams = client.getTotpParams(updated)
-        assertThat(totpParams.algorithm).isEqualTo(AuthenticatorTotpAlgorithm.SHA1) // Algorithm gets ignored
+        assertThat(totpParams.algorithm).isEqualTo(Algorithm.SHA1) // Algorithm gets ignored
         assertThat(totpParams.digits.toInt()).isEqualTo(5) // Digits get ignored
 
     }

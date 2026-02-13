@@ -2,6 +2,8 @@ mod create;
 mod crypto;
 mod exporter;
 mod gen;
+#[cfg(any(feature = "uniffi", feature = "wasm"))]
+mod model;
 mod password_exporter;
 mod serializer;
 mod update;
@@ -10,6 +12,8 @@ use crate::steam::{SteamTotp, PERIOD as STEAM_PERIOD, STEAM_DIGITS, STEAM_ISSUER
 pub use create::{AuthenticatorEntrySteamCreateParameters, AuthenticatorEntryTotpCreateParameters};
 pub use crypto::{decrypt_entries, encrypt_entries};
 pub use exporter::{export_entries, import_authenticator_entries};
+#[cfg(any(feature = "uniffi", feature = "wasm"))]
+pub use model::{AuthenticatorCodeResponseModel, AuthenticatorEntryModel};
 pub use password_exporter::{export_entries_with_password, import_entries_with_password};
 use proton_pass_totp::{Algorithm, TOTP};
 pub use update::{AuthenticatorEntryType, AuthenticatorEntryUpdateContents};
@@ -86,6 +90,7 @@ impl PartialEq for AuthenticatorEntry {
 }
 
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 pub struct AuthenticatorEntryTotpParameters {
     pub secret: String,
     pub issuer: Option<String>,

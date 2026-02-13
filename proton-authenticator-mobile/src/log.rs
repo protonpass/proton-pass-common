@@ -3,7 +3,7 @@ use proton_authenticator::{
 };
 use std::sync::Arc;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, uniffi::Enum)]
 pub enum AuthenticatorLogLevel {
     Trace,
     Debug,
@@ -36,6 +36,7 @@ impl From<AuthenticatorLogLevel> for CommonLogLevel {
     }
 }
 
+#[uniffi::export(with_foreign)]
 pub trait AuthenticatorLogger: Send + Sync {
     fn log(&self, level: AuthenticatorLogLevel, msg: String);
 }
@@ -50,11 +51,13 @@ impl Logger for LoggerAdapter {
     }
 }
 
+#[uniffi::export]
 pub fn register_authenticator_logger(logger: Arc<dyn AuthenticatorLogger>) {
     let adapter = LoggerAdapter { mobile: logger };
     common_register(Arc::new(adapter));
 }
 
+#[uniffi::export]
 pub fn emit_log(level: AuthenticatorLogLevel, message: String) {
     emit_log_message(level.into(), message)
 }

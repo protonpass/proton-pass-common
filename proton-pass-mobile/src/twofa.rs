@@ -1,8 +1,11 @@
 use proton_pass_common::twofa::TwofaDomainChecker as CommonTwofaDomainChecker;
 
+#[derive(uniffi::Object)]
 pub struct TwofaDomainChecker;
 
+#[uniffi::export]
 impl TwofaDomainChecker {
+    #[uniffi::constructor]
     pub fn new() -> Self {
         Self
     }

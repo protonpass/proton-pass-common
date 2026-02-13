@@ -4,6 +4,8 @@ mod scorer;
 
 use password_generator::PasswordGenerator;
 use proton_pass_derive::Error;
+#[cfg(feature = "wasm")]
+use proton_pass_derive::{ffi_enum, ffi_type};
 use rand::{rng, rngs::ThreadRng};
 pub use scorer::*;
 
@@ -14,6 +16,8 @@ pub enum PasswordGeneratorError {
     FailToGenerate(String),
 }
 
+#[cfg_attr(feature = "wasm", ffi_type)]
+#[derive(Clone, Debug)]
 pub struct RandomPasswordConfig {
     pub length: u32,
     pub numbers: bool,
@@ -21,6 +25,8 @@ pub struct RandomPasswordConfig {
     pub symbols: bool,
 }
 
+#[cfg_attr(feature = "wasm", ffi_type)]
+#[derive(Clone, Debug)]
 pub struct PassphraseConfig {
     pub separator: WordSeparator,
     pub capitalise: bool,
@@ -28,6 +34,8 @@ pub struct PassphraseConfig {
     pub count: u32,
 }
 
+#[cfg_attr(feature = "wasm", ffi_enum)]
+#[derive(Clone, Debug)]
 pub enum WordSeparator {
     Hyphens,
     Spaces,

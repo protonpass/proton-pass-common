@@ -2,11 +2,14 @@ use crate::AuthenticatorEntryModel;
 use proton_authenticator::AuthenticatorClient;
 use std::hint::black_box;
 
+#[derive(uniffi::Object)]
 pub struct MobileTotpBenchmark {
     milliseconds: u64,
 }
 
+#[uniffi::export]
 impl MobileTotpBenchmark {
+    #[uniffi::constructor]
     pub fn new(milliseconds: u64) -> Self {
         Self { milliseconds }
     }

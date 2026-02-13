@@ -1,6 +1,6 @@
 use proton_pass_common::share::{visible_share_ids, Share as CommonShare, TargetType as CommonTargetType};
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, uniffi::Enum)]
 pub enum TargetType {
     Vault,
     Item,
@@ -24,7 +24,7 @@ impl From<TargetType> for CommonTargetType {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, uniffi::Record)]
 pub struct Share {
     pub share_id: String,
     pub vault_id: String,
@@ -63,9 +63,12 @@ impl From<Share> for CommonShare {
     }
 }
 
+#[derive(uniffi::Object)]
 pub struct ShareOverrideCalculator;
 
+#[uniffi::export]
 impl ShareOverrideCalculator {
+    #[uniffi::constructor]
     pub fn new() -> Self {
         Self
     }

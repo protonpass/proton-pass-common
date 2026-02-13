@@ -2,14 +2,17 @@ use crate::{
     AuthenticatorEntry, AuthenticatorEntryError, AuthenticatorEntrySteamCreateParameters,
     AuthenticatorEntryTotpCreateParameters,
 };
+use proton_pass_derive::{ffi_enum, ffi_type};
 use proton_pass_totp::Algorithm;
 
+#[ffi_enum]
 #[derive(Clone, Debug)]
 pub enum AuthenticatorEntryType {
     Totp,
     Steam,
 }
 
+#[ffi_type]
 #[derive(Clone, Debug)]
 pub struct AuthenticatorEntryUpdateContents {
     pub name: String,

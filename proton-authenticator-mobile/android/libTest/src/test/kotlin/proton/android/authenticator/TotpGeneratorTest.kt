@@ -6,10 +6,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
-import uniffi.proton_authenticator_common_mobile.AuthenticatorCodeResponse
-import uniffi.proton_authenticator_common_mobile.MobileCurrentTimeProvider
-import uniffi.proton_authenticator_common_mobile.MobileTotpGenerator
-import uniffi.proton_authenticator_common_mobile.MobileTotpGeneratorCallback
+import proton.android.authenticator.AuthenticatorCodeResponseModel
+import proton.android.authenticator.commonrust.MobileCurrentTimeProvider
+import proton.android.authenticator.commonrust.MobileTotpGenerator
+import proton.android.authenticator.commonrust.MobileTotpGeneratorCallback
 
 class TotpGeneratorTest {
 
@@ -34,11 +34,11 @@ class TotpGeneratorTest {
                 }
             )
 
-            val generated = mutableListOf<List<AuthenticatorCodeResponse>>()
+            val generated = mutableListOf<List<AuthenticatorCodeResponseModel>>()
             val handle = generator.start(
                 entries = listOf(entry1, entry2),
                 callback = object : MobileTotpGeneratorCallback {
-                    override fun onCodes(codes: List<AuthenticatorCodeResponse>) {
+                    override fun onCodes(codes: List<AuthenticatorCodeResponseModel>) {
                         generated.add(codes)
                     }
                 }
@@ -98,11 +98,11 @@ class TotpGeneratorTest {
                 }
             )
 
-            val generated = mutableListOf<List<AuthenticatorCodeResponse>>()
+            val generated = mutableListOf<List<AuthenticatorCodeResponseModel>>()
             val handle = generator.start(
                 entries = listOf(entry),
                 callback = object : MobileTotpGeneratorCallback {
-                    override fun onCodes(codes: List<AuthenticatorCodeResponse>) {
+                    override fun onCodes(codes: List<AuthenticatorCodeResponseModel>) {
                         generated.add(codes)
                     }
                 }

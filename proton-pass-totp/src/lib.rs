@@ -1,3 +1,6 @@
+#[cfg(feature = "uniffi")]
+uniffi::setup_scaffolding!();
+
 pub mod algorithm;
 pub mod error;
 pub mod queries;

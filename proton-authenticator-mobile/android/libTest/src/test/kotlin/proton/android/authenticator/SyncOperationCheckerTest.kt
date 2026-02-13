@@ -2,11 +2,11 @@ package proton.android.authenticator
 
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import uniffi.proton_authenticator_common_mobile.LocalEntry
-import uniffi.proton_authenticator_common_mobile.LocalEntryState
-import uniffi.proton_authenticator_common_mobile.OperationType
-import uniffi.proton_authenticator_common_mobile.RemoteEntry
-import uniffi.proton_authenticator_common_mobile.SyncOperationChecker
+import proton.android.authenticator.commonrust.LocalEntry
+import proton.android.authenticator.commonrust.LocalEntryState
+import proton.android.authenticator.commonrust.OperationType
+import proton.android.authenticator.commonrust.RemoteEntry
+import proton.android.authenticator.commonrust.SyncOperationChecker
 
 class SyncOperationCheckerTest {
 

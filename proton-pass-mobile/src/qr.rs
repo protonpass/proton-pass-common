@@ -1,7 +1,8 @@
 use proton_pass_common::qr::generate_svg_qr_code;
 use proton_pass_common::qrcode::types::QrError as CommonQrError;
 
-#[derive(Debug, proton_pass_derive::Error, PartialEq, Eq)]
+#[derive(Debug, proton_pass_derive::Error, PartialEq, Eq, uniffi::Error)]
+#[uniffi(flat_error)]
 pub enum QrCodeError {
     DataTooLong,
     InvalidVersion,
@@ -22,9 +23,12 @@ impl From<CommonQrError> for QrCodeError {
     }
 }
 
+#[derive(uniffi::Object)]
 pub struct QrCodeGenerator;
 
+#[uniffi::export]
 impl QrCodeGenerator {
+    #[uniffi::constructor]
     pub fn new() -> Self {
         Self
     }

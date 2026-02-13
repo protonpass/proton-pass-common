@@ -2,8 +2,8 @@ package proton.android.authenticator
 
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import uniffi.proton_authenticator_common_mobile.AuthenticatorCrypto
-import uniffi.proton_authenticator_common_mobile.AuthenticatorMobileClient
+import proton.android.authenticator.commonrust.AuthenticatorCrypto
+import proton.android.authenticator.commonrust.AuthenticatorMobileClient
 
 class AuthenticatorCryptoTest {
 

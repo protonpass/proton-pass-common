@@ -9,6 +9,7 @@ pub use proton_pass_common::passkey::{
     CreatePasskeyIosRequest as CommonCreatePasskeyIosRequest, PasskeyError as CommonPasskeyError,
 };
 
+#[derive(uniffi::Record)]
 pub struct AuthenticateWithPasskeyAndroidRequest {
     pub origin: String,
     pub request: String,
@@ -27,6 +28,7 @@ impl From<AuthenticateWithPasskeyAndroidRequest> for CommonAuthenticateWithPassk
     }
 }
 
+#[derive(uniffi::Record)]
 pub struct AuthenticateWithPasskeyIosRequest {
     pub service_identifier: String,
     pub passkey: Vec<u8>,
@@ -43,6 +45,7 @@ impl From<AuthenticateWithPasskeyIosRequest> for CommonAuthenticateWithPasskeyIo
     }
 }
 
+#[derive(uniffi::Record)]
 pub struct AuthenticateWithPasskeyIosResponse {
     pub user_handle: Vec<u8>,
     pub relying_party: String,
@@ -65,6 +68,7 @@ impl From<CommonAuthenticateWithPasskeyIosResponse> for AuthenticateWithPasskeyI
     }
 }
 
+#[derive(uniffi::Record)]
 pub struct CreatePasskeyIosRequest {
     pub service_identifier: String,
     pub rp_id: String,
@@ -87,7 +91,8 @@ impl From<CreatePasskeyIosRequest> for CommonCreatePasskeyIosRequest {
     }
 }
 
-#[derive(Clone, Debug, proton_pass_derive::Error)]
+#[derive(Clone, Debug, proton_pass_derive::Error, uniffi::Error)]
+#[uniffi(flat_error)]
 pub enum PasskeyError {
     InvalidUri(String),
     RuntimeError(String),
@@ -110,6 +115,7 @@ impl From<CommonPasskeyError> for PasskeyError {
 
 type PasskeyResult<T> = Result<T, PasskeyError>;
 
+#[derive(uniffi::Record)]
 pub struct CreatePasskeyResponse {
     pub response: String,
     pub key_id: String,
@@ -124,6 +130,7 @@ pub struct CreatePasskeyResponse {
     pub user_handle: Option<Vec<u8>>,
 }
 
+#[derive(uniffi::Record)]
 pub struct CreatePasskeyIosResponse {
     pub key_id: String,
     pub passkey: Vec<u8>,
@@ -139,6 +146,7 @@ pub struct CreatePasskeyIosResponse {
     pub attestation_object: Vec<u8>,
 }
 
+#[derive(uniffi::Record)]
 pub struct CreatePasskeyData {
     pub rp_id: Option<String>,
     pub rp_name: String,
@@ -146,11 +154,14 @@ pub struct CreatePasskeyData {
     pub user_display_name: String,
 }
 
+#[derive(uniffi::Object)]
 pub struct PasskeyManager {
     rt: tokio::runtime::Runtime,
 }
 
+#[uniffi::export]
 impl PasskeyManager {
+    #[uniffi::constructor]
     pub fn new() -> PasskeyResult<Self> {
         match tokio::runtime::Builder::new_current_thread().build() {
             Ok(rt) => Ok(Self { rt }),

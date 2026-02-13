@@ -3,8 +3,10 @@ use proton_pass_common::qr::generate_svg_qr_code;
 use proton_pass_common::wifi::{generate_wifi_uri, WifiError as CommonWifiError, WifiSecurity as CommonWifiSecurity};
 use proton_pass_derive::Error;
 
+#[derive(uniffi::Object)]
 pub struct WifiQrCodeGenerator;
 
+#[derive(uniffi::Enum)]
 pub enum WifiSecurity {
     Unspecified,
     WPA,
@@ -25,7 +27,8 @@ impl From<WifiSecurity> for CommonWifiSecurity {
     }
 }
 
-#[derive(Debug, Error, PartialEq, Eq)]
+#[derive(Debug, Error, PartialEq, Eq, uniffi::Error)]
+#[uniffi(flat_error)]
 pub enum WifiError {
     EmptySSID,
 }
@@ -38,13 +41,16 @@ impl From<CommonWifiError> for WifiError {
     }
 }
 
-#[derive(Debug, Error, PartialEq, Eq)]
+#[derive(Debug, Error, PartialEq, Eq, uniffi::Error)]
+#[uniffi(flat_error)]
 pub enum WifiQrCodeGeneratorError {
     Wifi(WifiError),
     QrCode(QrCodeError),
 }
 
+#[uniffi::export]
 impl WifiQrCodeGenerator {
+    #[uniffi::constructor]
     pub fn new() -> Self {
         Self
     }

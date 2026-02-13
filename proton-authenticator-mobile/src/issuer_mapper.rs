@@ -1,8 +1,11 @@
 use proton_authenticator::TOTPIssuerMapper;
+
+#[derive(uniffi::Object)]
 pub struct AuthenticatorIssuerMapper {
     inner: TOTPIssuerMapper,
 }
 
+#[derive(uniffi::Record)]
 pub struct IssuerInfo {
     pub domain: String,
     pub icon_url: String,
@@ -17,7 +20,9 @@ impl From<proton_authenticator::issuer_mapper::IssuerInfo> for IssuerInfo {
     }
 }
 
+#[uniffi::export]
 impl AuthenticatorIssuerMapper {
+    #[uniffi::constructor]
     pub fn new() -> Self {
         Self {
             inner: TOTPIssuerMapper::new(),

@@ -1,6 +1,9 @@
+#[derive(uniffi::Object)]
 pub struct EmailValidator;
 
+#[uniffi::export]
 impl EmailValidator {
+    #[uniffi::constructor]
     pub fn new() -> Self {
         Self
     }

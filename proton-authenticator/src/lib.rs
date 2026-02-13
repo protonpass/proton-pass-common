@@ -1,3 +1,6 @@
+#[cfg(feature = "uniffi")]
+uniffi::setup_scaffolding!();
+
 #[macro_use]
 pub mod log;
 
@@ -24,6 +27,9 @@ pub use entry::{
     AuthenticatorEntrySteamCreateParameters, AuthenticatorEntryTotpCreateParameters, AuthenticatorEntryTotpParameters,
     AuthenticatorEntryType, AuthenticatorEntryUpdateContents,
 };
+
+#[cfg(any(feature = "uniffi", feature = "wasm"))]
+pub use entry::{AuthenticatorCodeResponseModel, AuthenticatorEntryModel};
 pub use issuer_mapper::{IssuerInfo, TOTPIssuerMapper};
 pub use log::{emit_log_message, register_authenticator_logger, LogLevel, Logger};
 pub use parser::aegis::{parse_aegis_json, parse_aegis_txt};

@@ -8,6 +8,10 @@ generate_serializable_types = true
 package_name = "proton.android.authenticator.commonrust"
 cdylib_name = "proton_authenticator_common_mobile"
 
+[bindings.kotlin.external_packages]
+proton_authenticator = "proton.android.authenticator"
+proton_pass_totp = "proton.android.pass.totp"
+
 [bindings.swift]
 module_name = "RustFramework"
 cdylib_name = "proton_authenticator_common_mobile"

@@ -104,7 +104,7 @@ impl From<WasmAuthenticatorEntryUpdateContents> for CommonUpdateContents {
             digits: entry.digits,
             algorithm: Algorithm::from(entry.algorithm),
             note: entry.note,
-            entry_type: proton_authenticator::AuthenticatorEntryType::from(entry.entry_type),
+            entry_type: entry.entry_type,
         }
     }
 }

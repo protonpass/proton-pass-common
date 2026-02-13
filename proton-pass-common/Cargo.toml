@@ -6,7 +6,13 @@ edition = "2021"
 [lib]
 doctest = false
 
+[features]
+default = []
+wasm = ["dep:tsify", "dep:wasm-bindgen", "proton-pass-totp/wasm"]
+
 [dependencies]
+tsify = { workspace = true, optional = true }
+wasm-bindgen = { workspace = true, optional = true }
 proton-pass-derive = { path = "../proton-pass-derive" }
 proton-pass-totp = { path = "../proton-pass-totp" }
 

@@ -1,6 +1,7 @@
 use crate::{AuthenticatorEntryModel, AuthenticatorError};
 use proton_authenticator::ordering::{reorder_items, EntryWithOrder};
 
+#[derive(uniffi::Record)]
 pub struct AuthenticatorEntryWithOrder {
     pub entry: AuthenticatorEntryModel,
     pub modify_time: i64,
@@ -30,9 +31,12 @@ impl From<EntryWithOrder> for AuthenticatorEntryWithOrder {
     }
 }
 
+#[derive(uniffi::Object)]
 pub struct AuthenticatorEntrySorter;
 
+#[uniffi::export]
 impl AuthenticatorEntrySorter {
+    #[uniffi::constructor]
     pub fn new() -> Self {
         Self
     }

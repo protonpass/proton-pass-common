@@ -1,8 +1,11 @@
 use proton_pass_common::invite::create_signature_body;
 
+#[derive(uniffi::Object)]
 pub struct NewUserInviteCreator;
 
+#[uniffi::export]
 impl NewUserInviteCreator {
+    #[uniffi::constructor]
     pub fn new() -> Self {
         Self
     }

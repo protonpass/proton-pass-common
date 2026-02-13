@@ -6,7 +6,14 @@ edition = "2021"
 [lib]
 doctest = false
 
+[features]
+uniffi = ["dep:uniffi"]
+wasm = ["dep:tsify", "dep:wasm-bindgen"]
+
 [dependencies]
+uniffi = { version = "0.31", optional = true }
+tsify = { workspace = true, optional = true }
+wasm-bindgen = { workspace = true, optional = true }
 proton-pass-derive = { path = "../proton-pass-derive" }
 
 serde.workspace = true

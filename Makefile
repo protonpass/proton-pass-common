@@ -17,6 +17,28 @@ WEB_BUILD_DIR:=${WEB_DIR}/dist
 WEB_TEST_DIR:=${WEB_DIR}/test
 WEB_TEST_BUILD_DIR:=${WEB_DIR}/test/pkg
 
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S), Darwin)
+LIBRARY_EXT = dylib
+JNA_OS = darwin
+else ifeq ($(UNAME_S), Linux)
+LIBRARY_EXT = so
+JNA_OS = linux
+endif
+
+UNAME_M := $(shell uname -m)
+ifeq ($(UNAME_M), arm64)
+JNA_ARCH = aarch64
+else ifeq ($(UNAME_M), aarch64)
+JNA_ARCH = aarch64
+else ifeq ($(UNAME_M), x86_64)
+JNA_ARCH = x86-64
+else
+JNA_ARCH = $(UNAME_M)
+endif
+
+JNA_PLATFORM = $(JNA_OS)-$(JNA_ARCH)
+
 .PHONY: default
 default: help
 
@@ -90,16 +112,61 @@ help: ## Display this help screen
 # --- Bindings
 .PHONY: kotlin-bindings
 kotlin-bindings: ## Generate the kotlin bindings
-	@cargo run -p proton-pass-mobile --features=uniffi/cli --bin uniffi-bindgen generate proton-pass-mobile/src/common.udl --language kotlin
+	@cargo build --release -p proton-pass-mobile
+	@cargo build -p proton-pass-mobile --features=uniffi/cli --bin uniffi-bindgen
+	@echo "Generating Kotlin bindings with uniffi-bindgen..."
+	@rm -rf ${PROJECT_ROOT}/tmp-bindings
+	@mkdir -p ${PROJECT_ROOT}/tmp-bindings
+	@${PROJECT_ROOT}/target/debug/uniffi-bindgen generate \
+		--library ${PROJECT_ROOT}/target/release/libproton_pass_common_mobile.${LIBRARY_EXT} \
+		--language kotlin \
+		--out-dir ${PROJECT_ROOT}tmp-bindings
 	@mkdir -p ${ANDROID_BINDINGS_DIR}
-	@cp proton-pass-mobile/src/proton/android/pass/commonrust/proton_pass_common_mobile.kt ${ANDROID_BINDINGS_DIR}/proton_pass_common_mobile.kt
+	@cp ${PROJECT_ROOT}/tmp-bindings/proton/android/pass/commonrust/proton_pass_common_mobile.kt ${ANDROID_BINDINGS_DIR}/proton_pass_common_mobile.kt
+	@echo "Wrote Pass Kotlin bindings to ${ANDROID_BINDINGS_DIR}"
+	@rm -rf ${PROJECT_ROOT}/tmp-bindings
 
 .PHONY: swift-bindings
 swift-bindings: swift-dirs ## Generate the swift bindings
-	@cargo run -p proton-pass-mobile --features=uniffi/cli --bin uniffi-bindgen generate proton-pass-mobile/src/common.udl --language swift
-	@cp proton-pass-mobile/src/RustFrameworkFFI.h ${IOS_HEADER_DIR}/RustFrameworkFFI.h
-	@cp proton-pass-mobile/src/RustFrameworkFFI.modulemap ${IOS_HEADER_DIR}/module.modulemap
-	@cp proton-pass-mobile/src/RustFramework.swift ${IOS_PACKAGE_DIR}/Sources/PassRustCore/PassRustCore.swift
+	@cargo build --release -p proton-pass-mobile
+	@cargo build -p proton-pass-mobile --features=uniffi/cli --bin uniffi-bindgen
+	@echo "Generating Swift bindings with uniffi-bindgen..."
+	@rm -rf ${PROJECT_ROOT}/tmp-bindings
+	@mkdir -p ${PROJECT_ROOT}/tmp-bindings
+	@${PROJECT_ROOT}/target/debug/uniffi-bindgen generate \
+		--library ${PROJECT_ROOT}/target/release/libproton_pass_common_mobile.${LIBRARY_EXT} \
+		--language swift \
+		--out-dir ${PROJECT_ROOT}tmp-bindings
+	@cp ${PROJECT_ROOT}/tmp-bindings/RustFrameworkFFI.h ${IOS_HEADER_DIR}/RustFrameworkFFI.h
+	@cp ${PROJECT_ROOT}/tmp-bindings/RustFrameworkFFI.modulemap ${IOS_HEADER_DIR}/module.modulemap
+	@cp ${PROJECT_ROOT}/tmp-bindings/RustFramework.swift ${IOS_PACKAGE_DIR}/Sources/PassRustCore/PassRustCore.swift
+	@echo "Wrote Pass Swift bindings to ${IOS_PACKAGE_DIR}/Sources/PassRustCore"
+	@rm -rf ${PROJECT_ROOT}/tmp-bindings
+
+.PHONY: pass-mobile-unit-test
+pass-mobile-unit-test:  ## Run the unit tests for the pass mobile library
+	@echo "Building for platform: ${JNA_PLATFORM}"
+	@cargo build --release -p proton-pass-mobile
+	@rm -rf ${PROJECT_ROOT}/proton-pass-mobile/android/libTest/src/main/jniLibs
+	@mkdir -p ${PROJECT_ROOT}/proton-pass-mobile/android/libTest/src/main/jniLibs/${JNA_PLATFORM}
+	@cp "${PROJECT_ROOT}/target/release/libproton_pass_common_mobile.${LIBRARY_EXT}" "${PROJECT_ROOT}/proton-pass-mobile/android/libTest/src/main/jniLibs/${JNA_PLATFORM}/libproton_pass_common_mobile.${LIBRARY_EXT}"
+
+	# Generate Kotlin JVM bindings using uniffi-bindgen
+	@echo "Generating Kotlin bindings with uniffi-bindgen..."
+	@rm -rf ${PROJECT_ROOT}/proton-pass-mobile/android/libTest/src/main/kotlin
+	@mkdir -p ${PROJECT_ROOT}/proton-pass-mobile/android/libTest/src/main/kotlin
+	@rm -rf ${PROJECT_ROOT}/tmp-bindings
+	@mkdir -p ${PROJECT_ROOT}/tmp-bindings
+	@cargo run -p proton-pass-mobile --features=uniffi/cli --bin uniffi-bindgen generate \
+		--library ${PROJECT_ROOT}/target/release/libproton_pass_common_mobile.${LIBRARY_EXT} \
+		--language kotlin \
+		--out-dir ${PROJECT_ROOT}tmp-bindings \
+		--no-format
+	@mv ${PROJECT_ROOT}/tmp-bindings/* ${PROJECT_ROOT}/proton-pass-mobile/android/libTest/src/main/kotlin/
+	@rm -rf ${PROJECT_ROOT}/tmp-bindings
+
+	# Run unit test
+	@cd ${PROJECT_ROOT}/proton-pass-mobile/android && ./gradlew :libTest:test --no-configuration-cache --rerun-tasks
 
 # --- Build
 .PHONY: swift-dirs
@@ -251,26 +318,37 @@ AUTHENTICATOR_WEB_BUILD_DIR:=${AUTHENTICATOR_WEB_DIR}/dist
 AUTHENTICATOR_WEB_TEST_DIR:=${AUTHENTICATOR_WEB_DIR}/test
 AUTHENTICATOR_WEB_TEST_BUILD_DIR:=${AUTHENTICATOR_WEB_DIR}/test/pkg
 
-UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S), Darwin)
-LIBRARY_EXT = dylib
-else ifeq ($(UNAME_S), Linux)
-LIBRARY_EXT = so
-endif
-
 
 .PHONY: authenticator-kotlin-bindings
 authenticator-kotlin-bindings: ## Generate the kotlin bindings
-	@cargo run -p proton-authenticator-mobile --features=uniffi/cli --bin uniffi-bindgen generate proton-authenticator-mobile/src/common.udl --language kotlin
+	@cargo build --release -p proton-authenticator-mobile
+	@cargo build -p proton-authenticator-mobile --features=uniffi/cli --bin uniffi-bindgen
+	@echo "Generating Kotlin bindings with uniffi-bindgen..."
+	@rm -rf ${PROJECT_ROOT}/tmp-bindings
+	@mkdir -p ${PROJECT_ROOT}/tmp-bindings
+	@${PROJECT_ROOT}/target/debug/uniffi-bindgen generate \
+		--library ${PROJECT_ROOT}/target/release/libproton_authenticator_common_mobile.${LIBRARY_EXT} \
+		--language kotlin \
+		--out-dir ${PROJECT_ROOT}tmp-bindings
 	@mkdir -p ${AUTHENTICATOR_ANDROID_BINDINGS_DIR}
-	@cp proton-authenticator-mobile/src/proton/android/authenticator/commonrust/proton_authenticator_common_mobile.kt ${AUTHENTICATOR_ANDROID_BINDINGS_DIR}/proton_authenticator_common_mobile.kt
+	@cp ${PROJECT_ROOT}/tmp-bindings/proton/android/authenticator/commonrust/proton_authenticator_common_mobile.kt ${AUTHENTICATOR_ANDROID_BINDINGS_DIR}/proton_authenticator_common_mobile.kt
+	@rm -rf ${PROJECT_ROOT}/tmp-bindings
 
 .PHONY: authenticator-swift-bindings
 authenticator-swift-bindings: authenticator-swift-dirs ## Generate the swift bindings
-	@cargo run -p proton-authenticator-mobile --features=uniffi/cli --bin uniffi-bindgen generate proton-authenticator-mobile/src/common.udl --language swift
-	@cp proton-authenticator-mobile/src/RustFrameworkFFI.h ${AUTHENTICATOR_IOS_HEADER_DIR}/RustFrameworkFFI.h
-	@cp proton-authenticator-mobile/src/RustFrameworkFFI.modulemap ${AUTHENTICATOR_IOS_HEADER_DIR}/module.modulemap
-	@cp proton-authenticator-mobile/src/RustFramework.swift ${AUTHENTICATOR_IOS_PACKAGE_DIR}/Sources/AuthenticatorRustCore/AuthenticatorRustCore.swift
+	@cargo build --release -p proton-authenticator-mobile
+	@cargo build -p proton-authenticator-mobile --features=uniffi/cli --bin uniffi-bindgen
+	@echo "Generating Swift bindings with uniffi-bindgen..."
+	@rm -rf ${PROJECT_ROOT}/tmp-bindings
+	@mkdir -p ${PROJECT_ROOT}/tmp-bindings
+	@${PROJECT_ROOT}/target/debug/uniffi-bindgen generate \
+		--library ${PROJECT_ROOT}/target/release/libproton_authenticator_common_mobile.${LIBRARY_EXT} \
+		--language swift \
+		--out-dir ${PROJECT_ROOT}tmp-bindings
+	@cp ${PROJECT_ROOT}/tmp-bindings/RustFrameworkFFI.h ${AUTHENTICATOR_IOS_HEADER_DIR}/RustFrameworkFFI.h
+	@cp ${PROJECT_ROOT}/tmp-bindings/RustFrameworkFFI.modulemap ${AUTHENTICATOR_IOS_HEADER_DIR}/module.modulemap
+	@cp ${PROJECT_ROOT}/tmp-bindings/RustFramework.swift ${AUTHENTICATOR_IOS_PACKAGE_DIR}/Sources/AuthenticatorRustCore/AuthenticatorRustCore.swift
+	@rm -rf ${PROJECT_ROOT}/tmp-bindings
 
 
 .PHONY: authenticator-swift-dirs
@@ -390,16 +468,25 @@ authenticator-test-website: authenticator-test-website-build ## Build the authen
 
 .PHONY: authenticator-mobile-unit-test
 authenticator-mobile-unit-test:  ## Run the unit tests for the authenticator mobile library
+	@echo "Building for platform: ${JNA_PLATFORM}"
 	@cargo build --release -p proton-authenticator-mobile
 	@rm -rf ${PROJECT_ROOT}/proton-authenticator-mobile/android/libTest/src/main/jniLibs
-	@mkdir -p ${PROJECT_ROOT}/proton-authenticator-mobile/android/libTest/src/main/jniLibs
-	@cp "${PROJECT_ROOT}/target/release/libproton_authenticator_common_mobile.${LIBRARY_EXT}" "${PROJECT_ROOT}/proton-authenticator-mobile/android/libTest/src/main/jniLibs/libuniffi_proton_authenticator_common_mobile.${LIBRARY_EXT}"
+	@mkdir -p ${PROJECT_ROOT}/proton-authenticator-mobile/android/libTest/src/main/jniLibs/${JNA_PLATFORM}
+	@cp "${PROJECT_ROOT}/target/release/libproton_authenticator_common_mobile.${LIBRARY_EXT}" "${PROJECT_ROOT}/proton-authenticator-mobile/android/libTest/src/main/jniLibs/${JNA_PLATFORM}/libproton_authenticator_common_mobile.${LIBRARY_EXT}"
 
-	# Generate gobley bindings
-	@rm -rf ${PROJECT_ROOT}/bindings/
-	@gobley-uniffi-bindgen --lib-file ${PROJECT_ROOT}/target/release/libproton_authenticator_common_mobile.a --config ${PROJECT_ROOT}/proton-authenticator-mobile/uniffi.toml -o bindings ${PROJECT_ROOT}/proton-authenticator-mobile/src/common.udl
-	@cp -R ${PROJECT_ROOT}/bindings/main proton-authenticator-mobile/android/libTest/src
-	@rm -rf ${PROJECT_ROOT}/bindings/
+	# Generate Kotlin JVM bindings using uniffi-bindgen
+	@echo "Generating Kotlin bindings with uniffi-bindgen..."
+	@rm -rf ${PROJECT_ROOT}/proton-authenticator-mobile/android/libTest/src/main/kotlin
+	@mkdir -p ${PROJECT_ROOT}/proton-authenticator-mobile/android/libTest/src/main/kotlin
+	@rm -rf ${PROJECT_ROOT}/tmp-bindings
+	@mkdir -p ${PROJECT_ROOT}/tmp-bindings
+	@cargo run -p proton-authenticator-mobile --features=uniffi/cli --bin uniffi-bindgen generate \
+		--library ${PROJECT_ROOT}/target/release/libproton_authenticator_common_mobile.${LIBRARY_EXT} \
+		--language kotlin \
+		--out-dir ${PROJECT_ROOT}tmp-bindings \
+		--no-format
+	@mv ${PROJECT_ROOT}/tmp-bindings/* ${PROJECT_ROOT}/proton-authenticator-mobile/android/libTest/src/main/kotlin/
+	@rm -rf ${PROJECT_ROOT}/tmp-bindings
 
 	# Run unit test
-	@cd ${PROJECT_ROOT}/proton-authenticator-mobile/android && ./gradlew :libTest:test --no-configuration-cache
+	@cd ${PROJECT_ROOT}/proton-authenticator-mobile/android && ./gradlew :libTest:test --no-configuration-cache --rerun-tasks

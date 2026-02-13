@@ -2,7 +2,8 @@ use proton_pass_common::domain::{
     get_domain, get_root_domain, GetDomainError as CommonGetDomainError, GetRootDomainError as CommonGetRootDomainError,
 };
 
-#[derive(Debug, proton_pass_derive::Error, PartialEq, Eq)]
+#[derive(Debug, proton_pass_derive::Error, PartialEq, Eq, uniffi::Error)]
+#[uniffi(flat_error)]
 pub enum GetRootDomainError {
     CannotGetDomain,
     EmptyLabel,
@@ -19,7 +20,8 @@ impl From<CommonGetRootDomainError> for GetRootDomainError {
     }
 }
 
-#[derive(Debug, proton_pass_derive::Error, PartialEq, Eq)]
+#[derive(Debug, proton_pass_derive::Error, PartialEq, Eq, uniffi::Error)]
+#[uniffi(flat_error)]
 pub enum GetDomainError {
     ParseError,
     UrlHasNoDomain,
@@ -34,9 +36,12 @@ impl From<CommonGetDomainError> for GetDomainError {
     }
 }
 
+#[derive(uniffi::Object)]
 pub struct DomainManager;
 
+#[uniffi::export]
 impl DomainManager {
+    #[uniffi::constructor]
     pub fn new() -> Self {
         Self
     }

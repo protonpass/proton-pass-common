@@ -2,10 +2,10 @@ package proton.android.authenticator
 
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import uniffi.proton_authenticator_common_mobile.AuthenticatorLogLevel
-import uniffi.proton_authenticator_common_mobile.AuthenticatorLogger
-import uniffi.proton_authenticator_common_mobile.emitLog
-import uniffi.proton_authenticator_common_mobile.registerAuthenticatorLogger
+import proton.android.authenticator.commonrust.AuthenticatorLogLevel
+import proton.android.authenticator.commonrust.AuthenticatorLogger
+import proton.android.authenticator.commonrust.emitLog
+import proton.android.authenticator.commonrust.registerAuthenticatorLogger
 
 class AuthenticatorLoggerTest {
 

@@ -3,17 +3,25 @@ use proton_authenticator::ThirdPartyImportError;
 
 type ImportResult = Result<AuthenticatorImportResult, AuthenticatorImportException>;
 
+#[derive(uniffi::Record)]
 pub struct AuthenticatorImportError {
     pub context: String,
     pub message: String,
 }
 
-#[derive(Debug, proton_pass_derive::Error)]
+#[derive(Debug, uniffi::Error)]
+#[uniffi(flat_error)]
 pub enum AuthenticatorImportException {
     BadContent,
     BadPassword,
     MissingPassword,
     DecryptionFailed,
+}
+
+impl std::fmt::Display for AuthenticatorImportException {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 impl From<ThirdPartyImportError> for AuthenticatorImportException {
@@ -47,6 +55,7 @@ impl From<ThirdPartyImportError> for AuthenticatorError {
     }
 }
 
+#[derive(uniffi::Record)]
 pub struct AuthenticatorImportResult {
     pub entries: Vec<AuthenticatorEntryModel>,
     pub errors: Vec<AuthenticatorImportError>,
@@ -61,9 +70,12 @@ impl From<proton_authenticator::ImportResult> for AuthenticatorImportResult {
     }
 }
 
+#[derive(uniffi::Object)]
 pub struct AuthenticatorImporter;
 
+#[uniffi::export]
 impl AuthenticatorImporter {
+    #[uniffi::constructor]
     pub fn new() -> AuthenticatorImporter {
         Self
     }

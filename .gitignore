@@ -6,6 +6,7 @@
 
 # Pass mobile
 proton-pass-mobile/android/lib/**/*.kt
+proton-pass-mobile/android/libTest/src/main/**/*.kt
 proton-pass-mobile/iOS/headers
 proton-pass-mobile/iOS/frameworks
 proton-pass-mobile/iOS/PassRustCore/*.xcframework
@@ -22,6 +23,7 @@ proton-pass-web/dist
 
 # Authenticator
 proton-authenticator-mobile/android/lib/**/*.kt
+proton-authenticator-mobile/android/libTest/src/main/**/*.kt
 proton-authenticator-mobile/iOS/headers
 proton-authenticator-mobile/iOS/frameworks
 proton-authenticator-mobile/iOS/AuthenticatorRustCore/*.xcframework
@@ -36,3 +38,7 @@ proton-authenticator-mobile/pkg
 proton-authenticator-web/**/pkg
 proton-authenticator-web/dist
 
+*.so
+*.dylib
+bindings/
+tmp-bindings/

@@ -1,6 +1,7 @@
 use proton_pass_common::host::{parse, HostInfo as CommonHostInfo, ParseHostError as CommonParseHostError};
 
-#[derive(Debug, proton_pass_derive::Error, PartialEq, Eq)]
+#[derive(Debug, proton_pass_derive::Error, PartialEq, Eq, uniffi::Error)]
+#[uniffi(flat_error)]
 pub enum ParseHostError {
     CannotGetDomainFromUrl,
     EmptyHost,
@@ -23,7 +24,7 @@ impl From<CommonParseHostError> for ParseHostError {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, uniffi::Enum)]
 pub enum HostInfo {
     Host {
         protocol: String,
@@ -55,9 +56,12 @@ impl From<CommonHostInfo> for HostInfo {
     }
 }
 
+#[derive(uniffi::Object)]
 pub struct HostParser;
 
+#[uniffi::export]
 impl HostParser {
+    #[uniffi::constructor]
     pub fn new() -> Self {
         Self
     }

@@ -1,5 +1,7 @@
 use crate::error::TOTPError;
+use proton_pass_derive::ffi_enum;
 
+#[ffi_enum]
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum Algorithm {
     SHA1,

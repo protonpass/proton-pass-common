@@ -2,7 +2,7 @@ use proton_pass_common::creditcard::detector::{
     CreditCardDetector as CommonCreditCardDetector, CreditCardType as CommonCreditCardType,
 };
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, uniffi::Enum)]
 pub enum CreditCardType {
     Visa,
     Mastercard,
@@ -39,11 +39,14 @@ impl From<CommonCreditCardType> for CreditCardType {
     }
 }
 
+#[derive(uniffi::Object)]
 pub struct CreditCardDetector {
     inner: CommonCreditCardDetector,
 }
 
+#[uniffi::export]
 impl CreditCardDetector {
+    #[uniffi::constructor]
     pub fn new() -> Self {
         Self {
             inner: CommonCreditCardDetector::default(),

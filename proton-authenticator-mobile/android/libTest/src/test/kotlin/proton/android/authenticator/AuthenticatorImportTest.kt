@@ -2,8 +2,8 @@ package proton.android.authenticator
 
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import uniffi.proton_authenticator_common_mobile.AuthenticatorImportException
-import uniffi.proton_authenticator_common_mobile.AuthenticatorImporter
+import proton.android.authenticator.commonrust.AuthenticatorImportException
+import proton.android.authenticator.commonrust.AuthenticatorImporter
 import java.io.File
 import kotlin.test.fail
 

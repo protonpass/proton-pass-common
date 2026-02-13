@@ -1,6 +1,7 @@
 use proton_pass_common::alias_prefix::AliasPrefixError as CommonAliasPrefixError;
 
-#[derive(Debug, proton_pass_derive::Error, PartialEq, Eq)]
+#[derive(Debug, proton_pass_derive::Error, PartialEq, Eq, uniffi::Error)]
+#[uniffi(flat_error)]
 pub enum AliasPrefixError {
     TwoConsecutiveDots,
     InvalidCharacter,
@@ -23,9 +24,12 @@ impl From<CommonAliasPrefixError> for AliasPrefixError {
     }
 }
 
+#[derive(uniffi::Object)]
 pub struct AliasPrefixValidator;
 
+#[uniffi::export]
 impl AliasPrefixValidator {
+    #[uniffi::constructor]
     pub fn new() -> Self {
         Self
     }

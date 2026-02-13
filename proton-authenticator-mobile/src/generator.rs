@@ -6,6 +6,7 @@ use proton_authenticator::generator::{
 use std::sync::{Arc, Mutex};
 
 // Current Time Provider
+#[uniffi::export(with_foreign)]
 pub trait MobileCurrentTimeProvider: Send + Sync {
     fn now(&self) -> u64;
 }
@@ -21,6 +22,7 @@ impl GeneratorCurrentTimeProvider for MobileTimeAdapter {
 }
 
 // TotpGenerationHandle
+#[uniffi::export(with_foreign)]
 pub trait MobileTotpGenerationHandle: Send + Sync {
     fn cancel(&self);
 }
@@ -38,6 +40,7 @@ impl MobileTotpGenerationHandle for MobileTotpGenerationHandleAdapter {
 }
 
 // TotpGeneratorCallback
+#[uniffi::export(with_foreign)]
 pub trait MobileTotpGeneratorCallback: Send + Sync {
     fn on_codes(&self, codes: Vec<AuthenticatorCodeResponse>);
 }
@@ -62,18 +65,21 @@ impl TotpGeneratorCallback for MobileTotpGeneratorCallbackAdapter {
 
 /// Callback-based TOTP generator that allows the caller to subscribe to TOTP code changes, and
 /// to get notified of changes in a configurable manner
+#[derive(uniffi::Object)]
 pub struct MobileTotpGenerator {
     inner: CoreTotpGenerator,
     rt: tokio::runtime::Runtime,
 }
 
-impl MobileTotpGenerator {
-    const RUNTIME_THREADS: usize = 1;
+const RUNTIME_THREADS: usize = 1;
 
+#[uniffi::export]
+impl MobileTotpGenerator {
     /// Create a new instance of the TOTP generator
     /// - period_ms: how often the generator should check if the codes have changed. Time in ms
     /// - only_on_code_change: if true, only invoke the callback if the codes have changed. If false, it will always be called
     /// - current_time_provider: callback that will be invoked to get the current time
+    #[uniffi::constructor]
     pub fn new(
         period_ms: u32,
         only_on_code_change: bool,
@@ -83,7 +89,7 @@ impl MobileTotpGenerator {
             current_time_provider: Arc::new(MobileTimeAdapter { inner: current_time }),
         };
         let rt = tokio::runtime::Builder::new_multi_thread()
-            .worker_threads(Self::RUNTIME_THREADS)
+            .worker_threads(RUNTIME_THREADS)
             .enable_time()
             .build()
             .map_err(|e| proton_authenticator::AuthenticatorError::Unknown(format!("Cannot start runtime: {e:?}")))?;

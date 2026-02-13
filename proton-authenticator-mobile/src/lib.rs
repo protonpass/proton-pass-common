@@ -12,8 +12,13 @@ mod operations;
 mod ordering;
 mod qr;
 
-uniffi::include_scaffolding!("common");
+uniffi::setup_scaffolding!();
 
+// Re-export scaffolding from dependent crates to make their types available
+proton_authenticator::uniffi_reexport_scaffolding!();
+proton_pass_totp::uniffi_reexport_scaffolding!();
+
+#[uniffi::export]
 pub fn library_version() -> String {
     proton_authenticator::library_version()
 }
@@ -28,4 +33,4 @@ pub use issuer_mapper::*;
 pub use log::*;
 pub use operations::*;
 pub use ordering::*;
-use qr::*;
+pub use qr::*;

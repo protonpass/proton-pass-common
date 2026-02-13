@@ -23,7 +23,7 @@ default = []
 qr = ["proton-authenticator/qr"]
 
 [dependencies]
-proton-authenticator = { path = "../proton-authenticator", default-features = false }
+proton-authenticator = { path = "../proton-authenticator", default-features = false, features = ["wasm"] }
 
 js-sys.workspace = true
 serde.workspace = true

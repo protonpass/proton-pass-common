@@ -4,7 +4,8 @@ use proton_pass_common::sshkey::{
     SshKeyError as CommonSshKeyError, SshKeyPair as CommonSshKeyPair, SshKeyType as CommonSshKeyType,
 };
 
-#[derive(Debug, proton_pass_derive::Error)]
+#[derive(Debug, proton_pass_derive::Error, uniffi::Error)]
+#[uniffi(flat_error)]
 pub enum SshKeyError {
     InvalidPublicKey(String),
     InvalidPrivateKey(String),
@@ -25,7 +26,7 @@ impl From<CommonSshKeyError> for SshKeyError {
 
 type Result<T> = std::result::Result<T, SshKeyError>;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, uniffi::Enum)]
 pub enum SshKeyType {
     RSA2048,
     RSA4096,
@@ -42,7 +43,7 @@ impl From<SshKeyType> for CommonSshKeyType {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, uniffi::Record)]
 pub struct SshKeyPair {
     pub public_key: String,
     pub private_key: String,
@@ -57,9 +58,12 @@ impl From<CommonSshKeyPair> for SshKeyPair {
     }
 }
 
+#[derive(uniffi::Object)]
 pub struct SshKeyManager;
 
+#[uniffi::export]
 impl SshKeyManager {
+    #[uniffi::constructor]
     pub fn new() -> Self {
         Self
     }

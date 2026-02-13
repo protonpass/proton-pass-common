@@ -1,0 +1,5 @@
+[bindings.kotlin]
+package_name = "proton.android.authenticator"
+
+[bindings.swift]
+module_name = "Authenticator"

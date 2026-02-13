@@ -1,0 +1,5 @@
+[bindings.kotlin]
+package_name = "proton.android.pass.totp"
+
+[bindings.swift]
+module_name = "PassTotp"

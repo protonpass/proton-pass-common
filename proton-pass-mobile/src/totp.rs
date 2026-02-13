@@ -4,7 +4,8 @@ use proton_pass_common::totp::{Algorithm, TOTP as CommonTOTP};
 
 // START MAPPING TYPES
 
-#[derive(Debug, proton_pass_derive::Error, PartialEq, Eq)]
+#[derive(Debug, proton_pass_derive::Error, PartialEq, Eq, uniffi::Error)]
+#[uniffi(flat_error)]
 pub enum TOTPError {
     NotTotpUri,
     InvalidAuthority(String),
@@ -39,7 +40,7 @@ impl From<CommonTOTPError> for TOTPError {
     }
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, uniffi::Record)]
 pub struct TOTP {
     pub label: Option<String>,
     pub secret: String,
@@ -75,7 +76,7 @@ impl From<TOTP> for CommonTOTP {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, uniffi::Enum)]
 pub enum TOTPAlgorithm {
     SHA1,
     SHA256,
@@ -104,15 +105,19 @@ impl From<TOTPAlgorithm> for Algorithm {
 
 // END MAPPING TYPES
 
+#[derive(uniffi::Record)]
 pub struct TotpTokenResult {
     pub totp: TOTP,
     pub token: String,
     pub timestamp: u64,
 }
 
+#[derive(uniffi::Object)]
 pub struct TotpHandler;
 
+#[uniffi::export]
 impl TotpHandler {
+    #[uniffi::constructor]
     pub fn new() -> Self {
         Self
     }
@@ -130,9 +135,12 @@ impl TotpHandler {
     }
 }
 
+#[derive(uniffi::Object)]
 pub struct TotpUriSanitizer;
 
+#[uniffi::export]
 impl TotpUriSanitizer {
+    #[uniffi::constructor]
     pub fn new() -> Self {
         Self
     }
@@ -151,9 +159,12 @@ impl TotpUriSanitizer {
     }
 }
 
+#[derive(uniffi::Object)]
 pub struct TotpTokenGenerator;
 
+#[uniffi::export]
 impl TotpTokenGenerator {
+    #[uniffi::constructor]
     pub fn new() -> Self {
         Self
     }
@@ -169,9 +180,12 @@ impl TotpTokenGenerator {
     }
 }
 
+#[derive(uniffi::Object)]
 pub struct TotpUriParser;
 
+#[uniffi::export]
 impl TotpUriParser {
+    #[uniffi::constructor]
     pub fn new() -> Self {
         Self
     }

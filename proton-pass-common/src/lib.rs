@@ -1,3 +1,5 @@
+#![allow(unexpected_cfgs)]
+
 pub mod alias_prefix;
 pub mod creditcard;
 pub mod domain;

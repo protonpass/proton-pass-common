@@ -1,6 +1,9 @@
+#[derive(uniffi::Object)]
 pub struct QrCodeScanner;
 
+#[uniffi::export]
 impl QrCodeScanner {
+    #[uniffi::constructor]
     pub fn new() -> Self {
         Self
     }

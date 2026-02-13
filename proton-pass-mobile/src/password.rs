@@ -8,7 +8,8 @@ use proton_pass_common::password::{
 use proton_pass_common::password::{check_score, get_generator};
 
 // START MAPPING TYPES
-#[derive(Debug, proton_pass_derive::Error)]
+#[derive(Debug, proton_pass_derive::Error, uniffi::Error)]
+#[uniffi(flat_error)]
 pub enum PasswordGeneratorError {
     FailToGenerate(String),
 }
@@ -23,6 +24,7 @@ impl From<CommonPasswordGeneratorError> for PasswordGeneratorError {
 
 type Result<T> = std::result::Result<T, PasswordGeneratorError>;
 
+#[derive(uniffi::Record)]
 pub struct PassphraseConfig {
     pub separator: WordSeparator,
     pub capitalise: bool,
@@ -41,7 +43,7 @@ impl From<PassphraseConfig> for CommonPassphraseConfig {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, uniffi::Enum)]
 pub enum PasswordPenalty {
     NoLowercase,
     NoUppercase,
@@ -70,7 +72,7 @@ impl From<CommonPasswordPenalty> for PasswordPenalty {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, uniffi::Enum)]
 pub enum PasswordScore {
     Vulnerable,
     Weak,
@@ -87,7 +89,7 @@ impl From<CommonPasswordScore> for PasswordScore {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, uniffi::Record)]
 pub struct PasswordScoreResult {
     pub numeric_score: f64,
     pub password_score: PasswordScore,
@@ -104,6 +106,7 @@ impl From<CommonPasswordScoreResult> for PasswordScoreResult {
     }
 }
 
+#[derive(uniffi::Record)]
 pub struct RandomPasswordConfig {
     pub length: u32,
     pub numbers: bool,
@@ -122,6 +125,7 @@ impl From<RandomPasswordConfig> for CommonRandomPasswordConfig {
     }
 }
 
+#[derive(uniffi::Enum)]
 pub enum WordSeparator {
     Hyphens,
     Spaces,
@@ -148,9 +152,12 @@ impl From<WordSeparator> for CommonWordSeparator {
 
 // END MAPPING TYPES
 
+#[derive(uniffi::Object)]
 pub struct RandomPasswordGenerator;
 
+#[uniffi::export]
 impl RandomPasswordGenerator {
+    #[uniffi::constructor]
     pub fn new() -> Self {
         Self
     }
@@ -161,9 +168,12 @@ impl RandomPasswordGenerator {
     }
 }
 
+#[derive(uniffi::Object)]
 pub struct PassphraseGenerator;
 
+#[uniffi::export]
 impl PassphraseGenerator {
+    #[uniffi::constructor]
     pub fn new() -> Self {
         Self
     }
@@ -184,9 +194,12 @@ impl PassphraseGenerator {
     }
 }
 
+#[derive(uniffi::Object)]
 pub struct PasswordScorer;
 
+#[uniffi::export]
 impl PasswordScorer {
+    #[uniffi::constructor]
     pub fn new() -> Self {
         Self
     }

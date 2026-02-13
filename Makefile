@@ -22,7 +22,7 @@ ifeq ($(UNAME_S), Darwin)
 LIBRARY_EXT = dylib
 JNA_OS = darwin
 else ifeq ($(UNAME_S), Linux)
-LIBRARY_EXT = a
+LIBRARY_EXT = so
 JNA_OS = linux
 endif
 

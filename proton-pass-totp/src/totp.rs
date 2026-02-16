@@ -5,7 +5,7 @@ use crate::sanitizer::sanitize_secret;
 use proton_pass_derive::ffi_type;
 use url::Url;
 
-#[ffi_type]
+#[ffi_type(web_name = "WasmTOTP")]
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct TOTP {
     pub label: Option<String>,

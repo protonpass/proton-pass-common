@@ -2,7 +2,7 @@
 use crate::{AuthenticatorEntry, AuthenticatorEntryContent, AuthenticatorEntryError, AuthenticatorEntryType};
 use proton_pass_derive::ffi_type;
 
-#[ffi_type]
+#[ffi_type(web_name = "WasmAuthenticatorEntryModel")]
 #[derive(Clone, Debug)]
 pub struct AuthenticatorEntryModel {
     pub id: String,
@@ -47,7 +47,7 @@ impl From<AuthenticatorEntry> for AuthenticatorEntryModel {
     }
 }
 
-#[ffi_type]
+#[ffi_type(web_name = "WasmAuthenticatorCodeResponseModel")]
 #[derive(Clone, Debug)]
 pub struct AuthenticatorCodeResponseModel {
     pub current_code: String,

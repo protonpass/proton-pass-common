@@ -5,14 +5,14 @@ use crate::{
 use proton_pass_derive::ffi_type;
 use proton_pass_totp::Algorithm;
 
-#[ffi_type]
+#[ffi_type(web_name = "WasmAuthenticatorEntryType")]
 #[derive(Clone, Debug)]
 pub enum AuthenticatorEntryType {
     Totp,
     Steam,
 }
 
-#[ffi_type]
+#[ffi_type(web_name = "WasmAuthenticatorEntryUpdateContents")]
 #[derive(Clone, Debug)]
 pub struct AuthenticatorEntryUpdateContents {
     pub name: String,

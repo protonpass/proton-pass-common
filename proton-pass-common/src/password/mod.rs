@@ -16,7 +16,7 @@ pub enum PasswordGeneratorError {
     FailToGenerate(String),
 }
 
-#[cfg_attr(feature = "wasm", ffi_type)]
+#[cfg_attr(feature = "wasm", ffi_type(web_name = "WasmRandomPasswordConfig"))]
 #[derive(Clone, Debug)]
 pub struct RandomPasswordConfig {
     pub length: u32,
@@ -25,7 +25,7 @@ pub struct RandomPasswordConfig {
     pub symbols: bool,
 }
 
-#[cfg_attr(feature = "wasm", ffi_type)]
+#[cfg_attr(feature = "wasm", ffi_type(web_name = "WasmPassphraseConfig"))]
 #[derive(Clone, Debug)]
 pub struct PassphraseConfig {
     pub separator: WordSeparator,
@@ -34,7 +34,7 @@ pub struct PassphraseConfig {
     pub count: u32,
 }
 
-#[cfg_attr(feature = "wasm", ffi_type)]
+#[cfg_attr(feature = "wasm", ffi_type(web_name = "WasmWordSeparator"))]
 #[derive(Clone, Debug)]
 pub enum WordSeparator {
     Hyphens,

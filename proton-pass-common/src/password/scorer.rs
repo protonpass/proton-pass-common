@@ -26,7 +26,7 @@ fn build_passphrase_separator_regex() -> Regex {
 const VULNERABLE_MAX_SCORE: f64 = 60.;
 const WEAK_MAX_SCORE: f64 = 90.;
 
-#[cfg_attr(feature = "wasm", ffi_type)]
+#[cfg_attr(feature = "wasm", ffi_type(web_name = "WasmPasswordScore"))]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum PasswordScore {
     Vulnerable,
@@ -34,7 +34,7 @@ pub enum PasswordScore {
     Strong,
 }
 
-#[cfg_attr(feature = "wasm", ffi_type)]
+#[cfg_attr(feature = "wasm", ffi_type(web_name = "WasmPasswordPenalty"))]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum PasswordPenalty {
     NoLowercase,
@@ -48,7 +48,7 @@ pub enum PasswordPenalty {
     ShortWordList,
 }
 
-#[cfg_attr(feature = "wasm", ffi_type)]
+#[cfg_attr(feature = "wasm", ffi_type(web_name = "WasmPasswordScoreResult"))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct PasswordScoreResult {
     pub numeric_score: f64,

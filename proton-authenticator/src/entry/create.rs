@@ -4,7 +4,7 @@ use crate::{AuthenticatorEntry, AuthenticatorEntryContent, AuthenticatorEntryErr
 use proton_pass_derive::ffi_type;
 use proton_pass_totp::{Algorithm, TOTP};
 
-#[ffi_type]
+#[ffi_type(web_name = "WasmAuthenticatorEntryTotpCreateParameters")]
 #[derive(Debug, Clone)]
 pub struct AuthenticatorEntryTotpCreateParameters {
     pub name: String,
@@ -16,7 +16,7 @@ pub struct AuthenticatorEntryTotpCreateParameters {
     pub note: Option<String>,
 }
 
-#[ffi_type]
+#[ffi_type(web_name = "WasmAuthenticatorEntrySteamCreateParameters")]
 #[derive(Debug, Clone)]
 pub struct AuthenticatorEntrySteamCreateParameters {
     pub name: String,

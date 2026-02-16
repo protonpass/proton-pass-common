@@ -1,7 +1,7 @@
 use crate::error::TOTPError;
 use proton_pass_derive::ffi_type;
 
-#[ffi_type]
+#[ffi_type(web_name = "WasmAlgorithm")]
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum Algorithm {
     SHA1,

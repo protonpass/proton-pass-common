@@ -6,11 +6,11 @@ Procedural macros for FFI bindings generation across multiple platforms.
 
 These macros automatically apply the appropriate derives for enabled FFI targets, eliminating the need for repetitive `cfg_attr` annotations.
 
-### `#[ffi_type]` - For Records/Structs
+### `#[ffi_type]` - For Structs and Enums
 
-Use on data structures that need to cross FFI boundaries.
+Use on data structures and enums that need to cross FFI boundaries. The macro automatically applies the correct derives based on whether it's a struct or enum.
 
-**Before:**
+**Struct Example - Before:**
 ```rust
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
@@ -20,7 +20,7 @@ pub struct MyStruct {
 }
 ```
 
-**After:**
+**Struct Example - After:**
 ```rust
 use proton_pass_derive::ffi_type;
 
@@ -31,11 +31,7 @@ pub struct MyStruct {
 }
 ```
 
-### `#[ffi_enum]` - For Enums
-
-Use on enums that need to cross FFI boundaries.
-
-**Before:**
+**Enum Example - Before:**
 ```rust
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
@@ -46,11 +42,11 @@ pub enum MyEnum {
 }
 ```
 
-**After:**
+**Enum Example - After:**
 ```rust
-use proton_pass_derive::ffi_enum;
+use proton_pass_derive::ffi_type;
 
-#[ffi_enum]
+#[ffi_type]
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum MyEnum {
     Variant1,

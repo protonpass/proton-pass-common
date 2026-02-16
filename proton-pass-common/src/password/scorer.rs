@@ -1,6 +1,6 @@
 use super::analyzer::analyze;
 #[cfg(feature = "wasm")]
-use proton_pass_derive::{ffi_enum, ffi_type};
+use proton_pass_derive::ffi_type;
 use regex_lite::Regex;
 
 include!(concat!(env!("OUT_DIR"), "/common_passwords.rs"));
@@ -26,7 +26,7 @@ fn build_passphrase_separator_regex() -> Regex {
 const VULNERABLE_MAX_SCORE: f64 = 60.;
 const WEAK_MAX_SCORE: f64 = 90.;
 
-#[cfg_attr(feature = "wasm", ffi_enum)]
+#[cfg_attr(feature = "wasm", ffi_type)]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum PasswordScore {
     Vulnerable,
@@ -34,7 +34,7 @@ pub enum PasswordScore {
     Strong,
 }
 
-#[cfg_attr(feature = "wasm", ffi_enum)]
+#[cfg_attr(feature = "wasm", ffi_type)]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum PasswordPenalty {
     NoLowercase,

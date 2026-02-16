@@ -2,10 +2,10 @@ use crate::{
     AuthenticatorEntry, AuthenticatorEntryError, AuthenticatorEntrySteamCreateParameters,
     AuthenticatorEntryTotpCreateParameters,
 };
-use proton_pass_derive::{ffi_enum, ffi_type};
+use proton_pass_derive::ffi_type;
 use proton_pass_totp::Algorithm;
 
-#[ffi_enum]
+#[ffi_type]
 #[derive(Clone, Debug)]
 pub enum AuthenticatorEntryType {
     Totp,

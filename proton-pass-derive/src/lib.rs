@@ -21,53 +21,37 @@ pub fn derive_error(input: TokenStream) -> TokenStream {
     TokenStream::from(expanded)
 }
 
-/// Attribute macro for FFI record/struct types
+/// Attribute macro for FFI types (structs and enums)
 ///
 /// Automatically applies the appropriate derives for enabled FFI targets:
-/// - uniffi: derives uniffi::Record
+/// - uniffi: derives uniffi::Record for structs, uniffi::Enum for enums
 /// - wasm: derives tsify::Tsify, serde::Serialize, serde::Deserialize
 ///
-/// # Example
+/// # Examples
 /// ```
 /// #[ffi_type]
 /// pub struct MyStruct {
 ///     pub field: String,
 /// }
-/// ```
-#[proc_macro_attribute]
-pub fn ffi_type(_attr: TokenStream, item: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(item as Item);
-
-    let expanded = quote! {
-        #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
-        #[cfg_attr(feature = "wasm", derive(tsify::Tsify, serde::Serialize, serde::Deserialize))]
-        #[cfg_attr(feature = "wasm", tsify(into_wasm_abi, from_wasm_abi))]
-        #input
-    };
-
-    TokenStream::from(expanded)
-}
-
-/// Attribute macro for FFI enum types
 ///
-/// Automatically applies the appropriate derives for enabled FFI targets:
-/// - uniffi: derives uniffi::Enum
-/// - wasm: derives tsify::Tsify, serde::Serialize, serde::Deserialize
-///
-/// # Example
-/// ```
-/// #[ffi_enum]
+/// #[ffi_type]
 /// pub enum MyEnum {
 ///     Variant1,
 ///     Variant2(String),
 /// }
 /// ```
 #[proc_macro_attribute]
-pub fn ffi_enum(_attr: TokenStream, item: TokenStream) -> TokenStream {
+pub fn ffi_type(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as Item);
 
+    let uniffi_derive = match &input {
+        Item::Struct(_) => quote! { uniffi::Record },
+        Item::Enum(_) => quote! { uniffi::Enum },
+        _ => panic!("ffi_type can only be used on structs or enums"),
+    };
+
     let expanded = quote! {
-        #[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
+        #[cfg_attr(feature = "uniffi", derive(#uniffi_derive))]
         #[cfg_attr(feature = "wasm", derive(tsify::Tsify, serde::Serialize, serde::Deserialize))]
         #[cfg_attr(feature = "wasm", tsify(into_wasm_abi, from_wasm_abi))]
         #input

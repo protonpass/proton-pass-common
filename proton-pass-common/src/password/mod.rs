@@ -3,9 +3,9 @@ mod password_generator;
 mod scorer;
 
 use password_generator::PasswordGenerator;
-use proton_pass_derive::Error;
 #[cfg(feature = "wasm")]
-use proton_pass_derive::{ffi_enum, ffi_type};
+use proton_pass_derive::ffi_type;
+use proton_pass_derive::Error;
 use rand::{rng, rngs::ThreadRng};
 pub use scorer::*;
 
@@ -34,7 +34,7 @@ pub struct PassphraseConfig {
     pub count: u32,
 }
 
-#[cfg_attr(feature = "wasm", ffi_enum)]
+#[cfg_attr(feature = "wasm", ffi_type)]
 #[derive(Clone, Debug)]
 pub enum WordSeparator {
     Hyphens,

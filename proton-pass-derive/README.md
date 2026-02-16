@@ -10,17 +10,7 @@ These macros automatically apply the appropriate derives for enabled FFI targets
 
 Use on data structures and enums that need to cross FFI boundaries. The macro automatically applies the correct derives based on whether it's a struct or enum.
 
-**Struct Example - Before:**
-```rust
-#[derive(Clone, Debug)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
-#[cfg_attr(feature = "wasm", derive(tsify::Tsify, serde::Serialize, serde::Deserialize))]
-pub struct MyStruct {
-    pub field: String,
-}
-```
-
-**Struct Example - After:**
+**Basic Usage:**
 ```rust
 use proton_pass_derive::ffi_type;
 
@@ -29,22 +19,6 @@ use proton_pass_derive::ffi_type;
 pub struct MyStruct {
     pub field: String,
 }
-```
-
-**Enum Example - Before:**
-```rust
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
-#[cfg_attr(feature = "wasm", derive(tsify::Tsify, serde::Serialize, serde::Deserialize))]
-pub enum MyEnum {
-    Variant1,
-    Variant2,
-}
-```
-
-**Enum Example - After:**
-```rust
-use proton_pass_derive::ffi_type;
 
 #[ffi_type]
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -53,6 +27,24 @@ pub enum MyEnum {
     Variant2,
 }
 ```
+
+**Custom Names for Different Platforms:**
+
+You can specify different names for mobile (uniffi) and web (wasm) targets:
+
+```rust
+use proton_pass_derive::ffi_type;
+
+#[ffi_type(mobile_name = "MobileUserData", web_name = "WasmUserData")]
+#[derive(Clone, Debug)]
+pub struct UserData {
+    pub name: String,
+    pub email: String,
+}
+```
+
+- `mobile_name`: The name exported to Swift/Kotlin via uniffi
+- `web_name`: The name exported to TypeScript via wasm-bindgen
 
 ### `#[ffi_error]` - For Error Types
 
@@ -86,22 +78,24 @@ pub enum MyError {
 
 Use on types that represent stateful objects in uniffi (not typically used with wasm).
 
-**Before:**
-```rust
-#[derive(Debug)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Object))]
-pub struct MyObject {
-    state: String,
-}
-```
-
-**After:**
+**Basic Usage:**
 ```rust
 use proton_pass_derive::ffi_object;
 
 #[ffi_object]
 #[derive(Debug)]
 pub struct MyObject {
+    state: String,
+}
+```
+
+**Custom Name for Mobile:**
+```rust
+use proton_pass_derive::ffi_object;
+
+#[ffi_object(mobile_name = "SessionManager")]
+#[derive(Debug)]
+pub struct Session {
     state: String,
 }
 ```

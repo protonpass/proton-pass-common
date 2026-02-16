@@ -20,9 +20,11 @@ WEB_TEST_BUILD_DIR:=${WEB_DIR}/test/pkg
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S), Darwin)
 LIBRARY_EXT = dylib
+BINDINGS_LIB_EXT = dylib
 JNA_OS = darwin
 else ifeq ($(UNAME_S), Linux)
 LIBRARY_EXT = so
+BINDINGS_LIB_EXT = a
 JNA_OS = linux
 endif
 
@@ -118,7 +120,7 @@ kotlin-bindings: ## Generate the kotlin bindings
 	@rm -rf ${PROJECT_ROOT}tmp-bindings
 	@mkdir -p ${PROJECT_ROOT}tmp-bindings
 	@${PROJECT_ROOT}target/debug/uniffi-bindgen generate \
-		--library ${PROJECT_ROOT}target/release/libproton_pass_common_mobile.${LIBRARY_EXT} \
+		--library ${PROJECT_ROOT}target/release/libproton_pass_common_mobile.${BINDINGS_LIB_EXT} \
 		--language kotlin \
 		--out-dir ${PROJECT_ROOT}tmp-bindings
 	@mkdir -p ${ANDROID_BINDINGS_DIR}
@@ -134,7 +136,7 @@ swift-bindings: swift-dirs ## Generate the swift bindings
 	@rm -rf ${PROJECT_ROOT}tmp-bindings
 	@mkdir -p ${PROJECT_ROOT}tmp-bindings
 	@${PROJECT_ROOT}target/debug/uniffi-bindgen generate \
-		--library ${PROJECT_ROOT}target/release/libproton_pass_common_mobile.${LIBRARY_EXT} \
+		--library ${PROJECT_ROOT}target/release/libproton_pass_common_mobile.${BINDINGS_LIB_EXT} \
 		--language swift \
 		--out-dir ${PROJECT_ROOT}tmp-bindings
 	@cp ${PROJECT_ROOT}tmp-bindings/RustFrameworkFFI.h ${IOS_HEADER_DIR}/RustFrameworkFFI.h
@@ -158,7 +160,7 @@ pass-mobile-unit-test:  ## Run the unit tests for the pass mobile library
 	rm -rf ${PROJECT_ROOT}tmp-bindings
 	mkdir -p ${PROJECT_ROOT}tmp-bindings
 	cargo run -p proton-pass-mobile --features=uniffi/cli --bin uniffi-bindgen generate \
-		--library ${PROJECT_ROOT}target/release/libproton_pass_common_mobile.${LIBRARY_EXT} \
+		--library ${PROJECT_ROOT}target/release/libproton_pass_common_mobile.${BINDINGS_LIB_EXT} \
 		--language kotlin \
 		--out-dir ${PROJECT_ROOT}tmp-bindings \
 		--no-format
@@ -330,7 +332,7 @@ authenticator-kotlin-bindings: ## Generate the kotlin bindings
 	@rm -rf ${PROJECT_ROOT}tmp-bindings
 	@mkdir -p ${PROJECT_ROOT}tmp-bindings
 	@${PROJECT_ROOT}target/debug/uniffi-bindgen generate \
-		--library ${PROJECT_ROOT}target/release/libproton_authenticator_common_mobile.${LIBRARY_EXT} \
+		--library ${PROJECT_ROOT}target/release/libproton_authenticator_common_mobile.${BINDINGS_LIB_EXT} \
 		--language kotlin \
 		--out-dir ${PROJECT_ROOT}tmp-bindings
 	@mkdir -p ${AUTHENTICATOR_ANDROID_BINDINGS_DIR}
@@ -345,7 +347,7 @@ authenticator-swift-bindings: authenticator-swift-dirs ## Generate the swift bin
 	@rm -rf ${PROJECT_ROOT}tmp-bindings
 	@mkdir -p ${PROJECT_ROOT}tmp-bindings
 	@${PROJECT_ROOT}target/debug/uniffi-bindgen generate \
-		--library ${PROJECT_ROOT}target/release/libproton_authenticator_common_mobile.${LIBRARY_EXT} \
+		--library ${PROJECT_ROOT}target/release/libproton_authenticator_common_mobile.${BINDINGS_LIB_EXT} \
 		--language swift \
 		--out-dir ${PROJECT_ROOT}tmp-bindings
 	@cp ${PROJECT_ROOT}tmp-bindings/RustFrameworkFFI.h ${AUTHENTICATOR_IOS_HEADER_DIR}/RustFrameworkFFI.h
@@ -484,7 +486,7 @@ authenticator-mobile-unit-test:  ## Run the unit tests for the authenticator mob
 	rm -rf ${PROJECT_ROOT}tmp-bindings
 	mkdir -p ${PROJECT_ROOT}tmp-bindings
 	cargo run -p proton-authenticator-mobile --features=uniffi/cli --bin uniffi-bindgen generate \
-		--library ${PROJECT_ROOT}target/release/libproton_authenticator_common_mobile.${LIBRARY_EXT} \
+		--library ${PROJECT_ROOT}target/release/libproton_authenticator_common_mobile.${BINDINGS_LIB_EXT} \
 		--language kotlin \
 		--out-dir ${PROJECT_ROOT}tmp-bindings \
 		--no-format

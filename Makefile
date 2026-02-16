@@ -123,8 +123,9 @@ kotlin-bindings: ## Generate the kotlin bindings
 		--library ${PROJECT_ROOT}target/release/libproton_pass_common_mobile.${BINDINGS_LIB_EXT} \
 		--language kotlin \
 		--out-dir ${PROJECT_ROOT}tmp-bindings
+	@rm -rf ${ANDROID_BINDINGS_DIR}
 	@mkdir -p ${ANDROID_BINDINGS_DIR}
-	@cp ${PROJECT_ROOT}tmp-bindings/proton/android/pass/commonrust/proton_pass_common_mobile.kt ${ANDROID_BINDINGS_DIR}/proton_pass_common_mobile.kt
+	@cp -r ${PROJECT_ROOT}tmp-bindings/proton/android/pass/* ${ANDROID_BINDINGS_DIR}/../
 	@echo "Wrote Pass Kotlin bindings to ${ANDROID_BINDINGS_DIR}"
 	@rm -rf ${PROJECT_ROOT}tmp-bindings
 
@@ -335,8 +336,10 @@ authenticator-kotlin-bindings: ## Generate the kotlin bindings
 		--library ${PROJECT_ROOT}target/release/libproton_authenticator_common_mobile.${BINDINGS_LIB_EXT} \
 		--language kotlin \
 		--out-dir ${PROJECT_ROOT}tmp-bindings
+	@rm -rf ${AUTHENTICATOR_ANDROID_BINDINGS_DIR}
 	@mkdir -p ${AUTHENTICATOR_ANDROID_BINDINGS_DIR}
-	@cp ${PROJECT_ROOT}tmp-bindings/proton/android/authenticator/commonrust/proton_authenticator_common_mobile.kt ${AUTHENTICATOR_ANDROID_BINDINGS_DIR}/proton_authenticator_common_mobile.kt
+	@cp -r ${PROJECT_ROOT}tmp-bindings/proton/android/authenticator/* ${AUTHENTICATOR_ANDROID_BINDINGS_DIR}/../
+	@cp -r ${PROJECT_ROOT}tmp-bindings/proton/android/pass ${AUTHENTICATOR_ANDROID_BINDINGS_DIR}/../../pass
 	@rm -rf ${PROJECT_ROOT}tmp-bindings
 
 .PHONY: authenticator-swift-bindings

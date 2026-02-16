@@ -3078,6 +3078,7 @@ dependencies = [
  "ssh-key",
  "tokio",
  "tsify",
+ "uniffi",
  "url",
  "wasm-bindgen",
 ]

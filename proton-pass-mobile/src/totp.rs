@@ -12,7 +12,7 @@ pub enum TOTPError {
     NoAuthority,
     InvalidAlgorithm(String),
     InvalidScheme(String),
-    URLParseError(proton_pass_common::url::ParseError),
+    URLParseError(String),
     NoSecret,
     EmptySecret,
     NoQueries,

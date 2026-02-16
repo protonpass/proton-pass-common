@@ -1,5 +1,8 @@
 #![allow(unexpected_cfgs)]
 
+#[cfg(feature = "uniffi")]
+uniffi::setup_scaffolding!();
+
 pub mod alias_prefix;
 pub mod creditcard;
 pub mod domain;

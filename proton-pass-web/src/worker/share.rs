@@ -1,54 +1,11 @@
-use proton_pass_common::share::{visible_share_ids, Share as CommonShare, TargetType as CommonTargetType};
-use serde::{Deserialize, Serialize};
-use tsify::Tsify;
+use proton_pass_common::share::{visible_share_ids, Share};
 use wasm_bindgen::prelude::*;
 
-#[derive(Tsify, Deserialize, Serialize, Clone, Debug)]
-#[tsify(into_wasm_abi, from_wasm_abi)]
-pub enum TargetType {
-    Vault,
-    Item,
-}
-
-impl From<TargetType> for CommonTargetType {
-    fn from(value: TargetType) -> Self {
-        match value {
-            TargetType::Vault => CommonTargetType::Vault,
-            TargetType::Item => CommonTargetType::Item,
-        }
-    }
-}
-
-#[derive(Tsify, Deserialize, Serialize, Clone, Debug)]
-#[tsify(into_wasm_abi, from_wasm_abi)]
-pub struct Share {
-    pub share_id: String,
-    pub vault_id: String,
-    pub target_type: TargetType,
-    pub target_id: String,
-    pub role: String,
-    pub permissions: u16,
-    pub flags: u16,
-}
-
-impl From<Share> for CommonShare {
-    fn from(value: Share) -> Self {
-        Self {
-            share_id: value.share_id,
-            vault_id: value.vault_id,
-            target_type: CommonTargetType::from(value.target_type),
-            target_id: value.target_id,
-            role: value.role,
-            permissions: value.permissions,
-            flags: value.flags,
-        }
-    }
-}
+// Re-export core types that now have wasm bindings
 
 #[wasm_bindgen]
 pub fn get_visible_shares(shares: Vec<Share>, filter_hidden: bool) -> Vec<String> {
-    let common_shares: Vec<CommonShare> = shares.into_iter().map(CommonShare::from).collect();
-    visible_share_ids(&common_shares, filter_hidden)
+    visible_share_ids(&shares, filter_hidden)
         .into_iter()
         .map(|s| s.to_string())
         .collect()

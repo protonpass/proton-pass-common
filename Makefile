@@ -165,8 +165,6 @@ pass-mobile-unit-test:  ## Run the unit tests for the pass mobile library
 		--language kotlin \
 		--out-dir ${PROJECT_ROOT}tmp-bindings \
 		--no-format
-	@ls -la ${PROJECT_ROOT}target/release
-	@ls -la ${PROJECT_ROOT}tmp-bindings || true
 	@mkdir -p ${PROJECT_ROOT}proton-pass-mobile/android/libTest/src/main/kotlin/
 	@mv ${PROJECT_ROOT}tmp-bindings/* ${PROJECT_ROOT}proton-pass-mobile/android/libTest/src/main/kotlin/
 	@rm -rf ${PROJECT_ROOT}tmp-bindings

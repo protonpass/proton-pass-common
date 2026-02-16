@@ -1,6 +1,6 @@
-use proton_pass_derive::Error;
-use url::ParseError;
+use proton_pass_derive::{ffi_error, Error};
 
+#[ffi_error]
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum TOTPError {
     NotTotpUri,
@@ -8,11 +8,17 @@ pub enum TOTPError {
     NoAuthority,
     InvalidAlgorithm(String),
     InvalidScheme(String),
-    URLParseError(ParseError),
+    URLParseError(String),
     NoSecret,
     EmptySecret,
     NoQueries,
     SecretParseError,
     InvalidPeriod,
     InvalidDigits,
+}
+
+impl From<url::ParseError> for TOTPError {
+    fn from(e: url::ParseError) -> Self {
+        Self::URLParseError(e.to_string())
+    }
 }

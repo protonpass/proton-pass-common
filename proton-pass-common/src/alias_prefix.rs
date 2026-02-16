@@ -1,4 +1,7 @@
-#[derive(Debug, proton_pass_derive::Error, PartialEq, Eq)]
+use proton_pass_derive::{ffi_error, Error};
+
+#[ffi_error]
+#[derive(Debug, Error, PartialEq, Eq)]
 pub enum AliasPrefixError {
     TwoConsecutiveDots,
     InvalidCharacter,

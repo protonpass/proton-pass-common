@@ -17,7 +17,7 @@ crate-type = ["cdylib", "staticlib"]
 name = "proton_pass_common_mobile"
 
 [dependencies]
-proton-pass-common = { path = "../proton-pass-common" }
+proton-pass-common = { path = "../proton-pass-common", features = ["uniffi"] }
 proton-pass-derive = { path = "../proton-pass-derive" }
 
 tokio.workspace = true

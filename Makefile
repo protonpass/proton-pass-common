@@ -337,6 +337,7 @@ authenticator-kotlin-bindings: ## Generate the kotlin bindings
 	@rm -rf ${AUTHENTICATOR_ANDROID_BINDINGS_DIR}
 	@mkdir -p ${AUTHENTICATOR_ANDROID_BINDINGS_DIR}
 	@cp -r ${PROJECT_ROOT}tmp-bindings/proton/android/authenticator/* ${AUTHENTICATOR_ANDROID_BINDINGS_DIR}/../
+	@rm -rf ${AUTHENTICATOR_ANDROID_BINDINGS_DIR}/../../pass
 	@cp -r ${PROJECT_ROOT}tmp-bindings/proton/android/pass ${AUTHENTICATOR_ANDROID_BINDINGS_DIR}/../../pass
 	@rm -rf ${PROJECT_ROOT}tmp-bindings
 

@@ -1,9 +1,8 @@
-use proton_pass_derive::{ffi_error, ffi_type, Error};
+use proton_pass_derive::{ffi_type, Error};
 use ssh_key::private::{Ed25519Keypair, RsaKeypair};
 use ssh_key::rand_core::OsRng;
 use ssh_key::{LineEnding, PrivateKey, PublicKey};
 
-#[ffi_error]
 #[derive(Debug, Error)]
 pub enum SshKeyError {
     InvalidPublicKey(String),

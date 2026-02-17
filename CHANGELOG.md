@@ -6,6 +6,12 @@
 
 ### Other
 
+## 1.0.0
+
+### Features :tada:
+
+- Move all the crates to use uniffi annotations + exports from core crates. No functional changes.
+
 ## 0.28.8
 
 ### Fixes :bug:

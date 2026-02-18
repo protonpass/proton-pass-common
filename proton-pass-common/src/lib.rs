@@ -15,9 +15,11 @@ pub mod passkey;
 pub use passkey_types;
 pub mod password;
 pub mod qr;
+pub mod string_modifiers;
 pub mod share;
 pub mod sshkey;
 pub mod twofa;
+pub mod username;
 pub mod wifi;
 
 pub fn library_version() -> String {

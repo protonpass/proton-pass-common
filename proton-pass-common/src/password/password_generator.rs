@@ -1,4 +1,5 @@
 use super::{PassphraseConfig, PasswordGeneratorError, RandomPasswordConfig, WordSeparator};
+use crate::string_modifiers;
 use rand::Rng;
 
 include!(concat!(env!("OUT_DIR"), "/wordlists.rs"));
@@ -44,7 +45,7 @@ where
                 res.push_str(&separator);
             }
 
-            let word = if spec.capitalise { capitalize(word) } else { word };
+            let word = if spec.capitalise { string_modifiers::capitalize(word) } else { word };
             res.push_str(&word);
 
             if spec.include_numbers {
@@ -109,7 +110,7 @@ where
         let mut words = Vec::new();
         for _ in 0..spec.count {
             let word = self.get_word()?;
-            let word = if spec.capitalise { capitalize(word) } else { word };
+            let word = if spec.capitalise { string_modifiers::capitalize(word) } else { word };
 
             let word = if spec.include_numbers {
                 let number = self.rng.random_range(0..=9);
@@ -158,21 +159,7 @@ where
     }
 
     fn get_separator(&mut self, separator: &WordSeparator) -> Result<String> {
-        match separator {
-            WordSeparator::Numbers => {
-                let num = self.rng.random_range(0..=9);
-                Ok(format!("{num}"))
-            }
-            WordSeparator::NumbersAndSymbols => {
-                let dictionary = format!("{NUMBERS}{SYMBOLS}");
-                self.get_char(&dictionary).map(|c| c.to_string())
-            }
-            WordSeparator::Hyphens => Ok("-".to_string()),
-            WordSeparator::Spaces => Ok(" ".to_string()),
-            WordSeparator::Periods => Ok(".".to_string()),
-            WordSeparator::Commas => Ok(",".to_string()),
-            WordSeparator::Underscores => Ok("_".to_string()),
-        }
+        Ok(string_modifiers::get_separator(&mut self.rng, separator))
     }
 }
 
@@ -190,18 +177,6 @@ fn contains_symbols(haystack: &str) -> bool {
 
 fn contains_list(list: &str, haystack: &str) -> bool {
     haystack.chars().any(|c| list.contains(c))
-}
-
-fn capitalize(word: String) -> String {
-    let mut res = String::new();
-    for (idx, char) in word.chars().enumerate() {
-        if idx == 0 {
-            res.push_str(&char.to_uppercase().to_string());
-        } else {
-            res.push(char);
-        }
-    }
-    res
 }
 
 fn get_dictionary(spec: &RandomPasswordConfig) -> String {

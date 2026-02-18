@@ -2,13 +2,13 @@ mod analyzer;
 mod password_generator;
 mod scorer;
 
+pub use crate::string_modifiers::WordSeparator;
 use password_generator::PasswordGenerator;
 #[cfg(feature = "wasm")]
 use proton_pass_derive::ffi_type;
 use proton_pass_derive::Error;
 use rand::{rng, rngs::ThreadRng};
 pub use scorer::*;
-pub use crate::string_modifiers::WordSeparator;
 
 type ProductionPasswordGenerator = PasswordGenerator<ThreadRng>;
 
@@ -35,35 +35,6 @@ pub struct PassphraseConfig {
     pub count: u32,
 }
 
-<<<<<<< HEAD
-#[cfg_attr(feature = "wasm", ffi_type(web_name = "WasmWordSeparator"))]
-#[derive(Clone, Debug)]
-pub enum WordSeparator {
-    Hyphens,
-    Spaces,
-    Periods,
-    Commas,
-    Underscores,
-    Numbers,
-    NumbersAndSymbols,
-}
-
-impl WordSeparator {
-    pub fn all() -> Vec<WordSeparator> {
-        vec![
-            WordSeparator::Hyphens,
-            WordSeparator::Spaces,
-            WordSeparator::Periods,
-            WordSeparator::Commas,
-            WordSeparator::Underscores,
-            WordSeparator::Numbers,
-            WordSeparator::NumbersAndSymbols,
-        ]
-    }
-}
-
-=======
->>>>>>> e9d0891 (generate random usernames based on config object)
 pub fn get_generator() -> ProductionPasswordGenerator {
     PasswordGenerator::new(rng())
 }

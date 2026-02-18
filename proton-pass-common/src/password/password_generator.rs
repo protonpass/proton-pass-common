@@ -45,7 +45,11 @@ where
                 res.push_str(&separator);
             }
 
-            let word = if spec.capitalise { string_modifiers::capitalize(word) } else { word };
+            let word = if spec.capitalise {
+                string_modifiers::capitalize(word)
+            } else {
+                word
+            };
             res.push_str(&word);
 
             if spec.include_numbers {
@@ -110,7 +114,11 @@ where
         let mut words = Vec::new();
         for _ in 0..spec.count {
             let word = self.get_word()?;
-            let word = if spec.capitalise { string_modifiers::capitalize(word) } else { word };
+            let word = if spec.capitalise {
+                string_modifiers::capitalize(word)
+            } else {
+                word
+            };
 
             let word = if spec.include_numbers {
                 let number = self.rng.random_range(0..=9);

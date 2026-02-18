@@ -1,5 +1,5 @@
-use crate::username::WordType;
 use crate::string_modifiers;
+use crate::username::WordType;
 
 use super::{UsernameGeneratorConfig, UsernameGeneratorError};
 use rand::Rng;
@@ -41,11 +41,7 @@ where
         self.generate_username_from_words(words, config)
     }
 
-    fn generate_username_from_words(
-        &mut self,
-        words: Vec<String>,
-        config: &UsernameGeneratorConfig,
-    ) -> Result<String> {
+    fn generate_username_from_words(&mut self, words: Vec<String>, config: &UsernameGeneratorConfig) -> Result<String> {
         if words.is_empty() {
             return Ok(String::new());
         }
@@ -65,15 +61,17 @@ where
             processed_words.push(processed);
         }
 
-        let mut result = if processed_words.len() > 1 {
-            if let Some(sep_type) = config.separator.as_ref() {
-                let sep = string_modifiers::get_separator(&mut self.rng, sep_type);
-                processed_words.join(&sep)
-            } else {
-                processed_words.join("")
+        let mut result = match processed_words.len() {
+            0 => String::new(),
+            1 => processed_words[0].clone(),
+            _ => {
+                if let Some(sep_type) = config.separator.as_ref() {
+                    let sep = string_modifiers::get_separator(&mut self.rng, sep_type);
+                    processed_words.join(&sep)
+                } else {
+                    processed_words.join("")
+                }
             }
-        } else {
-            processed_words.into_iter().next().unwrap()
         };
 
         if config.include_numbers {
@@ -90,11 +88,7 @@ where
         Ok(result)
     }
 
-    fn get_words(
-        &mut self,
-        count: usize,
-        pattern: &[WordType],
-    ) -> Result<Vec<String>> {
+    fn get_words(&mut self, count: usize, pattern: &[WordType]) -> Result<Vec<String>> {
         if count == 0 {
             return Ok(Vec::new());
         }
@@ -118,9 +112,10 @@ where
         };
 
         if list.is_empty() {
-            return Err(UsernameGeneratorError::FailToGenerate(
-                format!("{:?} wordlist is empty", word_type),
-            ));
+            return Err(UsernameGeneratorError::FailToGenerate(format!(
+                "{:?} wordlist is empty",
+                word_type
+            )));
         }
 
         let idx = self.rng.random_range(0..list.len());
@@ -131,6 +126,7 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::username::{WordSeparator, WordTypes};
     use rand::prelude::StdRng;
     use rand::SeedableRng;
 
@@ -149,7 +145,7 @@ mod test {
             capitalise: false,
             separator: None,
             leetspeak: false,
-            word_types: super::super::WordTypes::all(),
+            word_types: WordTypes::all(),
         };
 
         let result = generator.generate_username(&config).unwrap();
@@ -167,7 +163,7 @@ mod test {
             capitalise: true,
             separator: None,
             leetspeak: false,
-            word_types: super::super::WordTypes::all(),
+            word_types: WordTypes::all(),
         };
 
         let result = generator.generate_username(&config).unwrap();
@@ -185,7 +181,7 @@ mod test {
             capitalise: false,
             separator: None,
             leetspeak: false,
-            word_types: super::super::WordTypes::all(),
+            word_types: WordTypes::all(),
         };
 
         let result = generator.generate_username(&config).unwrap();
@@ -199,9 +195,9 @@ mod test {
             word_count: 4,
             include_numbers: false,
             capitalise: false,
-            separator: Some(super::super::WordSeparator::Hyphens),
+            separator: Some(WordSeparator::Hyphens),
             leetspeak: false,
-            word_types: super::super::WordTypes {
+            word_types: WordTypes {
                 adjectives: true,
                 nouns: true,
                 verbs: false,
@@ -224,7 +220,7 @@ mod test {
             capitalise: false,
             separator: None,
             leetspeak: true,
-            word_types: super::super::WordTypes::all(),
+            word_types: WordTypes::all(),
         };
 
         let cases = [
@@ -249,7 +245,7 @@ mod test {
             capitalise: false,
             separator: None,
             leetspeak: false,
-            word_types: super::super::WordTypes::all(),
+            word_types: WordTypes::all(),
         };
 
         let words = vec!["hello".to_string(), "world".to_string()];

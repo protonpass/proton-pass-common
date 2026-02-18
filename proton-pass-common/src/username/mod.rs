@@ -1,9 +1,9 @@
 mod username_generator;
 
+pub use crate::string_modifiers::WordSeparator;
 use proton_pass_derive::Error;
 use rand::{rng, rngs::ThreadRng};
 use username_generator::UsernameGenerator;
-pub use crate::string_modifiers::WordSeparator;
 
 type ProductionUsernameGenerator = UsernameGenerator<ThreadRng>;
 
@@ -67,4 +67,3 @@ impl WordTypes {
 pub fn get_generator() -> ProductionUsernameGenerator {
     UsernameGenerator::new(rng())
 }
-

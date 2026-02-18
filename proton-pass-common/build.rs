@@ -12,7 +12,7 @@ fn main() {
     build_username_wordlists();
 }
 
-fn build_username_wordlists(){
+fn build_username_wordlists() {
     println!("cargo:rerun-if-changed=username_wordlists/adjectives.txt");
     println!("cargo:rerun-if-changed=username_wordlists/verbs.txt");
     println!("cargo:rerun-if-changed=username_wordlists/nouns.txt");
@@ -21,7 +21,7 @@ fn build_username_wordlists(){
     let mut f = File::create(dest_path).expect("Could not create username_wordlist.rs");
     write_wordlist(&mut f, "ADJECTIVES_LIST", "username_wordlists/adjectives.txt");
     write_wordlist(&mut f, "NOUNS_LIST", "username_wordlists/nouns.txt");
-    write_wordlist(&mut f, "VERBS_LIST", "username_wordlists/verbs.txt");    
+    write_wordlist(&mut f, "VERBS_LIST", "username_wordlists/verbs.txt");
 }
 
 fn build_eff_wordlist() {
@@ -106,25 +106,25 @@ fn load_denylist() -> HashSet<String> {
 }
 
 fn write_wordlist(f: &mut File, const_name: &str, filepath: &str) {
-      f.write_all(b"const ").expect("Error writing wordlist");
-      f.write_all(const_name.as_bytes()).expect("Error writing wordlist");
-      f.write_all(b": &[&str] = &[").expect("Error writing wordlist");
+    f.write_all(b"const ").expect("Error writing wordlist");
+    f.write_all(const_name.as_bytes()).expect("Error writing wordlist");
+    f.write_all(b": &[&str] = &[").expect("Error writing wordlist");
 
-      let file = File::open(filepath).unwrap_or_else(|e| panic!("Error opening {filepath}: {e}"));
-      let reader = BufReader::new(file);
+    let file = File::open(filepath).unwrap_or_else(|e| panic!("Error opening {filepath}: {e}"));
+    let reader = BufReader::new(file);
 
-      for line in reader.lines() {
-          let word = line.expect("Error reading line");
-          let word = word.trim();
-          if !word.is_empty() && !word.starts_with('#') {
-              f.write_all(b"\"").expect("Error writing word");
-              f.write_all(word.as_bytes()).expect("Error writing word");
-              f.write_all(b"\",").expect("Error writing word");
-          }
-      }
+    for line in reader.lines() {
+        let word = line.expect("Error reading line");
+        let word = word.trim();
+        if !word.is_empty() && !word.starts_with('#') {
+            f.write_all(b"\"").expect("Error writing word");
+            f.write_all(word.as_bytes()).expect("Error writing word");
+            f.write_all(b"\",").expect("Error writing word");
+        }
+    }
 
-      f.write_all(b"];\n\n").expect("Error writing wordlist");
-  }
+    f.write_all(b"];\n\n").expect("Error writing wordlist");
+}
 
 fn eff_wordlist(mut f_dest: &File, const_name: &str, fname_src: &str) {
     f_dest.write_all(b"const ").expect("Error writing wordlist");

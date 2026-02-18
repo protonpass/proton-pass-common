@@ -41,7 +41,7 @@ where
 
         for (idx, word) in words.into_iter().enumerate() {
             if idx > 0 {
-                let separator = self.get_separator(&spec.separator)?;
+                let separator = string_modifiers::get_separator(&mut self.rng, &spec.separator);
                 res.push_str(&separator);
             }
 
@@ -158,16 +158,12 @@ where
             if idx == 0 {
                 res.push_str(&word);
             } else {
-                let separator = self.get_separator(separator)?;
+                let separator = string_modifiers::get_separator(&mut self.rng, separator);
                 res.push_str(&separator);
                 res.push_str(&word);
             }
         }
         Ok(res)
-    }
-
-    fn get_separator(&mut self, separator: &WordSeparator) -> Result<String> {
-        Ok(string_modifiers::get_separator(&mut self.rng, separator))
     }
 }
 

@@ -1,10 +1,13 @@
 use rand::Rng;
 
-// Shared constants
+#[cfg(feature = "wasm")]
+use proton_pass_derive::ffi_type;
+
 pub const NUMBERS: &str = "0123456789";
 pub const SYMBOLS: &str = "!@#$%^&*";
 
-#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "wasm", ffi_type(web_name = "WasmWordSeparator"))]
+#[derive(Clone, Debug)]
 pub enum WordSeparator {
     Hyphens,
     Spaces,

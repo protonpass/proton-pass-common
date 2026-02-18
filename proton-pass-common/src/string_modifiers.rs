@@ -7,7 +7,7 @@ pub const NUMBERS: &str = "0123456789";
 pub const SYMBOLS: &str = "!@#$%^&*";
 
 #[cfg_attr(feature = "wasm", ffi_type(web_name = "WasmWordSeparator"))]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum WordSeparator {
     Hyphens,
     Spaces,

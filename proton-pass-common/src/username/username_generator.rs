@@ -42,10 +42,6 @@ where
     }
 
     fn generate_username_from_words(&mut self, words: Vec<String>, config: &UsernameGeneratorConfig) -> Result<String> {
-        if words.is_empty() {
-            return Ok(String::new());
-        }
-
         let mut processed_words = Vec::new();
         for word in words {
             let mut processed = word;
@@ -89,22 +85,17 @@ where
     }
 
     fn get_words(&mut self, count: usize, pattern: &[WordType]) -> Result<Vec<String>> {
-        if count == 0 {
-            return Ok(Vec::new());
-        }
-
         let mut words = Vec::new();
 
         for i in 0..count {
-            let word_type = &pattern[i % pattern.len()];
-            let word = self.get_word_of_type(word_type)?;
+            let word = self.get_word_of_type(pattern[i % pattern.len()])?;
             words.push(word);
         }
 
         Ok(words)
     }
 
-    fn get_word_of_type(&mut self, word_type: &WordType) -> Result<String> {
+    fn get_word_of_type(&mut self, word_type: WordType) -> Result<String> {
         let list = match word_type {
             WordType::Adjective => ADJECTIVES_LIST,
             WordType::Noun => NOUNS_LIST,
@@ -117,7 +108,6 @@ where
                 word_type
             )));
         }
-
         let idx = self.rng.random_range(0..list.len());
         Ok(list[idx].to_string())
     }

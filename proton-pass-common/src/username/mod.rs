@@ -12,7 +12,7 @@ pub enum UsernameGeneratorError {
     FailToGenerate(String),
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum WordType {
     Adjective,
     Noun,

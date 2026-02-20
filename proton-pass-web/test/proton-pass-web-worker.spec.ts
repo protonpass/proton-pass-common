@@ -38,7 +38,7 @@ describe("ProtonPassWeb WASM", () => {
         });
 
         expect(username).not.toBeUndefined();
-        console.log("Generated username:", username);
+        expect(username).toContain("-");
     });
 
     test("Should generate username with all options", () => {
@@ -52,7 +52,7 @@ describe("ProtonPassWeb WASM", () => {
         });
 
         expect(username).not.toBeUndefined();
-        console.log("Generated username with options:", username);
+        expect(username).toContain("_");
     });
 
     test("Can generate passkey", async () => {

@@ -4,6 +4,8 @@ pub use crate::string_modifiers::WordSeparator;
 use proton_pass_derive::Error;
 use rand::{rng, rngs::ThreadRng};
 use username_generator::UsernameGenerator;
+#[cfg(feature = "wasm")]
+use proton_pass_derive::ffi_type;
 
 type ProductionUsernameGenerator = UsernameGenerator<ThreadRng>;
 
@@ -19,6 +21,7 @@ pub enum WordType {
     Verb,
 }
 
+#[cfg_attr(feature = "wasm", ffi_type(web_name = "WasmUsernameGeneratorConfig"))]
 pub struct UsernameGeneratorConfig {
     pub word_count: u32,
     pub include_numbers: bool,
@@ -28,6 +31,8 @@ pub struct UsernameGeneratorConfig {
     pub word_types: WordTypes,
 }
 
+
+#[cfg_attr(feature = "wasm", ffi_type(web_name = "WasmWordTypes"))]
 pub struct WordTypes {
     pub adjectives: bool,
     pub nouns: bool,

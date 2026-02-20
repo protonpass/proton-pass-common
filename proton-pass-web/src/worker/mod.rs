@@ -4,7 +4,7 @@ use wasm_bindgen::prelude::*;
 use crate::common::{vec_to_uint8_array, WasmBoolDict};
 use passkey::WasmCreatePasskeyData;
 use passkey::{PasskeyManager, WasmGeneratePasskeyResponse, WasmResolvePasskeyChallengeResponse};
-
+use proton_pass_common::username::UsernameGeneratorConfig;
 mod passkey;
 mod share;
 #[cfg(feature = "experimental")]
@@ -58,4 +58,15 @@ pub async fn resolve_passkey_challenge(
 #[wasm_bindgen]
 pub fn parse_create_passkey_data(request: String) -> Result<WasmCreatePasskeyData, JsError> {
     Ok(PasskeyManager::parse_create_request(request)?)
+}
+
+#[wasm_bindgen]
+pub fn generate_username(request: String) -> Result<> {
+    return Ok()
+}
+
+#[wasm_bindgen]
+pub fn generate_username(config: UsernameGeneratorConfig) -> Result<String, JsError> {
+    let mut generator = proton_pass_common::username::get_generator();
+    generator.generate_username(&config).map_err(|e| e.into())
 }

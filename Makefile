@@ -292,7 +292,7 @@ web-username: ## Build the web username artifacts
 	@mv "${WEB_DIR}/pkg" "${WEB_BUILD_DIR}/username"
 
 .PHONY: web
-web: web-setup web-worker web-ui web-password ## Build the web artifacts
+web: web-setup web-worker web-ui web-password web-username ## Build the web artifacts
 	@cp "${WEB_DIR}/package.json" "${WEB_BUILD_DIR}/package.json"
 
 .PHONY: web-test

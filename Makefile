@@ -140,9 +140,9 @@ swift-bindings: swift-dirs ## Generate the swift bindings
 		--library ${PROJECT_ROOT}target/release/libproton_pass_common_mobile.${BINDINGS_LIB_EXT} \
 		--language swift \
 		--out-dir ${PROJECT_ROOT}tmp-bindings
-	@cp ${PROJECT_ROOT}tmp-bindings/RustFrameworkFFI.h ${IOS_HEADER_DIR}/RustFrameworkFFI.h
-	@cp ${PROJECT_ROOT}tmp-bindings/RustFrameworkFFI.modulemap ${IOS_HEADER_DIR}/module.modulemap
-	@cp ${PROJECT_ROOT}tmp-bindings/RustFramework.swift ${IOS_PACKAGE_DIR}/Sources/PassRustCore/PassRustCore.swift
+	@cp ${PROJECT_ROOT}tmp-bindings/*.h ${IOS_HEADER_DIR}/
+	@cp ${PROJECT_ROOT}tmp-bindings/*.modulemap ${IOS_HEADER_DIR}/
+	@cp ${PROJECT_ROOT}tmp-bindings/*.swift ${IOS_PACKAGE_DIR}/Sources/PassRustCore/
 	@echo "Wrote Pass Swift bindings to ${IOS_PACKAGE_DIR}/Sources/PassRustCore"
 	@rm -rf ${PROJECT_ROOT}tmp-bindings
 
@@ -363,9 +363,9 @@ authenticator-swift-bindings: authenticator-swift-dirs ## Generate the swift bin
 		--library ${PROJECT_ROOT}target/release/libproton_authenticator_common_mobile.${BINDINGS_LIB_EXT} \
 		--language swift \
 		--out-dir ${PROJECT_ROOT}tmp-bindings
-	@cp ${PROJECT_ROOT}tmp-bindings/RustFrameworkFFI.h ${AUTHENTICATOR_IOS_HEADER_DIR}/RustFrameworkFFI.h
-	@cp ${PROJECT_ROOT}tmp-bindings/RustFrameworkFFI.modulemap ${AUTHENTICATOR_IOS_HEADER_DIR}/module.modulemap
-	@cp ${PROJECT_ROOT}tmp-bindings/RustFramework.swift ${AUTHENTICATOR_IOS_PACKAGE_DIR}/Sources/AuthenticatorRustCore/AuthenticatorRustCore.swift
+	@cp ${PROJECT_ROOT}tmp-bindings/*.h ${AUTHENTICATOR_IOS_HEADER_DIR}/
+	@cp ${PROJECT_ROOT}tmp-bindings/*.modulemap ${AUTHENTICATOR_IOS_HEADER_DIR}/
+	@cp ${PROJECT_ROOT}tmp-bindings/*.swift ${AUTHENTICATOR_IOS_PACKAGE_DIR}/Sources/AuthenticatorRustCore/
 	@rm -rf ${PROJECT_ROOT}tmp-bindings
 
 

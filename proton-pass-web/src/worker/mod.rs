@@ -4,7 +4,7 @@ use wasm_bindgen::prelude::*;
 use crate::common::{vec_to_uint8_array, WasmBoolDict};
 use passkey::WasmCreatePasskeyData;
 use passkey::{PasskeyManager, WasmGeneratePasskeyResponse, WasmResolvePasskeyChallengeResponse};
-use proton_pass_common::username::UsernameGeneratorConfig;
+
 mod passkey;
 mod share;
 #[cfg(feature = "experimental")]

@@ -4,6 +4,7 @@
   "workspaces": [
     "password",
     "ui",
+    "username",
     "worker"
   ]
 }

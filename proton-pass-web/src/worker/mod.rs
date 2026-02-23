@@ -59,9 +59,3 @@ pub async fn resolve_passkey_challenge(
 pub fn parse_create_passkey_data(request: String) -> Result<WasmCreatePasskeyData, JsError> {
     Ok(PasskeyManager::parse_create_request(request)?)
 }
-
-#[wasm_bindgen]
-pub fn generate_username(config: UsernameGeneratorConfig) -> Result<String, JsError> {
-    let mut generator = proton_pass_common::username::get_generator();
-    generator.generate_username(&config).map_err(|e| e.into())
-}

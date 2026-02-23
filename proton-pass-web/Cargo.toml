@@ -28,6 +28,7 @@ wasm-bindgen.workspace = true
 wasm-bindgen-futures.workspace = true
 
 [features]
+web_username = []
 web_password = []
 web_ui = []
 web_worker = ["web_password"]

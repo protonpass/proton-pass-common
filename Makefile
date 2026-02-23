@@ -284,6 +284,13 @@ web-password: ## Build the web password artifacts
 	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "password",/g' "${WEB_DIR}/pkg/package.json"
 	@mv "${WEB_DIR}/pkg" "${WEB_BUILD_DIR}/password"
 
+.PHONY: web-username
+web-username: ## Build the web username artifacts
+	@echo "--- Building web-username"
+	@wasm-pack build proton-pass-web --scope protontech --features web_username
+	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "username",/g' "${WEB_DIR}/pkg/package.json"
+	@mv "${WEB_DIR}/pkg" "${WEB_BUILD_DIR}/username"
+
 .PHONY: web
 web: web-setup web-worker web-ui web-password ## Build the web artifacts
 	@cp "${WEB_DIR}/package.json" "${WEB_BUILD_DIR}/package.json"
@@ -302,6 +309,10 @@ web-test: web-setup ## Test the web artifacts
 	@echo "--- Building web-password"
 	@wasm-pack build proton-pass-web --scope protontech --target nodejs --out-dir "${WEB_TEST_BUILD_DIR}/password" --features "web_password,experimental"
 	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "password",/g' "${WEB_TEST_BUILD_DIR}/password/package.json"
+
+	@echo "--- Building web-username"
+	@wasm-pack build proton-pass-web --scope protontech --target nodejs --out-dir "${WEB_TEST_BUILD_DIR}/username" --features "web_username,experimental"
+	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "username",/g' "${WEB_TEST_BUILD_DIR}/username/package.json"
 
 	@cp "${WEB_DIR}/package.json" "${WEB_TEST_BUILD_DIR}/package.json"
 	@cd ${WEB_TEST_DIR} && bun test

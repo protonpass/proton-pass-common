@@ -6,6 +6,16 @@
 
 ### Other
 
+## 1.1.0
+
+### Features :tada:
+
+- pass-web: username generator.
+
+### Fixes :bug:
+
+- pass-mobile & authenticator-mobile: fix swift bindings.
+
 ## 1.0.0
 
 ### Features :tada:

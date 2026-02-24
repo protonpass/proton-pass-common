@@ -6,6 +6,12 @@
 
 ### Other
 
+## 1.1.1
+
+### Fixes :bug:
+
+- pass-mobile: fix duplicated types on swift bindings.
+
 ## 1.1.0
 
 ### Features :tada:

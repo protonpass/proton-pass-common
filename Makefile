@@ -143,7 +143,8 @@ swift-bindings: swift-dirs ## Generate the swift bindings
 	@cp ${PROJECT_ROOT}tmp-bindings/*.h ${IOS_HEADER_DIR}/
 	@cat ${PROJECT_ROOT}tmp-bindings/*.modulemap > ${IOS_HEADER_DIR}/module.modulemap
 	@cp ${PROJECT_ROOT}tmp-bindings/*.swift ${IOS_PACKAGE_DIR}/Sources/PassRustCore/
-	@rm ${IOS_PACKAGE_DIR}/Sources/PassRustCore/RustFramework.swift # Remove redundant file
+	@rm ${IOS_PACKAGE_DIR}/Sources/PassRustCore/proton_pass_common.swift # Remove redundant file
+	@rm ${IOS_PACKAGE_DIR}/Sources/PassRustCore/PassTotp.swift # Remove redundant file
 	@echo "Wrote Pass Swift bindings to ${IOS_PACKAGE_DIR}/Sources/PassRustCore"
 	@rm -rf ${PROJECT_ROOT}tmp-bindings
 

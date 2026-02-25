@@ -6,6 +6,12 @@
 
 ### Other
 
+## 1.1.2
+
+### Fixes :bug:
+
+- pass-mobile: fix missing types on swift bindings.
+
 ## 1.1.1
 
 ### Fixes :bug:

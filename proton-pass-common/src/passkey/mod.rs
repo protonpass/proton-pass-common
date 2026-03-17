@@ -1,4 +1,5 @@
 mod authentication_parser;
+pub mod fetcher;
 mod generate;
 mod parser;
 mod passkey_handling;
@@ -8,6 +9,7 @@ mod protonpasskeyserializer;
 mod resolve;
 mod utils;
 
+pub use fetcher::{FetchError, WebauthnClientFetcher, WebauthnDomainsResponse, WebauthnFetcher};
 pub use generate::{
     generate_passkey_for_domain, generate_passkey_for_ios, parse_create_passkey_data, CreatePasskeyData,
     CreatePasskeyIosRequest, CreatePasskeyResponse,

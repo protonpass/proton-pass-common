@@ -1,9 +1,9 @@
+use super::fetcher::WebauthnFetcher;
 use super::parser::parse_create_request;
-use super::passkey_handling::{get_authenticator, parse_url, serialize_passkey};
+use super::passkey_handling::{get_client, parse_url, serialize_passkey};
 use super::{PasskeyError, PasskeyResult, ProtonPassKey};
 use coset::iana;
 use coset::iana::EnumI64;
-use passkey::client::Client;
 use passkey_types::webauthn::{
     CreatedPublicKeyCredential, CredentialCreationOptions, PublicKeyCredentialCreationOptions,
     PublicKeyCredentialParameters, PublicKeyCredentialRpEntity, PublicKeyCredentialType, PublicKeyCredentialUserEntity,
@@ -40,6 +40,7 @@ async fn generate_passkey_response(
     request: CredentialCreationOptions,
     client_data_hash: Option<Vec<u8>>,
     allows_insecure_localhost: bool,
+    fetcher: WebauthnFetcher,
 ) -> PasskeyResult<CreatePasskeyResponse> {
     let rp_id = request.public_key.rp.id.clone();
     let rp_name = request.public_key.rp.name.clone();
@@ -51,8 +52,7 @@ async fn generate_passkey_response(
         None => request.public_key.rp.name.to_string(),
     };
 
-    let authenticator = get_authenticator(None);
-    let mut client = Client::new(authenticator).allows_insecure_localhost(allows_insecure_localhost);
+    let mut client = get_client(None, fetcher, allows_insecure_localhost);
 
     let my_webauthn_credential = client
         .register(origin, request, client_data_hash)
@@ -93,15 +93,17 @@ async fn generate_passkey(
     origin: Url,
     request: PublicKeyCredentialCreationOptions,
     allows_insecure_localhost: bool,
+    fetcher: WebauthnFetcher,
 ) -> PasskeyResult<CreatePasskeyResponse> {
     let request = CredentialCreationOptions { public_key: request };
-    generate_passkey_response(&origin, request, None, allows_insecure_localhost).await
+    generate_passkey_response(&origin, request, None, allows_insecure_localhost, fetcher).await
 }
 
 pub async fn generate_passkey_for_domain(
     url: &str,
     request: &str,
     allows_insecure_localhost: bool,
+    fetcher: WebauthnFetcher,
 ) -> PasskeyResult<CreatePasskeyResponse> {
     let origin = parse_url(url)?;
 
@@ -121,7 +123,7 @@ pub async fn generate_passkey_for_domain(
         ];
     }
 
-    generate_passkey(origin, parsed, allows_insecure_localhost).await
+    generate_passkey(origin, parsed, allows_insecure_localhost, fetcher).await
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -134,7 +136,10 @@ pub struct CreatePasskeyIosRequest {
     pub supported_algorithms: Vec<i64>,
 }
 
-pub async fn generate_passkey_for_ios(ios_request: CreatePasskeyIosRequest) -> PasskeyResult<CreatePasskeyResponse> {
+pub async fn generate_passkey_for_ios(
+    ios_request: CreatePasskeyIosRequest,
+    fetcher: WebauthnFetcher,
+) -> PasskeyResult<CreatePasskeyResponse> {
     let url = parse_url(&ios_request.service_identifier)?;
     let mut pub_key_cred_params = vec![];
 
@@ -169,7 +174,7 @@ pub async fn generate_passkey_for_ios(ios_request: CreatePasskeyIosRequest) -> P
     };
 
     let request = CredentialCreationOptions { public_key: options };
-    generate_passkey_response(&url, request, Some(ios_request.client_data_hash), false).await
+    generate_passkey_response(&url, request, Some(ios_request.client_data_hash), false, fetcher).await
 }
 
 pub struct CreatePasskeyData {

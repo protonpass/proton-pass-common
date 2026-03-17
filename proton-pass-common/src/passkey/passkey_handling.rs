@@ -1,5 +1,7 @@
+use super::fetcher::WebauthnFetcher;
 use super::{PasskeyError, PasskeyResult, ProtonPassKey};
 use passkey::authenticator::{Authenticator, UserValidationMethod};
+use passkey::client::Client;
 use passkey_authenticator::extensions::HmacSecretConfig;
 use passkey_authenticator::{UiHint, UserCheck};
 use passkey_types::ctap2::Ctap2Error;
@@ -47,6 +49,16 @@ impl UserValidationMethod for MyUserValidationMethod {
     fn is_verification_enabled(&self) -> Option<bool> {
         Some(true)
     }
+}
+
+pub(crate) fn get_client(
+    pk: Option<ProtonPassKey>,
+    fetcher: WebauthnFetcher,
+    allows_insecure_localhost: bool,
+) -> Client<Option<Passkey>, MyUserValidationMethod, public_suffix::PublicSuffixList, WebauthnFetcher> {
+    let authenticator = get_authenticator(pk);
+    Client::new_with_custom_tld_provider(authenticator, public_suffix::DEFAULT_PROVIDER, Some(fetcher))
+        .allows_insecure_localhost(allows_insecure_localhost)
 }
 
 pub(crate) fn get_authenticator(pk: Option<ProtonPassKey>) -> Authenticator<Option<Passkey>, MyUserValidationMethod> {

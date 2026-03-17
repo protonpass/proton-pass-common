@@ -18,10 +18,10 @@ wasm-bindgen = { workspace = true, optional = true }
 proton-pass-derive = { path = "../proton-pass-derive" }
 proton-pass-totp = { path = "../proton-pass-totp" }
 
+async-trait.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 
-async-trait = "0.1.87"
 coset = "0.4.0"
 email_address = "0.2.9"
 file-format = { version = "0.28.0", features = ["reader"] }

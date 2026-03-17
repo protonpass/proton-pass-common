@@ -20,6 +20,7 @@ name = "proton_pass_common_mobile"
 proton-pass-common = { path = "../proton-pass-common", features = ["uniffi"] }
 proton-pass-derive = { path = "../proton-pass-derive" }
 
+async-trait.workspace = true
 tokio.workspace = true
 
 uniffi = { version = "0.31" }

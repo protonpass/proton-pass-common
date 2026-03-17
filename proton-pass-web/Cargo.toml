@@ -21,6 +21,7 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 proton-pass-common = { path = "../proton-pass-common", default-features = false, features = ["wasm"] }
 
+async-trait.workspace = true
 js-sys.workspace = true
 serde.workspace = true
 tsify.workspace = true

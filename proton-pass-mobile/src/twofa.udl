@@ -1,4 +1,0 @@
-interface TwofaDomainChecker {
-    constructor();
-    boolean twofa_domain_eligible(string domain);
-};

@@ -1,3 +1,0 @@
-namespace proton_pass_common_mobile {
-    string library_version();
-};

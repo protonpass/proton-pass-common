@@ -1,6 +1,9 @@
+use std::sync::{Arc, Mutex};
+
+use crate::passkey_fetcher::{make_webauthn_client, MobileWebauthnClientFetcher};
 use proton_pass_common::passkey::{
     generate_passkey_for_domain, generate_passkey_for_ios, parse_create_passkey_data, resolve_challenge_for_android,
-    resolve_challenge_for_ios,
+    resolve_challenge_for_ios, WebauthnClientFetcher, WebauthnFetcher,
 };
 pub use proton_pass_common::passkey::{
     AuthenticateWithPasskeyAndroidRequest as CommonAuthenticateWithPasskeyAndroidRequest,
@@ -157,6 +160,7 @@ pub struct CreatePasskeyData {
 #[derive(uniffi::Object)]
 pub struct PasskeyManager {
     rt: tokio::runtime::Runtime,
+    fetcher: Mutex<Option<Arc<dyn WebauthnClientFetcher>>>,
 }
 
 #[uniffi::export]
@@ -164,14 +168,22 @@ impl PasskeyManager {
     #[uniffi::constructor]
     pub fn new() -> PasskeyResult<Self> {
         match tokio::runtime::Builder::new_current_thread().build() {
-            Ok(rt) => Ok(Self { rt }),
+            Ok(rt) => Ok(Self {
+                rt,
+                fetcher: Mutex::new(None),
+            }),
             Err(e) => Err(PasskeyError::RuntimeError(format!("Error creating runtime: {e:?}"))),
         }
     }
 
+    pub fn register_webauthn_fetcher(&self, fetcher: Arc<dyn MobileWebauthnClientFetcher>) {
+        *self.fetcher.lock().unwrap() = Some(make_webauthn_client(fetcher));
+    }
+
     pub fn generate_passkey(&self, url: String, request: String) -> PasskeyResult<CreatePasskeyResponse> {
+        let fetcher = self.get_fetcher();
         self.rt.handle().block_on(async move {
-            match generate_passkey_for_domain(&url, &request, false).await {
+            match generate_passkey_for_domain(&url, &request, false, fetcher).await {
                 Ok(r) => match r.response() {
                     Ok(response) => Ok(CreatePasskeyResponse {
                         response,
@@ -200,8 +212,9 @@ impl PasskeyManager {
     }
 
     pub fn generate_ios_passkey(&self, request: CreatePasskeyIosRequest) -> PasskeyResult<CreatePasskeyIosResponse> {
+        let fetcher = self.get_fetcher();
         self.rt.handle().block_on(async move {
-            match generate_passkey_for_ios(CommonCreatePasskeyIosRequest::from(request)).await {
+            match generate_passkey_for_ios(CommonCreatePasskeyIosRequest::from(request), fetcher).await {
                 Ok(r) => Ok(r),
                 Err(e) => {
                     println!("Error in generate_passkey_for_ios: {e:?}");
@@ -229,8 +242,11 @@ impl PasskeyManager {
         &self,
         request: AuthenticateWithPasskeyAndroidRequest,
     ) -> PasskeyResult<String> {
+        let fetcher = self.get_fetcher();
         self.rt.handle().block_on(async move {
-            match resolve_challenge_for_android(CommonAuthenticateWithPasskeyAndroidRequest::from(request)).await {
+            match resolve_challenge_for_android(CommonAuthenticateWithPasskeyAndroidRequest::from(request), fetcher)
+                .await
+            {
                 Ok(r) => Ok(r),
                 Err(e) => {
                     println!("Error in resolve_challenge_for_android: {e:?}");
@@ -244,8 +260,9 @@ impl PasskeyManager {
         &self,
         request: AuthenticateWithPasskeyIosRequest,
     ) -> PasskeyResult<AuthenticateWithPasskeyIosResponse> {
+        let fetcher = self.get_fetcher();
         self.rt.handle().block_on(async move {
-            match resolve_challenge_for_ios(CommonAuthenticateWithPasskeyIosRequest::from(request)).await {
+            match resolve_challenge_for_ios(CommonAuthenticateWithPasskeyIosRequest::from(request), fetcher).await {
                 Ok(r) => Ok(AuthenticateWithPasskeyIosResponse::from(r)),
                 Err(e) => {
                     println!("Error in generate_passkey_for_ios: {e:?}");
@@ -268,5 +285,13 @@ impl PasskeyManager {
                 Err(PasskeyError::from(e))
             }
         }
+    }
+}
+
+// Implemented as a separate impl block so it doesn't break #[uniffi::export]
+impl PasskeyManager {
+    fn get_fetcher(&self) -> WebauthnFetcher {
+        let client = self.fetcher.lock().unwrap().clone();
+        WebauthnFetcher::new(client)
     }
 }

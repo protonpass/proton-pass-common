@@ -1,3 +1,4 @@
+use super::passkey_fetcher::get_webauthn_fetcher;
 use proton_pass_common::passkey::{
     generate_passkey_for_domain, parse_create_passkey_data, resolve_challenge_for_domain, PasskeyResult,
 };
@@ -279,7 +280,8 @@ impl PasskeyManager {
         request: String,
         allows_insecure_localhost: bool,
     ) -> PasskeyResult<WasmGeneratePasskeyResponse> {
-        let res = generate_passkey_for_domain(&url, &request, allows_insecure_localhost).await?;
+        let res =
+            generate_passkey_for_domain(&url, &request, allows_insecure_localhost, get_webauthn_fetcher()).await?;
 
         let credential = WasmPublicKeyCredentialAttestation::from(res.credential);
 
@@ -306,7 +308,14 @@ impl PasskeyManager {
         request: String,
         allows_insecure_localhost: bool,
     ) -> PasskeyResult<WasmResolvePasskeyChallengeResponse> {
-        let res = resolve_challenge_for_domain(&url, &passkey, &request, allows_insecure_localhost).await?;
+        let res = resolve_challenge_for_domain(
+            &url,
+            &passkey,
+            &request,
+            allows_insecure_localhost,
+            get_webauthn_fetcher(),
+        )
+        .await?;
 
         let credential = WasmPublicKeyCredentialAssertion::from(res.response);
 

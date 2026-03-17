@@ -6,6 +6,7 @@ use passkey::WasmCreatePasskeyData;
 use passkey::{PasskeyManager, WasmGeneratePasskeyResponse, WasmResolvePasskeyChallengeResponse};
 
 mod passkey;
+mod passkey_fetcher;
 mod share;
 #[cfg(feature = "experimental")]
 mod sshkey;

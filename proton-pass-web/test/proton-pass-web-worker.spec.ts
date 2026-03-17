@@ -7,6 +7,7 @@ import {
     library_version,
     random_words,
     generate_totp,
+    register_webauthn_fetcher,
 } from "./pkg/worker";
 
 describe("ProtonPassWeb WASM", () => {
@@ -92,6 +93,32 @@ describe("ProtonPassWeb WASM", () => {
         expect(res.totp.label).toEqual("some_label");
         expect(res.totp.period).toEqual(10);
 
+    });
+
+    test("Can register fetcher and generate passkey with related origin", async () => {
+        const relatedOriginRequest = {
+            challenge: "dGVzdGNoYWxsZW5nZQ==",
+            rp: { id: "m.aliexpress.com", name: "AliExpress" },
+            user: {
+                id: "dXNlcklk",
+                name: "user@example.com",
+                displayName: "Test User",
+            },
+            pubKeyCredParams: [{ type: "public-key", alg: -7 }],
+            timeout: 60000,
+        };
+
+        register_webauthn_fetcher(async (_url: string) => ({
+            origins: ["https://aliexpress.com", "https://m.aliexpress.com"],
+        }));
+
+        const response = await generate_passkey(
+            "https://aliexpress.com",
+            JSON.stringify(relatedOriginRequest),
+        );
+
+        expect(response.passkey).not.toBeEmpty();
+        expect(response.key_id).not.toBeEmpty();
     });
 
     test("Can generate passkey with prf", async () => {

@@ -10,6 +10,8 @@ import {
     register_webauthn_fetcher,
 } from "./pkg/worker";
 
+const delay = async (time: number) => await new Promise(resolve => setTimeout(resolve, time))
+
 describe("ProtonPassWeb WASM", () => {
     test("Library version", () => {
         expect(library_version()).toEqual(packageJSON.version);
@@ -108,9 +110,16 @@ describe("ProtonPassWeb WASM", () => {
             timeout: 60000,
         };
 
-        register_webauthn_fetcher(async (_url: string) => ({
-            origins: ["https://aliexpress.com", "https://m.aliexpress.com"],
-        }));
+        let invoked = false;
+        const fetcher = async (_url: string) => {
+            invoked = true;
+            // Async function to check for await
+            await delay(100);
+            return {
+                origins: ["https://aliexpress.com", "https://m.aliexpress.com"],
+            }
+        };
+        register_webauthn_fetcher(fetcher);
 
         const response = await generate_passkey(
             "https://aliexpress.com",
@@ -119,6 +128,7 @@ describe("ProtonPassWeb WASM", () => {
 
         expect(response.passkey).not.toBeEmpty();
         expect(response.key_id).not.toBeEmpty();
+        expect(invoked).toBeTrue();
     });
 
     test("Can generate passkey with prf", async () => {

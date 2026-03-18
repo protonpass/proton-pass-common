@@ -1,6 +1,7 @@
 package proton.android.pass
 
 import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.delay
 import org.junit.Test
 import proton.android.pass.commonrust.MobileWebauthnClientFetcher
 import proton.android.pass.commonrust.MobileWebauthnDomainsResponse
@@ -26,20 +27,6 @@ class PasskeyTest {
         }
     """.trimIndent()
 
-    private val relatedOriginRequest = """
-        {
-            "challenge": "dGVzdGNoYWxsZW5nZQ==",
-            "rp": {"id": "m.aliexpress.com", "name": "AliExpress"},
-            "user": {
-                "id": "dXNlcklk",
-                "name": "user@example.com",
-                "displayName": "Test User"
-            },
-            "pubKeyCredParams": [{"type": "public-key", "alg": -7}],
-            "timeout": 60000
-        }
-    """.trimIndent()
-
     @Test
     fun `can generate passkey without fetcher`() {
         val manager = PasskeyManager()
@@ -53,8 +40,12 @@ class PasskeyTest {
 
     @Test
     fun `can register fetcher and generate passkey with related origin`() {
+        var invoked = false
         val fetcher = object : MobileWebauthnClientFetcher {
             override suspend fun fetch(url: String): MobileWebauthnDomainsResponse {
+                // Suspend function to check for await
+                delay(100)
+                invoked = true
                 return MobileWebauthnDomainsResponse(
                     origins = listOf("https://aliexpress.com", "https://m.aliexpress.com")
                 )
@@ -63,10 +54,26 @@ class PasskeyTest {
 
         val manager = PasskeyManager()
         manager.registerWebauthnFetcher(fetcher)
+
+        val relatedOriginRequest = """
+                {
+                    "challenge": "dGVzdGNoYWxsZW5nZQ==",
+                    "rp": {"id": "m.aliexpress.com", "name": "AliExpress"},
+                    "user": {
+                        "id": "dXNlcklk",
+                        "name": "user@example.com",
+                        "displayName": "Test User"
+                    },
+                    "pubKeyCredParams": [{"type": "public-key", "alg": -7}],
+                    "timeout": 60000
+                }
+            """.trimIndent()
         val result = manager.generatePasskey("https://aliexpress.com", relatedOriginRequest)
 
         assertThat(result.passkey).isNotEmpty()
         assertThat(result.keyId).isNotEmpty()
         assertThat(result.response).isNotEmpty()
+        assertThat(result.rpId).isEqualTo("m.aliexpress.com")
+        assertThat(invoked).isTrue()
     }
 }

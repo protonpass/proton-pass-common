@@ -6,6 +6,7 @@ use url::Url;
 
 pub struct WebauthnDomainsResponse {
     pub origins: Vec<String>,
+    pub final_url: Option<String>,
 }
 
 #[derive(Debug)]
@@ -37,9 +38,10 @@ impl Fetcher for WebauthnFetcher {
             .await
             .map_err(|_| PasskeyWebauthnError::FetcherError)?;
         let origins: Vec<Url> = resp.origins.iter().filter_map(|s| Url::parse(s).ok()).collect();
+        let final_url = resp.final_url.and_then(|u| Url::parse(&u).ok()).unwrap_or(url);
         Ok(RelatedOriginResponse {
             payload: WellKnown { origins },
-            final_url: url,
+            final_url,
         })
     }
 }

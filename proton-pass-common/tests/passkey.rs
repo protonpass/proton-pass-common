@@ -271,6 +271,7 @@ async fn with_related_origin_fetcher() {
                     "https://aliexpress.com".to_string(),
                     "https://m.aliexpress.com".to_string(),
                 ],
+                final_url: None,
             })
         }
     }

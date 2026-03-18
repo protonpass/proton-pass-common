@@ -70,7 +70,7 @@ async fn resolve_challenge_for_mobile(
     fetcher: WebauthnFetcher,
 ) -> PasskeyResult<AuthenticatedPublicKeyCredential> {
     let deserialized = deserialize_passkey(passkey)?;
-    let mut client = get_client(Some(deserialized), fetcher, false);
+    let mut client = get_client(Some(deserialized), fetcher, false /* allow insecure localhost */);
     let res = client
         .authenticate(url, request, client_data_hash)
         .await

@@ -131,6 +131,37 @@ describe("ProtonPassWeb WASM", () => {
         expect(invoked).toBeTrue();
     });
 
+    test("Can register fetcher with finalUrl and generate passkey with related origin", async () => {
+        const relatedOriginRequest = {
+            challenge: "dGVzdGNoYWxsZW5nZQ==",
+            rp: { id: "m.aliexpress.com", name: "AliExpress" },
+            user: {
+                id: "dXNlcklk",
+                name: "user@example.com",
+                displayName: "Test User",
+            },
+            pubKeyCredParams: [{ type: "public-key", alg: -7 }],
+            timeout: 60000,
+        };
+
+        const fetcher = async (url: string) => {
+            await delay(100);
+            return {
+                origins: ["https://aliexpress.com", "https://m.aliexpress.com"],
+                finalUrl: url,
+            };
+        };
+        register_webauthn_fetcher(fetcher);
+
+        const response = await generate_passkey(
+            "https://aliexpress.com",
+            JSON.stringify(relatedOriginRequest),
+        );
+
+        expect(response.passkey).not.toBeEmpty();
+        expect(response.key_id).not.toBeEmpty();
+    });
+
     test("Can generate passkey with prf", async () => {
         const input = {
             attestation: "none",

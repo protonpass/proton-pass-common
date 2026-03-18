@@ -35,7 +35,11 @@ impl WebauthnClientFetcher for JsWebauthnFetcher {
 
         let origins: Vec<String> = origins_array.iter().filter_map(|v| v.as_string()).collect();
 
-        Ok(WebauthnDomainsResponse { origins })
+        let final_url = js_sys::Reflect::get(&result, &JsValue::from_str("finalUrl"))
+            .ok()
+            .and_then(|v| v.as_string());
+
+        Ok(WebauthnDomainsResponse { origins, final_url })
     }
 }
 

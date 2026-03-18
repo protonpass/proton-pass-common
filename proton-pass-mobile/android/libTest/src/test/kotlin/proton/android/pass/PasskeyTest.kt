@@ -3,9 +3,11 @@ package proton.android.pass
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.delay
 import org.junit.Test
+import proton.android.pass.commonrust.MobileFetchException
 import proton.android.pass.commonrust.MobileWebauthnClientFetcher
 import proton.android.pass.commonrust.MobileWebauthnDomainsResponse
 import proton.android.pass.commonrust.PasskeyManager
+import kotlin.test.assertFailsWith
 
 class PasskeyTest {
 
@@ -75,5 +77,65 @@ class PasskeyTest {
         assertThat(result.response).isNotEmpty()
         assertThat(result.rpId).isEqualTo("m.aliexpress.com")
         assertThat(invoked).isTrue()
+    }
+
+    @Test
+    fun `fetcher NotFound error is propagated as generation exception`() {
+        val fetcher = object : MobileWebauthnClientFetcher {
+            override suspend fun fetch(url: String): MobileWebauthnDomainsResponse {
+                throw MobileFetchException.NotFound("not found")
+            }
+        }
+
+        val manager = PasskeyManager()
+        manager.registerWebauthnFetcher(fetcher)
+
+        val relatedOriginRequest = """
+                {
+                    "challenge": "dGVzdGNoYWxsZW5nZQ==",
+                    "rp": {"id": "m.aliexpress.com", "name": "AliExpress"},
+                    "user": {
+                        "id": "dXNlcklk",
+                        "name": "user@example.com",
+                        "displayName": "Test User"
+                    },
+                    "pubKeyCredParams": [{"type": "public-key", "alg": -7}],
+                    "timeout": 60000
+                }
+            """.trimIndent()
+
+        assertFailsWith<Exception> {
+            manager.generatePasskey("https://aliexpress.com", relatedOriginRequest)
+        }
+    }
+
+    @Test
+    fun `fetcher CannotFetch error is propagated as generation exception`() {
+        val fetcher = object : MobileWebauthnClientFetcher {
+            override suspend fun fetch(url: String): MobileWebauthnDomainsResponse {
+                throw MobileFetchException.CannotFetch("network error")
+            }
+        }
+
+        val manager = PasskeyManager()
+        manager.registerWebauthnFetcher(fetcher)
+
+        val relatedOriginRequest = """
+                {
+                    "challenge": "dGVzdGNoYWxsZW5nZQ==",
+                    "rp": {"id": "m.aliexpress.com", "name": "AliExpress"},
+                    "user": {
+                        "id": "dXNlcklk",
+                        "name": "user@example.com",
+                        "displayName": "Test User"
+                    },
+                    "pubKeyCredParams": [{"type": "public-key", "alg": -7}],
+                    "timeout": 60000
+                }
+            """.trimIndent()
+
+        assertFailsWith<Exception> {
+            manager.generatePasskey("https://aliexpress.com", relatedOriginRequest)
+        }
     }
 }

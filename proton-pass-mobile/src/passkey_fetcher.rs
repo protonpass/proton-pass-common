@@ -30,8 +30,14 @@ impl WebauthnClientFetcher for MobileWebauthnFetcherAdapter {
         self.inner
             .fetch(url)
             .await
-            .map(|r| WebauthnDomainsResponse { origins: r.origins })
-            .map_err(|_| FetchError::CannotFetch)
+            .map(|r| WebauthnDomainsResponse {
+                origins: r.origins,
+                final_url: None,
+            })
+            .map_err(|e| match e {
+                MobileFetchError::NotFound(_) => FetchError::NotFound,
+                MobileFetchError::CannotFetch(_) => FetchError::CannotFetch,
+            })
     }
 }
 

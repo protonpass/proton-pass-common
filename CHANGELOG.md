@@ -6,6 +6,14 @@
 
 ### Other
 
+## 1.2.0
+
+### Features :tada:
+
+- pass-common: offer a way for clients to provide a WebauthnFetcher for fetching related-origins on passkey operations
+- pass-mobile: add bindings for WebauthnFetcher
+- pass-web: add bindings for WebauthnFetcher
+
 ## 1.1.2
 
 ### Fixes :bug:

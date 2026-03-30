@@ -5,7 +5,7 @@ use proton_pass_totp::TOTP;
 
 #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
 struct Login {
-    pub totp: String,
+    pub totp: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub username: Option<String>,
 }
@@ -28,7 +28,10 @@ impl TryFrom<Struct> for AuthenticatorEntry {
     type Error = BitwardenImportError;
 
     fn try_from(value: Struct) -> Result<Self, Self::Error> {
-        let totp = &value.login.totp;
+        let totp = match &value.login.totp {
+            Some(totp) => totp,
+            None => return Err(BitwardenImportError::Unsupported),
+        };
         let content = if totp.contains("://") {
             // Imported from Bitwarden Authenticator
             let parsed = AuthenticatorEntryContent::from_uri(totp).map_err(|_| BitwardenImportError::Unsupported)?;
@@ -51,7 +54,7 @@ impl TryFrom<Struct> for AuthenticatorEntry {
             }
         } else {
             // Probably imported from bitwarden main app export
-            let mut totp = TOTP::from_uri(&value.login.totp).map_err(|_| BitwardenImportError::Unsupported)?;
+            let mut totp = TOTP::from_uri(totp).map_err(|_| BitwardenImportError::Unsupported)?;
             totp.issuer = Some(value.name.to_string());
 
             let username = value.login.username;

@@ -4,6 +4,27 @@
   "items": [
     {
       "passwordHistory": [],
+      "revisionDate": "2026-03-30T13:20:44.594Z",
+      "creationDate": "2026-03-30T13:20:44.593Z",
+      "id": "695e4f85-496b-45ad-8a01-9a7447ff0fd8",
+      "organizationId": "61514185-1a95-4283-bfd2-b8c516a4aa6e",
+      "type": 1,
+      "reprompt": 0,
+      "name": "ItemWithoutTOTP",
+      "notes": null,
+      "favorite": false,
+      "fields": [],
+      "login": {
+        "uris": [],
+        "fido2Credentials": [],
+        "username": "username",
+        "password": "password",
+        "totp": null
+      },
+      "collectionIds": null
+    },
+    {
+      "passwordHistory": [],
       "revisionDate": "2026-03-30T10:26:04.382Z",
       "creationDate": "2026-03-30T10:26:04.380Z",
       "id": "b76e76ec-7d32-4844-b723-8c25b9334657",

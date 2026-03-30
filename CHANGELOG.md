@@ -6,6 +6,12 @@
 
 ### Other
 
+## 1.3.0
+
+### Features :tada:
+
+- authenticator: offer import from bitwarden (main bitwarden app, not bitwarden authenticator)
+
 ## 1.2.0
 
 ### Features :tada:

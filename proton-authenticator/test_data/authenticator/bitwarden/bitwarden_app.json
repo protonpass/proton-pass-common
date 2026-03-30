@@ -1,0 +1,27 @@
+{
+  "encrypted": false,
+  "collections": [],
+  "items": [
+    {
+      "passwordHistory": [],
+      "revisionDate": "2026-03-30T10:26:04.382Z",
+      "creationDate": "2026-03-30T10:26:04.380Z",
+      "id": "b76e76ec-7d32-4844-b723-8c25b9334657",
+      "organizationId": "61514185-1a95-4283-bfd2-b8c516a4aa6e",
+      "type": 1,
+      "reprompt": 0,
+      "name": "ItemWithTOTP",
+      "notes": null,
+      "favorite": false,
+      "fields": [],
+      "login": {
+        "uris": [],
+        "fido2Credentials": [],
+        "username": "myusername",
+        "password": "mypassword",
+        "totp": "KNKVARKSKNCUGUSFKRFUKWJR"
+      },
+      "collectionIds": null
+    }
+  ]
+}

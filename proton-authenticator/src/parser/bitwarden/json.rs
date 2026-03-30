@@ -1,10 +1,13 @@
 use crate::parser::bitwarden::BitwardenImportError;
 use crate::parser::{ImportError, ImportResult};
 use crate::{AuthenticatorEntry, AuthenticatorEntryContent};
+use proton_pass_totp::TOTP;
 
 #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
 struct Login {
     pub totp: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub username: Option<String>,
 }
 
 #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
@@ -25,28 +28,49 @@ impl TryFrom<Struct> for AuthenticatorEntry {
     type Error = BitwardenImportError;
 
     fn try_from(value: Struct) -> Result<Self, Self::Error> {
-        let content =
-            AuthenticatorEntryContent::from_uri(&value.login.totp).map_err(|_| BitwardenImportError::Unsupported)?;
+        let totp = &value.login.totp;
+        let content = if totp.contains("://") {
+            // Imported from Bitwarden Authenticator
+            let parsed = AuthenticatorEntryContent::from_uri(totp).map_err(|_| BitwardenImportError::Unsupported)?;
 
-        let content_with_label = match content {
-            AuthenticatorEntryContent::Totp(mut totp) => {
-                if totp.label.is_none() && !value.name.is_empty() {
-                    totp.label = Some(value.name);
+            match parsed {
+                AuthenticatorEntryContent::Totp(mut totp) => {
+                    if totp.label.is_none() && !value.name.is_empty() {
+                        totp.label = Some(value.name);
+                    }
+
+                    AuthenticatorEntryContent::Totp(totp)
                 }
+                AuthenticatorEntryContent::Steam(mut steam) => {
+                    if steam.name.is_none() && !value.name.is_empty() {
+                        steam.name = Some(value.name);
+                    }
 
-                AuthenticatorEntryContent::Totp(totp)
-            }
-            AuthenticatorEntryContent::Steam(mut steam) => {
-                if steam.name.is_none() && !value.name.is_empty() {
-                    steam.name = Some(value.name);
+                    AuthenticatorEntryContent::Steam(steam)
                 }
-
-                AuthenticatorEntryContent::Steam(steam)
             }
+        } else {
+            // Probably imported from bitwarden main app export
+            let mut totp = TOTP::from_uri(&value.login.totp).map_err(|_| BitwardenImportError::Unsupported)?;
+            totp.issuer = Some(value.name.to_string());
+
+            let username = value.login.username;
+            totp.label = match username {
+                Some(u) => {
+                    if u.is_empty() {
+                        None
+                    } else {
+                        Some(u)
+                    }
+                }
+                None => Some(value.name),
+            };
+
+            AuthenticatorEntryContent::Totp(totp)
         };
 
         Ok(AuthenticatorEntry {
-            content: content_with_label,
+            content,
             note: value.notes,
             id: Self::generate_id(),
         })
@@ -138,5 +162,21 @@ mod test {
         let now = 1742298622;
         let code = crate::AuthenticatorClient::generate_code(steam_entry, now).expect("should generate code");
         assert_eq!("NTK5M", code.current_code);
+    }
+
+    #[test]
+    fn can_parse_from_bitwarden_app() {
+        let input = get_file_contents("bitwarden/bitwarden_app.json");
+        let res = parse_bitwarden_json(&input).expect("should be able to parse");
+        let entries = res.entries;
+        assert_eq!(entries.len(), 1);
+
+        let content = match &entries[0].content {
+            AuthenticatorEntryContent::Totp(totp) => totp,
+            _ => panic!("Should be a TOTP"),
+        };
+
+        assert_eq!("ItemWithTOTP", content.issuer.clone().expect("Should have issuer"));
+        assert_eq!("myusername", content.label.clone().expect("Should have label"));
     }
 }

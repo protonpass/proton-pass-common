@@ -190,7 +190,7 @@ mod tests {
             self
         }
 
-        fn create_time(mut self, t: u16) -> Self {
+        fn create_time(mut self, t: u32) -> Self {
             self.create_time = t;
             self
         }

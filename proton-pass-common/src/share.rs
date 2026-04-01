@@ -543,4 +543,16 @@ mod tests {
         assert_eq!(out.len(), 1);
         assert_eq!(out[0], non_group_share_id);
     }
+
+    #[test]
+    fn test_give_prio_to_older_shares() {
+        // Among equal-role shares, the non-group share is preferred over group shares.
+        let newer = share_builder().share_id("newer").create_time(2).build();
+        let older = share_builder().share_id("older").create_time(1).build();
+        let older_share_id = older.share_id.clone();
+        let shares = [newer, older];
+        let out = visible_share_ids(&shares, false);
+        assert_eq!(out.len(), 1);
+        assert_eq!(out[0], older_share_id);
+    }
 }

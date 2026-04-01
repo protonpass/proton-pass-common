@@ -35,6 +35,7 @@ pub struct Share {
     pub flags: u16,
     pub user_is_vault_owner: bool,
     pub is_group_share: bool,
+    pub create_time: u32,
 }
 
 impl From<CommonShare> for Share {
@@ -49,6 +50,7 @@ impl From<CommonShare> for Share {
             flags: s.flags,
             user_is_vault_owner: s.user_is_vault_owner,
             is_group_share: s.is_group_share,
+            create_time: s.create_time,
         }
     }
 }
@@ -65,6 +67,7 @@ impl From<Share> for CommonShare {
             flags: s.flags,
             user_is_vault_owner: s.user_is_vault_owner,
             is_group_share: s.is_group_share,
+            create_time: s.create_time,
         }
     }
 }

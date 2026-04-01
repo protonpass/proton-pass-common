@@ -11,9 +11,9 @@ pub struct Share {
     pub role: String,
     pub permissions: u16,
     pub flags: u16,
-    pub create_time: u16,
     pub user_is_vault_owner: bool,
     pub is_group_share: bool,
+    pub create_time: u32,
 }
 
 #[ffi_type]
@@ -139,9 +139,9 @@ mod tests {
         role: String,
         permissions: u16,
         flags: u16,
-        create_time: u16,
         user_is_vault_owner: bool,
         is_group_share: bool,
+        create_time: u32,
     }
 
     impl ShareBuilder {
@@ -214,9 +214,9 @@ mod tests {
                 role: self.role,
                 permissions: self.permissions,
                 flags: self.flags,
-                create_time: self.create_time,
                 user_is_vault_owner: self.user_is_vault_owner,
                 is_group_share: self.is_group_share,
+                create_time: self.create_time,
             }
         }
     }

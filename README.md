@@ -58,7 +58,7 @@ $ make lint
 ### Clean build artifacts
 
 ```
-$ make clean
+make clean
 ```
 
 This command runs `cargo clean` and also removes all the artifacts generating when building the bindings / modules.
@@ -72,9 +72,9 @@ Here you have the initial steps to follow for being able to build the repo for e
 In order to build the Android modules, you'll need to add the following targets in `rustup`:
 
 ```
-$ rustup target add aarch64-linux-android
-$ rustup target add x86_64-linux-android
-$ rustup target add armv7-linux-androideabi
+rustup target add aarch64-linux-android
+rustup target add x86_64-linux-android
+rustup target add armv7-linux-androideabi
 ```
 
 Then, make sure to download the NDK from Android Studio. Any recent version should work (for reference, `25.1.8937393` works).
@@ -99,7 +99,7 @@ In order to perform the build, run `make android` and hopefully everything will 
 
 For generating the bindings, run `make kotlin-bindings`.
 
-Link to the UniFFI guide: https://mozilla.github.io/uniffi-rs/
+Link to the UniFFI guide: <https://mozilla.github.io/uniffi-rs/>
 
 ### iOS
 
@@ -127,19 +127,19 @@ or you can do it by hand
 
 You should then have an up-to-date package that you can drag and drop in the `LocalPackages` directory in the Pass project.
 
-Link to the UniFFI guide: https://mozilla.github.io/uniffi-rs/
+Link to the UniFFI guide: <https://mozilla.github.io/uniffi-rs/>
 
 ### Web
 
 Before being able to build the web artifacts you'll need to follow these steps for setting up the required tools:
 
-1. Install `wasm-pack`: https://rustwasm.github.io/wasm-pack/installer/
+1. Install `wasm-pack`: <https://github.com/wasm-bindgen/wasm-pack> or just `cargo install wasm-pack`
 2. Add the wasm32-unknown-unknown target: `rustup target add wasm32-unknown-unknown`
 3. Install binaryen `brew install binaryen`
 
 Then run `make web` and if everything worked, you're good to go!
 
-Link for the RustWasm book: https://rustwasm.github.io/docs/book/introduction.html
+Link for the RustWasm book: <https://rustwasm.github.io/docs/book/introduction.html>
 
 ## License
 

@@ -99,7 +99,7 @@ In order to perform the build, run `make android` and hopefully everything will 
 
 For generating the bindings, run `make kotlin-bindings`.
 
-Link to the UniFFI guide: <https://mozilla.github.io/uniffi-rs/>
+Link to the UniFFI guide: https://mozilla.github.io/uniffi-rs/
 
 ### iOS
 
@@ -127,13 +127,13 @@ or you can do it by hand
 
 You should then have an up-to-date package that you can drag and drop in the `LocalPackages` directory in the Pass project.
 
-Link to the UniFFI guide: <https://mozilla.github.io/uniffi-rs/>
+Link to the UniFFI guide: https://mozilla.github.io/uniffi-rs/
 
 ### Web
 
 Before being able to build the web artifacts you'll need to follow these steps for setting up the required tools:
 
-1. Install `wasm-pack`: <https://github.com/wasm-bindgen/wasm-pack> or just `cargo install wasm-pack`
+1. Install `wasm-pack`: https://github.com/wasm-bindgen/wasm-pack or just `cargo install wasm-pack`
 2. Add the wasm32-unknown-unknown target: `rustup target add wasm32-unknown-unknown`
 3. Install binaryen `brew install binaryen`
 

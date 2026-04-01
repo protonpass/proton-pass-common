@@ -15,6 +15,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 flags: 0,
                 user_is_vault_owner: false,
                 is_group_share: false,
+                create_time: 0,
             },
         ];
 
@@ -35,6 +36,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 flags: 0,
                 user_is_vault_owner: false,
                 is_group_share: false,
+                create_time: 0,
             },
             {
                 share_id: "share_write",
@@ -46,6 +48,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 flags: 0,
                 user_is_vault_owner: false,
                 is_group_share: false,
+                create_time: 0,
             },
             {
                 share_id: "share_admin",
@@ -57,6 +60,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 flags: 0,
                 user_is_vault_owner: false,
                 is_group_share: false,
+                create_time: 0,
             },
         ];
 
@@ -77,6 +81,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 flags: 0,
                 user_is_vault_owner: false,
                 is_group_share: false,
+                create_time: 0,
             },
             {
                 share_id: "item_read",
@@ -88,6 +93,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 flags: 0,
                 user_is_vault_owner: false,
                 is_group_share: false,
+                create_time: 0,
             },
             {
                 share_id: "item_write",
@@ -99,6 +105,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 flags: 0,
                 user_is_vault_owner: false,
                 is_group_share: false,
+                create_time: 0,
             },
         ];
 
@@ -119,6 +126,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 flags: 0,
                 user_is_vault_owner: false,
                 is_group_share: false,
+                create_time: 0,
             },
             {
                 share_id: "item_write",
@@ -130,6 +138,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 flags: 0,
                 user_is_vault_owner: false,
                 is_group_share: false,
+                create_time: 0,
             },
             {
                 share_id: "item_admin",
@@ -141,6 +150,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 flags: 0,
                 user_is_vault_owner: false,
                 is_group_share: false,
+                create_time: 0,
             },
         ];
 
@@ -163,6 +173,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 flags: 0,
                 user_is_vault_owner: false,
                 is_group_share: false,
+                create_time: 0,
             },
             {
                 share_id: "vault2_item_read",
@@ -174,6 +185,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 flags: 0,
                 user_is_vault_owner: false,
                 is_group_share: false,
+                create_time: 0,
             },
         ];
 
@@ -196,6 +208,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 flags: 0,
                 user_is_vault_owner: false,
                 is_group_share: false,
+                create_time: 0,
             },
             // Vault 1: Item with read (should be hidden by vault admin)
             {
@@ -208,6 +221,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 flags: 0,
                 user_is_vault_owner: false,
                 is_group_share: false,
+                create_time: 0,
             },
             // Vault 2: Read access
             {
@@ -220,6 +234,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 flags: 0,
                 user_is_vault_owner: false,
                 is_group_share: false,
+                create_time: 0,
             },
             // Vault 2: Item with write (should be kept as it's better than vault read)
             {
@@ -232,6 +247,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 flags: 0,
                 user_is_vault_owner: false,
                 is_group_share: false,
+                create_time: 0,
             },
             // Vault 3: No vault share, only item
             {
@@ -244,6 +260,7 @@ describe("ProtonPassWeb WASM - Share", () => {
                 flags: 0,
                 user_is_vault_owner: false,
                 is_group_share: false,
+                create_time: 0,
             },
         ];
 

@@ -11,6 +11,7 @@ pub struct Share {
     pub role: String,
     pub permissions: u16,
     pub flags: u16,
+    pub create_time: u16,
     pub user_is_vault_owner: bool,
     pub is_group_share: bool,
 }
@@ -86,7 +87,7 @@ pub fn visible_share_ids(shares: &[Share], filter_hidden: bool) -> Vec<&str> {
                         // If the exiting is a group one but the new one is not, keep the new one
                         *existing = share;
                     }
-                    if share.vault_id < existing.vault_id {
+                    if share.create_time < existing.create_time {
                         // If it's an older share keep it
                         *existing = share;
                     }
@@ -130,6 +131,104 @@ pub fn visible_share_ids(shares: &[Share], filter_hidden: bool) -> Vec<&str> {
 mod tests {
     use super::*;
 
+    struct ShareBuilder {
+        share_id: String,
+        vault_id: String,
+        target_type: TargetType,
+        target_id: String,
+        role: String,
+        permissions: u16,
+        flags: u16,
+        create_time: u16,
+        user_is_vault_owner: bool,
+        is_group_share: bool,
+    }
+
+    impl ShareBuilder {
+        fn new() -> Self {
+            Self {
+                share_id: "share".to_owned(),
+                vault_id: "v".to_owned(),
+                target_type: TargetType::Vault,
+                target_id: "1".to_owned(),
+                role: ROLE_READ.to_string(),
+                permissions: 0,
+                flags: 0,
+                create_time: 0,
+                user_is_vault_owner: false,
+                is_group_share: false,
+            }
+        }
+
+        fn share_id(mut self, id: &str) -> Self {
+            self.share_id = id.to_owned();
+            self
+        }
+
+        fn vault_id(mut self, id: &str) -> Self {
+            self.vault_id = id.to_owned();
+            self
+        }
+
+        fn target_type(mut self, t: TargetType) -> Self {
+            self.target_type = t;
+            self
+        }
+
+        fn target_id(mut self, id: &str) -> Self {
+            self.target_id = id.to_owned();
+            self
+        }
+
+        fn role(mut self, r: &str) -> Self {
+            self.role = r.to_owned();
+            self
+        }
+
+        fn flags(mut self, f: u16) -> Self {
+            self.flags = f;
+            self
+        }
+
+        fn create_time(mut self, t: u16) -> Self {
+            self.create_time = t;
+            self
+        }
+
+        fn vault_owner(mut self) -> Self {
+            self.user_is_vault_owner = true;
+            self
+        }
+
+        fn group_share(mut self) -> Self {
+            self.is_group_share = true;
+            self
+        }
+
+        fn build(self) -> Share {
+            Share {
+                share_id: self.share_id,
+                vault_id: self.vault_id,
+                target_type: self.target_type,
+                target_id: self.target_id,
+                role: self.role,
+                permissions: self.permissions,
+                flags: self.flags,
+                create_time: self.create_time,
+                user_is_vault_owner: self.user_is_vault_owner,
+                is_group_share: self.is_group_share,
+            }
+        }
+    }
+
+    fn share_builder() -> ShareBuilder {
+        ShareBuilder::new()
+    }
+
+    fn assert_contains(out: &[&str], share_id: &str) {
+        assert_eq!(1, out.iter().filter(|id| (**id).eq(share_id)).count());
+    }
+
     #[test]
     fn test_empty_list() {
         let out = visible_share_ids(&[], false);
@@ -139,17 +238,7 @@ mod tests {
     #[test]
     fn test_simple_return_for_all_types() {
         for target_type in [TargetType::Vault, TargetType::Item] {
-            let s = Share {
-                share_id: "a".to_owned(),
-                vault_id: "v".to_owned(),
-                target_type,
-                target_id: "1".to_owned(),
-                role: ROLE_MANAGER.to_string(),
-                permissions: 0,
-                flags: 0,
-                user_is_vault_owner: false,
-                is_group_share: false,
-            };
+            let s = share_builder().target_type(target_type).build();
             let shares = [s];
             let out = visible_share_ids(&shares, false);
             assert_eq!(out.len(), 1);
@@ -159,29 +248,20 @@ mod tests {
 
     #[test]
     fn test_disabled_filter_hidden_works() {
+        // When filter_hidden is false, the hidden flag has no effect.
+        // The manager share (hidden) wins over the read share (visible) on role priority.
         for target_type in [TargetType::Vault, TargetType::Item] {
-            let s_visible = Share {
-                share_id: "sv".to_owned(),
-                vault_id: "v".to_owned(),
-                target_type: target_type.clone(),
-                target_id: "1".to_owned(),
-                role: ROLE_READ.to_string(),
-                permissions: 0,
-                flags: 0,
-                user_is_vault_owner: false,
-                is_group_share: false,
-            };
-            let s_hidden = Share {
-                share_id: "sh".to_owned(),
-                vault_id: "v".to_owned(),
-                target_type: target_type.clone(),
-                target_id: "1".to_owned(),
-                role: ROLE_MANAGER.to_string(),
-                permissions: 0,
-                flags: FLAG_HIDDEN,
-                user_is_vault_owner: false,
-                is_group_share: false,
-            };
+            let s_visible = share_builder()
+                .share_id("sv")
+                .target_type(target_type.clone())
+                .role(ROLE_READ)
+                .build();
+            let s_hidden = share_builder()
+                .share_id("sh")
+                .target_type(target_type.clone())
+                .role(ROLE_MANAGER)
+                .flags(FLAG_HIDDEN)
+                .build();
             let hidden_share_id = s_hidden.share_id.clone();
             let shares = [s_visible, s_hidden];
             let out = visible_share_ids(&shares, false);
@@ -192,40 +272,27 @@ mod tests {
 
     #[test]
     fn test_hidden_matches_all_shares_for_vault() {
+        // When a vault has a hidden share, all shares in that vault are filtered out.
         for target_type in [TargetType::Vault, TargetType::Item] {
-            let s_hidden = Share {
-                share_id: "sh".to_owned(),
-                vault_id: "v1".to_owned(),
-                target_type: target_type.clone(),
-                target_id: "1".to_owned(),
-                role: ROLE_MANAGER.to_string(),
-                permissions: 0,
-                flags: FLAG_HIDDEN,
-                user_is_vault_owner: false,
-                is_group_share: false,
-            };
-            let s_visible = Share {
-                share_id: "sv".to_owned(),
-                vault_id: "v1".to_owned(),
-                target_type: target_type.clone(),
-                target_id: "1".to_owned(),
-                role: ROLE_READ.to_string(),
-                permissions: 0,
-                flags: 0,
-                user_is_vault_owner: false,
-                is_group_share: false,
-            };
-            let s_other = Share {
-                share_id: "so".to_owned(),
-                vault_id: "v2".to_owned(),
-                target_type: target_type.clone(),
-                target_id: "1".to_owned(),
-                role: ROLE_READ.to_string(),
-                permissions: 0,
-                flags: 0,
-                user_is_vault_owner: false,
-                is_group_share: false,
-            };
+            let s_hidden = share_builder()
+                .share_id("sh")
+                .vault_id("v1")
+                .target_type(target_type.clone())
+                .role(ROLE_MANAGER)
+                .flags(FLAG_HIDDEN)
+                .build();
+            let s_visible = share_builder()
+                .share_id("sv")
+                .vault_id("v1")
+                .target_type(target_type.clone())
+                .role(ROLE_READ)
+                .build();
+            let s_other = share_builder()
+                .share_id("so")
+                .vault_id("v2")
+                .target_type(target_type.clone())
+                .role(ROLE_READ)
+                .build();
             let other_share_id = s_other.share_id.clone();
             let shares = [s_visible, s_hidden, s_other];
             let out = visible_share_ids(&shares, true);
@@ -236,39 +303,27 @@ mod tests {
 
     #[test]
     fn test_hidden_matches_items_in_vault() {
-        let vault_hidden = Share {
-            share_id: "sh".to_owned(),
-            vault_id: "v1".to_owned(),
-            target_type: TargetType::Vault,
-            target_id: "1".to_owned(),
-            role: ROLE_MANAGER.to_string(),
-            permissions: 0,
-            flags: FLAG_HIDDEN,
-            user_is_vault_owner: false,
-            is_group_share: false,
-        };
-        let item_in_hidden_vault = Share {
-            share_id: "sv".to_owned(),
-            vault_id: "v1".to_owned(),
-            target_type: TargetType::Item,
-            target_id: "32".to_owned(),
-            role: ROLE_READ.to_string(),
-            permissions: 0,
-            flags: 0,
-            user_is_vault_owner: false,
-            is_group_share: false,
-        };
-        let item_in_other_vault = Share {
-            share_id: "so".to_owned(),
-            vault_id: "v2".to_owned(),
-            target_type: TargetType::Item,
-            target_id: "1".to_owned(),
-            role: ROLE_READ.to_string(),
-            permissions: 0,
-            flags: 0,
-            user_is_vault_owner: false,
-            is_group_share: false,
-        };
+        // A hidden vault share causes all items in that vault to be hidden too.
+        let vault_hidden = share_builder()
+            .share_id("sh")
+            .vault_id("v1")
+            .target_type(TargetType::Vault)
+            .role(ROLE_MANAGER)
+            .flags(FLAG_HIDDEN)
+            .build();
+        let item_in_hidden_vault = share_builder()
+            .share_id("sv")
+            .vault_id("v1")
+            .target_type(TargetType::Item)
+            .target_id("32")
+            .role(ROLE_READ)
+            .build();
+        let item_in_other_vault = share_builder()
+            .share_id("so")
+            .vault_id("v2")
+            .target_type(TargetType::Item)
+            .role(ROLE_READ)
+            .build();
         let other_share_id = item_in_other_vault.share_id.clone();
         let shares = [vault_hidden, item_in_hidden_vault, item_in_other_vault];
         let out = visible_share_ids(&shares, true);
@@ -278,6 +333,7 @@ mod tests {
 
     #[test]
     fn test_shadow_target_with_worse_role() {
+        // Only the highest-role share per (vault, target_type, target_id) is kept.
         for target_type in [TargetType::Vault, TargetType::Item] {
             let role_tests = [
                 (ROLE_MANAGER, ROLE_WRITE),
@@ -285,28 +341,16 @@ mod tests {
                 (ROLE_WRITE, ROLE_READ),
             ];
             for (best_role, worse_role) in role_tests.iter() {
-                let best_role_share = Share {
-                    share_id: format!("a{:?}{}", &target_type, worse_role),
-                    vault_id: "v0".to_owned(),
-                    target_type: target_type.clone(),
-                    target_id: "1".to_owned(),
-                    role: best_role.to_string(),
-                    permissions: 0,
-                    flags: 0,
-                    user_is_vault_owner: false,
-                    is_group_share: false,
-                };
-                let worse_role_share = Share {
-                    share_id: format!("b{:?}{}", &target_type, worse_role),
-                    vault_id: "v0".to_owned(),
-                    target_type: target_type.clone(),
-                    target_id: "1".to_owned(),
-                    role: worse_role.to_string(),
-                    permissions: 0,
-                    flags: 0,
-                    user_is_vault_owner: false,
-                    is_group_share: false,
-                };
+                let best_role_share = share_builder()
+                    .share_id(&format!("a{:?}{}", &target_type, worse_role))
+                    .target_type(target_type.clone())
+                    .role(best_role)
+                    .build();
+                let worse_role_share = share_builder()
+                    .share_id(&format!("b{:?}{}", &target_type, worse_role))
+                    .target_type(target_type.clone())
+                    .role(worse_role)
+                    .build();
                 let best_share_id = best_role_share.share_id.clone();
                 let shares = [
                     worse_role_share.clone(),
@@ -323,39 +367,23 @@ mod tests {
 
     #[test]
     fn test_vault_masks_item_with_less_perms() {
-        let write_vault = Share {
-            share_id: "vault_share".to_string(),
-            vault_id: "v0".to_owned(),
-            target_type: TargetType::Vault,
-            target_id: "v0".to_owned(),
-            role: ROLE_WRITE.to_string(),
-            permissions: 0,
-            flags: 0,
-            user_is_vault_owner: false,
-            is_group_share: false,
-        };
-        let read_item = Share {
-            share_id: "item_read".to_string(),
-            vault_id: "v0".to_owned(),
-            target_type: TargetType::Item,
-            target_id: "1".to_owned(),
-            role: ROLE_READ.to_string(),
-            permissions: 0,
-            flags: 0,
-            user_is_vault_owner: false,
-            is_group_share: false,
-        };
-        let write_item = Share {
-            share_id: "item_write".to_string(),
-            vault_id: "v0".to_owned(),
-            target_type: TargetType::Item,
-            target_id: "1".to_owned(),
-            role: ROLE_WRITE.to_string(),
-            permissions: 0,
-            flags: 0,
-            user_is_vault_owner: false,
-            is_group_share: false,
-        };
+        // An item share with equal or lower role than the vault share is hidden.
+        let write_vault = share_builder()
+            .share_id("vault_share")
+            .target_type(TargetType::Vault)
+            .target_id("v0")
+            .role(ROLE_WRITE)
+            .build();
+        let read_item = share_builder()
+            .share_id("item_read")
+            .target_type(TargetType::Item)
+            .role(ROLE_READ)
+            .build();
+        let write_item = share_builder()
+            .share_id("item_write")
+            .target_type(TargetType::Item)
+            .role(ROLE_WRITE)
+            .build();
         let share_id_to_keep = write_vault.share_id.clone();
         let shares = [write_vault, write_item, read_item];
         let out = visible_share_ids(&shares, false);
@@ -365,142 +393,93 @@ mod tests {
 
     #[test]
     fn test_vault_masks_item_with_more_perms() {
-        let read_vault = Share {
-            share_id: "vault_share".to_string(),
-            vault_id: "v0".to_owned(),
-            target_type: TargetType::Vault,
-            target_id: "v0".to_owned(),
-            role: ROLE_READ.to_string(),
-            permissions: 0,
-            flags: 0,
-            user_is_vault_owner: false,
-            is_group_share: false,
-        };
-        let read_item = Share {
-            share_id: "item_read".to_string(),
-            vault_id: "v0".to_owned(),
-            target_type: TargetType::Item,
-            target_id: "1".to_owned(),
-            role: ROLE_READ.to_string(),
-            permissions: 0,
-            flags: 0,
-            user_is_vault_owner: false,
-            is_group_share: false,
-        };
-        let write_item = Share {
-            share_id: "item_write".to_string(),
-            vault_id: "v0".to_owned(),
-            target_type: TargetType::Item,
-            target_id: "1".to_owned(),
-            role: ROLE_WRITE.to_string(),
-            permissions: 0,
-            flags: 0,
-            user_is_vault_owner: false,
-            is_group_share: false,
-        };
+        // An item share with a higher role than the vault share is kept alongside the vault share.
+        let read_vault = share_builder()
+            .share_id("vault_share")
+            .target_type(TargetType::Vault)
+            .target_id("v0")
+            .role(ROLE_READ)
+            .build();
+        let read_item = share_builder()
+            .share_id("item_read")
+            .target_type(TargetType::Item)
+            .role(ROLE_READ)
+            .build();
+        let write_item = share_builder()
+            .share_id("item_write")
+            .target_type(TargetType::Item)
+            .role(ROLE_WRITE)
+            .build();
         let vault_share_id = read_vault.share_id.clone();
         let item_share_id = write_item.share_id.clone();
         let shares = [read_vault, write_item, read_item];
         let out = visible_share_ids(&shares, false);
         assert_eq!(out.len(), 2);
-        assert_eq!(1, out.iter().filter(|share_id| (*share_id).eq(&vault_share_id)).count());
-        assert_eq!(1, out.iter().filter(|share_id| (*share_id).eq(&item_share_id)).count());
+        assert_contains(&out, &vault_share_id);
+        assert_contains(&out, &item_share_id);
     }
 
     #[test]
     fn test_keep_items_in_other_vault() {
-        let vault = Share {
-            share_id: "vault_share".to_string(),
-            vault_id: "v0".to_owned(),
-            target_type: TargetType::Vault,
-            target_id: "v0".to_owned(),
-            role: ROLE_MANAGER.to_string(),
-            permissions: 0,
-            flags: 0,
-            user_is_vault_owner: false,
-            is_group_share: false,
-        };
-        let item = Share {
-            share_id: "item_read".to_string(),
-            vault_id: "v1".to_owned(),
-            target_type: TargetType::Item,
-            target_id: "1".to_owned(),
-            role: ROLE_READ.to_string(),
-            permissions: 0,
-            flags: 0,
-            user_is_vault_owner: false,
-            is_group_share: false,
-        };
+        // An item share in a different vault from any vault share is always kept.
+        let vault = share_builder()
+            .share_id("vault_share")
+            .target_type(TargetType::Vault)
+            .target_id("v0")
+            .role(ROLE_MANAGER)
+            .build();
+        let item = share_builder()
+            .share_id("item_read")
+            .vault_id("v1")
+            .target_type(TargetType::Item)
+            .role(ROLE_READ)
+            .build();
         let vault_share_id = vault.share_id.clone();
         let item_share_id = item.share_id.clone();
         let shares = [vault, item];
         let out = visible_share_ids(&shares, false);
         assert_eq!(out.len(), 2);
-        assert_eq!(1, out.iter().filter(|share_id| (*share_id).eq(&vault_share_id)).count());
-        assert_eq!(1, out.iter().filter(|share_id| (*share_id).eq(&item_share_id)).count());
+        assert_contains(&out, &vault_share_id);
+        assert_contains(&out, &item_share_id);
     }
 
     #[test]
     fn test_mixed_vault_and_item_shares_are_kept_if_item_has_more_perms() {
-        let vault_0_admin = Share {
-            share_id: "vault_share".to_string(),
-            vault_id: "v0".to_owned(),
-            target_type: TargetType::Vault,
-            target_id: "v0".to_owned(),
-            role: ROLE_MANAGER.to_string(),
-            permissions: 0,
-            flags: 0,
-            user_is_vault_owner: false,
-            is_group_share: false,
-        };
-        // Superseded by vault_0_admin
-        let vault_0_write = Share {
-            share_id: "vault_share".to_string(),
-            vault_id: "v0".to_owned(),
-            target_type: TargetType::Vault,
-            target_id: "v0".to_owned(),
-            role: ROLE_WRITE.to_string(),
-            permissions: 0,
-            flags: 0,
-            user_is_vault_owner: false,
-            is_group_share: false,
-        };
-        // Item in vault 1 that we don't have share for
-        let item = Share {
-            share_id: "item_read".to_string(),
-            vault_id: "v1".to_owned(),
-            target_type: TargetType::Item,
-            target_id: "1".to_owned(),
-            role: ROLE_READ.to_string(),
-            permissions: 0,
-            flags: 0,
-            user_is_vault_owner: false,
-            is_group_share: false,
-        };
-        // Only one share for this vault
-        let vault_2_write = Share {
-            share_id: "vault_2_share".to_string(),
-            vault_id: "v2".to_owned(),
-            target_type: TargetType::Vault,
-            target_id: "v2".to_owned(),
-            role: ROLE_WRITE.to_string(),
-            permissions: 0,
-            flags: 0,
-            user_is_vault_owner: false,
-            is_group_share: false,
-        };
-        // Item in vault 2 with the same access as vault.
-        let item_2_write = Share {
-            share_id: "item_2_write".to_string(),
-            vault_id: "v2".to_owned(),
-            target_type: TargetType::Item,
-            target_id: "2".to_owned(),
-            role: ROLE_WRITE.to_string(),
-            permissions: 0,
-            flags: 0,
-            user_is_vault_owner: false,
-            is_group_share: false,
-        };
+        // vault_0_admin supersedes vault_0_write (same triplet, higher role).
+        // item in v1 has no parent vault share, so it is kept.
+        // item_2_write in v2 has same role as vault_2_write, so it is masked.
+        let vault_0_admin = share_builder()
+            .share_id("vault_share")
+            .target_type(TargetType::Vault)
+            .target_id("v0")
+            .role(ROLE_MANAGER)
+            .build();
+        let vault_0_write = share_builder() // Superseded by vault_0_admin
+            .share_id("vault_share")
+            .target_type(TargetType::Vault)
+            .target_id("v0")
+            .role(ROLE_WRITE)
+            .build();
+        let item = share_builder() // Item in vault 1 that we don't have a vault share for
+            .share_id("item_read")
+            .vault_id("v1")
+            .target_type(TargetType::Item)
+            .role(ROLE_READ)
+            .build();
+        let vault_2_write = share_builder() // Only one share for this vault
+            .share_id("vault_2_share")
+            .vault_id("v2")
+            .target_type(TargetType::Vault)
+            .target_id("v2")
+            .role(ROLE_WRITE)
+            .build();
+        let item_2_write = share_builder() // Same role as vault_2_write, so masked
+            .share_id("item_2_write")
+            .vault_id("v2")
+            .target_type(TargetType::Item)
+            .target_id("2")
+            .role(ROLE_WRITE)
+            .build();
         let shares_to_keep = [
             vault_0_admin.share_id.clone(),
             item.share_id.clone(),
@@ -514,28 +493,20 @@ mod tests {
 
     #[test]
     fn test_give_prio_to_vault_owner() {
-        let non_owner = Share {
-            share_id: "non_owner_share".to_string(),
-            vault_id: "v0".to_owned(),
-            target_type: TargetType::Vault,
-            target_id: "v0".to_owned(),
-            role: ROLE_MANAGER.to_string(),
-            permissions: 0,
-            flags: 0,
-            user_is_vault_owner: false,
-            is_group_share: false,
-        };
-        let owner = Share {
-            share_id: "owner_share".to_string(),
-            vault_id: "v0".to_owned(),
-            target_type: TargetType::Vault,
-            target_id: "v0".to_owned(),
-            role: ROLE_READ.to_string(),
-            permissions: 0,
-            flags: 0,
-            user_is_vault_owner: true,
-            is_group_share: false,
-        };
+        // The owner's share is kept even when another share has a higher role.
+        let non_owner = share_builder()
+            .share_id("non_owner_share")
+            .target_type(TargetType::Vault)
+            .target_id("v0")
+            .role(ROLE_MANAGER)
+            .build();
+        let owner = share_builder()
+            .share_id("owner_share")
+            .target_type(TargetType::Vault)
+            .target_id("v0")
+            .role(ROLE_READ)
+            .vault_owner()
+            .build();
         let owner_share_id = owner.share_id.clone();
         let shares = [non_owner, owner];
         let out = visible_share_ids(&shares, false);
@@ -545,39 +516,27 @@ mod tests {
 
     #[test]
     fn test_give_prio_to_non_group_shares() {
-        let group_share_1 = Share {
-            share_id: "group_share_1".to_string(),
-            vault_id: "v0".to_owned(),
-            target_type: TargetType::Vault,
-            target_id: "v0".to_owned(),
-            role: ROLE_MANAGER.to_string(),
-            permissions: 0,
-            flags: 0,
-            user_is_vault_owner: false,
-            is_group_share: true,
-        };
-        let non_group_share = Share {
-            share_id: "non_group_share".to_string(),
-            vault_id: "v0".to_owned(),
-            target_type: TargetType::Vault,
-            target_id: "v0".to_owned(),
-            role: ROLE_MANAGER.to_string(),
-            permissions: 0,
-            flags: 0,
-            user_is_vault_owner: false,
-            is_group_share: false,
-        };
-        let group_share_2 = Share {
-            share_id: "group_share_2".to_string(),
-            vault_id: "v0".to_owned(),
-            target_type: TargetType::Vault,
-            target_id: "v0".to_owned(),
-            role: ROLE_MANAGER.to_string(),
-            permissions: 0,
-            flags: 0,
-            user_is_vault_owner: false,
-            is_group_share: true,
-        };
+        // Among equal-role shares, the non-group share is preferred over group shares.
+        let group_share_1 = share_builder()
+            .share_id("group_share_1")
+            .target_type(TargetType::Vault)
+            .target_id("v0")
+            .role(ROLE_MANAGER)
+            .group_share()
+            .build();
+        let non_group_share = share_builder()
+            .share_id("non_group_share")
+            .target_type(TargetType::Vault)
+            .target_id("v0")
+            .role(ROLE_MANAGER)
+            .build();
+        let group_share_2 = share_builder()
+            .share_id("group_share_2")
+            .target_type(TargetType::Vault)
+            .target_id("v0")
+            .role(ROLE_MANAGER)
+            .group_share()
+            .build();
         let non_group_share_id = non_group_share.share_id.clone();
         let shares = [group_share_1, non_group_share, group_share_2];
         let out = visible_share_ids(&shares, false);

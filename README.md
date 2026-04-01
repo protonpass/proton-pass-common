@@ -139,7 +139,7 @@ Before being able to build the web artifacts you'll need to follow these steps f
 
 Then run `make web` and if everything worked, you're good to go!
 
-Link for the RustWasm book: <https://rustwasm.github.io/docs/book/introduction.html>
+Link for the RustWasm book: https://rustwasm.github.io/docs/book/introduction.html
 
 ## License
 

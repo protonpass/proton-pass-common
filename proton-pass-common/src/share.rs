@@ -92,8 +92,9 @@ pub fn visible_share_ids(shares: &[Share], filter_hidden: bool) -> Vec<&str> {
                         // If the exiting is a group one but the new one is not, keep the new one
                         *existing = share;
                     }
-                    if share.create_time < existing.create_time {
-                        // If it's an older share keep it
+                    if share.create_time < existing.create_time && existing.is_group_share == share.is_group_share {
+                        // If it's an older share keep it and both have the same group share property.
+                        // If it's different we only want to look at the previous case
                         *existing = share;
                     }
                 }

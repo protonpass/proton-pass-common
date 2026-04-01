@@ -552,7 +552,7 @@ mod tests {
 
     #[test]
     fn test_give_prio_to_older_shares() {
-        // Among equal-role shares, the non-group share is preferred over group shares.
+        // Among equal-role non-group shares, the older one (smaller create_time) wins.
         let newer = share_builder().share_id("newer").create_time(2).build();
         let older = share_builder().share_id("older").create_time(1).build();
         let older_share_id = older.share_id.clone();
@@ -560,5 +560,87 @@ mod tests {
         let out = visible_share_ids(&shares, false);
         assert_eq!(out.len(), 1);
         assert_eq!(out[0], older_share_id);
+    }
+
+    #[test]
+    fn test_give_prio_to_older_group_shares() {
+        // Among equal-role group shares, the older one (smaller create_time) wins.
+        let newer = share_builder().share_id("newer").create_time(2).group_share().build();
+        let older = share_builder().share_id("older").create_time(1).group_share().build();
+        let older_share_id = older.share_id.clone();
+        let shares = [newer, older];
+        let out = visible_share_ids(&shares, false);
+        assert_eq!(out.len(), 1);
+        assert_eq!(out[0], older_share_id);
+    }
+
+    #[test]
+    fn test_non_group_beats_group_regardless_of_age() {
+        // Non-group share wins over group share even if the group share is older.
+        let older_group = share_builder()
+            .share_id("older_group")
+            .role(ROLE_MANAGER)
+            .create_time(1)
+            .group_share()
+            .build();
+        let newer_non_group = share_builder()
+            .share_id("newer_non_group")
+            .role(ROLE_MANAGER)
+            .create_time(2)
+            .build();
+        let non_group_id = newer_non_group.share_id.clone();
+        let shares = [older_group, newer_non_group];
+        let out = visible_share_ids(&shares, false);
+        assert_eq!(out.len(), 1);
+        assert_eq!(out[0], non_group_id);
+    }
+
+    #[test]
+    fn test_vault_owner_group_share_does_not_get_vault_owner_priority() {
+        // A group share with user_is_vault_owner=true should NOT receive vault-owner priority.
+        // The `!is_group_share` guard means it falls through to normal role/age/group tiebreaks.
+        let group_owner = share_builder()
+            .share_id("group_owner")
+            .target_type(TargetType::Vault)
+            .target_id("v0")
+            .role(ROLE_MANAGER)
+            .vault_owner()
+            .group_share()
+            .build();
+        let non_group = share_builder()
+            .share_id("non_group")
+            .target_type(TargetType::Vault)
+            .target_id("v0")
+            .role(ROLE_MANAGER)
+            .build();
+        let non_group_id = non_group.share_id.clone();
+        let shares = [group_owner, non_group];
+        let out = visible_share_ids(&shares, false);
+        assert_eq!(out.len(), 1);
+        assert_eq!(out[0], non_group_id);
+    }
+
+    #[test]
+    fn test_existing_vault_owner_is_not_overridden_by_non_owner() {
+        // When the existing entry is already a non-group vault-owner share,
+        // a later non-owner share with a higher role should not displace it.
+        let owner = share_builder()
+            .share_id("owner_share")
+            .target_type(TargetType::Vault)
+            .target_id("v0")
+            .role(ROLE_READ)
+            .vault_owner()
+            .build();
+        let non_owner = share_builder()
+            .share_id("non_owner_share")
+            .target_type(TargetType::Vault)
+            .target_id("v0")
+            .role(ROLE_MANAGER)
+            .build();
+        let owner_share_id = owner.share_id.clone();
+        let shares = [owner, non_owner]; // owner processed first, becomes existing
+        let out = visible_share_ids(&shares, false);
+        assert_eq!(out.len(), 1);
+        assert_eq!(out[0], owner_share_id);
     }
 }

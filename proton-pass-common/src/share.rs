@@ -72,13 +72,12 @@ pub fn visible_share_ids(shares: &[Share], filter_hidden: bool) -> Vec<&str> {
             .and_modify(|existing| {
                 // We always give priority to the share of the owner of the vault.
                 // Checking also that the share is not group since clients may assign owner if just the vault id matches.
-                // If existing is not owner or is group share or is newer we overwrite.
-                // Only preserve existing if its owner and not group and newer
-                let existing_higher_prio_owner = existing.user_is_vault_owner
-                    && !existing.is_group_share
-                    && share.create_time > existing.create_time;
-                if share.user_is_vault_owner && !share.is_group_share && !existing_higher_prio_owner {
+                if share.user_is_vault_owner && !share.is_group_share {
                     *existing = share;
+                    return;
+                }
+                if existing.user_is_vault_owner && !existing.is_group_share {
+                    // If existing is already vault owner no need to check for anything else
                     return;
                 }
                 let share_role_prio = role_priority(&share.role);

@@ -33,6 +33,8 @@ pub struct Share {
     pub role_id: String,
     pub permissions: u16,
     pub flags: u16,
+    pub user_is_vault_owner: bool,
+    pub is_group_share: bool,
 }
 
 impl From<CommonShare> for Share {
@@ -45,6 +47,8 @@ impl From<CommonShare> for Share {
             role_id: s.role,
             permissions: s.permissions,
             flags: s.flags,
+            user_is_vault_owner: s.user_is_vault_owner,
+            is_group_share: s.is_group_share,
         }
     }
 }
@@ -59,6 +63,8 @@ impl From<Share> for CommonShare {
             role: s.role_id,
             permissions: s.permissions,
             flags: s.flags,
+            user_is_vault_owner: s.user_is_vault_owner,
+            is_group_share: s.is_group_share,
         }
     }
 }

@@ -11,6 +11,8 @@ pub struct Share {
     pub role: String,
     pub permissions: u16,
     pub flags: u16,
+    pub user_is_vault_owner: bool,
+    pub is_group_share: bool,
 }
 
 #[ffi_type]
@@ -67,12 +69,27 @@ pub fn visible_share_ids(shares: &[Share], filter_hidden: bool) -> Vec<&str> {
         best_per_triplet
             .entry(key)
             .and_modify(|existing| {
+                //We always give priority to the share of the owner of the vault
+                if share.user_is_vault_owner {
+                    *existing = share;
+                    return;
+                }
                 let share_role_prio = role_priority(&share.role);
                 let existing_role_prio = role_priority(&existing.role);
-                if share_role_prio > existing_role_prio
-                    || (share_role_prio == existing_role_prio && share.vault_id < existing.vault_id)
-                {
+                if share_role_prio > existing_role_prio {
+                    //If the share has higher prio we just keep it
                     *existing = share;
+                    return;
+                }
+                if share_role_prio == existing_role_prio {
+                    if existing.is_group_share && !share.is_group_share {
+                        // If the exiting is a group one but the new one is not, keep the new one
+                        *existing = share;
+                    }
+                    if share.vault_id < existing.vault_id {
+                        // If it's an older share keep it
+                        *existing = share;
+                    }
                 }
             })
             .or_insert_with(|| share);
@@ -130,6 +147,8 @@ mod tests {
                 role: ROLE_MANAGER.to_string(),
                 permissions: 0,
                 flags: 0,
+                user_is_vault_owner: false,
+                is_group_share: false,
             };
             let shares = [s];
             let out = visible_share_ids(&shares, false);
@@ -149,6 +168,8 @@ mod tests {
                 role: ROLE_READ.to_string(),
                 permissions: 0,
                 flags: 0,
+                user_is_vault_owner: false,
+                is_group_share: false,
             };
             let s_hidden = Share {
                 share_id: "sh".to_owned(),
@@ -158,6 +179,8 @@ mod tests {
                 role: ROLE_MANAGER.to_string(),
                 permissions: 0,
                 flags: FLAG_HIDDEN,
+                user_is_vault_owner: false,
+                is_group_share: false,
             };
             let hidden_share_id = s_hidden.share_id.clone();
             let shares = [s_visible, s_hidden];
@@ -178,6 +201,8 @@ mod tests {
                 role: ROLE_MANAGER.to_string(),
                 permissions: 0,
                 flags: FLAG_HIDDEN,
+                user_is_vault_owner: false,
+                is_group_share: false,
             };
             let s_visible = Share {
                 share_id: "sv".to_owned(),
@@ -187,6 +212,8 @@ mod tests {
                 role: ROLE_READ.to_string(),
                 permissions: 0,
                 flags: 0,
+                user_is_vault_owner: false,
+                is_group_share: false,
             };
             let s_other = Share {
                 share_id: "so".to_owned(),
@@ -196,6 +223,8 @@ mod tests {
                 role: ROLE_READ.to_string(),
                 permissions: 0,
                 flags: 0,
+                user_is_vault_owner: false,
+                is_group_share: false,
             };
             let other_share_id = s_other.share_id.clone();
             let shares = [s_visible, s_hidden, s_other];
@@ -215,6 +244,8 @@ mod tests {
             role: ROLE_MANAGER.to_string(),
             permissions: 0,
             flags: FLAG_HIDDEN,
+            user_is_vault_owner: false,
+            is_group_share: false,
         };
         let item_in_hidden_vault = Share {
             share_id: "sv".to_owned(),
@@ -224,6 +255,8 @@ mod tests {
             role: ROLE_READ.to_string(),
             permissions: 0,
             flags: 0,
+            user_is_vault_owner: false,
+            is_group_share: false,
         };
         let item_in_other_vault = Share {
             share_id: "so".to_owned(),
@@ -233,6 +266,8 @@ mod tests {
             role: ROLE_READ.to_string(),
             permissions: 0,
             flags: 0,
+            user_is_vault_owner: false,
+            is_group_share: false,
         };
         let other_share_id = item_in_other_vault.share_id.clone();
         let shares = [vault_hidden, item_in_hidden_vault, item_in_other_vault];
@@ -258,6 +293,8 @@ mod tests {
                     role: best_role.to_string(),
                     permissions: 0,
                     flags: 0,
+                    user_is_vault_owner: false,
+                    is_group_share: false,
                 };
                 let worse_role_share = Share {
                     share_id: format!("b{:?}{}", &target_type, worse_role),
@@ -267,6 +304,8 @@ mod tests {
                     role: worse_role.to_string(),
                     permissions: 0,
                     flags: 0,
+                    user_is_vault_owner: false,
+                    is_group_share: false,
                 };
                 let best_share_id = best_role_share.share_id.clone();
                 let shares = [
@@ -292,6 +331,8 @@ mod tests {
             role: ROLE_WRITE.to_string(),
             permissions: 0,
             flags: 0,
+            user_is_vault_owner: false,
+            is_group_share: false,
         };
         let read_item = Share {
             share_id: "item_read".to_string(),
@@ -301,6 +342,8 @@ mod tests {
             role: ROLE_READ.to_string(),
             permissions: 0,
             flags: 0,
+            user_is_vault_owner: false,
+            is_group_share: false,
         };
         let write_item = Share {
             share_id: "item_write".to_string(),
@@ -310,6 +353,8 @@ mod tests {
             role: ROLE_WRITE.to_string(),
             permissions: 0,
             flags: 0,
+            user_is_vault_owner: false,
+            is_group_share: false,
         };
         let share_id_to_keep = write_vault.share_id.clone();
         let shares = [write_vault, write_item, read_item];
@@ -328,6 +373,8 @@ mod tests {
             role: ROLE_READ.to_string(),
             permissions: 0,
             flags: 0,
+            user_is_vault_owner: false,
+            is_group_share: false,
         };
         let read_item = Share {
             share_id: "item_read".to_string(),
@@ -337,6 +384,8 @@ mod tests {
             role: ROLE_READ.to_string(),
             permissions: 0,
             flags: 0,
+            user_is_vault_owner: false,
+            is_group_share: false,
         };
         let write_item = Share {
             share_id: "item_write".to_string(),
@@ -346,6 +395,8 @@ mod tests {
             role: ROLE_WRITE.to_string(),
             permissions: 0,
             flags: 0,
+            user_is_vault_owner: false,
+            is_group_share: false,
         };
         let vault_share_id = read_vault.share_id.clone();
         let item_share_id = write_item.share_id.clone();
@@ -366,6 +417,8 @@ mod tests {
             role: ROLE_MANAGER.to_string(),
             permissions: 0,
             flags: 0,
+            user_is_vault_owner: false,
+            is_group_share: false,
         };
         let item = Share {
             share_id: "item_read".to_string(),
@@ -375,6 +428,8 @@ mod tests {
             role: ROLE_READ.to_string(),
             permissions: 0,
             flags: 0,
+            user_is_vault_owner: false,
+            is_group_share: false,
         };
         let vault_share_id = vault.share_id.clone();
         let item_share_id = item.share_id.clone();
@@ -395,6 +450,8 @@ mod tests {
             role: ROLE_MANAGER.to_string(),
             permissions: 0,
             flags: 0,
+            user_is_vault_owner: false,
+            is_group_share: false,
         };
         // Superseded by vault_0_admin
         let vault_0_write = Share {
@@ -405,6 +462,8 @@ mod tests {
             role: ROLE_WRITE.to_string(),
             permissions: 0,
             flags: 0,
+            user_is_vault_owner: false,
+            is_group_share: false,
         };
         // Item in vault 1 that we don't have share for
         let item = Share {
@@ -415,6 +474,8 @@ mod tests {
             role: ROLE_READ.to_string(),
             permissions: 0,
             flags: 0,
+            user_is_vault_owner: false,
+            is_group_share: false,
         };
         // Only one share for this vault
         let vault_2_write = Share {
@@ -425,6 +486,8 @@ mod tests {
             role: ROLE_WRITE.to_string(),
             permissions: 0,
             flags: 0,
+            user_is_vault_owner: false,
+            is_group_share: false,
         };
         // Item in vault 2 with the same access as vault.
         let item_2_write = Share {
@@ -435,6 +498,8 @@ mod tests {
             role: ROLE_WRITE.to_string(),
             permissions: 0,
             flags: 0,
+            user_is_vault_owner: false,
+            is_group_share: false,
         };
         let shares_to_keep = [
             vault_0_admin.share_id.clone(),
@@ -445,5 +510,78 @@ mod tests {
         let out = visible_share_ids(&shares, false);
         assert_eq!(out.len(), shares_to_keep.len());
         assert!(shares_to_keep.iter().all(|s| out.contains(&s.as_str())));
+    }
+
+    #[test]
+    fn test_give_prio_to_vault_owner() {
+        let non_owner = Share {
+            share_id: "non_owner_share".to_string(),
+            vault_id: "v0".to_owned(),
+            target_type: TargetType::Vault,
+            target_id: "v0".to_owned(),
+            role: ROLE_MANAGER.to_string(),
+            permissions: 0,
+            flags: 0,
+            user_is_vault_owner: false,
+            is_group_share: false,
+        };
+        let owner = Share {
+            share_id: "owner_share".to_string(),
+            vault_id: "v0".to_owned(),
+            target_type: TargetType::Vault,
+            target_id: "v0".to_owned(),
+            role: ROLE_READ.to_string(),
+            permissions: 0,
+            flags: 0,
+            user_is_vault_owner: true,
+            is_group_share: false,
+        };
+        let owner_share_id = owner.share_id.clone();
+        let shares = [non_owner, owner];
+        let out = visible_share_ids(&shares, false);
+        assert_eq!(out.len(), 1);
+        assert_eq!(out[0], owner_share_id);
+    }
+
+    #[test]
+    fn test_give_prio_to_non_group_shares() {
+        let group_share_1 = Share {
+            share_id: "group_share_1".to_string(),
+            vault_id: "v0".to_owned(),
+            target_type: TargetType::Vault,
+            target_id: "v0".to_owned(),
+            role: ROLE_MANAGER.to_string(),
+            permissions: 0,
+            flags: 0,
+            user_is_vault_owner: false,
+            is_group_share: true,
+        };
+        let non_group_share = Share {
+            share_id: "non_group_share".to_string(),
+            vault_id: "v0".to_owned(),
+            target_type: TargetType::Vault,
+            target_id: "v0".to_owned(),
+            role: ROLE_MANAGER.to_string(),
+            permissions: 0,
+            flags: 0,
+            user_is_vault_owner: false,
+            is_group_share: false,
+        };
+        let group_share_2 = Share {
+            share_id: "group_share_2".to_string(),
+            vault_id: "v0".to_owned(),
+            target_type: TargetType::Vault,
+            target_id: "v0".to_owned(),
+            role: ROLE_MANAGER.to_string(),
+            permissions: 0,
+            flags: 0,
+            user_is_vault_owner: false,
+            is_group_share: true,
+        };
+        let non_group_share_id = non_group_share.share_id.clone();
+        let shares = [group_share_1, non_group_share, group_share_2];
+        let out = visible_share_ids(&shares, false);
+        assert_eq!(out.len(), 1);
+        assert_eq!(out[0], non_group_share_id);
     }
 }

@@ -86,3 +86,21 @@ penalties_test! {
     upper_only: ("SECUREWORD", vec![PasswordPenalty::NoNumbers, PasswordPenalty::NoLowercase, PasswordPenalty::NoSymbols, PasswordPenalty::Short]),
     symbol_no_upper_num: ("P@ssw0rd!", vec![PasswordPenalty::ContainsCommonPassword, PasswordPenalty::Short, PasswordPenalty::Consecutive]),
 }
+
+// Regression: adding a character to a password must never lower its score.
+// Before the fix, "AsDFoundry07=+*" contained "asdf" (4 chars) as a substring,
+// which got stripped to "oundry07=+*" (11 chars), scoring much lower than
+// "ADFoundry07=+*" (no "asdf" substring). Short common passwords should not
+// match as substrings inside longer unrelated passwords.
+#[test]
+fn appending_a_char_must_not_lower_score() {
+    let base = check_score("ADFoundry07=+*");
+    let extended = check_score("AsDFoundry07=+*");
+    assert!(
+        extended.numeric_score >= base.numeric_score,
+        "'AsDFoundry07=+*' (score={}) should be >= 'ADFoundry07=+*' (score={})",
+        extended.numeric_score,
+        base.numeric_score,
+    );
+}
+

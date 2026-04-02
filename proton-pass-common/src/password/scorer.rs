@@ -196,9 +196,14 @@ fn penalties_password(password: &str) -> Vec<PasswordPenalty> {
 fn password_without_common(password: &str) -> (String, bool) {
     let password_as_lowercase = password.to_lowercase();
     for common_password in COMMON_PASSWORDS {
+        // Skip short common passwords that cover less than half the input
+        if common_password.len() * 2 < password.len() {
+            continue;
+        }
+
         if password_as_lowercase.contains(common_password) {
-            // Create a case-insensitive regex pattern
-            let pattern = match Regex::new(&format!("(?i){common_password}")) {
+            // Escape regex metacharacters (passwords.txt has entries like "123456789.")
+            let pattern = match Regex::new(&format!("(?i){}", regex_lite::escape(common_password))) {
                 Ok(r) => r,
                 Err(_) => continue,
             };

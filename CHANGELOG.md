@@ -6,6 +6,12 @@
 
 ### Other
 
+## 1.4.0
+
+### Features :tada:
+
+- pass-common: Improved `get_visible_shares` to take into account owner shares and group shares.
+
 ## 1.3.0
 
 ### Features :tada:

@@ -22,12 +22,12 @@ score_test! {
     word1n: ( "Correct4", PasswordScore::Vulnerable),
     word1s: ( "Correct3-", PasswordScore::Vulnerable),
     word2: ( "Correct3-horse", PasswordScore::Vulnerable),
-    word2sn: ( "Correct3-horse@", PasswordScore::Vulnerable),
-    word3nn: ( "Correct3-horse@Battery8", PasswordScore::Weak),
-    word3n: ( "Correct3horse3Battery8", PasswordScore::Weak),
-    word3sn: ( "Correct3-horse@Battery8.", PasswordScore::Weak),
-    word3_with_spaces: ( "Reactor5 Class5 Algorithm7", PasswordScore::Weak ),
-    word3_with_spaces_no_num_no_end_symbol: ( "Angrily Bucket Surplus", PasswordScore::Weak ),
+    word2sn: ( "Correct3-horse@", PasswordScore::Weak),
+    word3nn: ( "Correct3-horse@Battery8", PasswordScore::Strong),
+    word3n: ( "Correct3horse3Battery8", PasswordScore::Strong),
+    word3sn: ( "Correct3-horse@Battery8.", PasswordScore::Strong),
+    word3_with_spaces: ( "Reactor5 Class5 Algorithm7", PasswordScore::Strong ),
+    word3_with_spaces_no_num_no_end_symbol: ( "Angrily Bucket Surplus", PasswordScore::Strong ),
     word4sn: ( "Correct3-horse@Battery8.staple8_", PasswordScore::Strong),
     word5: ( "Correct3-horse@Battery8.staple8_Moon", PasswordScore::Strong),
 }
@@ -82,7 +82,7 @@ macro_rules! penalties_test {
 
 penalties_test! {
     common_and_others: ( "asdf", vec![PasswordPenalty::ContainsCommonPassword, PasswordPenalty::NoNumbers, PasswordPenalty::NoUppercase, PasswordPenalty::NoSymbols, PasswordPenalty::Short]),
-    common_and_others_plus_one_digit: ( "asdf1", vec![PasswordPenalty::ContainsCommonPassword, PasswordPenalty::NoUppercase, PasswordPenalty::NoSymbols, PasswordPenalty::Short, PasswordPenalty::ShortWordList]),
+    common_and_others_plus_one_digit: ( "asdf1", vec![PasswordPenalty::ContainsCommonPassword, PasswordPenalty::NoUppercase, PasswordPenalty::NoSymbols, PasswordPenalty::Short]),
     upper_only: ("SECUREWORD", vec![PasswordPenalty::NoNumbers, PasswordPenalty::NoLowercase, PasswordPenalty::NoSymbols, PasswordPenalty::Short]),
     symbol_no_upper_num: ("P@ssw0rd!", vec![PasswordPenalty::ContainsCommonPassword, PasswordPenalty::Short, PasswordPenalty::Consecutive]),
 }

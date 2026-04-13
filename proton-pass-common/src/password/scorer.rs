@@ -5,24 +5,6 @@ use regex_lite::Regex;
 
 include!(concat!(env!("OUT_DIR"), "/common_passwords.rs"));
 
-const SEPARATOR_SYMBOLS: &str = "[-,._@ ]";
-
-lazy_static::lazy_static! {
-    static ref WORDLIST_PASSPRHASE_REGEX : Regex = build_passphrase_regex();
-    static ref WORDLIST_PASSPHRASE_SEPARATOR_REGEX : Regex = build_passphrase_separator_regex();
-}
-
-fn build_passphrase_regex() -> Regex {
-    let separator = format!("(?:\\d|{SEPARATOR_SYMBOLS}|\\d{SEPARATOR_SYMBOLS})");
-    let regex_str = format!("^([A-Z]?[a-z]{{1,9}}{separator})+([A-Z]?[a-z]{{1,9}})?$");
-    Regex::new(&regex_str).unwrap()
-}
-
-fn build_passphrase_separator_regex() -> Regex {
-    let separator_regex = format!("(?:\\d|{SEPARATOR_SYMBOLS}|\\d{SEPARATOR_SYMBOLS})");
-    Regex::new(&separator_regex).unwrap()
-}
-
 const VULNERABLE_MAX_SCORE: f64 = 60.;
 const WEAK_MAX_SCORE: f64 = 90.;
 
@@ -45,7 +27,6 @@ pub enum PasswordPenalty {
     Consecutive,
     Progressive,
     ContainsCommonPassword,
-    ShortWordList,
 }
 
 #[cfg_attr(feature = "wasm", ffi_type(web_name = "WasmPasswordScoreResult"))]
@@ -224,27 +205,9 @@ fn inner_score_password(password: &str) -> PasswordScoreResult {
     let scoring_penalties = penalties_password(password);
     penalties.extend(scoring_penalties);
 
-    let final_score = if WORDLIST_PASSPRHASE_REGEX.is_match(password) {
-        let groups = WORDLIST_PASSPHRASE_SEPARATOR_REGEX.split(password);
-        let clean_groups: Vec<&str> = groups.filter(|str| !str.is_empty()).collect();
-        match clean_groups.len() {
-            1 | 2 => {
-                penalties.push(PasswordPenalty::ShortWordList);
-                score.min(VULNERABLE_MAX_SCORE - 1.)
-            }
-            3 => {
-                penalties.push(PasswordPenalty::ShortWordList);
-                score.min(WEAK_MAX_SCORE - 1.)
-            }
-            _ => score,
-        }
-    } else {
-        score
-    };
-
     PasswordScoreResult {
-        numeric_score: final_score,
-        password_score: password_score(final_score),
+        numeric_score: score,
+        password_score: password_score(score),
         penalties,
     }
 }

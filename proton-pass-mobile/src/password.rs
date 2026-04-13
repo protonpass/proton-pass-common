@@ -53,7 +53,6 @@ pub enum PasswordPenalty {
     Consecutive,
     Progressive,
     ContainsCommonPassword,
-    ShortWordList,
 }
 
 impl From<CommonPasswordPenalty> for PasswordPenalty {
@@ -67,7 +66,6 @@ impl From<CommonPasswordPenalty> for PasswordPenalty {
             CommonPasswordPenalty::Consecutive => Self::Consecutive,
             CommonPasswordPenalty::Progressive => Self::Progressive,
             CommonPasswordPenalty::ContainsCommonPassword => Self::ContainsCommonPassword,
-            CommonPasswordPenalty::ShortWordList => Self::ShortWordList,
         }
     }
 }

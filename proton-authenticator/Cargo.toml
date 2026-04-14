@@ -33,11 +33,11 @@ pbkdf2 = "0.12.2"
 poly1305 = "0.8"
 protobuf = "3.7.1"
 rand = "0.8"
-rxing = { version = "0.8.0", features = ["default", "wasm_support"], optional = true }
+rxing = { version = "0.8.5", features = ["default", "wasm_support"], optional = true }
 scrypt = "0.11.0"
 sha2 = "0.10"
 url = "2.5.4"
-zip = { version = "7", default-features = false, features = [ "deflate" ] }
+zip = { version = "8", default-features = false, features = [ "deflate" ] }
 
 # Optional dependencies for FFI
 uniffi = { version = "0.31.0", optional = true }

@@ -6,6 +6,12 @@
 
 ### Other
 
+## 1.5.0
+
+### Other
+
+- pass-common: Adapted password scorer.
+
 ## 1.4.0
 
 ### Features :tada:

@@ -48,6 +48,7 @@ pub fn get_file_group_from_mime_type(mime_type: &str) -> FileGroup {
 fn adapt(media_type: &str) -> String {
     match media_type {
         "application/mp4" => "video/mp4",
+        "video/x-msvideo" => "video/avi",
         _ => media_type,
     }
     .to_string()

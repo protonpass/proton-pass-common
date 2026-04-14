@@ -78,6 +78,7 @@ fn initialize_file_group_map() -> HashMap<String, FileGroup> {
         FileFormat::MaterialExchangeFormat => FileGroup::Video,
         FileFormat::Matroska3dVideo => FileGroup::Video,
         FileFormat::MatroskaVideo => FileGroup::Video,
+        FileFormat::MicrosoftDigitalVideoRecording => FileGroup::Video,
         FileFormat::Mpeg12Video => FileGroup::Video,
         FileFormat::Mpeg2TransportStream => FileGroup::Video,
         FileFormat::Mpeg4Part14Video => FileGroup::Video,

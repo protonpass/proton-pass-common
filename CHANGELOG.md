@@ -11,6 +11,7 @@
 ### Other
 
 - pass-common: Adapted password scorer.
+- updated dependencies.
 
 ## 1.4.0
 

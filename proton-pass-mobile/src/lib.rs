@@ -16,6 +16,7 @@ mod share;
 mod sshkey;
 mod totp;
 mod twofa;
+mod username;
 mod wifi;
 
 uniffi::setup_scaffolding!();
@@ -41,4 +42,5 @@ pub use share::*;
 pub use sshkey::*;
 pub use totp::*;
 pub use twofa::*;
+pub use username::*;
 pub use wifi::*;

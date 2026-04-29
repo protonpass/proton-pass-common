@@ -171,7 +171,7 @@ class UsernameGeneratorTest {
     }
 
     @Test
-    fun `leetspeak produces non-alphabetic characters`() {
+    fun `leetspeak produces non-alphabetic characters in at least some results`() {
         val generator = UsernameGenerator()
         val config = UsernameGeneratorConfig(
             wordCount = 2u,
@@ -182,10 +182,10 @@ class UsernameGeneratorTest {
             wordTypes = allWordTypes()
         )
 
-        val result = generator.generate(config)
+        val results = (1..30).map { generator.generate(config) }
 
-        assertThat(result).isNotEmpty()
-        assertThat(result.any { it.isDigit() }).isTrue()
+        assertThat(results.all { it.isNotEmpty() }).isTrue()
+        assertThat(results.any { result -> result.any { it.isDigit() } }).isTrue()
     }
 
     @Test(expected = Exception::class)

@@ -6,6 +6,12 @@
 
 ### Other
 
+## 1.5.1
+
+### Other
+
+- pass-mobile: expose username generator via uniffi.
+
 ## 1.5.0
 
 ### Other

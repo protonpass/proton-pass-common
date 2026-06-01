@@ -6,6 +6,12 @@
 
 ### Other
 
+## 1.5.2
+
+### Other
+
+- deps: upgrade dependencies.
+
 ## 1.5.1
 
 ### Other

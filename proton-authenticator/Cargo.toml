@@ -26,14 +26,14 @@ base32 = "0.5.1"
 base64 = "0.22.0"
 csv = "1.3.1"
 hex = "0.4.3"
-image = { version = "0.25.0", default-features = false, features = ["webp", "gif", "jpeg", "png", "bmp"], optional = true }
+image = { version = "0.25.8", default-features = false, features = ["webp", "gif", "jpeg", "png", "bmp"], optional = true }
 hmac-sha1 = "0.2.2"
 hmac = "0.12"
 pbkdf2 = "0.12.2"
 poly1305 = "0.8"
 protobuf = "3.7.1"
 rand = "0.8"
-rxing = { version = "0.8.5", features = ["default", "wasm_support"], optional = true }
+rxing = { version = "0.9", features = ["default", "wasm_support"], optional = true }
 scrypt = "0.11.0"
 sha2 = "0.10"
 url = "2.5.4"

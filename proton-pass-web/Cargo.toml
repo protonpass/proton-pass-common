@@ -12,7 +12,7 @@ pre-release-replacements = [
 # Needed since rust 1.87+
 # https://github.com/rustwasm/wasm-pack/issues/1501
 [package.metadata.wasm-pack.profile.release]
-wasm-opt = ["--enable-bulk-memory", "--enable-nontrapping-float-to-int"]
+wasm-opt = ["-Oz", "--enable-bulk-memory", "--enable-nontrapping-float-to-int"]
 
 [lib]
 doctest = false

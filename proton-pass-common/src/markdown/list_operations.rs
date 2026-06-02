@@ -52,9 +52,11 @@ impl ListOperations {
                 item_number += 1;
             }
 
+            let line_separator = Self::line_separator_after(text, *line_end);
+
             // Add newline if not last line
             if line_idx < lines.len() - 1 {
-                new_text.push('\n');
+                new_text.push_str(line_separator);
             } else if *line_end < text.len() {
                 // Add remaining text after last line
                 new_text.push_str(&text[*line_end..]);
@@ -90,8 +92,10 @@ impl ListOperations {
                 new_text.push_str(line_content);
             }
 
+            let line_separator = Self::line_separator_after(text, *line_end);
+
             if line_idx < lines.len() - 1 {
-                new_text.push('\n');
+                new_text.push_str(line_separator);
             } else if *line_end < text.len() {
                 new_text.push_str(&text[*line_end..]);
             }
@@ -132,8 +136,10 @@ impl ListOperations {
                 new_text.push_str(line_content);
             }
 
+            let line_separator = Self::line_separator_after(text, *line_end);
+
             if line_idx < lines.len() - 1 {
-                new_text.push('\n');
+                new_text.push_str(line_separator);
             } else if *line_end < text.len() {
                 new_text.push_str(&text[*line_end..]);
             }
@@ -156,8 +162,8 @@ impl ListOperations {
                 lines.push((current_start, line_end));
             }
 
-            // Move to next line (account for newline character)
-            current_start = line_end + 1;
+            // Move to next line, accounting for LF and CRLF separators.
+            current_start = line_end + Self::line_separator_after(text, line_end).len();
 
             // Stop if we're past the end
             if current_start > end {
@@ -166,11 +172,21 @@ impl ListOperations {
         }
 
         // Handle case where text doesn't end with newline
-        if current_start <= text.len() && current_start <= end {
+        if current_start < text.len() && current_start <= end {
             lines.push((current_start, text.len()));
         }
 
         lines
+    }
+
+    fn line_separator_after(text: &str, line_end: usize) -> &str {
+        if text.as_bytes().get(line_end) == Some(&b'\r') && text.as_bytes().get(line_end + 1) == Some(&b'\n') {
+            "\r\n"
+        } else if text.as_bytes().get(line_end) == Some(&b'\n') {
+            "\n"
+        } else {
+            ""
+        }
     }
 
     /// Parse a list item and return (level, is_ordered, content_start)
@@ -188,7 +204,7 @@ impl ListOperations {
         // Check for ordered list
         if let Some(pos) = after_spaces.find(". ") {
             let num_part = &after_spaces[..pos];
-            if num_part.chars().all(|c| c.is_ascii_digit()) {
+            if !num_part.is_empty() && num_part.chars().all(|c| c.is_ascii_digit()) {
                 return Some((level, true, spaces + pos + 2));
             }
         }
@@ -228,6 +244,14 @@ mod tests {
     }
 
     #[test]
+    fn test_create_ordered_list_preserves_crlf_line_ranges() {
+        let text = "line 1\r\nline 2\r\nline 3";
+        let (new_text, _, _) = ListOperations::create_list(text, 0, text.len(), Operation::CreateOrderedList).unwrap();
+
+        assert_eq!(new_text, "1. line 1\r\n2. line 2\r\n3. line 3");
+    }
+
+    #[test]
     fn test_toggle_list_off() {
         let text = "- item 1\n- item 2";
         let (new_text, _, _) =
@@ -242,6 +266,14 @@ mod tests {
         let (new_text, _, _) = ListOperations::indent_list(text, 0, text.len()).unwrap();
 
         assert_eq!(new_text, "  - item 1\n  - item 2");
+    }
+
+    #[test]
+    fn test_indent_list_preserves_crlf_line_ranges() {
+        let text = "- item 1\r\n- item 2";
+        let (new_text, _, _) = ListOperations::indent_list(text, 0, text.len()).unwrap();
+
+        assert_eq!(new_text, "  - item 1\r\n  - item 2");
     }
 
     #[test]
@@ -287,6 +319,21 @@ mod tests {
         let line = "regular text";
         let result = ListOperations::parse_list_item(line);
         assert_eq!(result, None);
+    }
+
+    #[test]
+    fn test_parse_list_item_rejects_empty_ordered_marker() {
+        let line = ". item";
+        let result = ListOperations::parse_list_item(line);
+        assert_eq!(result, None);
+    }
+
+    #[test]
+    fn test_empty_ordered_marker_can_be_wrapped_as_list_content() {
+        let text = ". item";
+        let (new_text, _, _) = ListOperations::create_list(text, 0, text.len(), Operation::CreateOrderedList).unwrap();
+
+        assert_eq!(new_text, "1. . item");
     }
 
     #[test]

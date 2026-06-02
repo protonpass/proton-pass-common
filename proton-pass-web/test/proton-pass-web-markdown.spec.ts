@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
+import { readFileSync } from "fs";
 
-import { MarkdownEditor } from "./pkg/ui";
+import { MarkdownEditor, parseMarkdownDocument } from "./pkg/ui";
 
 describe("ProtonPassWeb Markdown WASM", () => {
     describe("Basic Editor Operations", () => {
@@ -43,11 +44,12 @@ describe("ProtonPassWeb Markdown WASM", () => {
             expect(editor.getText()).toBe("hello world");
         });
 
-        test("Should bold word at cursor", () => {
+        test("Should bold word when cursor is inside word", () => {
             const editor = new MarkdownEditor("hello world test");
             editor.setCursor(8); // In "world"
             editor.applyOperation("bold");
-            expect(editor.getText()).toContain("**world**");
+            expect(editor.getText()).toBe("hello **world** test");
+            expect(editor.getCursor()).toBe(13);
         });
     });
 
@@ -103,6 +105,21 @@ describe("ProtonPassWeb Markdown WASM", () => {
             editor.setCursor(3);
             editor.applyOperation("header3");
             expect(editor.getText()).toBe("### Title");
+        });
+
+        test("Should insert H2 prefix on empty document", () => {
+            const editor = new MarkdownEditor("");
+            editor.applyOperation("header2");
+            expect(editor.getText()).toBe("## ");
+            expect(editor.getCursor()).toBe(3);
+        });
+
+        test("Should insert H3 prefix on empty line", () => {
+            const editor = new MarkdownEditor("before\n\nafter");
+            editor.setCursor(7);
+            editor.applyOperation("header3");
+            expect(editor.getText()).toBe("before\n### \nafter");
+            expect(editor.getCursor()).toBe(11);
         });
 
         test("Should toggle header off", () => {
@@ -256,7 +273,7 @@ describe("ProtonPassWeb Markdown WASM", () => {
     describe("Rendering", () => {
         test("Should render bold text", () => {
             const editor = new MarkdownEditor("**bold** text");
-            const spans = editor.render();
+            const spans = editor.renderEditorSpans();
             
             const boldSpan = spans.find(s => s.style === "bold");
             expect(boldSpan).toBeDefined();
@@ -265,7 +282,7 @@ describe("ProtonPassWeb Markdown WASM", () => {
 
         test("Should render italic text", () => {
             const editor = new MarkdownEditor("*italic* text");
-            const spans = editor.render();
+            const spans = editor.renderEditorSpans();
             
             const italicSpan = spans.find(s => s.style === "italic");
             expect(italicSpan).toBeDefined();
@@ -273,7 +290,7 @@ describe("ProtonPassWeb Markdown WASM", () => {
 
         test("Should render strikethrough text", () => {
             const editor = new MarkdownEditor("~~strike~~ text");
-            const spans = editor.render();
+            const spans = editor.renderEditorSpans();
             
             const strikeSpan = spans.find(s => s.style === "strikethrough");
             expect(strikeSpan).toBeDefined();
@@ -281,7 +298,7 @@ describe("ProtonPassWeb Markdown WASM", () => {
 
         test("Should render headers", () => {
             const editor = new MarkdownEditor("# H1\n## H2\n### H3");
-            const spans = editor.render();
+            const spans = editor.renderEditorSpans();
             
             const h1 = spans.find(s => s.style === "header1");
             const h2 = spans.find(s => s.style === "header2");
@@ -294,7 +311,7 @@ describe("ProtonPassWeb Markdown WASM", () => {
 
         test("Should render unordered list", () => {
             const editor = new MarkdownEditor("- item 1\n- item 2");
-            const spans = editor.render();
+            const spans = editor.renderEditorSpans();
             
             const listSpans = spans.filter(s => s.style === "unorderedListItem");
             expect(listSpans.length).toBe(2);
@@ -302,7 +319,7 @@ describe("ProtonPassWeb Markdown WASM", () => {
 
         test("Should render ordered list with numbers", () => {
             const editor = new MarkdownEditor("1. first\n2. second");
-            const spans = editor.render();
+            const spans = editor.renderEditorSpans();
             
             const listSpans = spans.filter(s => s.style === "orderedListItem");
             expect(listSpans.length).toBe(2);
@@ -313,7 +330,7 @@ describe("ProtonPassWeb Markdown WASM", () => {
 
         test("Should render link with url", () => {
             const editor = new MarkdownEditor("[link](https://example.com)");
-            const spans = editor.render();
+            const spans = editor.renderEditorSpans();
             
             const linkSpan = spans.find(s => s.style === "link");
             expect(linkSpan).toBeDefined();
@@ -380,16 +397,16 @@ describe("ProtonPassWeb Markdown WASM", () => {
             const editor = new MarkdownEditor("");
             expect(editor.getText()).toBe("");
             editor.applyOperation("bold");
-            // Should not crash
-            expect(editor.getText()).toBeDefined();
+            expect(editor.getText()).toBe("****");
+            expect(editor.getCursor()).toBe(2);
         });
 
         test("Should handle cursor at end", () => {
             const editor = new MarkdownEditor("hello");
             editor.setCursor(5);
             editor.applyOperation("bold");
-            // Should handle gracefully
-            expect(editor.getText()).toBeDefined();
+            expect(editor.getText()).toBe("hello****");
+            expect(editor.getCursor()).toBe(7);
         });
 
         test("Should handle multiline selection", () => {
@@ -399,39 +416,44 @@ describe("ProtonPassWeb Markdown WASM", () => {
             expect(editor.getText()).toContain("**");
         });
 
-        test("Should handle word at cursor detection", () => {
+        test("Should handle cursor inside word formatting", () => {
             const editor = new MarkdownEditor("the quick brown fox");
-            editor.setCursor(10); // In "brown"
+            editor.setCursor(12); // In "brown"
             editor.applyOperation("bold");
-            expect(editor.getText()).toContain("**brown**");
+            expect(editor.getText()).toBe("the quick **brown** fox");
+            expect(editor.getCursor()).toBe(17);
         });
 
         test("Should handle cursor at end of word - bold", () => {
             const editor = new MarkdownEditor("hello world");
             editor.setCursor(5); // Right after "hello"
             editor.applyOperation("bold");
-            expect(editor.getText()).toBe("**hello** world");
+            expect(editor.getText()).toBe("hello**** world");
+            expect(editor.getCursor()).toBe(7);
         });
 
         test("Should handle cursor at end of word - italic", () => {
             const editor = new MarkdownEditor("test item");
             editor.setCursor(4); // Right after "test"
             editor.applyOperation("italic");
-            expect(editor.getText()).toBe("*test* item");
+            expect(editor.getText()).toBe("test** item");
+            expect(editor.getCursor()).toBe(5);
         });
 
         test("Should handle cursor at end of second word", () => {
             const editor = new MarkdownEditor("first second");
             editor.setCursor(12); // Right after "second"
             editor.applyOperation("bold");
-            expect(editor.getText()).toBe("first **second**");
+            expect(editor.getText()).toBe("first second****");
+            expect(editor.getCursor()).toBe(14);
         });
 
         test("Should handle cursor at end of text", () => {
             const editor = new MarkdownEditor("word");
             editor.setCursor(4); // End of text
             editor.applyOperation("bold");
-            expect(editor.getText()).toBe("**word**");
+            expect(editor.getText()).toBe("word****");
+            expect(editor.getCursor()).toBe(6);
         });
 
         test("Should handle cursor at end with emoji", () => {
@@ -440,10 +462,11 @@ describe("ProtonPassWeb Markdown WASM", () => {
             const emojiEnd = "test👋".length;
             editor.setCursor(emojiEnd); // Right after emoji
             editor.applyOperation("bold");
-            expect(editor.getText()).toContain("**test👋**");
+            expect(editor.getText()).toBe("test👋**** next");
+            expect(editor.getCursor()).toBe(emojiEnd + 2);
         });
 
-        test("Should handle cursor in middle vs end consistently", () => {
+        test("Should format inside word and insert markers at word boundary", () => {
             // Cursor in middle
             const editor1 = new MarkdownEditor("testing");
             editor1.setCursor(3); // Middle
@@ -454,10 +477,9 @@ describe("ProtonPassWeb Markdown WASM", () => {
             editor2.setCursor(7); // End
             editor2.applyOperation("bold");
             
-            // Both should produce same result
             expect(editor1.getText()).toBe("**testing**");
-            expect(editor2.getText()).toBe("**testing**");
-            expect(editor1.getText()).toBe(editor2.getText());
+            expect(editor2.getText()).toBe("testing****");
+            expect(editor1.getText()).not.toBe(editor2.getText());
         });
 
         test("Should preserve content on invalid operations", () => {
@@ -554,97 +576,80 @@ describe("ProtonPassWeb Markdown WASM", () => {
         });
     });
 
-    describe("HTML Rendering", () => {
-        test("Should render markdown to HTML", () => {
-            const editor = new MarkdownEditor("**bold** and *italic*");
-            const html = editor.renderToHtml();
-            
-            expect(html).toContain("<strong>bold</strong>");
-            expect(html).toContain("<em>italic</em>");
+    describe("Shared Render IR", () => {
+        test("Should parse markdown to a flat document", () => {
+            const document = parseMarkdownDocument("# Title\n\nHello **world**");
+
+            expect(document.root.length).toBe(2);
+            expect(document.nodes.some(node => node.kind === "heading" && node.level === 1)).toBe(true);
+            expect(document.nodes.some(node => node.kind === "strong")).toBe(true);
         });
 
-        test("Should render headers to HTML", () => {
-            const editor = new MarkdownEditor("# Header 1\n## Header 2");
-            const html = editor.renderToHtml();
-            
-            expect(html).toContain("<h1>Header 1</h1>");
-            expect(html).toContain("<h2>Header 2</h2>");
+        test("Should classify unsafe links as non-clickable data", () => {
+            const document = parseMarkdownDocument("[x](javascript:alert(1))");
+            const link = document.nodes.find(node => node.kind === "link");
+
+            expect(link?.safeLink).toBeUndefined();
+            expect(link?.unsafeLink?.reason).toBe("unsupportedScheme");
+            expect(link?.unsafeLink?.raw).toBe("javascript:alert(1)");
         });
 
-        test("Should render lists to HTML", () => {
-            const editor = new MarkdownEditor("- Item 1\n- Item 2");
-            const html = editor.renderToHtml();
-            
-            expect(html).toContain("<ul>");
-            expect(html).toContain("<li>Item 1</li>");
-            expect(html).toContain("<li>Item 2</li>");
-            expect(html).toContain("</ul>");
+        test("Should preserve safe link href casing and reject userinfo", () => {
+            const document = parseMarkdownDocument("[safe](HTTPS://Example.COM/Path) [bad](https://user:pass@example.com)");
+            const links = document.nodes.filter(node => node.kind === "link");
+
+            expect(links[0]?.safeLink).toEqual({ href: "HTTPS://Example.COM/Path", scheme: "https" });
+            expect(links[1]?.unsafeLink?.reason).toBe("userInfo");
         });
 
-        test("Should render ordered lists to HTML", () => {
-            const editor = new MarkdownEditor("1. First\n2. Second");
-            const html = editor.renderToHtml();
-            
-            expect(html).toContain("<ol>");
-            expect(html).toContain("<li>First</li>");
-            expect(html).toContain("<li>Second</li>");
-            expect(html).toContain("</ol>");
+        test("Should preserve raw HTML as text", () => {
+            const document = parseMarkdownDocument("Click <kbd>Enter</kbd>");
+
+            expect(document.nodes.some(node => node.kind === "text" && node.text?.includes("<kbd>"))).toBe(true);
         });
 
-        test("Should render links to HTML", () => {
-            const editor = new MarkdownEditor("[link](https://example.com)");
-            const html = editor.renderToHtml();
-            
-            expect(html).toContain('<a href="https://example.com">link</a>');
+        test("Should throw typed parser errors for over-budget input", () => {
+            const oversized = "a".repeat(256 * 1024 + 1);
+
+            expect(() => parseMarkdownDocument(oversized)).toThrow();
         });
 
-        test("Should render code blocks to HTML", () => {
-            const editor = new MarkdownEditor("```\ncode here\n```");
-            const html = editor.renderToHtml();
-            
-            expect(html).toContain("<pre><code>");
-            expect(html).toContain("code here");
-            expect(html).toContain("</code></pre>");
+        test("Should not expose renderToHtml", () => {
+            const editor = new MarkdownEditor("**bold**");
+
+            expect("renderToHtml" in editor).toBe(false);
         });
 
-        test("Should render inline code to HTML", () => {
-            const editor = new MarkdownEditor("This is `inline code` here");
-            const html = editor.renderToHtml();
-            
-            expect(html).toContain("<code>inline code</code>");
-        });
-
-        test("Should render strikethrough to HTML", () => {
-            const editor = new MarkdownEditor("~~strikethrough~~");
-            const html = editor.renderToHtml();
-            
-            expect(html).toContain("<del>strikethrough</del>");
-        });
-
-        test("Should handle complex markdown document", () => {
-            const editor = new MarkdownEditor(
-                "# Title\n\n" +
-                "This is **bold** and *italic*.\n\n" +
-                "- List item 1\n" +
-                "- List item 2\n\n" +
-                "[Link](https://example.com)"
+        test("Should match shared fixture contract", () => {
+            const text = readFileSync(
+                new URL("../../proton-pass-common/test_data/markdown/shared_renderer.md", import.meta.url),
+                "utf8",
             );
-            const html = editor.renderToHtml();
-            
-            expect(html).toContain("<h1>Title</h1>");
-            expect(html).toContain("<strong>bold</strong>");
-            expect(html).toContain("<em>italic</em>");
-            expect(html).toContain("<ul>");
-            expect(html).toContain('<a href="https://example.com">Link</a>');
-        });
+            const document = parseMarkdownDocument(text);
 
-        test("Should update HTML after operations", () => {
-            const editor = new MarkdownEditor("text");
-            editor.setSelection(0, 4);
-            editor.applyOperation("bold");
-            
-            const html = editor.renderToHtml();
-            expect(html).toContain("<strong>text</strong>");
+            expect(document.root.length).toBe(6);
+            expect(document.nodes.some(node => node.kind === "heading" && node.level === 1)).toBe(true);
+            expect(document.nodes.some(node => node.kind === "strong")).toBe(true);
+            expect(document.nodes.some(node =>
+                node.kind === "link" &&
+                node.safeLink?.href === "HTTPS://Example.COM/Path" &&
+                node.safeLink?.scheme === "https",
+            )).toBe(true);
+            expect(document.nodes.some(node =>
+                node.kind === "link" &&
+                node.unsafeLink?.raw === "javascript:alert(1)" &&
+                node.unsafeLink?.reason === "unsupportedScheme",
+            )).toBe(true);
+            expect(document.nodes.some(node =>
+                node.kind === "codeBlock" &&
+                node.language === "rust" &&
+                node.text === "fn main() {\n    println!(\"hi\");\n}\n",
+            )).toBe(true);
+
+            const renderedText = document.nodes
+                .map(node => node.text ?? "")
+                .join("");
+            expect(renderedText).toContain("<kbd>Enter</kbd>");
         });
     });
 
@@ -659,7 +664,7 @@ describe("ProtonPassWeb Markdown WASM", () => {
             
             // This would be adding content in a real scenario
             // For now just verify the header is there
-            const spans = editor.render();
+            const spans = editor.renderEditorSpans();
             const h1 = spans.find(s => s.style === "header1");
             expect(h1).toBeDefined();
         });
@@ -839,7 +844,7 @@ describe('MarkdownEditor - Text Editing Methods', () => {
         // Render to show formatting
         // Text is now "Hello **world**"
         // The renderer returns spans that include the markdown markers
-        const spans = editor.render();
+        const spans = editor.renderEditorSpans();
         const boldSpan = spans.find(s => s.style === "bold");
         expect(boldSpan).toBeDefined();
         expect(boldSpan!.start).toBe(6);  // Start of "**world**" including markers
@@ -884,27 +889,10 @@ describe("Blockquote Operations", () => {
 
     test("Should render blockquote spans", () => {
         const editor = new MarkdownEditor("> This is a quote");
-        const spans = editor.render();
+        const spans = editor.renderEditorSpans();
         
         const quoteSpans = spans.filter(s => s.style === "blockquote");
         expect(quoteSpans.length).toBeGreaterThan(0);
-    });
-
-    test("Should render blockquote in HTML", () => {
-        const editor = new MarkdownEditor("> This is a quote");
-        const html = editor.renderToHtml();
-        
-        expect(html).toContain("<blockquote>");
-        expect(html).toContain("</blockquote>");
-    });
-
-    test("Should handle multiline blockquote in HTML", () => {
-        const editor = new MarkdownEditor("> First line\n> Second line");
-        const html = editor.renderToHtml();
-        
-        expect(html).toContain("<blockquote>");
-        expect(html).toContain("First line");
-        expect(html).toContain("Second line");
     });
 
     test("Should support undo/redo with blockquote", () => {
@@ -927,7 +915,7 @@ describe("Blockquote Operations", () => {
     describe("Hybrid Mode - Markdown Markers", () => {
         test("Should render marker spans for bold", () => {
             const editor = new MarkdownEditor("**bold**");
-            const spans = editor.render();
+            const spans = editor.renderEditorSpans();
 
             // Should have bold span + 2 marker spans
             const boldSpan = spans.find(s => s.style === "bold");
@@ -947,7 +935,7 @@ describe("Blockquote Operations", () => {
 
         test("Should render marker spans for italic", () => {
             const editor = new MarkdownEditor("*italic*");
-            const spans = editor.render();
+            const spans = editor.renderEditorSpans();
 
             const italicSpan = spans.find(s => s.style === "italic");
             const markerSpans = spans.filter(s => s.style === "markdownMarker");
@@ -966,7 +954,7 @@ describe("Blockquote Operations", () => {
 
         test("Should render marker spans for strikethrough", () => {
             const editor = new MarkdownEditor("~~strike~~");
-            const spans = editor.render();
+            const spans = editor.renderEditorSpans();
 
             const strikeSpan = spans.find(s => s.style === "strikethrough");
             const markerSpans = spans.filter(s => s.style === "markdownMarker");
@@ -985,7 +973,7 @@ describe("Blockquote Operations", () => {
 
         test("Should render marker span for header", () => {
             const editor = new MarkdownEditor("# Header");
-            const spans = editor.render();
+            const spans = editor.renderEditorSpans();
 
             const headerSpan = spans.find(s => s.style === "header1");
             const markerSpans = spans.filter(s => s.style === "markdownMarker");
@@ -1000,7 +988,7 @@ describe("Blockquote Operations", () => {
 
         test("Should render marker span for unordered list", () => {
             const editor = new MarkdownEditor("- Item");
-            const spans = editor.render();
+            const spans = editor.renderEditorSpans();
 
             const listSpan = spans.find(s => s.style === "unorderedListItem");
             const markerSpans = spans.filter(s => s.style === "markdownMarker");
@@ -1015,7 +1003,7 @@ describe("Blockquote Operations", () => {
 
         test("Should render marker span for ordered list", () => {
             const editor = new MarkdownEditor("1. Item");
-            const spans = editor.render();
+            const spans = editor.renderEditorSpans();
 
             const listSpan = spans.find(s => s.style === "orderedListItem");
             const markerSpans = spans.filter(s => s.style === "markdownMarker");
@@ -1030,7 +1018,7 @@ describe("Blockquote Operations", () => {
 
         test("Should render marker spans for inline code", () => {
             const editor = new MarkdownEditor("`code`");
-            const spans = editor.render();
+            const spans = editor.renderEditorSpans();
 
             const codeSpan = spans.find(s => s.style === "code");
             const markerSpans = spans.filter(s => s.style === "markdownMarker");
@@ -1049,7 +1037,7 @@ describe("Blockquote Operations", () => {
 
         test("Should render marker span for blockquote", () => {
             const editor = new MarkdownEditor("> Quote");
-            const spans = editor.render();
+            const spans = editor.renderEditorSpans();
 
             const quoteSpan = spans.find(s => s.style === "blockquote");
             const markerSpans = spans.filter(s => s.style === "markdownMarker");
@@ -1064,7 +1052,7 @@ describe("Blockquote Operations", () => {
 
         test("Should render both content and marker spans for complex text", () => {
             const editor = new MarkdownEditor("This is **bold** and *italic* text");
-            const spans = editor.render();
+            const spans = editor.renderEditorSpans();
 
             const boldSpan = spans.find(s => s.style === "bold");
             const italicSpan = spans.find(s => s.style === "italic");

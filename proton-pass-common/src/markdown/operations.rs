@@ -13,11 +13,6 @@ impl MarkdownOperations {
             return Err(MarkdownError::InvalidSelection("Invalid range".to_string()));
         }
 
-        // If range is empty (cursor only), return unchanged
-        if start == end {
-            return Ok((text.to_string(), start as u32, None));
-        }
-
         match operation {
             Operation::Bold => Self::toggle_wrapper(text, start, end, "**"),
             Operation::Italic => Self::toggle_wrapper(text, start, end, "*"),
@@ -31,7 +26,13 @@ impl MarkdownOperations {
                 }
                 Self::apply_header(text, start, end, level)
             }
-            Operation::Blockquote => Self::apply_blockquote(text, start, end),
+            Operation::Blockquote => {
+                // If range is empty (cursor only), return unchanged for block-style operations.
+                if start == end {
+                    return Ok((text.to_string(), start as u32, None));
+                }
+                Self::apply_blockquote(text, start, end)
+            }
             _ => Err(MarkdownError::InvalidOperation(
                 "Not an inline formatting operation".to_string(),
             )),
@@ -42,6 +43,10 @@ impl MarkdownOperations {
     fn toggle_wrapper(text: &str, start: usize, end: usize, wrapper: &str) -> OperationResult {
         let wrapper_len = wrapper.len();
         let selected_text = &text[start..end];
+
+        if start == end {
+            return Self::insert_empty_wrapper(text, start, wrapper);
+        }
 
         // Special case: Handle *** (bold+italic combined)
         // Search for *** even if there are other wrappers in between
@@ -107,6 +112,16 @@ impl MarkdownOperations {
         }
     }
 
+    fn insert_empty_wrapper(text: &str, cursor: usize, wrapper: &str) -> OperationResult {
+        let mut new_text = String::with_capacity(text.len() + (wrapper.len() * 2));
+        new_text.push_str(&text[..cursor]);
+        new_text.push_str(wrapper);
+        new_text.push_str(wrapper);
+        new_text.push_str(&text[cursor..]);
+
+        Ok((new_text, (cursor + wrapper.len()) as u32, None))
+    }
+
     /// Find wrapper positions around a selection, searching through nested markdown
     /// Returns Some((start_pos, end_pos)) if wrapper is found, where positions point to the start of each wrapper
     fn find_wrapper_positions(text: &str, start: usize, end: usize, wrapper: &str) -> Option<(usize, usize)> {
@@ -123,12 +138,12 @@ impl MarkdownOperations {
             }
 
             let check_pos = search_start - wrapper_len;
-            if &text[check_pos..search_start] == wrapper {
+            if Self::has_marker_at(text, check_pos, wrapper) {
                 // Special case: if looking for "*", make sure it's not part of "**"
                 if wrapper == "*" {
                     // Check if there's another * before or after this one
-                    let has_star_before = check_pos > 0 && &text[check_pos - 1..check_pos] == "*";
-                    let has_star_after = search_start < text.len() && &text[search_start..search_start + 1] == "*";
+                    let has_star_before = check_pos > 0 && Self::has_marker_at(text, check_pos - 1, "*");
+                    let has_star_after = Self::has_marker_at(text, search_start, "*");
 
                     if has_star_before || has_star_after {
                         // This is part of **, not a standalone *, skip over it
@@ -145,7 +160,7 @@ impl MarkdownOperations {
             for other_wrapper in &wrappers {
                 if *other_wrapper != wrapper && search_start >= other_wrapper.len() {
                     let other_check_pos = search_start - other_wrapper.len();
-                    if &text[other_check_pos..search_start] == *other_wrapper {
+                    if Self::has_marker_at(text, other_check_pos, other_wrapper) {
                         search_start = other_check_pos;
                         found_other = true;
                         break;
@@ -168,12 +183,12 @@ impl MarkdownOperations {
                 break None;
             }
 
-            if &text[search_end..search_end + wrapper_len] == wrapper {
+            if Self::has_marker_at(text, search_end, wrapper) {
                 // Special case: if looking for "*", make sure it's not part of "**"
                 if wrapper == "*" {
                     // Check if there's another * before or after this one
-                    let has_star_before = search_end > 0 && &text[search_end - 1..search_end] == "*";
-                    let has_star_after = search_end + 1 < text.len() && &text[search_end + 1..search_end + 2] == "*";
+                    let has_star_before = search_end > 0 && Self::has_marker_at(text, search_end - 1, "*");
+                    let has_star_after = Self::has_marker_at(text, search_end + 1, "*");
 
                     if has_star_before || has_star_after {
                         // This is part of **, not a standalone *, skip over it
@@ -190,7 +205,7 @@ impl MarkdownOperations {
             for other_wrapper in &wrappers {
                 if *other_wrapper != wrapper
                     && search_end + other_wrapper.len() <= text.len()
-                    && &text[search_end..search_end + other_wrapper.len()] == *other_wrapper
+                    && Self::has_marker_at(text, search_end, other_wrapper)
                 {
                     search_end += other_wrapper.len();
                     found_other = true;
@@ -222,7 +237,7 @@ impl MarkdownOperations {
             }
 
             let check_pos = search_start - 3;
-            if &text[check_pos..search_start] == "***" {
+            if Self::has_marker_at(text, check_pos, "***") {
                 // Found it!
                 break Some(check_pos);
             }
@@ -232,7 +247,7 @@ impl MarkdownOperations {
             for other_wrapper in &wrappers {
                 if search_start >= other_wrapper.len() {
                     let other_check_pos = search_start - other_wrapper.len();
-                    if &text[other_check_pos..search_start] == *other_wrapper {
+                    if Self::has_marker_at(text, other_check_pos, other_wrapper) {
                         search_start = other_check_pos;
                         found_other = true;
                         break;
@@ -255,7 +270,7 @@ impl MarkdownOperations {
                 break None;
             }
 
-            if &text[search_end..search_end + 3] == "***" {
+            if Self::has_marker_at(text, search_end, "***") {
                 // Found it!
                 break Some(search_end);
             }
@@ -264,7 +279,7 @@ impl MarkdownOperations {
             let mut found_other = false;
             for other_wrapper in &wrappers {
                 if search_end + other_wrapper.len() <= text.len()
-                    && &text[search_end..search_end + other_wrapper.len()] == *other_wrapper
+                    && Self::has_marker_at(text, search_end, other_wrapper)
                 {
                     search_end += other_wrapper.len();
                     found_other = true;
@@ -281,6 +296,12 @@ impl MarkdownOperations {
         let closing_pos = closing_pos?;
 
         Some((opening_pos, closing_pos))
+    }
+
+    fn has_marker_at(text: &str, start: usize, marker: &str) -> bool {
+        text.as_bytes()
+            .get(start..start + marker.len())
+            .is_some_and(|bytes| bytes == marker.as_bytes())
     }
 
     /// Apply or toggle a header to the line(s) containing the selection
@@ -449,9 +470,12 @@ mod tests {
     #[test]
     fn test_empty_selection() {
         let text = "hello world";
-        let (new_text, _, _) = MarkdownOperations::apply_inline_formatting(text, 5, 5, Operation::Bold).unwrap();
+        let (new_text, cursor, selection) =
+            MarkdownOperations::apply_inline_formatting(text, 5, 5, Operation::Bold).unwrap();
 
-        assert_eq!(new_text, text);
+        assert_eq!(new_text, "hello**** world");
+        assert_eq!(cursor, 7);
+        assert_eq!(selection, None);
     }
 
     #[test]

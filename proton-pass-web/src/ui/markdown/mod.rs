@@ -1,12 +1,23 @@
-use markdown_types::{WasmMarkdownOperation, WasmMarkdownSpanStyle, WasmMarkdownStyledSpan};
-use proton_pass_common::markdown::{
-    MarkdownEditor as CommonMarkdownEditor, Operation as CommonOperation, SpanStyle as CommonSpanStyle,
-    StyledSpan as CommonStyledSpan,
+use markdown_types::{
+    WasmMarkdownDocument, WasmMarkdownLinkScheme, WasmMarkdownNode, WasmMarkdownNodeKind, WasmMarkdownOperation,
+    WasmMarkdownSafeLink, WasmMarkdownSelection, WasmMarkdownSpanStyle, WasmMarkdownStyledSpan, WasmMarkdownUnsafeLink,
+    WasmMarkdownUnsafeLinkReason,
 };
-use pulldown_cmark::{html, Options, Parser};
+use proton_pass_common::markdown::{
+    parse_markdown_document, MarkdownDocument as CommonMarkdownDocument, MarkdownEditor as CommonMarkdownEditor,
+    MarkdownLink as CommonMarkdownLink, MarkdownLinkScheme as CommonMarkdownLinkScheme,
+    MarkdownNode as CommonMarkdownNode, MarkdownNodeKind as CommonMarkdownNodeKind,
+    MarkdownUnsafeLinkReason as CommonMarkdownUnsafeLinkReason, Operation as CommonOperation,
+    SpanStyle as CommonSpanStyle, StyledSpan as CommonStyledSpan,
+};
 use wasm_bindgen::prelude::*;
 
 mod markdown_types;
+
+#[wasm_bindgen(js_name = parseMarkdownDocument)]
+pub fn parse_markdown_document_wasm(text: String) -> Result<WasmMarkdownDocument, JsError> {
+    Ok(WasmMarkdownDocument::from(parse_markdown_document(&text)?))
+}
 
 /// A markdown editor with undo/redo support
 #[wasm_bindgen]
@@ -46,6 +57,14 @@ impl MarkdownEditor {
     #[wasm_bindgen(js_name = setSelection)]
     pub fn set_selection(&mut self, start: u32, end: u32) -> Result<(), JsError> {
         Ok(self.editor.set_selection(start, end)?)
+    }
+
+    /// Get the current selection, if any (UTF-16 code unit offsets)
+    #[wasm_bindgen(js_name = getSelection)]
+    pub fn get_selection(&self) -> Option<WasmMarkdownSelection> {
+        self.editor
+            .get_selection()
+            .map(|(start, end)| WasmMarkdownSelection { start, end })
     }
 
     /// Apply a markdown operation
@@ -120,30 +139,14 @@ impl MarkdownEditor {
         self.editor.save_undo_state();
     }
 
-    /// Render the current markdown text to styled spans
-    pub fn render(&self) -> Vec<WasmMarkdownStyledSpan> {
+    /// Render the current markdown text to editor styled spans
+    #[wasm_bindgen(js_name = renderEditorSpans)]
+    pub fn render_editor_spans(&self) -> Vec<WasmMarkdownStyledSpan> {
         self.editor
-            .render()
+            .render_editor_spans()
             .into_iter()
             .map(WasmMarkdownStyledSpan::from)
             .collect()
-    }
-
-    /// Render the current markdown text to HTML
-    /// This is a convenience method for web that converts markdown directly to HTML
-    #[wasm_bindgen(js_name = renderToHtml)]
-    pub fn render_to_html(&self) -> String {
-        let text = self.editor.get_text();
-        let mut options = Options::empty();
-        options.insert(Options::ENABLE_STRIKETHROUGH);
-        options.insert(Options::ENABLE_TABLES);
-        options.insert(Options::ENABLE_FOOTNOTES);
-        options.insert(Options::ENABLE_TASKLISTS);
-
-        let parser = Parser::new_ext(text, options);
-        let mut html_output = String::new();
-        html::push_html(&mut html_output, parser);
-        html_output
     }
 }
 
@@ -190,6 +193,107 @@ impl From<CommonStyledSpan> for WasmMarkdownStyledSpan {
     }
 }
 
+impl From<CommonMarkdownDocument> for WasmMarkdownDocument {
+    fn from(document: CommonMarkdownDocument) -> Self {
+        Self {
+            nodes: document.nodes.into_iter().map(WasmMarkdownNode::from).collect(),
+            root: document.root.into_iter().map(|id| id.0).collect(),
+        }
+    }
+}
+
+impl From<CommonMarkdownNode> for WasmMarkdownNode {
+    fn from(node: CommonMarkdownNode) -> Self {
+        let mut wasm_node = WasmMarkdownNode {
+            id: node.id.0,
+            parent_id: node.parent.map(|id| id.0),
+            children: node.children.into_iter().map(|id| id.0).collect(),
+            kind: WasmMarkdownNodeKind::Paragraph,
+            text: None,
+            level: None,
+            start_number: None,
+            language: None,
+            title: None,
+            safe_link: None,
+            unsafe_link: None,
+        };
+
+        match node.kind {
+            CommonMarkdownNodeKind::Paragraph => wasm_node.kind = WasmMarkdownNodeKind::Paragraph,
+            CommonMarkdownNodeKind::Heading { level } => {
+                wasm_node.kind = WasmMarkdownNodeKind::Heading;
+                wasm_node.level = Some(level);
+            }
+            CommonMarkdownNodeKind::Text(text) => {
+                wasm_node.kind = WasmMarkdownNodeKind::Text;
+                wasm_node.text = Some(text);
+            }
+            CommonMarkdownNodeKind::Strong => wasm_node.kind = WasmMarkdownNodeKind::Strong,
+            CommonMarkdownNodeKind::Emphasis => wasm_node.kind = WasmMarkdownNodeKind::Emphasis,
+            CommonMarkdownNodeKind::Strikethrough => wasm_node.kind = WasmMarkdownNodeKind::Strikethrough,
+            CommonMarkdownNodeKind::InlineCode(code) => {
+                wasm_node.kind = WasmMarkdownNodeKind::InlineCode;
+                wasm_node.text = Some(code);
+            }
+            CommonMarkdownNodeKind::CodeBlock { language, code } => {
+                wasm_node.kind = WasmMarkdownNodeKind::CodeBlock;
+                wasm_node.language = language;
+                wasm_node.text = Some(code);
+            }
+            CommonMarkdownNodeKind::Link { destination, title } => {
+                wasm_node.kind = WasmMarkdownNodeKind::Link;
+                wasm_node.title = title;
+                match destination {
+                    CommonMarkdownLink::Safe { href, scheme } => {
+                        wasm_node.safe_link = Some(WasmMarkdownSafeLink {
+                            href,
+                            scheme: WasmMarkdownLinkScheme::from(scheme),
+                        });
+                    }
+                    CommonMarkdownLink::Unsafe { raw, reason } => {
+                        wasm_node.unsafe_link = Some(WasmMarkdownUnsafeLink {
+                            raw,
+                            reason: WasmMarkdownUnsafeLinkReason::from(reason),
+                        });
+                    }
+                }
+            }
+            CommonMarkdownNodeKind::Blockquote => wasm_node.kind = WasmMarkdownNodeKind::Blockquote,
+            CommonMarkdownNodeKind::OrderedList { start } => {
+                wasm_node.kind = WasmMarkdownNodeKind::OrderedList;
+                wasm_node.start_number = Some(start);
+            }
+            CommonMarkdownNodeKind::UnorderedList => wasm_node.kind = WasmMarkdownNodeKind::UnorderedList,
+            CommonMarkdownNodeKind::ListItem => wasm_node.kind = WasmMarkdownNodeKind::ListItem,
+        }
+
+        wasm_node
+    }
+}
+
+impl From<CommonMarkdownLinkScheme> for WasmMarkdownLinkScheme {
+    fn from(scheme: CommonMarkdownLinkScheme) -> Self {
+        match scheme {
+            CommonMarkdownLinkScheme::Http => WasmMarkdownLinkScheme::Http,
+            CommonMarkdownLinkScheme::Https => WasmMarkdownLinkScheme::Https,
+            CommonMarkdownLinkScheme::Mailto => WasmMarkdownLinkScheme::Mailto,
+        }
+    }
+}
+
+impl From<CommonMarkdownUnsafeLinkReason> for WasmMarkdownUnsafeLinkReason {
+    fn from(reason: CommonMarkdownUnsafeLinkReason) -> Self {
+        match reason {
+            CommonMarkdownUnsafeLinkReason::Empty => WasmMarkdownUnsafeLinkReason::Empty,
+            CommonMarkdownUnsafeLinkReason::UnsupportedScheme => WasmMarkdownUnsafeLinkReason::UnsupportedScheme,
+            CommonMarkdownUnsafeLinkReason::ControlCharacter => WasmMarkdownUnsafeLinkReason::ControlCharacter,
+            CommonMarkdownUnsafeLinkReason::UserInfo => WasmMarkdownUnsafeLinkReason::UserInfo,
+            CommonMarkdownUnsafeLinkReason::RelativeOrFragment => WasmMarkdownUnsafeLinkReason::RelativeOrFragment,
+            CommonMarkdownUnsafeLinkReason::Malformed => WasmMarkdownUnsafeLinkReason::Malformed,
+        }
+    }
+}
+
 impl From<WasmMarkdownOperation> for CommonOperation {
     fn from(op: WasmMarkdownOperation) -> Self {
         match op {
@@ -208,5 +312,20 @@ impl From<WasmMarkdownOperation> for CommonOperation {
             WasmMarkdownOperation::UnindentList => CommonOperation::UnindentList,
             WasmMarkdownOperation::Blockquote => CommonOperation::Blockquote,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn get_selection_is_present_on_wasm_editor() {
+        let mut editor = MarkdownEditor::new("hello world".to_string());
+        editor.set_selection(0, 5).unwrap();
+        assert_eq!(editor.get_selection(), Some(WasmMarkdownSelection { start: 0, end: 5 }));
+
+        editor.set_cursor(3).unwrap();
+        assert_eq!(editor.get_selection(), None);
     }
 }

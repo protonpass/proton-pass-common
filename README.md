@@ -16,7 +16,7 @@ For every function added to the library, we need to:
 
 1. Add it to `proton-pass-common`, marking it as public.
 2. Write tests for it in `proton-pass-common/tests`.
-3. Add it to the `proton-pass-mobile/src/common.udl` file.
+3. Add the required UniFFI annotations and mobile wrapper code in `proton-pass-mobile/src`.
 4. Add it to the `proton-pass-mobile/src/lib.rs` file, calling the `proton-pass-common` function.
 5. Add it to the `proton-pass-web/src/lib.rs` file, marking it as `#[wasm_bindgen]` and calling the `proton-pass-common` function.
 
@@ -25,6 +25,40 @@ For every function added to the library, we need to:
 Only the `proton-pass-common` crate contains tests, as the other ones only contain the glue code for calling the functions from other languages.
 
 In order to run the tests you can either call `make test` or `cargo test -p proton-pass-common`.
+
+### Markdown renderer
+
+The shared markdown renderer lives in `proton-pass-common/src/markdown` and is
+used by the web and mobile bindings. It exposes:
+
+- `render_editor_spans` for editor styling spans.
+- `parse_markdown_document` for the platform-neutral display IR.
+- Shared link classification so unsafe links are identified in Rust before
+  platform rendering.
+
+Run the markdown-focused Rust tests with:
+
+```bash
+cargo test -p proton-pass-common markdown::
+```
+
+Run the parser timing benchmark with:
+
+```bash
+cargo bench -p proton-pass-common --bench markdown_renderer
+```
+
+Run the allocation diagnostic with:
+
+```bash
+cargo bench -p proton-pass-common --bench markdown_renderer_allocations
+```
+
+This diagnostic uses a counting allocator and is only useful for comparing
+allocation shape changes under the same harness; it is not a production timing
+benchmark. The current timing baseline and allocation diagnostic reference are
+recorded in `proton-pass-common/test_data/markdown/benchmark_baseline.md`;
+additional notes are in `docs/markdown-renderer-benchmarks.md`.
 
 ## Project management
 

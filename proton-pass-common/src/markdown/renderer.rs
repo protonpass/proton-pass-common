@@ -1,4 +1,5 @@
 use super::utf16;
+use super::{classify_markdown_link, MarkdownLink};
 use pulldown_cmark::{Event, Parser, Tag, TagEnd};
 
 /// Represents a styled span in the rendered markdown
@@ -36,8 +37,8 @@ pub enum SpanStyle {
     MarkdownMarker,
 }
 
-/// Render markdown text into styled spans (hybrid mode: shows markers + applies styles)
-pub fn render_markdown(text: &str) -> Vec<StyledSpan> {
+/// Render markdown text into editor styled spans (hybrid mode: shows markers + applies styles)
+pub fn render_editor_spans(text: &str) -> Vec<StyledSpan> {
     let mut spans = Vec::new();
     let mut options = pulldown_cmark::Options::empty();
     options.insert(pulldown_cmark::Options::ENABLE_STRIKETHROUGH);
@@ -54,13 +55,13 @@ pub fn render_markdown(text: &str) -> Vec<StyledSpan> {
                     Tag::Emphasis => Some(SpanStyle::Italic),
                     Tag::Strikethrough => Some(SpanStyle::Strikethrough),
                     Tag::Heading { level, .. } => Some(SpanStyle::Header(level as u8)),
-                    Tag::Link { dest_url, .. } => Some(SpanStyle::Link {
-                        url: dest_url.to_string(),
-                    }),
+                    Tag::Link { dest_url, .. } => match classify_markdown_link(dest_url.as_ref()) {
+                        MarkdownLink::Safe { href, .. } => Some(SpanStyle::Link { url: href }),
+                        MarkdownLink::Unsafe { .. } => None,
+                    },
                     Tag::CodeBlock(_) => Some(SpanStyle::CodeBlock),
                     Tag::BlockQuote(_) => Some(SpanStyle::Blockquote),
                     Tag::List(start_number) => {
-                        let _level = current_list_level.len() as u8;
                         current_list_level.push(ListInfo {
                             is_ordered: start_number.is_some(),
                             current_number: start_number.unwrap_or(1) as u32,
@@ -68,7 +69,7 @@ pub fn render_markdown(text: &str) -> Vec<StyledSpan> {
                         None
                     }
                     Tag::Item => {
-                        let level = (current_list_level.len() - 1) as u8;
+                        let level = current_list_level.len().saturating_sub(1) as u8;
                         if let Some(list_info) = current_list_level.last() {
                             let style = if list_info.is_ordered {
                                 SpanStyle::OrderedListItem {
@@ -128,18 +129,15 @@ pub fn render_markdown(text: &str) -> Vec<StyledSpan> {
                     }
                 }
             }
-            Event::Code(_) => {
+            Event::Code(_) if range.end > range.start => {
                 // Inline code - add marker and content spans
-                if range.end > range.start {
-                    // Add marker for backticks
-                    add_marker_spans(text, range.start, range.end, &SpanStyle::Code, &mut spans);
+                add_marker_spans(text, range.start, range.end, &SpanStyle::Code, &mut spans);
 
-                    spans.push(StyledSpan {
-                        start: range.start as u32,
-                        end: range.end as u32,
-                        style: SpanStyle::Code,
-                    });
-                }
+                spans.push(StyledSpan {
+                    start: range.start as u32,
+                    end: range.end as u32,
+                    style: SpanStyle::Code,
+                });
             }
             _ => {}
         }
@@ -424,7 +422,7 @@ mod tests {
     #[test]
     fn test_render_bold() {
         let text = "This is **bold** text";
-        let spans = render_markdown(text);
+        let spans = render_editor_spans(text);
 
         // Should have: 1 bold span + 2 marker spans (opening and closing **)
         let bold_span = spans.iter().find(|s| matches!(s.style, SpanStyle::Bold));
@@ -449,7 +447,7 @@ mod tests {
     #[test]
     fn test_render_italic() {
         let text = "This is *italic* text";
-        let spans = render_markdown(text);
+        let spans = render_editor_spans(text);
 
         let italic_span = spans.iter().find(|s| matches!(s.style, SpanStyle::Italic));
         assert!(italic_span.is_some());
@@ -458,7 +456,7 @@ mod tests {
     #[test]
     fn test_render_strikethrough() {
         let text = "This is ~~strikethrough~~ text";
-        let spans = render_markdown(text);
+        let spans = render_editor_spans(text);
 
         let strike_span = spans.iter().find(|s| matches!(s.style, SpanStyle::Strikethrough));
         assert!(strike_span.is_some());
@@ -467,7 +465,7 @@ mod tests {
     #[test]
     fn test_render_header() {
         let text = "# Header 1\n## Header 2";
-        let spans = render_markdown(text);
+        let spans = render_editor_spans(text);
 
         let h1 = spans.iter().find(|s| matches!(s.style, SpanStyle::Header(1)));
         let h2 = spans.iter().find(|s| matches!(s.style, SpanStyle::Header(2)));
@@ -479,7 +477,7 @@ mod tests {
     #[test]
     fn test_render_list_unordered() {
         let text = "- Item 1\n- Item 2";
-        let spans = render_markdown(text);
+        let spans = render_editor_spans(text);
 
         let list_items: Vec<_> = spans
             .iter()
@@ -492,7 +490,7 @@ mod tests {
     #[test]
     fn test_render_list_ordered() {
         let text = "1. Item 1\n2. Item 2";
-        let spans = render_markdown(text);
+        let spans = render_editor_spans(text);
 
         let list_items: Vec<_> = spans
             .iter()
@@ -503,9 +501,38 @@ mod tests {
     }
 
     #[test]
+    fn test_ordered_list_marker_span_points_to_marker_not_body_text() {
+        // Body text contains the same digits as the marker number.
+        // region.find(number) must return the MARKER position, not the body text position.
+        // "1. 1 thing" → marker is "1. " at byte 0, not the "1" inside "1 thing".
+        // "2. 2nd item" → marker "2. " at byte 10, body has "2" at byte 13.
+        let text = "1. 1 thing\n2. 2nd item";
+        let spans = render_editor_spans(text);
+
+        let markers: Vec<_> = spans
+            .iter()
+            .filter(|s| matches!(s.style, SpanStyle::MarkdownMarker))
+            .collect();
+
+        // Every marker span must start at a position where the actual digit is followed by '.'
+        for marker in &markers {
+            let pos = marker.start as usize;
+            let ch = text.as_bytes().get(pos).copied();
+            let after = text.as_bytes().get(pos + 1).copied();
+            assert!(
+                ch.map(|c| c.is_ascii_digit()).unwrap_or(false) && after == Some(b'.'),
+                "marker span at byte {} should point to 'N.' pattern, got {:?}{:?}",
+                pos,
+                ch.map(|c| c as char),
+                after.map(|c| c as char)
+            );
+        }
+    }
+
+    #[test]
     fn test_render_nested_formatting() {
         let text = "**bold *and italic* text**";
-        let spans = render_markdown(text);
+        let spans = render_editor_spans(text);
 
         assert!(spans.iter().any(|s| matches!(s.style, SpanStyle::Bold)));
         assert!(spans.iter().any(|s| matches!(s.style, SpanStyle::Italic)));
@@ -514,7 +541,7 @@ mod tests {
     #[test]
     fn test_render_link() {
         let text = "[link](https://example.com)";
-        let spans = render_markdown(text);
+        let spans = render_editor_spans(text);
 
         let link_span = spans
             .iter()
@@ -524,9 +551,19 @@ mod tests {
     }
 
     #[test]
+    fn test_render_editor_spans_drops_unsafe_link_url() {
+        let text = "[link](javascript:alert(1))";
+        let spans = render_editor_spans(text);
+
+        assert!(spans
+            .iter()
+            .all(|span| !matches!(&span.style, SpanStyle::Link { url } if url == "javascript:alert(1)")));
+    }
+
+    #[test]
     fn test_render_code() {
         let text = "This is `inline code` here";
-        let spans = render_markdown(text);
+        let spans = render_editor_spans(text);
 
         let code_span = spans.iter().find(|s| matches!(s.style, SpanStyle::Code));
         assert!(code_span.is_some());
@@ -535,7 +572,7 @@ mod tests {
     #[test]
     fn test_render_code_block() {
         let text = "```\ncode block\n```";
-        let spans = render_markdown(text);
+        let spans = render_editor_spans(text);
 
         let code_block = spans.iter().find(|s| matches!(s.style, SpanStyle::CodeBlock));
         assert!(code_block.is_some());
@@ -544,7 +581,7 @@ mod tests {
     #[test]
     fn test_render_blockquote() {
         let text = "> This is a quote";
-        let spans = render_markdown(text);
+        let spans = render_editor_spans(text);
 
         let quote_spans: Vec<_> = spans
             .iter()
@@ -557,7 +594,7 @@ mod tests {
     #[test]
     fn test_render_blockquote_multiline() {
         let text = "> First line\n> Second line";
-        let spans = render_markdown(text);
+        let spans = render_editor_spans(text);
 
         let quote_spans: Vec<_> = spans
             .iter()
@@ -568,9 +605,39 @@ mod tests {
     }
 
     #[test]
+    fn test_blockquote_marker_spans_point_to_correct_positions() {
+        // Multi-line blockquote with no trailing newline.
+        // Marker spans for '>' must point at the actual '>' characters, not shifted by ±1.
+        let text = "> First line\n> Second line";
+        let spans = render_editor_spans(text);
+
+        let markers: Vec<_> = spans
+            .iter()
+            .filter(|s| matches!(s.style, SpanStyle::MarkdownMarker))
+            .collect();
+
+        // Each marker span must start with '>'
+        for marker in &markers {
+            let slice = &text[marker.start as usize..marker.end as usize];
+            assert!(
+                slice.starts_with('>'),
+                "marker span [{}, {}) = {:?} should start with '>'",
+                marker.start,
+                marker.end,
+                slice
+            );
+        }
+
+        // Specifically: first '>' is at byte 0, second '>' is at byte 13 (after '\n')
+        let marker_starts: Vec<u32> = markers.iter().map(|m| m.start).collect();
+        assert!(marker_starts.contains(&0), "first > marker should be at byte 0");
+        assert!(marker_starts.contains(&13), "second > marker should be at byte 13");
+    }
+
+    #[test]
     fn test_hybrid_mode_bold_with_markers() {
         let text = "**bold**";
-        let spans = render_markdown(text);
+        let spans = render_editor_spans(text);
 
         // Should have 3 spans: opening **, content span (full), closing **
         assert!(spans.len() >= 3);
@@ -592,7 +659,7 @@ mod tests {
     #[test]
     fn test_hybrid_mode_italic_with_markers() {
         let text = "*italic*";
-        let spans = render_markdown(text);
+        let spans = render_editor_spans(text);
 
         // Find the italic span
         let italic = spans.iter().find(|s| matches!(s.style, SpanStyle::Italic)).unwrap();
@@ -609,7 +676,7 @@ mod tests {
     #[test]
     fn test_hybrid_mode_header_with_markers() {
         let text = "# Header";
-        let spans = render_markdown(text);
+        let spans = render_editor_spans(text);
 
         // Find the header span
         let header = spans.iter().find(|s| matches!(s.style, SpanStyle::Header(1))).unwrap();
@@ -627,7 +694,7 @@ mod tests {
     #[test]
     fn test_hybrid_mode_list_with_markers() {
         let text = "- Item 1";
-        let spans = render_markdown(text);
+        let spans = render_editor_spans(text);
 
         // Find the list item span
         let _list_item = spans
@@ -647,7 +714,7 @@ mod tests {
     #[test]
     fn test_hybrid_mode_strikethrough_with_markers() {
         let text = "~~strike~~";
-        let spans = render_markdown(text);
+        let spans = render_editor_spans(text);
 
         // Find the strikethrough span
         let strike = spans
@@ -669,7 +736,7 @@ mod tests {
     #[test]
     fn test_hybrid_mode_inline_code_with_markers() {
         let text = "`code`";
-        let spans = render_markdown(text);
+        let spans = render_editor_spans(text);
 
         // Find the code span
         let code = spans.iter().find(|s| matches!(s.style, SpanStyle::Code)).unwrap();

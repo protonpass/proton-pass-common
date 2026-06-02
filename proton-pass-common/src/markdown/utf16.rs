@@ -1,13 +1,13 @@
-/// UTF-16 offset conversion utilities
-///
-/// Kotlin, Swift, and TypeScript/JavaScript use UTF-16 code units for string indexing.
-/// Rust uses UTF-8 byte offsets internally. This module provides conversions between
-/// UTF-8 byte offsets and UTF-16 code unit offsets.
-///
-/// Key differences:
-/// - ASCII characters: 1 byte in UTF-8, 1 code unit in UTF-16
-/// - BMP characters (U+0080 to U+FFFF): 2-3 bytes in UTF-8, 1 code unit in UTF-16
-/// - Supplementary characters (U+10000+): 4 bytes in UTF-8, 2 code units in UTF-16 (surrogate pair)
+//! UTF-16 offset conversion utilities.
+//!
+//! Kotlin, Swift, and TypeScript/JavaScript use UTF-16 code units for string indexing.
+//! Rust uses UTF-8 byte offsets internally. This module provides conversions between
+//! UTF-8 byte offsets and UTF-16 code unit offsets.
+//!
+//! Key differences:
+//! - ASCII characters: 1 byte in UTF-8, 1 code unit in UTF-16
+//! - BMP characters (U+0080 to U+FFFF): 2-3 bytes in UTF-8, 1 code unit in UTF-16
+//! - Supplementary characters (U+10000+): 4 bytes in UTF-8, 2 code units in UTF-16 (surrogate pair)
 
 /// Convert UTF-8 byte offset to UTF-16 code unit offset
 pub fn utf8_to_utf16_offset(text: &str, utf8_offset: usize) -> usize {
@@ -24,6 +24,7 @@ pub fn utf8_to_utf16_offset(text: &str, utf8_offset: usize) -> usize {
 }
 
 /// Convert UTF-16 code unit offset to UTF-8 byte offset
+#[allow(dead_code)]
 pub fn utf16_to_utf8_offset(text: &str, utf16_offset: usize) -> usize {
     if utf16_offset == 0 {
         return 0;
@@ -48,25 +49,42 @@ pub fn utf16_to_utf8_offset(text: &str, utf16_offset: usize) -> usize {
     text.len()
 }
 
+/// Convert UTF-16 code unit offset to UTF-8 byte offset only when the UTF-16
+/// offset lands exactly on a Unicode scalar boundary.
+pub fn strict_utf16_to_utf8_offset(text: &str, utf16_offset: usize) -> Option<usize> {
+    let mut utf16_count = 0;
+    let mut byte_offset = 0;
+
+    if utf16_offset == 0 {
+        return Some(0);
+    }
+
+    for ch in text.chars() {
+        if utf16_count == utf16_offset {
+            return Some(byte_offset);
+        }
+
+        let utf16_len = ch.len_utf16();
+        if utf16_count < utf16_offset && utf16_offset < utf16_count + utf16_len {
+            return None;
+        }
+
+        utf16_count += utf16_len;
+        byte_offset += ch.len_utf8();
+    }
+
+    if utf16_count == utf16_offset {
+        Some(text.len())
+    } else {
+        None
+    }
+}
+
 /// Validate that a UTF-16 offset is at a valid character boundary
 /// Returns true if the offset is valid, false otherwise
-///
-/// This function is currently only used in tests, but is kept as a public utility
-/// for potential future validation needs.
 #[allow(dead_code)]
 pub fn is_valid_utf16_offset(text: &str, utf16_offset: usize) -> bool {
-    let utf8_offset = utf16_to_utf8_offset(text, utf16_offset);
-
-    // Check if it's a valid UTF-8 boundary
-    if utf8_offset > text.len() {
-        return false;
-    }
-
-    if utf8_offset == 0 || utf8_offset == text.len() {
-        return true;
-    }
-
-    text.is_char_boundary(utf8_offset)
+    strict_utf16_to_utf8_offset(text, utf16_offset).is_some()
 }
 
 #[cfg(test)]
@@ -105,6 +123,15 @@ mod tests {
         // End of string
         assert_eq!(utf8_to_utf16_offset(text, 16), 14);
         assert_eq!(utf16_to_utf8_offset(text, 14), 16);
+    }
+
+    #[test]
+    fn test_strict_conversion_rejects_middle_of_surrogate_pair() {
+        let text = "a😀b";
+
+        assert_eq!(strict_utf16_to_utf8_offset(text, 1), Some(1));
+        assert_eq!(strict_utf16_to_utf8_offset(text, 2), None);
+        assert_eq!(strict_utf16_to_utf8_offset(text, 3), Some(5));
     }
 
     #[test]

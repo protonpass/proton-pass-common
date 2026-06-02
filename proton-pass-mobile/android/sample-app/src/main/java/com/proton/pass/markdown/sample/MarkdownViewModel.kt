@@ -229,7 +229,7 @@ class MarkdownViewModel(application: Application) : AndroidViewModel(application
      */
     private fun updateRendering() {
         editor?.let { ed ->
-            _styledSpans.value = ed.render()
+            _styledSpans.value = ed.renderEditorSpans()
         }
     }
 

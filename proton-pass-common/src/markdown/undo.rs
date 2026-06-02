@@ -1,3 +1,4 @@
+use std::collections::VecDeque;
 use std::sync::Arc;
 
 /// Represents a snapshot of the editor state for undo/redo
@@ -23,17 +24,25 @@ impl EditorState {
 /// Manages undo/redo functionality
 #[derive(Debug, Clone)]
 pub struct UndoStack {
-    undo_stack: Vec<EditorState>,
-    redo_stack: Vec<EditorState>,
+    undo_stack: VecDeque<EditorState>,
+    redo_stack: VecDeque<EditorState>,
     max_size: usize,
 }
 
 impl UndoStack {
     pub fn new(max_size: usize) -> Self {
         Self {
-            undo_stack: Vec::new(),
-            redo_stack: Vec::new(),
+            undo_stack: VecDeque::new(),
+            redo_stack: VecDeque::new(),
             max_size,
+        }
+    }
+
+    fn push_undo_state(&mut self, state: EditorState) {
+        self.undo_stack.push_back(state);
+
+        if self.undo_stack.len() > self.max_size {
+            self.undo_stack.pop_front();
         }
     }
 
@@ -42,19 +51,13 @@ impl UndoStack {
         // Clear redo stack when new action is performed
         self.redo_stack.clear();
 
-        // Add to undo stack
-        self.undo_stack.push(state);
-
-        // Limit stack size
-        if self.undo_stack.len() > self.max_size {
-            self.undo_stack.remove(0);
-        }
+        self.push_undo_state(state);
     }
 
     /// Pop from undo stack and push current state to redo
     pub fn undo(&mut self, current_state: EditorState) -> Option<EditorState> {
-        if let Some(prev_state) = self.undo_stack.pop() {
-            self.redo_stack.push(current_state);
+        if let Some(prev_state) = self.undo_stack.pop_back() {
+            self.redo_stack.push_back(current_state);
             Some(prev_state)
         } else {
             None
@@ -63,8 +66,8 @@ impl UndoStack {
 
     /// Pop from redo stack and push current state to undo
     pub fn redo(&mut self, current_state: EditorState) -> Option<EditorState> {
-        if let Some(next_state) = self.redo_stack.pop() {
-            self.undo_stack.push(current_state);
+        if let Some(next_state) = self.redo_stack.pop_back() {
+            self.push_undo_state(current_state);
             Some(next_state)
         } else {
             None

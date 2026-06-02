@@ -21,6 +21,7 @@ proton-pass-totp = { path = "../proton-pass-totp" }
 async-trait.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+smallvec = { version = "1.15.1", features = ["serde"] }
 
 coset = "0.4.0"
 email_address = "0.2.9"
@@ -38,7 +39,6 @@ ssh-key = { version = "0.6", features = ["std", "crypto", "ed25519", "rsa", "enc
 url = "2.5.4"
 qrcode = "0.14.1"
 pulldown-cmark = "0.13"
-unicode-segmentation = "1.12"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.3.4", features = ["wasm_js"] }
@@ -53,4 +53,12 @@ harness = false
 
 [[bench]]
 name = "password_scorer"
+harness = false
+
+[[bench]]
+name = "markdown_renderer"
+harness = false
+
+[[bench]]
+name = "markdown_renderer_allocations"
 harness = false

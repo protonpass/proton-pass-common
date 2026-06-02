@@ -239,19 +239,29 @@ fun RenderedMarkdown(
 
         append(cleanedText.toString())
 
+        val sortedOffsetKeys = offsetMap.keys.sorted()
+
+        fun adjustedOffset(originalOffset: Int, defaultOffset: Int): Int {
+            offsetMap[originalOffset]?.let { return it }
+
+            val keyIndex = sortedOffsetKeys.binarySearch(originalOffset).let { index ->
+                if (index >= 0) index else -index - 2
+            }
+
+            return if (keyIndex >= 0) {
+                offsetMap.getValue(sortedOffsetKeys[keyIndex])
+            } else {
+                defaultOffset
+            }
+        }
+
         // Apply styles with adjusted offsets
         contentSpans.forEach { span ->
             val originalStart = span.start.toInt()
             val originalEnd = span.end.toInt()
 
-            // Find the closest mapped offsets
-            val adjustedStart = offsetMap[originalStart] ?: offsetMap.entries
-                .filter { it.key <= originalStart }
-                .maxByOrNull { it.key }?.value ?: 0
-
-            val adjustedEnd = offsetMap[originalEnd] ?: offsetMap.entries
-                .filter { it.key <= originalEnd }
-                .maxByOrNull { it.key }?.value ?: cleanedText.length
+            val adjustedStart = adjustedOffset(originalStart, 0)
+            val adjustedEnd = adjustedOffset(originalEnd, cleanedText.length)
 
             if (adjustedStart < cleanedText.length && adjustedEnd <= cleanedText.length && adjustedStart < adjustedEnd) {
                 when (span.style) {

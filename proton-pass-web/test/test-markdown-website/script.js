@@ -1,5 +1,6 @@
 // WASM Module - will be loaded dynamically
 let MarkdownEditor = null;
+let parseMarkdownDocument = null;
 let editor = null;
 
 // Undo batching - save state after user stops typing or on word boundaries
@@ -15,8 +16,10 @@ async function loadWasmModule() {
         // Initialize the WASM
         await module.default();
         
-        // Return the MarkdownEditor class
-        return module.MarkdownEditor;
+        return {
+            MarkdownEditor: module.MarkdownEditor,
+            parseMarkdownDocument: module.parseMarkdownDocument,
+        };
     } catch (error) {
         console.error('Failed to load WASM module:', error);
         throw error;
@@ -121,10 +124,9 @@ function updatePreview() {
     const rawHtmlDiv = document.getElementById('raw-html');
     const markdownDisplay = document.getElementById('markdown-display');
 
-    // Render HTML
-    const html = editor.renderToHtml();
-    previewDiv.innerHTML = html;
-    rawHtmlDiv.textContent = html;
+    const markdownDocument = parseMarkdownDocument(editor.getText());
+    renderMarkdownDocument(previewDiv, markdownDocument);
+    rawHtmlDiv.textContent = JSON.stringify(markdownDocument, null, 2);
 
     // Show markdown with styling
     const text = editor.getText();
@@ -143,15 +145,17 @@ function updateStyledOverlay() {
 
     const overlay = document.getElementById('styled-overlay');
     const text = editor.getText();
-    const spans = editor.render();
+    const spans = editor.renderEditorSpans();
 
     if (!text) {
-        overlay.innerHTML = '';
+        overlay.replaceChildren();
         return;
     }
 
     // NOTE: Rust library now returns UTF-16 offsets directly, which match JavaScript's string indexing!
     // No conversion needed - we can use span.start and span.end directly as string indices.
+
+    overlay.replaceChildren();
 
     // Build a character-level style map
     const charStyles = new Array(text.length).fill(null).map(() => new Set());
@@ -166,9 +170,9 @@ function updateStyledOverlay() {
         }
     });
 
-    // Build HTML with proper style priority (markers override content)
-    let html = '';
+    // Build DOM with proper style priority (markers override content)
     let currentClasses = new Set();
+    let activeSpan = null;
 
     for (let i = 0; i < text.length; i++) {
         const styles = charStyles[i];
@@ -191,30 +195,25 @@ function updateStyledOverlay() {
         const classesChanged = !setsEqual(currentClasses, newClasses);
 
         if (classesChanged) {
-            // Close previous spans
-            if (currentClasses.size > 0) {
-                html += '</span>';
-            }
-
-            // Open new spans
             if (newClasses.size > 0) {
+                activeSpan = document.createElement('span');
                 const classList = Array.from(newClasses).join(' ');
-                html += `<span class="${classList}">`;
+                activeSpan.className = classList;
+                overlay.appendChild(activeSpan);
+            } else {
+                activeSpan = null;
             }
 
             currentClasses = newClasses;
         }
 
-        // Add the character (escape HTML)
-        html += escapeHtml(text[i]);
+        const textNode = document.createTextNode(text[i]);
+        if (activeSpan) {
+            activeSpan.appendChild(textNode);
+        } else {
+            overlay.appendChild(textNode);
+        }
     }
-
-    // Close any remaining spans
-    if (currentClasses.size > 0) {
-        html += '</span>';
-    }
-
-    overlay.innerHTML = html;
 }
 
 // Helper: Convert span style to CSS class
@@ -246,13 +245,6 @@ function setsEqual(a, b) {
         if (!b.has(item)) return false;
     }
     return true;
-}
-
-// Helper: Escape HTML
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
 }
 
 // Update info panel
@@ -310,15 +302,18 @@ function updateSpansDisplay() {
     if (!editor) return;
     
     const container = document.getElementById('spans-container');
-    const spans = editor.render();
+    const spans = editor.renderEditorSpans();
     
     if (spans.length === 0) {
-        container.innerHTML = '<p class="empty-state">No styled content yet</p>';
+        const emptyState = document.createElement('p');
+        emptyState.className = 'empty-state';
+        emptyState.textContent = 'No styled content yet';
+        container.replaceChildren(emptyState);
         return;
     }
     
     const text = editor.getText();
-    container.innerHTML = '';
+    container.replaceChildren();
     
     spans.forEach(span => {
         const div = document.createElement('div');
@@ -408,8 +403,9 @@ function showError(message) {
 // Initialize
 async function init() {
     try {
-        // Load WASM module and get the MarkdownEditor class
-        MarkdownEditor = await loadWasmModule();
+        const module = await loadWasmModule();
+        MarkdownEditor = module.MarkdownEditor;
+        parseMarkdownDocument = module.parseMarkdownDocument;
         
         // Create editor with initial content
         editor = new MarkdownEditor('# Welcome to Proton Pass Markdown Editor!\n\nStart editing to see the magic happen. ✨\n\n## Features\n\n- **Bold** text\n- *Italic* text\n- ~~Strikethrough~~ text\n- Headers (H1-H6)\n- Blockquotes\n- Lists (ordered and unordered)\n- Full undo/redo support\n\n> This is a blockquote! Click the ❝ Quote button to toggle blockquotes on any line.\n\n## Try it out!\n\nSelect some text and click the formatting buttons above.');
@@ -430,17 +426,128 @@ async function init() {
         
     } catch (error) {
         console.error('Failed to initialize:', error);
-        document.getElementById('loading').innerHTML = `
-            <div style="text-align: center; color: #ff4444;">
-                <h2>❌ Failed to Load</h2>
-                <p>${error.message}</p>
-                <p style="margin-top: 20px; color: #b0b0b0;">Make sure you've built the WASM module:</p>
-                <pre style="background: #2a2a2a; padding: 15px; border-radius: 6px; display: inline-block; text-align: left; margin-top: 10px;">
-cd test-markdown-website
-./setup.sh</pre>
-            </div>
-        `;
+        const loading = document.getElementById('loading');
+        const wrapper = document.createElement('div');
+        wrapper.style.textAlign = 'center';
+        wrapper.style.color = '#ff4444';
+
+        const heading = document.createElement('h2');
+        heading.textContent = 'Failed to Load';
+
+        const message = document.createElement('p');
+        message.textContent = error.message;
+
+        const hint = document.createElement('p');
+        hint.style.marginTop = '20px';
+        hint.style.color = '#b0b0b0';
+        hint.textContent = "Make sure you've built the WASM module:";
+
+        const command = document.createElement('pre');
+        command.style.background = '#2a2a2a';
+        command.style.padding = '15px';
+        command.style.borderRadius = '6px';
+        command.style.display = 'inline-block';
+        command.style.textAlign = 'left';
+        command.style.marginTop = '10px';
+        command.textContent = 'cd test-markdown-website\n./setup.sh';
+
+        wrapper.appendChild(heading);
+        wrapper.appendChild(message);
+        wrapper.appendChild(hint);
+        wrapper.appendChild(command);
+        loading.replaceChildren(wrapper);
     }
+}
+
+export function renderMarkdownDocument(container, markdownDocument) {
+    const nodesById = new Map(markdownDocument.nodes.map(node => [node.id, node]));
+    const fragment = document.createDocumentFragment();
+
+    markdownDocument.root.forEach(nodeId => {
+        const node = nodesById.get(nodeId);
+        if (!node) return;
+
+        fragment.appendChild(renderMarkdownNode(node, nodesById));
+    });
+
+    container.replaceChildren(fragment);
+}
+
+export function renderMarkdownNode(node, nodesById) {
+    const children = () => node.children
+        .map(childId => nodesById.get(childId))
+        .filter(Boolean)
+        .map(child => renderMarkdownNode(child, nodesById));
+
+    switch (node.kind) {
+        case 'paragraph':
+            return elementWithChildren('p', children());
+        case 'heading':
+            return elementWithChildren(`h${Math.min(Math.max(node.level || 1, 1), 6)}`, children());
+        case 'text':
+            return document.createTextNode(node.text || '');
+        case 'strong':
+            return elementWithChildren('strong', children());
+        case 'emphasis':
+            return elementWithChildren('em', children());
+        case 'strikethrough':
+            return elementWithChildren('s', children());
+        case 'inlineCode': {
+            const code = document.createElement('code');
+            code.textContent = node.text || '';
+            return code;
+        }
+        case 'codeBlock': {
+            const pre = document.createElement('pre');
+            const code = document.createElement('code');
+            if (node.language) {
+                code.dataset.language = node.language;
+            }
+            code.textContent = node.text || '';
+            pre.appendChild(code);
+            return pre;
+        }
+        case 'link': {
+            const safeLink = node.safeLink || node.safe_link;
+            const unsafeLink = node.unsafeLink || node.unsafe_link;
+
+            if (!safeLink) {
+                const span = elementWithChildren('span', children());
+                span.className = 'unsafe-link';
+                span.title = unsafeLink ? `Unsafe link: ${unsafeLink.reason}` : 'Unsafe link';
+                return span;
+            }
+
+            const anchor = elementWithChildren('a', children());
+            anchor.href = safeLink.href;
+            anchor.rel = 'noopener noreferrer';
+            return anchor;
+        }
+        case 'blockquote':
+            return elementWithChildren('blockquote', children());
+        case 'orderedList': {
+            const list = elementWithChildren('ol', children());
+            if (node.startNumber && node.startNumber !== 1) {
+                list.start = node.startNumber;
+            }
+            return list;
+        }
+        case 'unorderedList':
+            return elementWithChildren('ul', children());
+        case 'listItem':
+            return elementWithChildren('li', children());
+        default: {
+            const span = document.createElement('span');
+            span.textContent = node.text || '';
+            return span;
+        }
+    }
+}
+
+export function elementWithChildren(tagName, childNodes) {
+    const element = document.createElement(tagName);
+    childNodes.forEach(child => element.appendChild(child));
+    return element;
 }
 
 // Setup event listeners
@@ -610,5 +717,6 @@ function handleClear() {
 }
 
 // Initialize on load
-window.addEventListener('DOMContentLoaded', init);
-
+if (typeof window !== 'undefined') {
+    window.addEventListener('DOMContentLoaded', init);
+}

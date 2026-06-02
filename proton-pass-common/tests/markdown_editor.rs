@@ -1,5 +1,11 @@
 use proton_pass_common::markdown::{MarkdownEditor, Operation, SpanStyle};
 
+/// Convert a UTF-8 byte offset (e.g. from str::find) to the UTF-16 code unit offset
+/// that set_cursor / set_selection expect.
+fn utf16_offset(text: &str, byte_offset: usize) -> u32 {
+    text[..byte_offset].encode_utf16().count() as u32
+}
+
 #[test]
 fn test_complete_workflow() {
     let mut editor = MarkdownEditor::new("My Document\n\nThis is a paragraph.".to_string());
@@ -10,9 +16,12 @@ fn test_complete_workflow() {
     assert!(editor.get_text().starts_with("# My Document"));
 
     // Bold "paragraph"
-    let para_start = editor.get_text().find("paragraph").unwrap();
+    let para_byte = editor.get_text().find("paragraph").unwrap();
     editor
-        .set_selection(para_start as u32, (para_start + 9) as u32)
+        .set_selection(
+            utf16_offset(editor.get_text(), para_byte),
+            utf16_offset(editor.get_text(), para_byte + 9),
+        )
         .unwrap();
     editor.apply_operation(Operation::Bold).unwrap();
     assert!(editor.get_text().contains("**paragraph**"));
@@ -31,7 +40,9 @@ fn test_list_workflow() {
     let mut editor = MarkdownEditor::new("Apple\nBanana\nCherry".to_string());
 
     // Create unordered list
-    editor.set_selection(0, editor.get_text().len() as u32).unwrap();
+    editor
+        .set_selection(0, editor.get_text().encode_utf16().count() as u32)
+        .unwrap();
     editor.apply_operation(Operation::CreateUnorderedList).unwrap();
 
     assert!(editor.get_text().contains("- Apple"));
@@ -52,13 +63,17 @@ fn test_list_workflow() {
     assert!(editor.get_text().starts_with("  - Apple"));
 
     // Convert to ordered list
-    editor.set_selection(0, editor.get_text().len() as u32).unwrap();
+    editor
+        .set_selection(0, editor.get_text().encode_utf16().count() as u32)
+        .unwrap();
 
     // Toggle off unordered
     editor.apply_operation(Operation::CreateUnorderedList).unwrap();
 
     // Create ordered
-    editor.set_selection(0, editor.get_text().len() as u32).unwrap();
+    editor
+        .set_selection(0, editor.get_text().encode_utf16().count() as u32)
+        .unwrap();
     editor.apply_operation(Operation::CreateOrderedList).unwrap();
 
     assert!(editor.get_text().contains("1. "));
@@ -76,12 +91,24 @@ fn test_combined_formatting() {
 
     // Italic "text"
     let text_pos = editor.get_text().find("text").unwrap();
-    editor.set_selection(text_pos as u32, (text_pos + 4) as u32).unwrap();
+    let text_end = text_pos + 4;
+    editor
+        .set_selection(
+            utf16_offset(editor.get_text(), text_pos),
+            utf16_offset(editor.get_text(), text_end),
+        )
+        .unwrap();
     editor.apply_operation(Operation::Italic).unwrap();
 
     // Strikethrough "here"
     let here_pos = editor.get_text().find("here").unwrap();
-    editor.set_selection(here_pos as u32, (here_pos + 4) as u32).unwrap();
+    let here_end = here_pos + 4;
+    editor
+        .set_selection(
+            utf16_offset(editor.get_text(), here_pos),
+            utf16_offset(editor.get_text(), here_end),
+        )
+        .unwrap();
     editor.apply_operation(Operation::Strikethrough).unwrap();
 
     let text = editor.get_text();
@@ -94,7 +121,7 @@ fn test_combined_formatting() {
 fn test_render_spans() {
     let editor = MarkdownEditor::new("**bold** and *italic*".to_string());
 
-    let spans = editor.render();
+    let spans = editor.render_editor_spans();
 
     let bold_spans: Vec<_> = spans.iter().filter(|s| matches!(s.style, SpanStyle::Bold)).collect();
     let italic_spans: Vec<_> = spans.iter().filter(|s| matches!(s.style, SpanStyle::Italic)).collect();
@@ -220,7 +247,9 @@ fn test_empty_and_whitespace() {
 
     // Only whitespace
     let mut editor = MarkdownEditor::new("   \n  \n   ".to_string());
-    editor.set_selection(0, editor.get_text().len() as u32).unwrap();
+    editor
+        .set_selection(0, editor.get_text().encode_utf16().count() as u32)
+        .unwrap();
     let result = editor.apply_operation(Operation::Bold);
     assert!(result.is_ok());
 }
@@ -241,7 +270,7 @@ fn test_rendering_after_operations() {
     let mut editor = MarkdownEditor::new("Plain text".to_string());
 
     // Before any operations - no spans with formatting
-    let spans_before = editor.render();
+    let spans_before = editor.render_editor_spans();
     let has_formatting_before = spans_before
         .iter()
         .any(|s| matches!(s.style, SpanStyle::Bold | SpanStyle::Italic));
@@ -252,7 +281,7 @@ fn test_rendering_after_operations() {
     editor.apply_operation(Operation::Bold).unwrap();
 
     // After operations - should have spans
-    let spans_after = editor.render();
+    let spans_after = editor.render_editor_spans();
     let has_bold = spans_after.iter().any(|s| matches!(s.style, SpanStyle::Bold));
     assert!(has_bold);
 }
@@ -265,8 +294,9 @@ fn test_word_boundary_detection() {
     editor.set_cursor(5).unwrap(); // 't' in "two"
     editor.apply_operation(Operation::Bold).unwrap();
 
-    // Should have bolded "two"
-    assert!(editor.get_text().contains("**two**"));
+    // Collapsed cursor formatting inside a word formats that word.
+    assert_eq!(editor.get_text(), "one **two** three");
+    assert_eq!(editor.get_cursor(), 9);
     assert!(!editor.get_text().contains("**one**"));
     assert!(!editor.get_text().contains("**three**"));
 }
@@ -275,7 +305,9 @@ fn test_word_boundary_detection() {
 fn test_list_item_counting() {
     let mut editor = MarkdownEditor::new("A\nB\nC\nD\nE".to_string());
 
-    editor.set_selection(0, editor.get_text().len() as u32).unwrap();
+    editor
+        .set_selection(0, editor.get_text().encode_utf16().count() as u32)
+        .unwrap();
     editor.apply_operation(Operation::CreateOrderedList).unwrap();
 
     let text = editor.get_text();

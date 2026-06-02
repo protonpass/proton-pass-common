@@ -18,6 +18,11 @@ impl NewlineHandler {
         // Find the line containing the cursor
         let line_start = text[..cursor].rfind('\n').map(|p| p + 1).unwrap_or(0);
         let line_end = text[cursor..].find('\n').map(|p| cursor + p).unwrap_or(text.len());
+        let line_end = if line_end > line_start && text.as_bytes().get(line_end.saturating_sub(1)) == Some(&b'\r') {
+            line_end - 1
+        } else {
+            line_end
+        };
 
         let current_line = &text[line_start..line_end];
 
@@ -107,7 +112,7 @@ impl NewlineHandler {
         // Check for ordered list
         if let Some(pos) = after_spaces.find(". ") {
             let num_part = &after_spaces[..pos];
-            if num_part.chars().all(|c| c.is_ascii_digit()) {
+            if !num_part.is_empty() && num_part.chars().all(|c| c.is_ascii_digit()) {
                 return Some((level, true, spaces + pos + 2));
             }
         }
@@ -208,6 +213,16 @@ mod tests {
     }
 
     #[test]
+    fn test_crlf_list_continuation_does_not_keep_carriage_return_in_line() {
+        let text = "1. First\r\n2. Second\r\n3. Third";
+        let cursor = "1. First\r\n2. Second".len();
+        let (new_text, cursor) = NewlineHandler::insert_newline(text, cursor).unwrap();
+
+        assert_eq!(new_text, "1. First\r\n2. Second\n3. \r\n3. Third");
+        assert_eq!(cursor, 23);
+    }
+
+    #[test]
     fn test_double_digit_list_number() {
         let text = "10. Tenth item";
         let (new_text, cursor) = NewlineHandler::insert_newline(text, text.len()).unwrap();
@@ -238,6 +253,14 @@ mod tests {
         let (new_text, cursor) = NewlineHandler::insert_newline(text, 7).unwrap();
         assert_eq!(new_text, "Regular\n text here");
         assert_eq!(cursor, 8);
+    }
+
+    #[test]
+    fn test_empty_ordered_marker_inserts_plain_newline() {
+        let text = ". item";
+        let (new_text, cursor) = NewlineHandler::insert_newline(text, text.len()).unwrap();
+        assert_eq!(new_text, ". item\n");
+        assert_eq!(cursor, 7);
     }
 
     #[test]

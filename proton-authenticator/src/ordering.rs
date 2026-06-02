@@ -17,10 +17,8 @@ pub fn reorder_items(local_items: &[EntryWithOrder], remote_items: &[EntryWithOr
 
         match current.get(key) {
             // Same id but different order → keep whichever is newer
-            Some(existing) if item.order != existing.order => {
-                if item.modify_time > existing.modify_time {
-                    current.insert(key.to_string(), item.clone());
-                }
+            Some(existing) if item.order != existing.order && item.modify_time > existing.modify_time => {
+                current.insert(key.to_string(), item.clone());
             }
 
             // Not seen yet

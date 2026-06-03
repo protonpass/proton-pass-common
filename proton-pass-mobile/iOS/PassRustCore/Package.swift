@@ -28,6 +28,7 @@ let package = Package(
             ],
             swiftSettings: [
                 .unsafeFlags(["-suppress-warnings"]),
+                .swiftLanguageMode(.v5)
             ]
         )
     ]

@@ -6,6 +6,14 @@
 
 ### Other
 
+## 1.6.0
+
+### Features :tada:
+
+- pass-common: Initial version of markdown editor and renderer.
+- pass-mobile: expose markdown editor and renderer.
+- pass-web: expose markdown editor and renderer.
+
 ## 1.5.2
 
 ### Other

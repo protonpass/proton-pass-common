@@ -1,6 +1,6 @@
 [package]
 name = "icon_fetcher"
-version = "1.5.2"
+version = "1.6.0"
 edition = "2021"
 
 [dependencies]

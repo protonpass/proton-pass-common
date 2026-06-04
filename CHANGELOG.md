@@ -6,6 +6,12 @@
 
 ### Other
 
+## 1.6.1
+
+### Fixes :bug:
+
+- pass-mobile & authenticator-mobile: make swift bindings for Swift 5.
+
 ## 1.6.0
 
 ### Features :tada:

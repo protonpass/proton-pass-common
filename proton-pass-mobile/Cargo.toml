@@ -19,6 +19,7 @@ name = "proton_pass_common_mobile"
 [dependencies]
 proton-pass-common = { path = "../proton-pass-common", features = ["uniffi"] }
 proton-pass-derive = { path = "../proton-pass-derive" }
+proton-pass-types = { path = "../proton-pass-types", features = ["uniffi"] }
 
 async-trait.workspace = true
 tokio.workspace = true

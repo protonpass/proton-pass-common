@@ -9,21 +9,30 @@ use syn::{
 struct FfiTypeAttrs {
     mobile_name: Option<String>,
     web_name: Option<String>,
+    skip_serde_derive: bool,
 }
 
 impl Parse for FfiTypeAttrs {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut mobile_name = None;
         let mut web_name = None;
+        let mut skip_serde_derive = false;
 
         while !input.is_empty() {
             let key: syn::Ident = input.parse()?;
-            input.parse::<Token![=]>()?;
-            let value: LitStr = input.parse()?;
 
             match key.to_string().as_str() {
-                "mobile_name" => mobile_name = Some(value.value()),
-                "web_name" => web_name = Some(value.value()),
+                "skip_serde_derive" => skip_serde_derive = true,
+                "mobile_name" => {
+                    input.parse::<Token![=]>()?;
+                    let value: LitStr = input.parse()?;
+                    mobile_name = Some(value.value());
+                }
+                "web_name" => {
+                    input.parse::<Token![=]>()?;
+                    let value: LitStr = input.parse()?;
+                    web_name = Some(value.value());
+                }
                 _ => return Err(syn::Error::new(key.span(), "Unknown attribute")),
             }
 
@@ -32,7 +41,11 @@ impl Parse for FfiTypeAttrs {
             }
         }
 
-        Ok(FfiTypeAttrs { mobile_name, web_name })
+        Ok(FfiTypeAttrs {
+            mobile_name,
+            web_name,
+            skip_serde_derive,
+        })
     }
 }
 
@@ -80,6 +93,7 @@ pub fn ffi_type(attr: TokenStream, item: TokenStream) -> TokenStream {
         FfiTypeAttrs {
             mobile_name: None,
             web_name: None,
+            skip_serde_derive: false,
         }
     } else {
         parse_macro_input!(attr as FfiTypeAttrs)
@@ -105,10 +119,16 @@ pub fn ffi_type(attr: TokenStream, item: TokenStream) -> TokenStream {
         quote! {}
     };
 
+    let wasm_derive = if attrs.skip_serde_derive {
+        quote! { #[cfg_attr(feature = "wasm", derive(tsify::Tsify))] }
+    } else {
+        quote! { #[cfg_attr(feature = "wasm", derive(tsify::Tsify, serde::Serialize, serde::Deserialize))] }
+    };
+
     let expanded = quote! {
         #[cfg_attr(feature = "uniffi", derive(#uniffi_derive))]
         #mobile_rename
-        #[cfg_attr(feature = "wasm", derive(tsify::Tsify, serde::Serialize, serde::Deserialize))]
+        #wasm_derive
         #[cfg_attr(feature = "wasm", tsify(into_wasm_abi, from_wasm_abi))]
         #web_rename
         #input
@@ -172,6 +192,7 @@ pub fn ffi_object(attr: TokenStream, item: TokenStream) -> TokenStream {
         FfiTypeAttrs {
             mobile_name: None,
             web_name: None,
+            skip_serde_derive: false,
         }
     } else {
         parse_macro_input!(attr as FfiTypeAttrs)

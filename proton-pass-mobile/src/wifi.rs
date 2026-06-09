@@ -2,28 +2,18 @@ use crate::QrCodeError;
 use proton_pass_common::qr::generate_svg_qr_code;
 use proton_pass_common::wifi::{generate_wifi_uri, WifiError as CommonWifiError, WifiSecurity as CommonWifiSecurity};
 use proton_pass_derive::Error;
+use proton_pass_types::WifiSecurity;
 
 #[derive(uniffi::Object)]
 pub struct WifiQrCodeGenerator;
 
-#[derive(uniffi::Enum)]
-pub enum WifiSecurity {
-    Unspecified,
-    WPA,
-    WPA2,
-    WPA3,
-    WEP,
-}
-
-impl From<WifiSecurity> for CommonWifiSecurity {
-    fn from(value: WifiSecurity) -> Self {
-        match value {
-            WifiSecurity::Unspecified => Self::Unspecified,
-            WifiSecurity::WPA => Self::WPA,
-            WifiSecurity::WPA2 => Self::WPA2,
-            WifiSecurity::WPA3 => Self::WPA3,
-            WifiSecurity::WEP => Self::WEP,
-        }
+fn to_common(value: WifiSecurity) -> CommonWifiSecurity {
+    match value {
+        WifiSecurity::UnspecifiedWifiSecurity => CommonWifiSecurity::Unspecified,
+        WifiSecurity::WPA => CommonWifiSecurity::WPA,
+        WifiSecurity::WPA2 => CommonWifiSecurity::WPA2,
+        WifiSecurity::WPA3 => CommonWifiSecurity::WPA3,
+        WifiSecurity::WEP => CommonWifiSecurity::WEP,
     }
 }
 
@@ -61,7 +51,7 @@ impl WifiQrCodeGenerator {
         password: String,
         security: WifiSecurity,
     ) -> Result<String, WifiQrCodeGeneratorError> {
-        let uri = generate_wifi_uri(&ssid, &password, security.into())
+        let uri = generate_wifi_uri(&ssid, &password, to_common(security))
             .map_err(|e| WifiQrCodeGeneratorError::Wifi(e.into()))?;
 
         generate_svg_qr_code(&uri).map_err(|e| WifiQrCodeGeneratorError::QrCode(e.into()))

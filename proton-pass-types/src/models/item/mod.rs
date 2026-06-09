@@ -1524,6 +1524,7 @@ impl From<item_v1::CardType> for CardType {
 }
 
 #[derive(Clone, Debug, Default, serde::Deserialize, serde::Serialize, PartialEq, Eq)]
+#[proton_pass_derive::ffi_type(skip_serde_derive)]
 pub enum WifiSecurity {
     #[default]
     UnspecifiedWifiSecurity,

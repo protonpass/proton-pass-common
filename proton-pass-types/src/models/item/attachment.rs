@@ -60,7 +60,7 @@ pub struct ItemAttachmentContent {
 impl ItemAttachmentContent {
     pub fn serialize(self) -> Result<Vec<u8>> {
         let as_proto = file_v1::FileMetadata::from(self);
-        as_proto.to_vec().context("Error serializing vault to proto")
+        as_proto.to_vec().context("Error serializing FileMetadata to proto")
     }
 
     pub fn deserialize(data: &[u8]) -> Result<Self> {

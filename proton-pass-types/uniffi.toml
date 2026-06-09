@@ -1,0 +1,5 @@
+[bindings.kotlin]
+package_name = "proton.android.pass.types"
+
+[bindings.swift]
+module_name = "PassTypes"

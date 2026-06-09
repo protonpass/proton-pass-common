@@ -46,3 +46,5 @@ pub use totp::*;
 pub use twofa::*;
 pub use username::*;
 pub use wifi::*;
+
+pub use proton_pass_types::*;

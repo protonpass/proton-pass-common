@@ -26,7 +26,7 @@ fn main() {
 fn generate_protos() {
     let out_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("src").join("protos");
 
-    let files = vec![("item_v1.proto", "item"), ("file_v1.proto", "file")];
+    let files = vec![("file_v1.proto", "file"), ("item_v1.proto", "item")];
 
     let mut mod_file_content = String::new();
     for (proto_file, mod_name) in files {

@@ -17,7 +17,4 @@
  *
  */
 
-pub(crate) mod folder;
 pub(crate) mod item;
-pub(crate) mod share;
-pub(crate) mod vault;

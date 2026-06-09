@@ -22,7 +22,6 @@ mod field;
 mod flags;
 
 use crate::protos::item::item_v1;
-use crate::{FolderId, ShareId, VaultId};
 use anyhow::{anyhow, Context, Result};
 pub use attachment::*;
 pub use field::Field;
@@ -58,20 +57,6 @@ impl TryFrom<u8> for ItemState {
             _ => Err(anyhow!("Invalid item state value: {}", value)),
         }
     }
-}
-
-#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
-pub struct Item {
-    pub id: ItemId,
-    pub share_id: ShareId,
-    pub vault_id: VaultId,
-    pub content: ItemData,
-    pub state: ItemState,
-    pub flags: Vec<ItemFlag>,
-    pub create_time: jiff::civil::DateTime,
-    pub modify_time: jiff::civil::DateTime,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub folder_id: Option<FolderId>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

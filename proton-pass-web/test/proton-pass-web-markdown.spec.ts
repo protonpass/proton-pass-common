@@ -172,25 +172,30 @@ describe("ProtonPassWeb Markdown WASM", () => {
         });
 
         test("Should indent list item", () => {
-            const editor = new MarkdownEditor("- item 1");
-            editor.setCursor(0);
+            // The first item has nothing to nest under, so indenting it is a no-op; the
+            // second item nests under the first.
+            const editor = new MarkdownEditor("- item 1\n- item 2");
+            editor.setCursor(editor.getText().indexOf("- item 2"));
             editor.applyOperation("indentList");
-            expect(editor.getText()).toBe("  - item 1");
+            expect(editor.getText()).toBe("- item 1\n  - item 2");
         });
 
         test("Should unindent list item", () => {
-            const editor = new MarkdownEditor("  - item 1");
-            editor.setCursor(0);
+            const editor = new MarkdownEditor("- item 1\n  - item 2");
+            editor.setCursor(editor.getText().indexOf("- item 2"));
             editor.applyOperation("unindentList");
-            expect(editor.getText()).toBe("- item 1");
+            expect(editor.getText()).toBe("- item 1\n- item 2");
         });
 
         test("Should indent multiple levels", () => {
-            const editor = new MarkdownEditor("- item 1");
-            editor.setCursor(0);
+            // Building a deeper level requires cascading: item 3 can only nest under item 2
+            // once item 2 is itself indented.
+            const editor = new MarkdownEditor("- item 1\n- item 2\n- item 3");
+            editor.setCursor(editor.getText().indexOf("- item 2"));
             editor.applyOperation("indentList");
+            editor.setCursor(editor.getText().indexOf("- item 3"));
             editor.applyOperation("indentList");
-            expect(editor.getText()).toBe("    - item 1");
+            expect(editor.getText()).toBe("- item 1\n  - item 2\n    - item 3");
         });
     });
 
@@ -677,12 +682,13 @@ describe("ProtonPassWeb Markdown WASM", () => {
             editor.applyOperation("createUnorderedList");
             
             expect(editor.getText()).toContain("- Task 1");
-            
-            // Indent first task
-            editor.setCursor(0);
+
+            // Indent second task so it nests under the first (the first task itself has
+            // nothing to nest under, so indenting it would be a no-op).
+            editor.setCursor(editor.getText().indexOf("- Task 2"));
             editor.applyOperation("indentList");
-            
-            expect(editor.getText()).toContain("  - Task 1");
+
+            expect(editor.getText()).toContain("  - Task 2");
         });
 
         test("Should handle combined formatting", () => {

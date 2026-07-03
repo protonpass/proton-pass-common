@@ -1,5 +1,5 @@
 use super::utf16;
-use super::{classify_markdown_link, MarkdownLink};
+use super::{classify_markdown_link, MarkdownLink, MarkdownUnsafeLinkReason};
 use pulldown_cmark::{Event, Parser, Tag, TagEnd};
 
 /// Represents a styled span in the rendered markdown
@@ -32,7 +32,9 @@ pub enum SpanStyle {
     UnorderedListItem {
         level: u8,
     },
-    Blockquote,
+    Blockquote {
+        level: u8,
+    },
     /// Markdown syntax markers (**, *, ~~, #, -, `, etc.) - styled differently for hybrid mode
     MarkdownMarker,
 }
@@ -46,6 +48,7 @@ pub fn render_editor_spans(text: &str) -> Vec<StyledSpan> {
 
     let mut stack: Vec<(SpanStyle, usize)> = Vec::new();
     let mut current_list_level: Vec<ListInfo> = Vec::new();
+    let mut current_blockquote_depth: u8 = 0;
 
     for (event, range) in parser.into_offset_iter() {
         match event {
@@ -57,10 +60,25 @@ pub fn render_editor_spans(text: &str) -> Vec<StyledSpan> {
                     Tag::Heading { level, .. } => Some(SpanStyle::Header(level as u8)),
                     Tag::Link { dest_url, .. } => match classify_markdown_link(dest_url.as_ref()) {
                         MarkdownLink::Safe { href, .. } => Some(SpanStyle::Link { url: href }),
+                        MarkdownLink::Unsafe {
+                            raw,
+                            reason: MarkdownUnsafeLinkReason::RelativeOrFragment,
+                        } if !raw.is_empty() && !raw.starts_with('/') && !raw.starts_with('#') => {
+                            let url = if raw.starts_with("http://") || raw.starts_with("https://") {
+                                raw
+                            } else {
+                                format!("https://{raw}")
+                            };
+                            Some(SpanStyle::Link { url })
+                        }
                         MarkdownLink::Unsafe { .. } => None,
                     },
                     Tag::CodeBlock(_) => Some(SpanStyle::CodeBlock),
-                    Tag::BlockQuote(_) => Some(SpanStyle::Blockquote),
+                    Tag::BlockQuote(_) => {
+                        let level = current_blockquote_depth;
+                        current_blockquote_depth += 1;
+                        Some(SpanStyle::Blockquote { level })
+                    }
                     Tag::List(start_number) => {
                         current_list_level.push(ListInfo {
                             is_ordered: start_number.is_some(),
@@ -103,8 +121,11 @@ pub fn render_editor_spans(text: &str) -> Vec<StyledSpan> {
                     | TagEnd::Heading(_)
                     | TagEnd::Link
                     | TagEnd::CodeBlock
-                    | TagEnd::BlockQuote(_)
                     | TagEnd::Item => true,
+                    TagEnd::BlockQuote(_) => {
+                        current_blockquote_depth = current_blockquote_depth.saturating_sub(1);
+                        true
+                    }
                     TagEnd::List(_) => {
                         current_list_level.pop();
                         false
@@ -302,15 +323,15 @@ fn add_marker_spans(text: &str, start: usize, end: usize, style: &SpanStyle, spa
                 }
             }
         }
-        SpanStyle::UnorderedListItem { level } => {
-            // Find the list marker (-, *, or +) by searching in the actual text
-            let expected_indent = *level as usize * 2; // 2 spaces per level
-
-            // Search for the marker pattern in the region
+        SpanStyle::UnorderedListItem { .. } => {
+            // Find the list marker (-, *, or +) by searching in the actual text.
+            // The region's start is wherever pulldown-cmark placed this item's range,
+            // which may include a few leading spaces (top-level indent) or none at all
+            // (nested items, where the parent already consumed the indent) — the
+            // nesting `level` doesn't reliably predict that count, so just require
+            // that nothing but whitespace precedes the marker.
             if let Some(marker_pos) = region.find(['-', '*', '+']) {
-                // Verify the marker is at the expected indentation
-                let spaces_before = region[..marker_pos].chars().filter(|c| *c == ' ').count();
-                if spaces_before == expected_indent {
+                if region[..marker_pos].chars().all(|c| c == ' ') {
                     let marker_start = start + marker_pos;
                     let mut marker_end = marker_start + 1;
                     // Include the space after the marker
@@ -326,16 +347,14 @@ fn add_marker_spans(text: &str, start: usize, end: usize, style: &SpanStyle, spa
                 }
             }
         }
-        SpanStyle::OrderedListItem { level, number } => {
-            // Find the list number by searching in the actual text
-            let expected_indent = *level as usize * 2; // 2 spaces per level
+        SpanStyle::OrderedListItem { number, .. } => {
+            // Find the list number by searching in the actual text. See the
+            // UnorderedListItem case above for why we check "whitespace-only prefix"
+            // rather than an exact space count derived from `level`.
             let number_str = number.to_string();
 
-            // Search for the number pattern in the region
             if let Some(number_pos) = region.find(&number_str) {
-                // Verify the number is at the expected indentation
-                let spaces_before = region[..number_pos].chars().filter(|c| *c == ' ').count();
-                if spaces_before == expected_indent {
+                if region[..number_pos].chars().all(|c| c == ' ') {
                     let marker_start = start + number_pos;
                     let mut marker_end = marker_start + number_str.len();
                     // Include the period
@@ -355,28 +374,34 @@ fn add_marker_spans(text: &str, start: usize, end: usize, style: &SpanStyle, spa
                 }
             }
         }
-        SpanStyle::Blockquote => {
-            // Find > markers at the start of lines
+        SpanStyle::Blockquote { .. } => {
+            // pulldown-cmark gives each blockquote level its own range starting at that level's
+            // '>' character, so we just mark the first '>' on each line in this region.
+            // Walk lines manually (rather than region.lines(), which strips \r\n) so we can
+            // track exactly how many bytes each line consumed, including CRLF terminators.
             let mut pos = start;
-            for line in region.lines() {
+            let mut remaining = region;
+            while !remaining.is_empty() {
+                let (raw_line, consumed) = match remaining.find('\n') {
+                    Some(idx) => (&remaining[..idx], idx + 1),
+                    None => (remaining, remaining.len()),
+                };
+                let line = raw_line.strip_suffix('\r').unwrap_or(raw_line);
                 if line.trim_start().starts_with('>') {
-                    let line_start = pos;
-                    // Find the > character
                     let whitespace_len = line.len() - line.trim_start().len();
-                    let marker_start = line_start + whitespace_len;
+                    let marker_start = pos + whitespace_len;
                     let mut marker_end = marker_start + 1;
-                    // Include the space after >
                     if text.get(marker_end..marker_end + 1) == Some(" ") {
                         marker_end += 1;
                     }
-
                     spans.push(StyledSpan {
                         start: marker_start as u32,
                         end: marker_end as u32,
                         style: SpanStyle::MarkdownMarker,
                     });
                 }
-                pos += line.len() + 1; // +1 for newline
+                pos += consumed;
+                remaining = &remaining[consumed..];
             }
         }
         SpanStyle::Link { .. } => {
@@ -418,6 +443,56 @@ struct ListInfo {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_render_top_level_list_marker_with_leading_space() {
+        // CommonMark allows up to 3 leading spaces before a top-level list marker;
+        // pulldown-cmark keeps that space in the item's range but still reports level 0.
+        let text = " - item";
+        let spans = render_editor_spans(text);
+        let markers: Vec<_> = spans
+            .iter()
+            .filter(|s| matches!(s.style, SpanStyle::MarkdownMarker))
+            .collect();
+        assert_eq!(
+            markers.len(),
+            1,
+            "expected a marker span for the '- ' prefix; spans={spans:?}"
+        );
+        assert_eq!(&text[markers[0].start as usize..markers[0].end as usize], "- ");
+    }
+
+    #[test]
+    fn test_render_nested_list_marker_styling() {
+        let text = "- outer\n  - inner";
+        let spans = render_editor_spans(text);
+        let markers: Vec<_> = spans
+            .iter()
+            .filter(|s| matches!(s.style, SpanStyle::MarkdownMarker))
+            .collect();
+        assert_eq!(
+            markers.len(),
+            2,
+            "expected marker spans for both list items; spans={spans:?}"
+        );
+    }
+
+    #[test]
+    fn test_render_blockquote_crlf_marker_positions() {
+        let text = "> a\r\n> b";
+        let spans = render_editor_spans(text);
+        let markers: Vec<_> = spans
+            .iter()
+            .filter(|s| matches!(s.style, SpanStyle::MarkdownMarker))
+            .collect();
+        assert_eq!(markers.len(), 2, "spans={spans:?}");
+        assert_eq!(&text[markers[0].start as usize..markers[0].end as usize], "> ");
+        assert_eq!(
+            &text[markers[1].start as usize..markers[1].end as usize],
+            "> ",
+            "second marker should land on the '>' after the CRLF, not the \\n byte; spans={spans:?}"
+        );
+    }
 
     #[test]
     fn test_render_bold() {
@@ -583,12 +658,9 @@ mod tests {
         let text = "> This is a quote";
         let spans = render_editor_spans(text);
 
-        let quote_spans: Vec<_> = spans
-            .iter()
-            .filter(|s| matches!(s.style, SpanStyle::Blockquote))
-            .collect();
-
-        assert!(!quote_spans.is_empty());
+        let quote_span = spans.iter().find(|s| matches!(s.style, SpanStyle::Blockquote { .. }));
+        assert!(quote_span.is_some());
+        assert!(matches!(quote_span.unwrap().style, SpanStyle::Blockquote { level: 0 }));
     }
 
     #[test]
@@ -598,10 +670,104 @@ mod tests {
 
         let quote_spans: Vec<_> = spans
             .iter()
-            .filter(|s| matches!(s.style, SpanStyle::Blockquote))
+            .filter(|s| matches!(s.style, SpanStyle::Blockquote { .. }))
             .collect();
 
         assert!(!quote_spans.is_empty());
+    }
+
+    #[test]
+    fn test_render_blockquote_empty() {
+        let text = ">";
+        let spans = render_editor_spans(text);
+        let quote_spans: Vec<_> = spans
+            .iter()
+            .filter(|s| matches!(s.style, SpanStyle::Blockquote { .. }))
+            .collect();
+        assert!(
+            !quote_spans.is_empty(),
+            "empty blockquote '>' should produce a Blockquote span"
+        );
+
+        let markers: Vec<_> = spans
+            .iter()
+            .filter(|s| matches!(s.style, SpanStyle::MarkdownMarker))
+            .collect();
+        assert!(
+            !markers.is_empty(),
+            "empty blockquote '>' should produce a marker span for '>'"
+        );
+        assert_eq!(&text[markers[0].start as usize..markers[0].end as usize], ">");
+    }
+
+    #[test]
+    fn test_render_blockquote_nested() {
+        let text = "> > nested";
+        let spans = render_editor_spans(text);
+
+        let quote_spans: Vec<_> = spans
+            .iter()
+            .filter(|s| matches!(s.style, SpanStyle::Blockquote { .. }))
+            .collect();
+        assert_eq!(
+            quote_spans.len(),
+            2,
+            "nested blockquote should produce 2 Blockquote spans"
+        );
+
+        // Levels must be distinct
+        assert!(
+            quote_spans
+                .iter()
+                .any(|s| matches!(s.style, SpanStyle::Blockquote { level: 0 })),
+            "outer blockquote should have level 0"
+        );
+        assert!(
+            quote_spans
+                .iter()
+                .any(|s| matches!(s.style, SpanStyle::Blockquote { level: 1 })),
+            "inner blockquote should have level 1"
+        );
+
+        let markers: Vec<_> = spans
+            .iter()
+            .filter(|s| matches!(s.style, SpanStyle::MarkdownMarker))
+            .collect();
+        let marker_starts: Vec<u32> = markers.iter().map(|m| m.start).collect();
+        assert!(marker_starts.contains(&0), "outer '>' at byte 0 should be marked");
+        assert!(marker_starts.contains(&2), "inner '>' at byte 2 should be marked");
+    }
+
+    #[test]
+    fn test_render_blockquote_nested_empty() {
+        // "> > " — nested quote with no text content
+        let text = "> > ";
+        let spans = render_editor_spans(text);
+
+        let quote_spans: Vec<_> = spans
+            .iter()
+            .filter(|s| matches!(s.style, SpanStyle::Blockquote { .. }))
+            .collect();
+        assert_eq!(
+            quote_spans.len(),
+            2,
+            "nested empty blockquote should produce 2 Blockquote spans"
+        );
+
+        assert!(quote_spans
+            .iter()
+            .any(|s| matches!(s.style, SpanStyle::Blockquote { level: 0 })));
+        assert!(quote_spans
+            .iter()
+            .any(|s| matches!(s.style, SpanStyle::Blockquote { level: 1 })));
+
+        let markers: Vec<_> = spans
+            .iter()
+            .filter(|s| matches!(s.style, SpanStyle::MarkdownMarker))
+            .collect();
+        let marker_starts: Vec<u32> = markers.iter().map(|m| m.start).collect();
+        assert!(marker_starts.contains(&0), "outer '>' marker should be at byte 0");
+        assert!(marker_starts.contains(&2), "inner '>' marker should be at byte 2");
     }
 
     #[test]

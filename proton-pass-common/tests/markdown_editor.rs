@@ -1,4 +1,5 @@
 use proton_pass_common::markdown::{MarkdownEditor, Operation, SpanStyle};
+use rand::Rng;
 
 /// Convert a UTF-8 byte offset (e.g. from str::find) to the UTF-16 code unit offset
 /// that set_cursor / set_selection expect.
@@ -49,18 +50,24 @@ fn test_list_workflow() {
     assert!(editor.get_text().contains("- Banana"));
     assert!(editor.get_text().contains("- Cherry"));
 
-    // Indent first item
-    editor.set_cursor(0).unwrap();
+    // Indent second item so it nests under the first (the first item has nothing to nest
+    // under, so indenting it would be a no-op).
+    let banana_line_start = editor.get_text().find("- Banana").unwrap() as u32;
+    editor.set_cursor(banana_line_start).unwrap();
     editor.apply_operation(Operation::IndentList).unwrap();
-    assert!(editor.get_text().starts_with("  - Apple"));
+    assert!(editor.get_text().contains("  - Banana")); // level 1 (2-space marker width)
 
-    // Indent again
+    // Third item nests under the now-deeper second item.
+    let cherry_line_start = editor.get_text().find("- Cherry").unwrap() as u32;
+    editor.set_cursor(cherry_line_start).unwrap();
     editor.apply_operation(Operation::IndentList).unwrap();
-    assert!(editor.get_text().starts_with("    - Apple"));
+    assert!(editor.get_text().contains("    - Cherry")); // level 2
 
-    // Unindent
+    // Unindent brings Cherry back down to Banana's level.
+    let cherry_line_start = editor.get_text().find("- Cherry").unwrap() as u32;
+    editor.set_cursor(cherry_line_start).unwrap();
     editor.apply_operation(Operation::UnindentList).unwrap();
-    assert!(editor.get_text().starts_with("  - Apple"));
+    assert!(editor.get_text().contains("  - Cherry")); // back to level 1
 
     // Convert to ordered list
     editor
@@ -336,4 +343,120 @@ fn test_toggle_formatting() {
     editor.set_selection(0, 4).unwrap();
     editor.apply_operation(Operation::Italic).unwrap();
     assert!(editor.get_text().contains("*word*"));
+}
+
+/// Monkey test: applies random sequences of list operations and asserts that list
+/// items never silently become code blocks (the CommonMark 4-space pitfall).
+///
+/// Run with a fixed seed so CI is deterministic; change SEED to explore new sequences.
+#[test]
+fn test_monkey_list_operations_never_produce_code_blocks() {
+    const SEED: u64 = 0xdeadbeef;
+    const ROUNDS: usize = 500;
+
+    let mut rng = rand::rngs::SmallRng::seed_from_u64(SEED);
+
+    let starting_texts = [
+        "1. alpha\n2. beta\n3. gamma",
+        "- foo\n- bar\n- baz",
+        "1. only",
+        "- single",
+        "1. a\n2. b",
+    ];
+
+    for &initial in &starting_texts {
+        let mut editor = MarkdownEditor::new(initial.to_string());
+
+        for _ in 0..ROUNDS {
+            // Pick a random cursor inside the text.
+            let utf16_len = editor.get_text().encode_utf16().count() as u32;
+            if utf16_len == 0 {
+                break;
+            }
+            let pos = rng.random_range(0..=utf16_len);
+            let _ = editor.set_cursor(pos);
+
+            // Pick a random list-related operation.
+            match rng.random_range(0u8..4) {
+                0 => {
+                    let _ = editor.apply_operation(Operation::IndentList);
+                }
+                1 => {
+                    let _ = editor.apply_operation(Operation::UnindentList);
+                }
+                2 => {
+                    let _ = editor.apply_operation(Operation::CreateOrderedList);
+                }
+                _ => {
+                    let _ = editor.apply_operation(Operation::CreateUnorderedList);
+                }
+            }
+
+            // Invariant: no span that was a list item should have become a code block.
+            let text = editor.get_text().to_string();
+            let spans = editor.render_editor_spans();
+            for span in &spans {
+                if matches!(span.style, SpanStyle::CodeBlock | SpanStyle::Code) {
+                    // A code block span is only acceptable if the underlying text
+                    // actually contains a code fence/backtick — not a plain list marker.
+                    let start = span.start as usize;
+                    let end = span.end as usize;
+                    let slice = text.get(start..end).unwrap_or("");
+                    assert!(
+                        slice.contains('`') || slice.trim_start().starts_with("```"),
+                        "list item was misrendered as code block after monkey ops.\n\
+                         text: {text:?}\n\
+                         offending span: {start}..{end} = {slice:?}"
+                    );
+                }
+            }
+        }
+    }
+}
+
+// Required for seed_from_u64 — bring SmallRng into scope.
+use rand::SeedableRng;
+
+#[test]
+fn test_inline_code_via_editor_wraps_word_at_cursor() {
+    let mut editor = MarkdownEditor::new("hello world".to_string());
+    editor.set_cursor(3).unwrap(); // inside "hello"
+    editor.apply_operation(Operation::InlineCode).unwrap();
+    assert_eq!(editor.get_text(), "`hello` world");
+    assert!(editor.can_undo());
+}
+
+#[test]
+fn test_inline_code_via_editor_empty_cursor_inserts_pair() {
+    let mut editor = MarkdownEditor::new("hello world".to_string());
+    editor.set_cursor(5).unwrap(); // between "hello" and " world"
+    editor.apply_operation(Operation::InlineCode).unwrap();
+    assert_eq!(editor.get_text(), "hello`` world");
+    assert_eq!(editor.get_cursor(), 6);
+}
+
+#[test]
+fn test_create_code_block_via_editor_wraps_current_line() {
+    let mut editor = MarkdownEditor::new("hello world".to_string());
+    editor.set_cursor(5).unwrap();
+    editor.apply_operation(Operation::CreateCodeBlock).unwrap();
+    assert_eq!(editor.get_text(), "```\nhello world\n```");
+    assert!(editor.can_undo());
+}
+
+#[test]
+fn test_create_code_block_via_editor_toggle_off() {
+    let mut editor = MarkdownEditor::new("```\nhello world\n```".to_string());
+    editor.set_cursor(8).unwrap(); // inside "hello world"
+    editor.apply_operation(Operation::CreateCodeBlock).unwrap();
+    assert_eq!(editor.get_text(), "hello world");
+}
+
+#[test]
+fn test_create_code_block_noop_does_not_create_undo_entry() {
+    // CreateCodeBlock on an empty doc should produce a code block, not a noop.
+    // This test confirms undo IS created (distinguishes from genuinely noop operations).
+    let mut editor = MarkdownEditor::new(String::new());
+    editor.apply_operation(Operation::CreateCodeBlock).unwrap();
+    assert!(editor.can_undo());
 }

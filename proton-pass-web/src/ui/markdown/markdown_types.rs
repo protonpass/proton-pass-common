@@ -20,6 +20,9 @@ pub enum WasmMarkdownOperation {
     IndentList,
     UnindentList,
     Blockquote,
+    InlineCode,
+    CreateCodeBlock,
+    CreateLink,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Tsify)]
@@ -117,6 +120,7 @@ pub enum WasmMarkdownNodeKind {
     OrderedList,
     UnorderedList,
     ListItem,
+    ThematicBreak,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Tsify)]

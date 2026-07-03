@@ -51,6 +51,7 @@ getrandom = { version = "0.3.4", features = ["wasm_js"] }
 [dev-dependencies]
 criterion.workspace = true
 tokio.workspace = true
+proptest = "1"
 
 [[bench]]
 name = "card_detector"

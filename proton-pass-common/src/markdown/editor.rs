@@ -179,8 +179,11 @@ impl MarkdownEditor {
             Operation::Bold
             | Operation::Italic
             | Operation::Strikethrough
+            | Operation::InlineCode
             | Operation::Header(_)
-            | Operation::Blockquote => MarkdownOperations::apply_inline_formatting(&self.text, start, end, operation),
+            | Operation::Blockquote
+            | Operation::CreateCodeBlock
+            | Operation::CreateLink => MarkdownOperations::apply_inline_formatting(&self.text, start, end, operation),
             Operation::CreateOrderedList | Operation::CreateUnorderedList => {
                 ListOperations::create_list(&self.text, start, end, operation)
             }
@@ -372,7 +375,11 @@ impl MarkdownEditor {
                 let cursor_pos = self.cursor as usize;
 
                 match operation {
-                    Operation::Bold | Operation::Italic | Operation::Strikethrough => {
+                    Operation::Bold
+                    | Operation::Italic
+                    | Operation::Strikethrough
+                    | Operation::InlineCode
+                    | Operation::CreateLink => {
                         // If the cursor is inside a word, format the word. Otherwise insert
                         // paired markers and leave the cursor between them for new text.
                         Ok(CursorUtils::find_word_containing_cursor(&self.text, cursor_pos)
@@ -383,7 +390,8 @@ impl MarkdownEditor {
                     | Operation::CreateUnorderedList
                     | Operation::IndentList
                     | Operation::UnindentList
-                    | Operation::Blockquote => {
+                    | Operation::Blockquote
+                    | Operation::CreateCodeBlock => {
                         // For block operations, find line boundaries
                         Ok(CursorUtils::find_line_boundaries(&self.text, cursor_pos))
                     }

@@ -178,7 +178,7 @@ impl From<CommonStyledSpan> for WasmMarkdownStyledSpan {
             CommonSpanStyle::UnorderedListItem { level } => {
                 (WasmMarkdownSpanStyle::UnorderedListItem, Some(level), None, None)
             }
-            CommonSpanStyle::Blockquote => (WasmMarkdownSpanStyle::Blockquote, None, None, None),
+            CommonSpanStyle::Blockquote { level } => (WasmMarkdownSpanStyle::Blockquote, Some(level), None, None),
             CommonSpanStyle::MarkdownMarker => (WasmMarkdownSpanStyle::MarkdownMarker, None, None, None),
         };
 
@@ -265,6 +265,7 @@ impl From<CommonMarkdownNode> for WasmMarkdownNode {
             }
             CommonMarkdownNodeKind::UnorderedList => wasm_node.kind = WasmMarkdownNodeKind::UnorderedList,
             CommonMarkdownNodeKind::ListItem => wasm_node.kind = WasmMarkdownNodeKind::ListItem,
+            CommonMarkdownNodeKind::ThematicBreak => wasm_node.kind = WasmMarkdownNodeKind::ThematicBreak,
         }
 
         wasm_node
@@ -311,6 +312,9 @@ impl From<WasmMarkdownOperation> for CommonOperation {
             WasmMarkdownOperation::IndentList => CommonOperation::IndentList,
             WasmMarkdownOperation::UnindentList => CommonOperation::UnindentList,
             WasmMarkdownOperation::Blockquote => CommonOperation::Blockquote,
+            WasmMarkdownOperation::InlineCode => CommonOperation::InlineCode,
+            WasmMarkdownOperation::CreateCodeBlock => CommonOperation::CreateCodeBlock,
+            WasmMarkdownOperation::CreateLink => CommonOperation::CreateLink,
         }
     }
 }

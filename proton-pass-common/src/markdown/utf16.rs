@@ -23,6 +23,19 @@ pub fn utf8_to_utf16_offset(text: &str, utf8_offset: usize) -> usize {
     text[..utf8_offset].encode_utf16().count()
 }
 
+/// Build a lookup table mapping every UTF-8 byte offset in `text` to its UTF-16 code unit
+/// offset, so a batch of conversions can be done in O(text.len()) instead of O(offset) per call.
+pub fn build_utf8_to_utf16_table(text: &str) -> Vec<u32> {
+    let mut table = vec![0u32; text.len() + 1];
+    let mut utf16_count = 0u32;
+    for (byte_offset, ch) in text.char_indices() {
+        table[byte_offset] = utf16_count;
+        utf16_count += ch.len_utf16() as u32;
+    }
+    table[text.len()] = utf16_count;
+    table
+}
+
 /// Convert UTF-16 code unit offset to UTF-8 byte offset
 #[allow(dead_code)]
 pub fn utf16_to_utf8_offset(text: &str, utf16_offset: usize) -> usize {

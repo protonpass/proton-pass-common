@@ -58,6 +58,9 @@ pub enum MarkdownOperation {
     IndentList,
     UnindentList,
     Blockquote,
+    InlineCode,
+    CreateCodeBlock,
+    CreateLink,
 }
 
 impl From<MarkdownOperation> for CommonOperation {
@@ -77,6 +80,9 @@ impl From<MarkdownOperation> for CommonOperation {
             MarkdownOperation::CreateUnorderedList => CommonOperation::CreateUnorderedList,
             MarkdownOperation::IndentList => CommonOperation::IndentList,
             MarkdownOperation::UnindentList => CommonOperation::UnindentList,
+            MarkdownOperation::InlineCode => CommonOperation::InlineCode,
+            MarkdownOperation::CreateCodeBlock => CommonOperation::CreateCodeBlock,
+            MarkdownOperation::CreateLink => CommonOperation::CreateLink,
         }
     }
 }
@@ -132,6 +138,7 @@ pub enum MarkdownNodeKind {
     OrderedList,
     UnorderedList,
     ListItem,
+    ThematicBreak,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
@@ -176,6 +183,10 @@ pub struct MarkdownNode {
     pub title: Option<String>,
     pub safe_link: Option<MarkdownSafeLink>,
     pub unsafe_link: Option<MarkdownUnsafeLink>,
+    /// UTF-16 code unit offset range of this node in the raw markdown source text, matching the
+    /// indexing MarkdownEditor's cursor API uses (Kotlin/Swift/JS all index strings in UTF-16).
+    pub start: u32,
+    pub end: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -211,7 +222,7 @@ impl From<CommonStyledSpan> for MarkdownStyledSpan {
             CommonSpanStyle::UnorderedListItem { level } => {
                 (MarkdownSpanStyle::UnorderedListItem, Some(level), None, None)
             }
-            CommonSpanStyle::Blockquote => (MarkdownSpanStyle::Blockquote, None, None, None),
+            CommonSpanStyle::Blockquote { level } => (MarkdownSpanStyle::Blockquote, Some(level), None, None),
             CommonSpanStyle::MarkdownMarker => (MarkdownSpanStyle::MarkdownMarker, None, None, None),
         };
 
@@ -249,6 +260,8 @@ impl From<CommonMarkdownNode> for MarkdownNode {
             title: None,
             safe_link: None,
             unsafe_link: None,
+            start: node.start,
+            end: node.end,
         };
 
         match node.kind {
@@ -298,6 +311,7 @@ impl From<CommonMarkdownNode> for MarkdownNode {
             }
             CommonMarkdownNodeKind::UnorderedList => markdown_node.kind = MarkdownNodeKind::UnorderedList,
             CommonMarkdownNodeKind::ListItem => markdown_node.kind = MarkdownNodeKind::ListItem,
+            CommonMarkdownNodeKind::ThematicBreak => markdown_node.kind = MarkdownNodeKind::ThematicBreak,
         }
 
         markdown_node

@@ -4,6 +4,7 @@
 #[allow(dead_code)]
 mod markdown_perf_shapes;
 
+use super::operations::MarkdownOperations;
 use super::*;
 
 #[test]
@@ -78,11 +79,13 @@ fn test_list_creation_and_indentation() {
     assert!(text.contains("- item 2"));
     assert!(text.contains("- item 3"));
 
-    // Indent first item
-    editor.set_cursor(0).unwrap();
+    // Indent second item so it nests under the first (the first item has nothing to nest
+    // under, so indenting it would be a no-op).
+    let item2_line_start = editor.get_text().find("- item 2").unwrap() as u32;
+    editor.set_cursor(item2_line_start).unwrap();
     editor.apply_operation(Operation::IndentList).unwrap();
 
-    assert!(editor.get_text().starts_with("  - item 1"));
+    assert!(editor.get_text().contains("  - item 2"));
 }
 
 #[test]
@@ -503,7 +506,7 @@ fn test_text_editing_workflow() {
     editor.apply_operation(Operation::Bold).unwrap();
     assert_eq!(editor.get_text(), "Hello **world**");
 
-    // User types more after bold (continues being bold - UX preference)
+    // Cursor is before the closing **, so continued typing extends the bold region.
     editor.insert_text("!").unwrap();
     assert_eq!(editor.get_text(), "Hello **world!**");
 
@@ -821,6 +824,8 @@ fn test_markdown_document_node_lookup() {
             parent: None,
             children: smallvec::smallvec![MarkdownNodeId(1)],
             kind: MarkdownNodeKind::Paragraph,
+            start: 0,
+            end: 0,
         }],
         root: vec![MarkdownNodeId(0)],
     };
@@ -845,6 +850,51 @@ fn test_parse_basic_document_to_ir() {
         .nodes
         .iter()
         .any(|node| matches!(node.kind, MarkdownNodeKind::Strong)));
+}
+
+#[test]
+fn test_parse_document_node_offsets_are_utf16_code_units_not_bytes() {
+    // An emoji is 4 UTF-8 bytes but 2 UTF-16 code units (surrogate pair), so a node starting right
+    // after it must report an offset based on UTF-16 code units, not raw UTF-8 bytes — matching
+    // MarkdownEditor's cursor API.
+    let source = "Hello \u{1F600} **world**";
+    let document = parse_markdown_document(source).unwrap();
+
+    let bold_text = document
+        .nodes
+        .iter()
+        .find(|node| matches!(&node.kind, MarkdownNodeKind::Text(text) if text == "world"))
+        .expect("bold text node");
+
+    // "Hello " (6) + emoji (2 UTF-16 units) + " " (1) + "**" (2) = 11
+    assert_eq!(bold_text.start, 11);
+    assert_eq!(bold_text.end, 16);
+}
+
+#[test]
+fn test_parse_document_tracks_raw_source_ranges_in_ascii_text() {
+    let source = "# Title\n\nHello **world**";
+    let document = parse_markdown_document(source).unwrap();
+
+    let heading = document.node(document.root[0]).unwrap();
+    assert_eq!(
+        source[heading.start as usize..heading.end as usize].trim_end(),
+        "# Title"
+    );
+
+    let bold_text = document
+        .nodes
+        .iter()
+        .find(|node| matches!(&node.kind, MarkdownNodeKind::Text(text) if text == "world"))
+        .expect("bold text node");
+    assert_eq!(&source[bold_text.start as usize..bold_text.end as usize], "world");
+
+    let hello_text = document
+        .nodes
+        .iter()
+        .find(|node| matches!(&node.kind, MarkdownNodeKind::Text(text) if text == "Hello "))
+        .expect("plain text node");
+    assert_eq!(&source[hello_text.start as usize..hello_text.end as usize], "Hello ");
 }
 
 #[test]
@@ -1467,4 +1517,198 @@ fn utf16_boundaries(text: &str) -> Vec<u32> {
         offsets.push(current);
     }
     offsets
+}
+
+#[test]
+fn test_create_code_block_wraps_line() {
+    let text = "hello world";
+    let (new_text, _cursor, _sel) = MarkdownOperations::apply_code_block(text, 0, text.len()).unwrap();
+    assert_eq!(new_text, "```\nhello world\n```");
+}
+
+#[test]
+fn test_create_code_block_on_empty_line_inserts_fences() {
+    let text = "";
+    let (new_text, cursor, _sel) = MarkdownOperations::apply_code_block(text, 0, 0).unwrap();
+    assert_eq!(new_text, "```\n\n```");
+    assert_eq!(cursor, 4); // inside the block, after the opening fence + newline
+}
+
+#[test]
+fn test_create_code_block_toggle_off_removes_fences() {
+    let text = "```\nhello world\n```";
+    // cursor on the content line (position 4, inside "hello world")
+    let (new_text, _cursor, _sel) = MarkdownOperations::apply_code_block(text, 4, 4).unwrap();
+    assert_eq!(new_text, "hello world");
+}
+
+#[test]
+fn test_create_code_block_multiline() {
+    let text = "line one\nline two";
+    let (new_text, _cursor, _sel) = MarkdownOperations::apply_code_block(text, 0, text.len()).unwrap();
+    assert_eq!(new_text, "```\nline one\nline two\n```");
+}
+
+/// Strikethrough cursor-only must not permanently corrupt existing bold spans.
+/// An empty "~~~~" at line start is a transient CommonMark code-fence state that
+/// resolves as soon as the user types any content between the markers, so we verify
+/// the state *after* typing one character, not the transient empty-marker state.
+/// Cursor positions between the two `*` of `**` must be no-ops (no change at all).
+#[test]
+fn test_strikethrough_cursor_only_preserves_bold() {
+    let text = "regular\n**bold**";
+    for pos in 0u32..=(text.len() as u32) {
+        if !text.is_char_boundary(pos as usize) {
+            continue;
+        }
+        let mut editor = MarkdownEditor::new(text.to_string());
+        if editor.set_cursor(pos).is_err() {
+            continue;
+        }
+        let before = editor.get_text().to_string();
+        let _ = editor.apply_operation(Operation::Strikethrough);
+        let after_op = editor.get_text().to_string();
+
+        if after_op == before {
+            // No-op (e.g. cursor between **): original bold must be intact.
+            let spans = editor.render_editor_spans();
+            let has_bold = spans.iter().any(|s| matches!(s.style, SpanStyle::Bold));
+            if before.contains("**") && !has_bold {
+                panic!("cursor {pos}: no-op lost bold — result={after_op:?}");
+            }
+        } else {
+            // Strikethrough was applied; type 'x' to resolve transient code-fence state.
+            let _ = editor.insert_text("x");
+            let result = editor.get_text().to_string();
+            let spans = editor.render_editor_spans();
+            let has_bold = spans.iter().any(|s| matches!(s.style, SpanStyle::Bold));
+            if result.contains("**") && !has_bold {
+                panic!("cursor {pos}: Bold lost after type — result={result:?}");
+            }
+        }
+    }
+}
+
+// ─── ThematicBreak (Horizontal Rule) Tests ──────────────────────────────────
+
+/// Verify that horizontal rules are parsed as ThematicBreak nodes.
+#[test]
+fn test_thematic_break_parsing_hyphens() {
+    let markdown = "---\ntext";
+    let doc = parse_markdown_document(markdown).unwrap();
+
+    // First node should be ThematicBreak
+    let first_node = doc.nodes.first().expect("Should have at least one node");
+    assert_eq!(first_node.kind, MarkdownNodeKind::ThematicBreak);
+
+    // Check that it starts at 0 and ends after the hyphens (pulldown-cmark may include trailing whitespace/newline)
+    assert_eq!(first_node.start, 0);
+    assert!(first_node.end >= 3 && first_node.end <= 4); // "---" or "---\n"
+}
+
+#[test]
+fn test_thematic_break_parsing_asterisks() {
+    let markdown = "***\ntext";
+    let doc = parse_markdown_document(markdown).unwrap();
+
+    let first_node = doc.nodes.first().expect("Should have at least one node");
+    assert_eq!(first_node.kind, MarkdownNodeKind::ThematicBreak);
+}
+
+#[test]
+fn test_thematic_break_parsing_underscores() {
+    let markdown = "___\ntext";
+    let doc = parse_markdown_document(markdown).unwrap();
+
+    let first_node = doc.nodes.first().expect("Should have at least one node");
+    assert_eq!(first_node.kind, MarkdownNodeKind::ThematicBreak);
+}
+
+/// Verify that ThematicBreak nodes are collected correctly in a multi-node document.
+#[test]
+fn test_thematic_break_in_multi_node_document() {
+    let original = "---\n# Heading\n\nparagraph";
+
+    // Parse
+    let doc = parse_markdown_document(original).unwrap();
+
+    // Should have ThematicBreak as first node
+    let first_node = doc.nodes.first().expect("Should have at least one node");
+    assert_eq!(first_node.kind, MarkdownNodeKind::ThematicBreak);
+
+    // Should also have other nodes (Heading, Paragraph)
+    let has_heading = doc
+        .nodes
+        .iter()
+        .any(|n| matches!(n.kind, MarkdownNodeKind::Heading { .. }));
+    let has_text = doc.nodes.iter().any(|n| matches!(n.kind, MarkdownNodeKind::Text(_)));
+
+    assert!(has_heading, "Should contain Heading");
+    assert!(has_text, "Should contain Text nodes");
+}
+
+/// Test that ThematicBreak coexists with inline formatting in the same document.
+#[test]
+fn test_thematic_break_with_inline_formatting() {
+    let markdown = "---\n**bold text**";
+    let doc = parse_markdown_document(markdown).unwrap();
+
+    // Should have both ThematicBreak and Strong nodes
+    let has_thematic = doc
+        .nodes
+        .iter()
+        .any(|n| matches!(n.kind, MarkdownNodeKind::ThematicBreak));
+    let has_strong = doc.nodes.iter().any(|n| matches!(n.kind, MarkdownNodeKind::Strong));
+
+    assert!(has_thematic, "Should contain ThematicBreak");
+    assert!(has_strong, "Should contain Strong");
+}
+
+// ─── InlineCode Edge Cases ──────────────────────────────────────────────────
+
+/// Verify that empty backtick detection works correctly and doesn't confuse
+/// with triple backticks or other edge cases.
+#[test]
+fn test_inline_code_empty_backtick_toggle() {
+    let mut editor = MarkdownEditor::new("``".to_string());
+    editor.set_cursor(1).unwrap(); // Cursor between the two backticks
+
+    // First press should remove the empty markers (toggle off)
+    editor.apply_operation(Operation::InlineCode).unwrap();
+    assert_eq!(editor.get_text(), "", "Empty backticks should be removed");
+    assert_eq!(editor.get_cursor(), 0, "Cursor should land at position 0");
+}
+
+/// Verify that InlineCode toggles off existing backticks when cursor is inside.
+#[test]
+fn test_inline_code_toggle_off_removes_backticks() {
+    let mut editor = MarkdownEditor::new("`code`".to_string());
+    editor.set_cursor(3).unwrap(); // Cursor on 'd' in "code"
+
+    let before = editor.get_text().to_string();
+    editor.apply_operation(Operation::InlineCode).unwrap();
+
+    // Should unwrap the existing backticks
+    assert_eq!(editor.get_text(), "code", "Existing backticks should be removed");
+    assert_ne!(editor.get_text(), before, "Text should change after toggle");
+}
+
+/// Verify that applying InlineCode twice toggles on then off without corruption.
+#[test]
+fn test_inline_code_double_toggle_restores_text() {
+    let original = "hello world";
+    let mut editor = MarkdownEditor::new(original.to_string());
+    editor.set_selection(0, 5).unwrap(); // Select "hello"
+
+    // Apply InlineCode once
+    editor.apply_operation(Operation::InlineCode).unwrap();
+    assert_eq!(editor.get_text(), "`hello` world");
+
+    // Apply InlineCode again to toggle off
+    editor.apply_operation(Operation::InlineCode).unwrap();
+    assert_eq!(
+        editor.get_text(),
+        original,
+        "Double toggle should restore original text"
+    );
 }

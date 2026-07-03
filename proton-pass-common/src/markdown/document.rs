@@ -25,13 +25,21 @@ impl MarkdownDocument {
         self.nodes.get(id.0 as usize).filter(|node| node.id == id)
     }
 
-    pub(crate) fn push_node(&mut self, parent: Option<MarkdownNodeId>, kind: MarkdownNodeKind) -> MarkdownNodeId {
+    pub(crate) fn push_node(
+        &mut self,
+        parent: Option<MarkdownNodeId>,
+        kind: MarkdownNodeKind,
+        start: u32,
+        end: u32,
+    ) -> MarkdownNodeId {
         let id = MarkdownNodeId(self.nodes.len() as u32);
         self.nodes.push(MarkdownNode {
             id,
             parent,
             children: SmallVec::new(),
             kind,
+            start,
+            end,
         });
 
         if let Some(parent) = parent {
@@ -45,7 +53,7 @@ impl MarkdownDocument {
         id
     }
 
-    pub(crate) fn append_text_to_last_child(&mut self, parent: Option<MarkdownNodeId>, text: &str) -> bool {
+    pub(crate) fn append_text_to_last_child(&mut self, parent: Option<MarkdownNodeId>, text: &str, end: u32) -> bool {
         let last_child = match parent {
             Some(parent) => self
                 .nodes
@@ -64,6 +72,7 @@ impl MarkdownDocument {
 
         if let MarkdownNodeKind::Text(existing) = &mut last_child_node.kind {
             existing.push_str(text);
+            last_child_node.end = end;
             return true;
         }
 
@@ -87,6 +96,10 @@ pub struct MarkdownNode {
     pub parent: Option<MarkdownNodeId>,
     pub children: SmallVec<[MarkdownNodeId; 2]>,
     pub kind: MarkdownNodeKind,
+    /// UTF-16 code unit offset range of this node in the raw markdown source text, matching the
+    /// indexing MarkdownEditor's cursor API uses (Kotlin/Swift/JS all index strings in UTF-16).
+    pub start: u32,
+    pub end: u32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -117,6 +130,7 @@ pub enum MarkdownNodeKind {
     },
     UnorderedList,
     ListItem,
+    ThematicBreak,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

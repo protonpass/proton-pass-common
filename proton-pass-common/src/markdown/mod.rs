@@ -2,6 +2,7 @@ mod cursor;
 mod document;
 mod editor;
 mod list_operations;
+mod list_parsing;
 mod newline;
 mod operations;
 mod parser;
@@ -34,6 +35,9 @@ pub enum Operation {
     IndentList,
     UnindentList,
     Blockquote,
+    InlineCode,
+    CreateCodeBlock,
+    CreateLink,
 }
 
 /// Errors that can occur during markdown operations

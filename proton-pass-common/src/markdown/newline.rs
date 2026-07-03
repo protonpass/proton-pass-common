@@ -43,7 +43,7 @@ impl NewlineHandler {
                 return Ok((new_text, new_cursor));
             }
 
-            let indent = " ".repeat(level as usize * 2);
+            let indent = " ".repeat(level as usize);
             let content_after_marker = &current_line[content_start..];
 
             // If cursor is on an empty list item (just the marker), exit the list
@@ -98,26 +98,9 @@ impl NewlineHandler {
     }
 
     /// Parse a list item and return (level, is_ordered, content_start_offset)
-    /// Level is determined by leading spaces (2 spaces = 1 level)
+    /// Level is determined by leading spaces (1 space = 1 level)
     fn parse_list_item(line: &str) -> Option<(u8, bool, usize)> {
-        let spaces = line.chars().take_while(|c| *c == ' ').count();
-        let level = (spaces / 2) as u8;
-        let after_spaces = &line[spaces..];
-
-        // Check for unordered list
-        if after_spaces.starts_with("- ") || after_spaces.starts_with("* ") {
-            return Some((level, false, spaces + 2));
-        }
-
-        // Check for ordered list
-        if let Some(pos) = after_spaces.find(". ") {
-            let num_part = &after_spaces[..pos];
-            if !num_part.is_empty() && num_part.chars().all(|c| c.is_ascii_digit()) {
-                return Some((level, true, spaces + pos + 2));
-            }
-        }
-
-        None
+        super::list_parsing::parse_list_item(line)
     }
 }
 

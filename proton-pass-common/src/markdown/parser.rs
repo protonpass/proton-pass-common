@@ -1,6 +1,9 @@
+use std::ops::Range;
+
 use pulldown_cmark::{CodeBlockKind, CowStr, Event, Options, Parser, Tag, TagEnd};
 
 use super::document::{classify_markdown_link_cow, MarkdownDocument, MarkdownNodeId, MarkdownNodeKind};
+use super::utf16::build_utf8_to_utf16_table;
 use super::{MarkdownError, Result};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -49,23 +52,36 @@ pub fn parse_markdown_document_with_limits(text: &str, limits: MarkdownParseLimi
 
     let mut builder = DocumentBuilder::new(limits, estimate_node_capacity(text.len(), limits.max_nodes));
 
-    for event in parser {
+    for (event, range) in parser.into_offset_iter() {
         match event {
-            Event::Start(tag) => builder.start(tag)?,
+            Event::Start(tag) => builder.start(tag, range)?,
             Event::End(tag_end) => builder.end(tag_end),
-            Event::Text(text) => builder.text_event(text)?,
-            Event::Code(code) => builder.inline_code(code)?,
-            Event::Html(html) | Event::InlineHtml(html) => builder.html_text_event(html)?,
-            Event::SoftBreak => builder.text("\n")?,
-            Event::HardBreak => builder.text("\n")?,
-            Event::Rule => builder.text("---")?,
-            Event::FootnoteReference(reference) => builder.text(reference.as_ref())?,
-            Event::TaskListMarker(checked) => builder.text(if checked { "[x] " } else { "[ ] " })?,
-            Event::InlineMath(math) | Event::DisplayMath(math) => builder.text(math.as_ref())?,
+            Event::Text(text) => builder.text_event(text, range)?,
+            Event::Code(code) => builder.inline_code(code, range)?,
+            Event::Html(html) | Event::InlineHtml(html) => builder.html_text_event(html, range)?,
+            Event::SoftBreak => builder.text("\n", range)?,
+            Event::HardBreak => builder.text("\n", range)?,
+            Event::Rule => builder.thematic_break(range)?,
+            Event::FootnoteReference(reference) => builder.text(reference.as_ref(), range)?,
+            Event::TaskListMarker(checked) => builder.text(if checked { "[x] " } else { "[ ] " }, range)?,
+            Event::InlineMath(math) | Event::DisplayMath(math) => builder.text(math.as_ref(), range)?,
         }
     }
 
-    Ok(builder.document)
+    let mut document = builder.document;
+    // Node start/end are collected as UTF-8 byte offsets (what pulldown-cmark reports), but every
+    // other cursor-facing API in this module (MarkdownEditor::get_cursor/set_cursor/set_selection)
+    // works in UTF-16 code units, since that's what Kotlin/Swift/JS callers index strings with.
+    // Convert here so callers never have to reconcile two different offset spaces.
+    // Build the offset table once (O(text.len())) rather than rescanning from byte 0 for every
+    // node, which would be O(nodes * text.len()) and noticeably slow on large documents.
+    let utf16_table = build_utf8_to_utf16_table(text);
+    for node in document.nodes.iter_mut() {
+        node.start = utf16_table[node.start as usize];
+        node.end = utf16_table[node.end as usize];
+    }
+
+    Ok(document)
 }
 
 struct DocumentBuilder {
@@ -99,7 +115,7 @@ impl DocumentBuilder {
         }
     }
 
-    fn start(&mut self, tag: Tag<'_>) -> Result<()> {
+    fn start(&mut self, tag: Tag<'_>, range: Range<usize>) -> Result<()> {
         self.merge_next_text = false;
         let kind = match self.kind_for_start(tag)? {
             ParsedStart::Supported(kind) => kind,
@@ -118,7 +134,7 @@ impl DocumentBuilder {
             self.check_depth()?;
         }
 
-        self.push_container(kind)
+        self.push_container(kind, range)
     }
 
     fn end(&mut self, tag_end: TagEnd) {
@@ -143,63 +159,83 @@ impl DocumentBuilder {
         }
     }
 
-    fn text(&mut self, text: &str) -> Result<()> {
+    fn text(&mut self, text: &str, range: Range<usize>) -> Result<()> {
         if text.is_empty() {
             return Ok(());
         }
 
         if let Some(code_block) = self.current_code_block() {
-            return self.append_code_block_text(code_block, text);
+            return self.append_code_block_text(code_block, text, range.end as u32);
         }
 
         self.add_emitted_text(text.len())?;
-        self.push_text_node(text.to_string(), false, false)
+        self.push_text_node(text.to_string(), false, false, range)
     }
 
-    fn text_event(&mut self, text: CowStr<'_>) -> Result<()> {
-        self.text_cow(text, self.merge_next_text, self.merge_next_text)
+    fn text_event(&mut self, text: CowStr<'_>, range: Range<usize>) -> Result<()> {
+        self.text_cow(text, self.merge_next_text, self.merge_next_text, range)
     }
 
-    fn html_text_event(&mut self, text: CowStr<'_>) -> Result<()> {
-        self.text_cow(text, true, true)
+    fn html_text_event(&mut self, text: CowStr<'_>, range: Range<usize>) -> Result<()> {
+        self.text_cow(text, true, true, range)
     }
 
-    fn text_cow(&mut self, text: CowStr<'_>, merge_with_previous: bool, merge_following_text: bool) -> Result<()> {
+    fn text_cow(
+        &mut self,
+        text: CowStr<'_>,
+        merge_with_previous: bool,
+        merge_following_text: bool,
+        range: Range<usize>,
+    ) -> Result<()> {
         if text.is_empty() {
             return Ok(());
         }
 
         if let Some(code_block) = self.current_code_block() {
-            return self.append_code_block_text(code_block, text.as_ref());
+            return self.append_code_block_text(code_block, text.as_ref(), range.end as u32);
         }
 
         self.add_emitted_text(text.len())?;
         if merge_with_previous {
             let parent = self.stack.last().copied();
-            if self.document.append_text_to_last_child(parent, text.as_ref()) {
+            if self
+                .document
+                .append_text_to_last_child(parent, text.as_ref(), range.end as u32)
+            {
                 self.merge_next_text = merge_following_text;
                 return Ok(());
             }
         }
-        self.push_text_node(text.into_string(), false, merge_following_text)
+        self.push_text_node(text.into_string(), false, merge_following_text, range)
     }
 
-    fn push_text_node(&mut self, text: String, merge_with_previous: bool, merge_following_text: bool) -> Result<()> {
+    fn push_text_node(
+        &mut self,
+        text: String,
+        merge_with_previous: bool,
+        merge_following_text: bool,
+        range: Range<usize>,
+    ) -> Result<()> {
         let parent = self.stack.last().copied();
-        if merge_with_previous && self.document.append_text_to_last_child(parent, &text) {
+        if merge_with_previous && self.document.append_text_to_last_child(parent, &text, range.end as u32) {
             self.merge_next_text = merge_following_text;
             return Ok(());
         }
         self.check_node_budget()?;
-        self.document.push_node(parent, MarkdownNodeKind::Text(text));
+        self.document.push_node(
+            parent,
+            MarkdownNodeKind::Text(text),
+            range.start as u32,
+            range.end as u32,
+        );
         self.merge_next_text = merge_following_text;
         Ok(())
     }
 
-    fn inline_code(&mut self, code: CowStr<'_>) -> Result<()> {
+    fn inline_code(&mut self, code: CowStr<'_>, range: Range<usize>) -> Result<()> {
         self.merge_next_text = false;
         self.add_emitted_text(code.len())?;
-        self.push_leaf(MarkdownNodeKind::InlineCode(code.into_string()))
+        self.push_leaf(MarkdownNodeKind::InlineCode(code.into_string()), range)
     }
 
     fn kind_for_start(&self, tag: Tag<'_>) -> Result<ParsedStart> {
@@ -270,18 +306,21 @@ impl DocumentBuilder {
         Ok(ParsedStart::Supported(kind))
     }
 
-    fn push_container(&mut self, kind: MarkdownNodeKind) -> Result<()> {
+    fn push_container(&mut self, kind: MarkdownNodeKind, range: Range<usize>) -> Result<()> {
         self.check_node_budget()?;
         let parent = self.stack.last().copied();
-        let id = self.document.push_node(parent, kind);
+        let id = self
+            .document
+            .push_node(parent, kind, range.start as u32, range.end as u32);
         self.stack.push(id);
         Ok(())
     }
 
-    fn push_leaf(&mut self, kind: MarkdownNodeKind) -> Result<()> {
+    fn push_leaf(&mut self, kind: MarkdownNodeKind, range: Range<usize>) -> Result<()> {
         self.check_node_budget()?;
         let parent = self.stack.last().copied();
-        self.document.push_node(parent, kind);
+        self.document
+            .push_node(parent, kind, range.start as u32, range.end as u32);
         Ok(())
     }
 
@@ -293,7 +332,7 @@ impl DocumentBuilder {
         })
     }
 
-    fn append_code_block_text(&mut self, code_block: MarkdownNodeId, text: &str) -> Result<()> {
+    fn append_code_block_text(&mut self, code_block: MarkdownNodeId, text: &str, end: u32) -> Result<()> {
         let new_len = match &self.document.node(code_block).map(|node| &node.kind) {
             Some(MarkdownNodeKind::CodeBlock { code, .. }) => code.len() + text.len(),
             _ => text.len(),
@@ -308,6 +347,7 @@ impl DocumentBuilder {
             if let MarkdownNodeKind::CodeBlock { code, .. } = &mut node.kind {
                 code.push_str(text);
             }
+            node.end = node.end.max(end);
         }
         self.add_emitted_text(text.len())
     }
@@ -349,6 +389,11 @@ impl DocumentBuilder {
         Ok(())
     }
 
+    fn thematic_break(&mut self, range: Range<usize>) -> Result<()> {
+        self.check_node_budget()?;
+        self.push_leaf(MarkdownNodeKind::ThematicBreak, range)
+    }
+
     fn is_block_kind(&self, kind: &MarkdownNodeKind) -> bool {
         matches!(
             kind,
@@ -359,6 +404,7 @@ impl DocumentBuilder {
                 | MarkdownNodeKind::OrderedList { .. }
                 | MarkdownNodeKind::UnorderedList
                 | MarkdownNodeKind::ListItem
+                | MarkdownNodeKind::ThematicBreak
         )
     }
 }

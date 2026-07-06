@@ -54,8 +54,6 @@ describe("ProtonPassWeb Image Conversion", () => {
         }
         
         expect(error).toBeDefined();
-        // The error should be either Image (if format detection fails) or UnsupportedInputFormat
-        // Both indicate the input is not a valid image
-        expect(error.type).toMatch(/^(Image|UnsupportedInputFormat)$/);
+        expect(error.type).toBe("UnsupportedInputFormat")
     });
 });

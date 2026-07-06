@@ -28,13 +28,6 @@ impl From<ImageError> for ConvertImageError {
 
 /// Converts an image (JPEG, PNG, or WebP) to a 256x256 PNG.
 /// If the input image is smaller than 256x256, it will be converted to PNG without resizing.
-///
-/// # Arguments
-/// * `input` - The image bytes in JPEG, PNG, or WebP format
-///
-/// # Returns
-/// * `Ok(Vec<u8>)` - The converted PNG image bytes
-/// * `Err(ConvertImageError)` - If the format is unsupported or conversion fails
 pub fn image_bytes_to_256_png(input: &[u8]) -> Result<Vec<u8>, ConvertImageError> {
     let format = image::guess_format(input)?;
 

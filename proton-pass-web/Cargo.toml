@@ -32,5 +32,6 @@ wasm-bindgen-futures.workspace = true
 web_username = []
 web_password = []
 web_ui = []
-web_worker = ["web_password"]
+web_worker = ["web_password", "resize-image"]
 experimental = []
+resize-image = ["proton-pass-common/resize-image"]

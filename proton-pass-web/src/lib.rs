@@ -1,6 +1,8 @@
 use wasm_bindgen::prelude::*;
 
 mod common;
+#[cfg(feature = "resize-image")]
+pub mod image;
 
 #[cfg(feature = "web_password")]
 mod password;

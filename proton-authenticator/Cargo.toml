@@ -40,7 +40,7 @@ url = "2.5.4"
 zip = { version = "8", default-features = false, features = [ "deflate" ] }
 
 # Optional dependencies for FFI
-uniffi = { version = "0.31.0", optional = true }
+uniffi = { workspace = true, optional = true }
 tsify = { workspace = true, optional = true }
 wasm-bindgen = { workspace = true, optional = true }
 

@@ -13,7 +13,7 @@ wasm = ["dep:tsify", "dep:wasm-bindgen", "proton-pass-totp/wasm"]
 resize-image = ["dep:image", "dep:zenwebp"]
 
 [dependencies]
-uniffi = { version = "0.31.0", optional = true }
+uniffi = { workspace = true, optional = true }
 tsify = { workspace = true, optional = true }
 wasm-bindgen = { workspace = true, optional = true }
 proton-pass-derive = { path = "../proton-pass-derive" }

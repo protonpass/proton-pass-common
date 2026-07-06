@@ -2,8 +2,10 @@ package proton.android.pass
 
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import proton.android.pass.commonrust.ConvertImageException
 import proton.android.pass.commonrust.ImageConverter
 import java.io.File
+import kotlin.test.assertFailsWith
 
 class ImageConverterTest {
 
@@ -42,26 +44,21 @@ class ImageConverterTest {
         assertThat(result[3].toInt() and 0xFF).isEqualTo(0x46) // 'F'
     }
 
-    @Test(expected = Exception::class)
+    @Test
     fun `unsupported format throws error`() {
         val converter = ImageConverter()
         // Try with a text file which should fail
         val txtBytes = getTestImage("sample.txt")
         
-        converter.convertTo256Webp(txtBytes)
-    }
-
-    @Test
-    fun `output is always WebP format`() {
-        val converter = ImageConverter()
-        val jpegBytes = getTestImage("sample.jpg")
+        val exception = assertFailsWith<ConvertImageException> {
+            converter.convertTo256Webp(txtBytes)
+        }
         
-        val result = converter.convertTo256Webp(jpegBytes)
-        
-        // WebP signature: RIFF....WEBP
-        assertThat(result[0].toInt() and 0xFF).isEqualTo(0x52) // 'R'
-        assertThat(result[1].toInt() and 0xFF).isEqualTo(0x49) // 'I'
-        assertThat(result[2].toInt() and 0xFF).isEqualTo(0x46) // 'F'
-        assertThat(result[3].toInt() and 0xFF).isEqualTo(0x46) // 'F'
+        // The error should be either Image (if format detection fails) or UnsupportedInputFormat
+        // Both indicate the input is not a valid image
+        assertThat(exception).isAnyOf(
+            ConvertImageException.UnsupportedInputFormat::class.java,
+            ConvertImageException.Image::class.java
+        )
     }
 }

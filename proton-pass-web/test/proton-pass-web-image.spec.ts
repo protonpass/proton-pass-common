@@ -46,8 +46,16 @@ describe("ProtonPassWeb Image Conversion", () => {
         // Try with a text file which should fail
         const txtBytes = await readTestImage("sample.txt");
         
-        expect(() => {
+        let error;
+        try {
             convert_image_to_256_webp(txtBytes);
-        }).toThrow();
+        } catch (e) {
+            error = e;
+        }
+        
+        expect(error).toBeDefined();
+        // The error should be either Image (if format detection fails) or UnsupportedInputFormat
+        // Both indicate the input is not a valid image
+        expect(error.type).toMatch(/^(Image|UnsupportedInputFormat)$/);
     });
 });

@@ -38,7 +38,9 @@ impl From<ImageError> for ConvertImageError {
 /// If the input image is smaller than 256x256, it will be converted to WebP without resizing.
 pub fn image_bytes_to_256_webp(input: &[u8]) -> Result<Vec<u8>, ConvertImageError> {
     if input.len() > MAX_INPUT_SIZE {
-        return Err(ConvertImageError::Image(format!("Image too big. Max size allowed: {MAX_INPUT_SIZE}")));
+        return Err(ConvertImageError::Image(format!(
+            "Image too big. Max size allowed: {MAX_INPUT_SIZE}"
+        )));
     }
 
     let format = image::guess_format(input).map_err(|_| ConvertImageError::UnsupportedInputFormat)?;

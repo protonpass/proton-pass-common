@@ -115,7 +115,7 @@ help: ## Display this help screen
 .PHONY: kotlin-bindings
 kotlin-bindings: ## Generate the kotlin bindings
 	@cargo build --release -p proton-pass-mobile
-	@cargo build -p proton-pass-mobile --features=uniffi/cli --bin uniffi-bindgen
+	@cargo build -p uniffi-bindgen-cli
 	@echo "Generating Kotlin bindings with uniffi-bindgen..."
 	@rm -rf ${PROJECT_ROOT}tmp-bindings
 	@mkdir -p ${PROJECT_ROOT}tmp-bindings
@@ -132,7 +132,7 @@ kotlin-bindings: ## Generate the kotlin bindings
 .PHONY: swift-bindings
 swift-bindings: swift-dirs ## Generate the swift bindings
 	@cargo build --release -p proton-pass-mobile
-	@cargo build -p proton-pass-mobile --features=uniffi/cli --bin uniffi-bindgen
+	@cargo build -p uniffi-bindgen-cli
 	@echo "Generating Swift bindings with uniffi-bindgen..."
 	@rm -rf ${PROJECT_ROOT}tmp-bindings
 	@mkdir -p ${PROJECT_ROOT}tmp-bindings
@@ -162,7 +162,7 @@ pass-mobile-unit-test:  ## Run the unit tests for the pass mobile library
 	@mkdir -p ${PROJECT_ROOT}proton-pass-mobile/android/libTest/src/main/kotlin
 	@rm -rf ${PROJECT_ROOT}tmp-bindings
 	@mkdir -p ${PROJECT_ROOT}tmp-bindings
-	@cargo run -p proton-pass-mobile --features=uniffi/cli --bin uniffi-bindgen generate \
+	@cargo run -p uniffi-bindgen-cli -- generate \
 		--library ${PROJECT_ROOT}target/release/libproton_pass_common_mobile.${BINDINGS_LIB_EXT} \
 		--language kotlin \
 		--out-dir ${PROJECT_ROOT}tmp-bindings \
@@ -339,7 +339,7 @@ AUTHENTICATOR_WEB_TEST_BUILD_DIR:=${AUTHENTICATOR_WEB_DIR}/test/pkg
 .PHONY: authenticator-kotlin-bindings
 authenticator-kotlin-bindings: ## Generate the kotlin bindings
 	@cargo build --release -p proton-authenticator-mobile
-	@cargo build -p proton-authenticator-mobile --features=uniffi/cli --bin uniffi-bindgen
+	@cargo build -p uniffi-bindgen-cli
 	@echo "Generating Kotlin bindings with uniffi-bindgen..."
 	@rm -rf ${PROJECT_ROOT}tmp-bindings
 	@mkdir -p ${PROJECT_ROOT}tmp-bindings
@@ -357,7 +357,7 @@ authenticator-kotlin-bindings: ## Generate the kotlin bindings
 .PHONY: authenticator-swift-bindings
 authenticator-swift-bindings: authenticator-swift-dirs ## Generate the swift bindings
 	@cargo build --release -p proton-authenticator-mobile
-	@cargo build -p proton-authenticator-mobile --features=uniffi/cli --bin uniffi-bindgen
+	@cargo build -p uniffi-bindgen-cli
 	@echo "Generating Swift bindings with uniffi-bindgen..."
 	@rm -rf ${PROJECT_ROOT}tmp-bindings
 	@mkdir -p ${PROJECT_ROOT}tmp-bindings
@@ -500,7 +500,7 @@ authenticator-mobile-unit-test:  ## Run the unit tests for the authenticator mob
 	@mkdir -p ${PROJECT_ROOT}proton-authenticator-mobile/android/libTest/src/main/kotlin
 	@rm -rf ${PROJECT_ROOT}tmp-bindings
 	@mkdir -p ${PROJECT_ROOT}tmp-bindings
-	@cargo run -p proton-authenticator-mobile --features=uniffi/cli --bin uniffi-bindgen generate \
+	@cargo run -p uniffi-bindgen-cli -- generate \
 		--library ${PROJECT_ROOT}target/release/libproton_authenticator_common_mobile.${BINDINGS_LIB_EXT} \
 		--language kotlin \
 		--out-dir ${PROJECT_ROOT}tmp-bindings \

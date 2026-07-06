@@ -10,7 +10,8 @@ members = [
     "proton-pass-web",
     "proton-pass-derive",
     "proton-pass-totp",
-    "tools/icon_fetcher"
+    "tools/icon_fetcher",
+    "tools/uniffi-bindgen-cli"
 ]
 
 [workspace.dependencies]

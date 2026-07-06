@@ -2942,6 +2942,7 @@ dependencies = [
  "email_address",
  "file-format",
  "getrandom 0.3.4",
+ "image",
  "lazy_static",
  "luhn",
  "passkey",

@@ -9,6 +9,9 @@ pub mod domain;
 pub mod email;
 pub mod file;
 pub mod host;
+
+#[cfg(feature = "resize-image")]
+pub mod image;
 pub mod invite;
 pub mod login;
 pub mod markdown;

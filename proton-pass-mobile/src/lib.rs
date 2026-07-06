@@ -6,6 +6,8 @@ mod domain;
 mod email;
 mod file;
 mod host;
+#[cfg(feature = "resize-image")]
+mod image;
 mod invite;
 mod login;
 mod markdown;
@@ -33,6 +35,8 @@ pub use domain::*;
 pub use email::*;
 pub use file::*;
 pub use host::*;
+#[cfg(feature = "resize-image")]
+pub use image::*;
 pub use invite::*;
 pub use login::*;
 pub use markdown::*;

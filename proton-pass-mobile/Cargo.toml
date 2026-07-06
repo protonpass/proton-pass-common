@@ -16,14 +16,17 @@ doctest = false
 crate-type = ["cdylib", "staticlib"]
 name = "proton_pass_common_mobile"
 
+[features]
+default = ["resize-image"]
+resize-image = ["proton-pass-common/resize-image"]
+
 [dependencies]
-proton-pass-common = { path = "../proton-pass-common", features = ["uniffi"] }
+proton-pass-common = { path = "../proton-pass-common", features = ["uniffi", "resize-image"] }
 proton-pass-derive = { path = "../proton-pass-derive" }
 proton-pass-types = { path = "../proton-pass-types", features = ["uniffi"] }
 
 async-trait.workspace = true
 tokio.workspace = true
-
 uniffi = { version = "0.31" }
 
 [[bin]]

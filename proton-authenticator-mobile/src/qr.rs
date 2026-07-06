@@ -8,7 +8,7 @@ impl QrCodeScanner {
         Self
     }
 
-    pub fn scan_qr_code(&self, image: &[u8]) -> Option<String> {
-        proton_authenticator::qr::parse_qr_code(image)
+    pub fn scan_qr_code(&self, image: Vec<u8>) -> Option<String> {
+        proton_authenticator::qr::parse_qr_code(&image)
     }
 }

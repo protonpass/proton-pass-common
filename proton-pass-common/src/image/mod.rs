@@ -34,7 +34,7 @@ impl From<ImageError> for ConvertImageError {
 /// Converts an image (JPEG, PNG, or WebP) to a 256x256 WebP with lossy compression to a given size.
 /// If the input image is smaller than 256x256, it will be converted to WebP without resizing.
 pub fn image_bytes_to_256_webp(input: &[u8]) -> Result<Vec<u8>, ConvertImageError> {
-    let format = image::guess_format(input)?;
+    let format = image::guess_format(input).map_err(|_| ConvertImageError::UnsupportedInputFormat)?;
 
     match format {
         ImageFormat::Jpeg | ImageFormat::Png | ImageFormat::WebP => {}

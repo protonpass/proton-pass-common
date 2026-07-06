@@ -53,12 +53,8 @@ class ImageConverterTest {
         val exception = assertFailsWith<ConvertImageException> {
             converter.convertTo256Webp(txtBytes)
         }
-        
-        // The error should be either Image (if format detection fails) or UnsupportedInputFormat
-        // Both indicate the input is not a valid image
-        assertThat(exception).isAnyOf(
-            ConvertImageException.UnsupportedInputFormat::class.java,
-            ConvertImageException.Image::class.java
-        )
+
+        val exceptionType = exception.javaClass.simpleName
+        assertThat(exceptionType).isEqualTo("UnsupportedInputFormat")
     }
 }

@@ -42,6 +42,21 @@ describe("ProtonPassWeb Image Conversion", () => {
         expect(result[3]).toBe(0x46); // 'F'
     });
 
+    test("Can convert WebP to WebP", async () => {
+        const webpBytes = await readTestImage("sample.webp");
+        
+        const result = convert_image_to_256_webp(webpBytes);
+        
+        expect(result).toBeDefined();
+        expect(result.length).toBeGreaterThan(0);
+        
+        // Verify it's a valid WebP
+        expect(result[0]).toBe(0x52); // 'R'
+        expect(result[1]).toBe(0x49); // 'I'
+        expect(result[2]).toBe(0x46); // 'F'
+        expect(result[3]).toBe(0x46); // 'F'
+    });
+
     test("Unsupported format throws error", async () => {
         // Try with a text file which should fail
         const txtBytes = await readTestImage("sample.txt");

@@ -100,6 +100,17 @@ mod tests {
     }
 
     #[test]
+    fn test_webp_conversion() {
+        let webp_bytes = get_test_image("sample.webp");
+        let result = image_bytes_to_256_webp(&webp_bytes);
+        assert!(result.is_ok());
+
+        let output_bytes = result.unwrap();
+        // Verify it's a valid WebP
+        assert_eq!(&output_bytes[0..4], &[0x52, 0x49, 0x46, 0x46]); // 'RIFF'
+    }
+
+    #[test]
     fn test_unsupported_format() {
         // Try with a text file which should fail
         let txt_bytes = get_test_image("sample.txt");

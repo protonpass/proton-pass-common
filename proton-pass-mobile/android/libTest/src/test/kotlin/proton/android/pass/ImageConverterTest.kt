@@ -45,6 +45,21 @@ class ImageConverterTest {
     }
 
     @Test
+    fun `can convert WebP to WebP`() {
+        val converter = ImageConverter()
+        val webpBytes = getTestImage("sample.webp")
+        
+        val result = converter.convertTo256Webp(webpBytes)
+        
+        assertThat(result).isNotEmpty()
+        // Verify it's a valid WebP by checking the RIFF header
+        assertThat(result[0].toInt() and 0xFF).isEqualTo(0x52) // 'R'
+        assertThat(result[1].toInt() and 0xFF).isEqualTo(0x49) // 'I'
+        assertThat(result[2].toInt() and 0xFF).isEqualTo(0x46) // 'F'
+        assertThat(result[3].toInt() and 0xFF).isEqualTo(0x46) // 'F'
+    }
+
+    @Test
     fun `unsupported format throws error`() {
         val converter = ImageConverter()
         // Try with a text file which should fail

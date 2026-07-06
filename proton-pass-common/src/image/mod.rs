@@ -1,7 +1,10 @@
 use image::{imageops::FilterType, GenericImageView, ImageError, ImageFormat};
 use zenwebp::{EncodeRequest, LossyConfig, PixelLayout};
 
+/// Maximum desired image size after compression
 const TARGET_SIZE: u32 = 10 * 1024; // 10kb
+
+/// Maximum allowed dimensions for the input image, otherwise resized to this size
 const MAX_DIMENSIONS: u32 = 256;
 
 #[derive(Debug)]

@@ -7,6 +7,9 @@ const TARGET_SIZE: u32 = 10 * 1024; // 10kb
 /// Maximum allowed dimensions for the input image, otherwise resized to this size
 const MAX_DIMENSIONS: u32 = 256;
 
+/// Max input size to avoid memory overflows
+const MAX_INPUT_SIZE: usize = 10 * 1024 * 1024; // 10MB
+
 #[derive(Debug)]
 pub enum ConvertImageError {
     /// Unsupported image format
@@ -34,6 +37,10 @@ impl From<ImageError> for ConvertImageError {
 /// Converts an image (JPEG, PNG, or WebP) to a 256x256 WebP with lossy compression to a given size.
 /// If the input image is smaller than 256x256, it will be converted to WebP without resizing.
 pub fn image_bytes_to_256_webp(input: &[u8]) -> Result<Vec<u8>, ConvertImageError> {
+    if input.len() > MAX_INPUT_SIZE {
+        return Err(ConvertImageError::Image(format!("Image too big. Max size allowed: {MAX_INPUT_SIZE}")));
+    }
+
     let format = image::guess_format(input).map_err(|_| ConvertImageError::UnsupportedInputFormat)?;
 
     match format {

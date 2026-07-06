@@ -13,33 +13,33 @@ class ImageConverterTest {
     }
 
     @Test
-    fun `can convert JPEG to PNG`() {
+    fun `can convert JPEG to WebP`() {
         val converter = ImageConverter()
         val jpegBytes = getTestImage("sample.jpg")
         
-        val result = converter.convertTo256Png(jpegBytes)
+        val result = converter.convertTo256Webp(jpegBytes)
         
         assertThat(result).isNotEmpty()
-        // Verify it's a valid PNG by checking the magic number
-        assertThat(result[0].toInt() and 0xFF).isEqualTo(0x89)
-        assertThat(result[1].toInt() and 0xFF).isEqualTo(0x50) // 'P'
-        assertThat(result[2].toInt() and 0xFF).isEqualTo(0x4E) // 'N'
-        assertThat(result[3].toInt() and 0xFF).isEqualTo(0x47) // 'G'
+        // Verify it's a valid WebP by checking the RIFF header
+        assertThat(result[0].toInt() and 0xFF).isEqualTo(0x52) // 'R'
+        assertThat(result[1].toInt() and 0xFF).isEqualTo(0x49) // 'I'
+        assertThat(result[2].toInt() and 0xFF).isEqualTo(0x46) // 'F'
+        assertThat(result[3].toInt() and 0xFF).isEqualTo(0x46) // 'F'
     }
 
     @Test
-    fun `can convert PNG to PNG`() {
+    fun `can convert PNG to WebP`() {
         val converter = ImageConverter()
         val pngBytes = getTestImage("sample.png")
         
-        val result = converter.convertTo256Png(pngBytes)
+        val result = converter.convertTo256Webp(pngBytes)
         
         assertThat(result).isNotEmpty()
-        // Verify it's a valid PNG
-        assertThat(result[0].toInt() and 0xFF).isEqualTo(0x89)
-        assertThat(result[1].toInt() and 0xFF).isEqualTo(0x50)
-        assertThat(result[2].toInt() and 0xFF).isEqualTo(0x4E)
-        assertThat(result[3].toInt() and 0xFF).isEqualTo(0x47)
+        // Verify it's a valid WebP by checking the RIFF header
+        assertThat(result[0].toInt() and 0xFF).isEqualTo(0x52) // 'R'
+        assertThat(result[1].toInt() and 0xFF).isEqualTo(0x49) // 'I'
+        assertThat(result[2].toInt() and 0xFF).isEqualTo(0x46) // 'F'
+        assertThat(result[3].toInt() and 0xFF).isEqualTo(0x46) // 'F'
     }
 
     @Test(expected = Exception::class)
@@ -48,20 +48,20 @@ class ImageConverterTest {
         // Try with a text file which should fail
         val txtBytes = getTestImage("sample.txt")
         
-        converter.convertTo256Png(txtBytes)
+        converter.convertTo256Webp(txtBytes)
     }
 
     @Test
-    fun `output is always PNG format`() {
+    fun `output is always WebP format`() {
         val converter = ImageConverter()
         val jpegBytes = getTestImage("sample.jpg")
         
-        val result = converter.convertTo256Png(jpegBytes)
+        val result = converter.convertTo256Webp(jpegBytes)
         
-        // PNG signature: 89 50 4E 47 0D 0A 1A 0A
-        assertThat(result[0].toInt() and 0xFF).isEqualTo(0x89)
-        assertThat(result[1].toInt() and 0xFF).isEqualTo(0x50) // 'P'
-        assertThat(result[2].toInt() and 0xFF).isEqualTo(0x4E) // 'N'
-        assertThat(result[3].toInt() and 0xFF).isEqualTo(0x47) // 'G'
+        // WebP signature: RIFF....WEBP
+        assertThat(result[0].toInt() and 0xFF).isEqualTo(0x52) // 'R'
+        assertThat(result[1].toInt() and 0xFF).isEqualTo(0x49) // 'I'
+        assertThat(result[2].toInt() and 0xFF).isEqualTo(0x46) // 'F'
+        assertThat(result[3].toInt() and 0xFF).isEqualTo(0x46) // 'F'
     }
 }

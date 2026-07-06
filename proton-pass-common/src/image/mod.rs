@@ -1,6 +1,8 @@
-use std::io::Cursor;
-
 use image::{imageops::FilterType, GenericImageView, ImageError, ImageFormat};
+use zenwebp::{EncodeRequest, LossyConfig, PixelLayout};
+
+const TARGET_SIZE: u32 = 10 * 1024; // 10kb
+const MAX_DIMENSIONS: u32 = 256;
 
 #[derive(Debug)]
 pub enum ConvertImageError {
@@ -26,9 +28,9 @@ impl From<ImageError> for ConvertImageError {
     }
 }
 
-/// Converts an image (JPEG, PNG, or WebP) to a 256x256 PNG.
-/// If the input image is smaller than 256x256, it will be converted to PNG without resizing.
-pub fn image_bytes_to_256_png(input: &[u8]) -> Result<Vec<u8>, ConvertImageError> {
+/// Converts an image (JPEG, PNG, or WebP) to a 256x256 WebP with lossy compression to a given size.
+/// If the input image is smaller than 256x256, it will be converted to WebP without resizing.
+pub fn image_bytes_to_256_webp(input: &[u8]) -> Result<Vec<u8>, ConvertImageError> {
     let format = image::guess_format(input)?;
 
     match format {
@@ -39,16 +41,20 @@ pub fn image_bytes_to_256_png(input: &[u8]) -> Result<Vec<u8>, ConvertImageError
     let img = image::load_from_memory_with_format(input, format)?;
     let (width, height) = img.dimensions();
 
-    let output_img = if width > 256 || height > 256 {
-        img.resize(256, 256, FilterType::Lanczos3)
+    let output_img = if width > MAX_DIMENSIONS || height > MAX_DIMENSIONS {
+        img.resize(MAX_DIMENSIONS, MAX_DIMENSIONS, FilterType::Lanczos3)
     } else {
         img
     };
 
-    let mut output = Cursor::new(Vec::new());
-    output_img.write_to(&mut output, ImageFormat::Png)?;
-
-    Ok(output.into_inner())
+    let rgba = output_img.to_rgba8();
+    let width = output_img.width();
+    let height = output_img.height();
+    let config = LossyConfig::new().with_target_size(TARGET_SIZE);
+    let webp_bytes = EncodeRequest::lossy(&config, rgba.as_raw(), PixelLayout::Rgba8, width, height)
+        .encode()
+        .map_err(|e| ConvertImageError::Image(format!("WebP encoding failed: {:?}", e)))?;
+    Ok(webp_bytes)
 }
 
 #[cfg(test)]
@@ -64,44 +70,32 @@ mod tests {
     #[test]
     fn test_jpeg_conversion() {
         let jpeg_bytes = get_test_image("sample.jpg");
-        let result = image_bytes_to_256_png(&jpeg_bytes);
+        let result = image_bytes_to_256_webp(&jpeg_bytes);
         assert!(result.is_ok());
 
-        let png_bytes = result.unwrap();
-        // Verify it's a valid PNG by checking the magic number
-        assert_eq!(&png_bytes[0..8], &[137, 80, 78, 71, 13, 10, 26, 10]);
+        let webp_bytes = result.unwrap();
+        // Verify it's a valid WebP by checking the RIFF header
+        assert_eq!(&webp_bytes[0..4], &[0x52, 0x49, 0x46, 0x46]); // 'RIFF'
     }
 
     #[test]
     fn test_png_conversion() {
         let png_bytes = get_test_image("sample.png");
-        let result = image_bytes_to_256_png(&png_bytes);
+        let result = image_bytes_to_256_webp(&png_bytes);
         assert!(result.is_ok());
 
         let output_bytes = result.unwrap();
-        // Verify it's a valid PNG
-        assert_eq!(&output_bytes[0..8], &[137, 80, 78, 71, 13, 10, 26, 10]);
+        // Verify it's a valid WebP
+        assert_eq!(&output_bytes[0..4], &[0x52, 0x49, 0x46, 0x46]); // 'RIFF'
     }
 
     #[test]
     fn test_unsupported_format() {
         // Try with a text file which should fail
         let txt_bytes = get_test_image("sample.txt");
-        let result = image_bytes_to_256_png(&txt_bytes);
+        let result = image_bytes_to_256_webp(&txt_bytes);
 
         // The error might be UnsupportedInputFormat or an ImageError from guess_format
         assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_output_is_png() {
-        let jpeg_bytes = get_test_image("sample.jpg");
-        let result = image_bytes_to_256_png(&jpeg_bytes).unwrap();
-
-        // PNG signature: 89 50 4E 47 0D 0A 1A 0A
-        assert_eq!(result[0], 0x89);
-        assert_eq!(result[1], 0x50); // 'P'
-        assert_eq!(result[2], 0x4E); // 'N'
-        assert_eq!(result[3], 0x47); // 'G'
     }
 }

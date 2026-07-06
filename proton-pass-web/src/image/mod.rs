@@ -1,7 +1,7 @@
 mod image_types;
 
 use image_types::WasmConvertImageError;
-use proton_pass_common::image::{image_bytes_to_256_png, ConvertImageError as CommonConvertImageError};
+use proton_pass_common::image::{image_bytes_to_256_webp, ConvertImageError as CommonConvertImageError};
 use wasm_bindgen::prelude::*;
 
 impl From<CommonConvertImageError> for WasmConvertImageError {
@@ -14,6 +14,6 @@ impl From<CommonConvertImageError> for WasmConvertImageError {
 }
 
 #[wasm_bindgen]
-pub fn convert_image_to_256_png(input: &[u8]) -> Result<Vec<u8>, WasmConvertImageError> {
-    image_bytes_to_256_png(input).map_err(|e| e.into())
+pub fn convert_image_to_256_webp(input: &[u8]) -> Result<Vec<u8>, WasmConvertImageError> {
+    image_bytes_to_256_webp(input).map_err(|e| e.into())
 }

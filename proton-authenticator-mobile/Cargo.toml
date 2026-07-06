@@ -22,9 +22,9 @@ proton-pass-totp = { path = "../proton-pass-totp", features = ["uniffi"] }
 proton-pass-derive = { path = "../proton-pass-derive" }
 
 tokio.workspace = true
+uniffi.workspace = true
 
 jiff = "0.2.18"
-uniffi = { version = "0.31" }
 
 [[bin]]
 name = "uniffi-bindgen"

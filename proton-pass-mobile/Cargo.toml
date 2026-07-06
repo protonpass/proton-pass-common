@@ -27,7 +27,7 @@ proton-pass-types = { path = "../proton-pass-types", features = ["uniffi"] }
 
 async-trait.workspace = true
 tokio.workspace = true
-uniffi = { version = "0.31" }
+uniffi.workspace = true
 
 [[bin]]
 name = "uniffi-bindgen"

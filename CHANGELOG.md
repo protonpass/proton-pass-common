@@ -6,6 +6,19 @@
 
 ### Other
 
+## 1.7.0
+
+### Features :tada:
+
+- pass-common: Offer method for image resizing.
+- pass-mobile: expose method for image resizing.
+- pass-web: expose method for image resizing.
+
+### Other
+
+- Upgraded dependencies.
+- Bumped uniffi to 0.32.
+
 ## 1.6.1
 
 ### Fixes :bug:

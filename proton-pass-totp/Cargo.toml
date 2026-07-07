@@ -1,7 +1,7 @@
 [package]
 name = "proton-pass-totp"
-version = "1.7.0"
-edition = "2021"
+edition.workspace = true
+version.workspace = true
 
 [lib]
 doctest = false

@@ -26,6 +26,10 @@ uniffi = { version = "0.32" }
 wasm-bindgen = "0.2.100"
 wasm-bindgen-futures = "0.4.50"
 
+[workspace.package]
+edition = "2021"
+version = "1.7.0"
+
 [profile.release]
 opt-level = "s" # Tell `rustc` to optimize for small code size.
 lto = true

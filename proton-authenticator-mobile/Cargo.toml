@@ -1,7 +1,7 @@
 [package]
 name = "proton-authenticator-mobile"
-version = "1.7.0"
-edition = "2021"
+edition.workspace = true
+version.workspace = true
 
 # Flags for cargo-release
 [package.metadata.release]
@@ -26,5 +26,3 @@ uniffi.workspace = true
 
 jiff = "0.2.18"
 
-# Note: The uniffi-bindgen binary is now provided by tools/uniffi-bindgen-cli
-# Use `cargo run -p uniffi-bindgen-cli` to generate bindings

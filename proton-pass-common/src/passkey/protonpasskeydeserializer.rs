@@ -3,8 +3,8 @@ use super::protonpasskey::{
     ProtonPassCredentialExtensions, ProtonPassKey, ProtonPassStoredHmacSecret, ProtonRegisteredLabelKeyOperation,
     ProtonRegisteredLabelKeyType, ProtonRegisteredLabelWithPrivateAlgorithm, ProtonValue,
 };
-use coset::cbor::value::Integer;
 use coset::cbor::Value;
+use coset::cbor::value::Integer;
 use coset::iana::KeyOperation;
 use coset::{CoseKey, KeyType, Label, RegisteredLabel, RegisteredLabelWithPrivate};
 use passkey::types::{Bytes, Passkey};

@@ -1,4 +1,4 @@
-use crate::crypto::{decrypt, encrypt, EncryptionTag};
+use crate::crypto::{EncryptionTag, decrypt, encrypt};
 use crate::{AuthenticatorEntry, AuthenticatorError};
 
 pub fn encrypt_entries(entries: Vec<AuthenticatorEntry>, mut key: Vec<u8>) -> Result<Vec<Vec<u8>>, AuthenticatorError> {

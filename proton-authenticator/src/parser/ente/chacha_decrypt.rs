@@ -14,10 +14,11 @@
 use super::EnteImportError;
 use chacha20::cipher::{consts::U10, generic_array::GenericArray};
 use chacha20::{
+    ChaCha20,
     cipher::{KeyIvInit, StreamCipher},
-    hchacha, ChaCha20,
+    hchacha,
 };
-use poly1305::{universal_hash::KeyInit, Poly1305};
+use poly1305::{Poly1305, universal_hash::KeyInit};
 
 // Constants from the Go implementation
 const TAG_MESSAGE: u8 = 0;
@@ -50,7 +51,7 @@ pub fn decrypt_custom_ente_xchacha20_poly1305(
     // Initialize nonce (same as Go's state initialization)
     let mut nonce = [0u8; 12];
     nonce[0] = 1; // counter starts at 1 (from reset())
-                  // Copy the last 8 bytes of header to nonce[4..12] (INONCE part)
+    // Copy the last 8 bytes of header to nonce[4..12] (INONCE part)
     nonce[4..12].copy_from_slice(&header[16..24]);
 
     let mlen = data.len() - XCHACHA20POLY1305_IETF_ABYTES;

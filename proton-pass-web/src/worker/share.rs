@@ -1,4 +1,4 @@
-use proton_pass_common::share::{visible_share_ids, Share};
+use proton_pass_common::share::{Share, visible_share_ids};
 use wasm_bindgen::prelude::*;
 
 // Re-export core types that now have wasm bindings

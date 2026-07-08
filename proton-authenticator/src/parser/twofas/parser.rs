@@ -1,7 +1,7 @@
 use super::TwoFasImportError;
 use crate::{AuthenticatorEntry, AuthenticatorEntryContent};
 
-use base64::{engine::general_purpose, Engine as _};
+use base64::{Engine as _, engine::general_purpose};
 
 use crate::parser::{ImportError, ImportResult};
 use crate::steam::SteamTotp;
@@ -155,16 +155,16 @@ fn decrypt_2fas_encrypted_state(
 }
 
 fn calculate_label(label: Option<String>, account: Option<String>, obj_name: String) -> String {
-    if let Some(label_value) = label {
-        if !label_value.is_empty() {
-            return label_value;
-        }
+    if let Some(label_value) = label
+        && !label_value.is_empty()
+    {
+        return label_value;
     }
 
-    if let Some(account_value) = account {
-        if !account_value.is_empty() {
-            return account_value;
-        }
+    if let Some(account_value) = account
+        && !account_value.is_empty()
+    {
+        return account_value;
     }
 
     obj_name
@@ -182,19 +182,18 @@ fn get_content_from_entry(obj: TwoFasEntry) -> Result<AuthenticatorEntryContent,
         }
         "TOTP" => {
             let otp = obj.otp;
-            if otp.source == "Link" {
-                if let Some(ref uri) = otp.link {
-                    if let Ok(mut totp) = TOTP::from_uri(uri) {
-                        let override_label = otp.label.or(otp.account);
-                        if let Some(overriden) = override_label {
-                            if !overriden.is_empty() {
-                                totp.label = Some(overriden);
-                            }
-                        }
-
-                        return Ok(AuthenticatorEntryContent::Totp(totp));
-                    }
+            if otp.source == "Link"
+                && let Some(ref uri) = otp.link
+                && let Ok(mut totp) = TOTP::from_uri(uri)
+            {
+                let override_label = otp.label.or(otp.account);
+                if let Some(overriden) = override_label
+                    && !overriden.is_empty()
+                {
+                    totp.label = Some(overriden);
                 }
+
+                return Ok(AuthenticatorEntryContent::Totp(totp));
             }
 
             let issuer = match &otp.issuer {

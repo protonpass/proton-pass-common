@@ -1,9 +1,10 @@
 use proton_pass_common::markdown::{
-    parse_markdown_document as common_parse_markdown_document, MarkdownDocument as CommonMarkdownDocument,
-    MarkdownEditor as CommonMarkdownEditor, MarkdownError as CommonMarkdownError, MarkdownLink as CommonMarkdownLink,
+    MarkdownDocument as CommonMarkdownDocument, MarkdownEditor as CommonMarkdownEditor,
+    MarkdownError as CommonMarkdownError, MarkdownLink as CommonMarkdownLink,
     MarkdownLinkScheme as CommonMarkdownLinkScheme, MarkdownNode as CommonMarkdownNode,
     MarkdownNodeKind as CommonMarkdownNodeKind, MarkdownUnsafeLinkReason as CommonMarkdownUnsafeLinkReason,
     Operation as CommonOperation, SpanStyle as CommonSpanStyle, StyledSpan as CommonStyledSpan,
+    parse_markdown_document as common_parse_markdown_document,
 };
 use std::sync::{Arc, Mutex, MutexGuard};
 
@@ -504,14 +505,18 @@ mod tests {
         let document = parse_markdown_document(text.to_string()).unwrap();
 
         assert_eq!(document.root.len(), 6);
-        assert!(document
-            .nodes
-            .iter()
-            .any(|node| matches!(node.kind, MarkdownNodeKind::Heading) && node.level == Some(1)));
-        assert!(document
-            .nodes
-            .iter()
-            .any(|node| matches!(node.kind, MarkdownNodeKind::Strong)));
+        assert!(
+            document
+                .nodes
+                .iter()
+                .any(|node| matches!(node.kind, MarkdownNodeKind::Heading) && node.level == Some(1))
+        );
+        assert!(
+            document
+                .nodes
+                .iter()
+                .any(|node| matches!(node.kind, MarkdownNodeKind::Strong))
+        );
         assert!(document.nodes.iter().any(|node| {
             matches!(
                 (&node.kind, &node.safe_link),

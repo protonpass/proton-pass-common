@@ -1,6 +1,6 @@
 use rxing::{
-    common::HybridBinarizer, BarcodeFormat, BinaryBitmap, DecodeHintValue, DecodeHints, Luma8LuminanceSource,
-    MultiFormatReader, Reader,
+    BarcodeFormat, BinaryBitmap, DecodeHintValue, DecodeHints, Luma8LuminanceSource, MultiFormatReader, Reader,
+    common::HybridBinarizer,
 };
 use std::collections::HashSet;
 

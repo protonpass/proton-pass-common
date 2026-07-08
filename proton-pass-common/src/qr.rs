@@ -1,5 +1,5 @@
-use qrcode::render::svg;
 use qrcode::QrResult;
+use qrcode::render::svg;
 
 pub fn generate_svg_qr_code(value: &str) -> QrResult<String> {
     let code = qrcode::QrCode::new(value)?;

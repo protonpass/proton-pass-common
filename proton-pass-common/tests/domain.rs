@@ -1,4 +1,4 @@
-use proton_pass_common::domain::{get_domain, get_root_domain, GetRootDomainError};
+use proton_pass_common::domain::{GetRootDomainError, get_domain, get_root_domain};
 
 #[macro_export]
 macro_rules! map (

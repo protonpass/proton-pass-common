@@ -23,15 +23,15 @@ mod utils;
 
 pub use client::{AuthenticatorClient, AuthenticatorCodeResponse, AuthenticatorError};
 pub use entry::{
-    decrypt_entries, encrypt_entries, AuthenticatorEntry, AuthenticatorEntryContent, AuthenticatorEntryError,
-    AuthenticatorEntrySteamCreateParameters, AuthenticatorEntryTotpCreateParameters, AuthenticatorEntryTotpParameters,
-    AuthenticatorEntryType, AuthenticatorEntryUpdateContents,
+    AuthenticatorEntry, AuthenticatorEntryContent, AuthenticatorEntryError, AuthenticatorEntrySteamCreateParameters,
+    AuthenticatorEntryTotpCreateParameters, AuthenticatorEntryTotpParameters, AuthenticatorEntryType,
+    AuthenticatorEntryUpdateContents, decrypt_entries, encrypt_entries,
 };
 
 #[cfg(any(feature = "uniffi", feature = "wasm"))]
 pub use entry::{AuthenticatorCodeResponseModel, AuthenticatorEntryModel};
 pub use issuer_mapper::{IssuerInfo, TOTPIssuerMapper};
-pub use log::{emit_log_message, register_authenticator_logger, LogLevel, Logger};
+pub use log::{LogLevel, Logger, emit_log_message, register_authenticator_logger};
 pub use parser::aegis::{parse_aegis_json, parse_aegis_txt};
 pub use parser::bitwarden::{parse_bitwarden_csv, parse_bitwarden_json};
 pub use parser::ente::{parse_ente_encrypted, parse_ente_txt};

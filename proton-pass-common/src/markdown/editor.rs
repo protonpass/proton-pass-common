@@ -2,7 +2,7 @@ use super::cursor::CursorUtils;
 use super::list_operations::ListOperations;
 use super::newline::NewlineHandler;
 use super::operations::MarkdownOperations;
-use super::renderer::{render_editor_spans, StyledSpan};
+use super::renderer::{StyledSpan, render_editor_spans};
 use super::undo::{EditorState, UndoStack};
 use super::utf16;
 use super::{MarkdownError, Operation, Result};

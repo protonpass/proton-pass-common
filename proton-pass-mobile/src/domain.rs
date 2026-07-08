@@ -1,5 +1,5 @@
 use proton_pass_common::domain::{
-    get_domain, get_root_domain, GetDomainError as CommonGetDomainError, GetRootDomainError as CommonGetRootDomainError,
+    GetDomainError as CommonGetDomainError, GetRootDomainError as CommonGetRootDomainError, get_domain, get_root_domain,
 };
 
 #[derive(Debug, proton_pass_derive::Error, PartialEq, Eq, uniffi::Error)]

@@ -1,4 +1,4 @@
-use super::gen::authenticator_entry as proto;
+use super::r#gen::authenticator_entry as proto;
 use crate::steam::SteamTotp;
 use crate::{AuthenticatorEntry, AuthenticatorEntryContent, AuthenticatorEntryError};
 use protobuf::Message;

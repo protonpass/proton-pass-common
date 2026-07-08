@@ -4,11 +4,11 @@ use super::passkey_handling::{get_client, parse_url, serialize_passkey};
 use super::{PasskeyError, PasskeyResult, ProtonPassKey};
 use coset::iana;
 use coset::iana::EnumI64;
+use passkey_types::Bytes;
 use passkey_types::webauthn::{
     CreatedPublicKeyCredential, CredentialCreationOptions, PublicKeyCredentialCreationOptions,
     PublicKeyCredentialParameters, PublicKeyCredentialRpEntity, PublicKeyCredentialType, PublicKeyCredentialUserEntity,
 };
-use passkey_types::Bytes;
 use url::Url;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]

@@ -1,7 +1,7 @@
 use proton_pass_common::sshkey::{
+    SshKeyError as CommonSshKeyError, SshKeyPair as CommonSshKeyPair, SshKeyType as CommonSshKeyType,
     decrypt_private_key as common_decrypt_private_key, generate_ssh_key as common_generate_ssh_key,
     validate_private_key as common_validate_private_key, validate_public_key as common_validate_public_key,
-    SshKeyError as CommonSshKeyError, SshKeyPair as CommonSshKeyPair, SshKeyType as CommonSshKeyType,
 };
 
 #[derive(Debug, proton_pass_derive::Error, uniffi::Error)]

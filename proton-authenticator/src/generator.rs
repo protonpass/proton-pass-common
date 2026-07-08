@@ -1,7 +1,7 @@
 use crate::{AuthenticatorClient, AuthenticatorCodeResponse, AuthenticatorEntry};
 use std::sync::{
-    atomic::{AtomicBool, Ordering},
     Arc,
+    atomic::{AtomicBool, Ordering},
 };
 
 //

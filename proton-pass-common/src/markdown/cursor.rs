@@ -75,11 +75,7 @@ impl CursorUtils {
 
     /// Normalize a selection to ensure start <= end
     pub fn normalize_selection(start: usize, end: usize) -> (usize, usize) {
-        if start <= end {
-            (start, end)
-        } else {
-            (end, start)
-        }
+        if start <= end { (start, end) } else { (end, start) }
     }
 }
 

@@ -1,7 +1,7 @@
-use super::{chacha_decrypt, EnteImportError};
+use super::{EnteImportError, chacha_decrypt};
 use crate::parser::ImportResult;
 use argon2::{Algorithm, Argon2, Params, Version};
-use base64::{engine::general_purpose, Engine as _};
+use base64::{Engine as _, engine::general_purpose};
 
 #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -97,8 +97,8 @@ pub fn parse_ente_encrypted(input: &str, password: &str) -> Result<ImportResult,
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::get_file_contents;
     use crate::AuthenticatorEntryContent;
+    use crate::test_utils::get_file_contents;
 
     #[test]
     fn can_import_encrypted_file() {

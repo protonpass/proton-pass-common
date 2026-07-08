@@ -1,10 +1,10 @@
-pub mod gen;
+pub mod r#gen;
 
-use crate::parser::google::gen::google_authenticator::migration_payload::OtpType;
+use crate::parser::google::r#gen::google_authenticator::migration_payload::OtpType;
 use crate::parser::{ImportError, ImportResult, ThirdPartyImportError};
 use crate::{AuthenticatorEntry, AuthenticatorEntryContent};
 use base64::Engine;
-use gen::google_authenticator::migration_payload as google;
+use r#gen::google_authenticator::migration_payload as google;
 use protobuf::Message;
 use proton_pass_totp::algorithm::Algorithm;
 use proton_pass_totp::totp::TOTP;
@@ -107,7 +107,7 @@ pub fn parse_google_authenticator_totp(input: &str) -> Result<ImportResult, Goog
         .decode(&data)
         .map_err(|_| GoogleAuthenticatorParseError::BadContent)?;
 
-    let parsed = gen::google_authenticator::MigrationPayload::parse_from_bytes(&decoded)
+    let parsed = r#gen::google_authenticator::MigrationPayload::parse_from_bytes(&decoded)
         .map_err(|_| GoogleAuthenticatorParseError::BadContent)?;
 
     let mut entries = Vec::new();

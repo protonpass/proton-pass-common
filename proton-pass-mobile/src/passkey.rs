@@ -1,15 +1,15 @@
 use std::sync::{Arc, Mutex};
 
-use crate::passkey_fetcher::{make_webauthn_client, MobileWebauthnClientFetcher};
-use proton_pass_common::passkey::{
-    generate_passkey_for_domain, generate_passkey_for_ios, parse_create_passkey_data, resolve_challenge_for_android,
-    resolve_challenge_for_ios, WebauthnClientFetcher, WebauthnFetcher,
-};
+use crate::passkey_fetcher::{MobileWebauthnClientFetcher, make_webauthn_client};
 pub use proton_pass_common::passkey::{
     AuthenticateWithPasskeyAndroidRequest as CommonAuthenticateWithPasskeyAndroidRequest,
     AuthenticateWithPasskeyIosRequest as CommonAuthenticateWithPasskeyIosRequest,
     AuthenticateWithPasskeyIosResponse as CommonAuthenticateWithPasskeyIosResponse,
     CreatePasskeyIosRequest as CommonCreatePasskeyIosRequest, PasskeyError as CommonPasskeyError,
+};
+use proton_pass_common::passkey::{
+    WebauthnClientFetcher, WebauthnFetcher, generate_passkey_for_domain, generate_passkey_for_ios,
+    parse_create_passkey_data, resolve_challenge_for_android, resolve_challenge_for_ios,
 };
 
 #[derive(uniffi::Record)]

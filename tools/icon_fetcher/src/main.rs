@@ -9,7 +9,7 @@ use std::io::{BufRead, BufReader, Write};
 use std::sync::Arc;
 use tokio::fs as tokio_fs;
 use tokio::sync::Semaphore;
-use tokio::time::{timeout, Duration};
+use tokio::time::{Duration, timeout};
 
 const STANDARD_SERVICES: &[&str] = &[
     "https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://DOMAIN&size=256",

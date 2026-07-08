@@ -14,12 +14,12 @@ mod utf16;
 mod tests;
 
 pub use document::{
-    classify_markdown_link, MarkdownDocument, MarkdownLink, MarkdownLinkScheme, MarkdownNode, MarkdownNodeId,
-    MarkdownNodeKind, MarkdownUnsafeLinkReason,
+    MarkdownDocument, MarkdownLink, MarkdownLinkScheme, MarkdownNode, MarkdownNodeId, MarkdownNodeKind,
+    MarkdownUnsafeLinkReason, classify_markdown_link,
 };
 pub use editor::MarkdownEditor;
-pub use parser::{parse_markdown_document, parse_markdown_document_with_limits, MarkdownParseLimits};
-pub use renderer::{render_editor_spans, SpanStyle, StyledSpan};
+pub use parser::{MarkdownParseLimits, parse_markdown_document, parse_markdown_document_with_limits};
+pub use renderer::{SpanStyle, StyledSpan, render_editor_spans};
 
 use proton_pass_derive::Error;
 

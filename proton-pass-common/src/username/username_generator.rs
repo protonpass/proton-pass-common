@@ -117,8 +117,8 @@ where
 mod test {
     use super::*;
     use crate::username::{WordSeparator, WordTypes};
-    use rand::prelude::StdRng;
     use rand::SeedableRng;
+    use rand::prelude::StdRng;
 
     const SEED: u64 = 12345;
 

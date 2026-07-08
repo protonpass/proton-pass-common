@@ -1,7 +1,7 @@
 use password_types::{
     WasmPassphraseConfig, WasmPasswordScore, WasmPasswordScoreList, WasmPasswordScoreResult, WasmRandomPasswordConfig,
 };
-use proton_pass_common::password::{get_generator, PassphraseConfig, RandomPasswordConfig};
+use proton_pass_common::password::{PassphraseConfig, RandomPasswordConfig, get_generator};
 use wasm_bindgen::prelude::*;
 
 mod password_types;

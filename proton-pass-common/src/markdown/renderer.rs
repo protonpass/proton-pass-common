@@ -1,5 +1,5 @@
 use super::utf16;
-use super::{classify_markdown_link, MarkdownLink, MarkdownUnsafeLinkReason};
+use super::{MarkdownLink, MarkdownUnsafeLinkReason, classify_markdown_link};
 use pulldown_cmark::{Event, Parser, Tag, TagEnd};
 
 /// Represents a styled span in the rendered markdown
@@ -133,20 +133,18 @@ pub fn render_editor_spans(text: &str) -> Vec<StyledSpan> {
                     _ => false,
                 };
 
-                if should_pop {
-                    if let Some((style, start)) = stack.pop() {
-                        // Only create span if there's actual content
-                        if range.end > start {
-                            // Add marker spans for hybrid mode
-                            add_marker_spans(text, start, range.end, &style, &mut spans);
+                if should_pop && let Some((style, start)) = stack.pop() {
+                    // Only create span if there's actual content
+                    if range.end > start {
+                        // Add marker spans for hybrid mode
+                        add_marker_spans(text, start, range.end, &style, &mut spans);
 
-                            // Add the content span with styling
-                            spans.push(StyledSpan {
-                                start: start as u32,
-                                end: range.end as u32,
-                                style,
-                            });
-                        }
+                        // Add the content span with styling
+                        spans.push(StyledSpan {
+                            start: start as u32,
+                            end: range.end as u32,
+                            style,
+                        });
                     }
                 }
             }
@@ -330,21 +328,21 @@ fn add_marker_spans(text: &str, start: usize, end: usize, style: &SpanStyle, spa
             // (nested items, where the parent already consumed the indent) — the
             // nesting `level` doesn't reliably predict that count, so just require
             // that nothing but whitespace precedes the marker.
-            if let Some(marker_pos) = region.find(['-', '*', '+']) {
-                if region[..marker_pos].chars().all(|c| c == ' ') {
-                    let marker_start = start + marker_pos;
-                    let mut marker_end = marker_start + 1;
-                    // Include the space after the marker
-                    if text.get(marker_end..marker_end + 1) == Some(" ") {
-                        marker_end += 1;
-                    }
-
-                    spans.push(StyledSpan {
-                        start: marker_start as u32,
-                        end: marker_end as u32,
-                        style: SpanStyle::MarkdownMarker,
-                    });
+            if let Some(marker_pos) = region.find(['-', '*', '+'])
+                && region[..marker_pos].chars().all(|c| c == ' ')
+            {
+                let marker_start = start + marker_pos;
+                let mut marker_end = marker_start + 1;
+                // Include the space after the marker
+                if text.get(marker_end..marker_end + 1) == Some(" ") {
+                    marker_end += 1;
                 }
+
+                spans.push(StyledSpan {
+                    start: marker_start as u32,
+                    end: marker_end as u32,
+                    style: SpanStyle::MarkdownMarker,
+                });
             }
         }
         SpanStyle::OrderedListItem { number, .. } => {
@@ -353,25 +351,25 @@ fn add_marker_spans(text: &str, start: usize, end: usize, style: &SpanStyle, spa
             // rather than an exact space count derived from `level`.
             let number_str = number.to_string();
 
-            if let Some(number_pos) = region.find(&number_str) {
-                if region[..number_pos].chars().all(|c| c == ' ') {
-                    let marker_start = start + number_pos;
-                    let mut marker_end = marker_start + number_str.len();
-                    // Include the period
-                    if text.get(marker_end..marker_end + 1) == Some(".") {
+            if let Some(number_pos) = region.find(&number_str)
+                && region[..number_pos].chars().all(|c| c == ' ')
+            {
+                let marker_start = start + number_pos;
+                let mut marker_end = marker_start + number_str.len();
+                // Include the period
+                if text.get(marker_end..marker_end + 1) == Some(".") {
+                    marker_end += 1;
+                    // Include the space after the period
+                    if text.get(marker_end..marker_end + 1) == Some(" ") {
                         marker_end += 1;
-                        // Include the space after the period
-                        if text.get(marker_end..marker_end + 1) == Some(" ") {
-                            marker_end += 1;
-                        }
                     }
-
-                    spans.push(StyledSpan {
-                        start: marker_start as u32,
-                        end: marker_end as u32,
-                        style: SpanStyle::MarkdownMarker,
-                    });
                 }
+
+                spans.push(StyledSpan {
+                    start: marker_start as u32,
+                    end: marker_end as u32,
+                    style: SpanStyle::MarkdownMarker,
+                });
             }
         }
         SpanStyle::Blockquote { .. } => {
@@ -630,9 +628,11 @@ mod tests {
         let text = "[link](javascript:alert(1))";
         let spans = render_editor_spans(text);
 
-        assert!(spans
-            .iter()
-            .all(|span| !matches!(&span.style, SpanStyle::Link { url } if url == "javascript:alert(1)")));
+        assert!(
+            spans
+                .iter()
+                .all(|span| !matches!(&span.style, SpanStyle::Link { url } if url == "javascript:alert(1)"))
+        );
     }
 
     #[test]
@@ -754,12 +754,16 @@ mod tests {
             "nested empty blockquote should produce 2 Blockquote spans"
         );
 
-        assert!(quote_spans
-            .iter()
-            .any(|s| matches!(s.style, SpanStyle::Blockquote { level: 0 })));
-        assert!(quote_spans
-            .iter()
-            .any(|s| matches!(s.style, SpanStyle::Blockquote { level: 1 })));
+        assert!(
+            quote_spans
+                .iter()
+                .any(|s| matches!(s.style, SpanStyle::Blockquote { level: 0 }))
+        );
+        assert!(
+            quote_spans
+                .iter()
+                .any(|s| matches!(s.style, SpanStyle::Blockquote { level: 1 }))
+        );
 
         let markers: Vec<_> = spans
             .iter()

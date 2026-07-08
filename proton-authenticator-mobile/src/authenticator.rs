@@ -1,6 +1,6 @@
 use crate::AuthenticatorEntryModel;
 use proton_authenticator::entry::AuthenticatorInvalidDataParam;
-use proton_authenticator::{warn, AuthenticatorClient, AuthenticatorEntry};
+use proton_authenticator::{AuthenticatorClient, AuthenticatorEntry, warn};
 
 #[derive(Debug, uniffi::Error)]
 #[uniffi(flat_error)]

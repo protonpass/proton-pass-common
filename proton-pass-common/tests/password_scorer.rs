@@ -1,4 +1,4 @@
-use proton_pass_common::password::{check_score, PasswordPenalty, PasswordScore};
+use proton_pass_common::password::{PasswordPenalty, PasswordScore, check_score};
 
 macro_rules! score_test {
     ($($name:ident: $value:expr,)*) => {

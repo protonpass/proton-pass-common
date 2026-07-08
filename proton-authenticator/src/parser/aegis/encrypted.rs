@@ -1,10 +1,10 @@
 use super::AegisImportError;
 use crate::parser::aegis::db::AegisDbRoot;
-use aes_gcm::aead::consts::U16;
-use aes_gcm::aead::{generic_array::GenericArray, AeadInPlace, KeyInit};
 use aes_gcm::Aes256Gcm;
+use aes_gcm::aead::consts::U16;
+use aes_gcm::aead::{AeadInPlace, KeyInit, generic_array::GenericArray};
 use base64::Engine;
-use scrypt::{scrypt, Params as ScryptParams};
+use scrypt::{Params as ScryptParams, scrypt};
 
 #[derive(Clone, Debug, serde::Deserialize)]
 pub struct KeyParams {

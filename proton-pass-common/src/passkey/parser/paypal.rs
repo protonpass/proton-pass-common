@@ -21,12 +21,12 @@ impl PasskeySanitizer for PaypalSanitizer {
             _ => return request.to_string(),
         };
 
-        if let Some(timeout) = obj.get("timeout") {
-            if let Some(num) = timeout.as_f64() {
-                let mut editable = obj.clone();
-                editable.insert("timeout".to_string(), Value::from(num as i64));
-                return serde_json::to_string(&Value::Object(editable)).unwrap_or(request.to_string());
-            }
+        if let Some(timeout) = obj.get("timeout")
+            && let Some(num) = timeout.as_f64()
+        {
+            let mut editable = obj.clone();
+            editable.insert("timeout".to_string(), Value::from(num as i64));
+            return serde_json::to_string(&Value::Object(editable)).unwrap_or(request.to_string());
         }
 
         request.to_string()

@@ -1,7 +1,7 @@
 use crate::algorithm::Algorithm;
 use crate::error::TOTPError;
 use serde::Deserialize;
-use serde_querystring::{from_str, ParseMode};
+use serde_querystring::{ParseMode, from_str};
 
 #[derive(Debug, Deserialize, Default, PartialEq)]
 pub struct Queries {

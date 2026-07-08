@@ -1,5 +1,5 @@
 use proton_authenticator::{
-    emit_log_message, register_authenticator_logger as common_register, LogLevel as CommonLogLevel, Logger,
+    LogLevel as CommonLogLevel, Logger, emit_log_message, register_authenticator_logger as common_register,
 };
 use std::sync::Arc;
 

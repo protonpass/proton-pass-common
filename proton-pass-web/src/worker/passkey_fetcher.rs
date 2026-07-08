@@ -2,8 +2,8 @@ use std::cell::RefCell;
 use std::sync::Arc;
 
 use js_sys::{Function, Promise};
-use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
+use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 
 use proton_pass_common::passkey::{FetchError, WebauthnClientFetcher, WebauthnDomainsResponse, WebauthnFetcher};

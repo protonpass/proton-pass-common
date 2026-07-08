@@ -149,46 +149,45 @@ fn extract_totp_entries_from_item(
     // Check if the item is a login type, as only login items have a totp field in the content
     if item.data.item_type == "login" {
         // Check for main TOTP URI
-        if let Some(content) = &item.data.content {
-            if !content.totp_uri.is_empty() {
-                match create_entry_from_uri(&content.totp_uri, item_name, item_note.clone()) {
-                    Ok(entry) => entries.push(entry),
-                    Err(e) => {
-                        errors.push(ImportError {
-                            context: format!("Error in vault {vault_id} item {item_idx} (main TOTP)"),
-                            message: format!("{e:?}"),
-                        });
-                    }
+        if let Some(content) = &item.data.content
+            && !content.totp_uri.is_empty()
+        {
+            match create_entry_from_uri(&content.totp_uri, item_name, item_note.clone()) {
+                Ok(entry) => entries.push(entry),
+                Err(e) => {
+                    errors.push(ImportError {
+                        context: format!("Error in vault {vault_id} item {item_idx} (main TOTP)"),
+                        message: format!("{e:?}"),
+                    });
                 }
             }
         }
     }
     // Check for custom fields with TOTP
     for (field_idx, field) in item.data.extra_fields.iter().enumerate() {
-        if field.field_type == "totp" {
-            if let Some(totp_uri) = &field.data.totp_uri {
-                if !totp_uri.is_empty() {
-                    // Use the field name as part of the label
-                    let combined_name = if field.field_name.is_empty() {
-                        item_name.to_string()
-                    } else if item_name.is_empty() {
-                        field.field_name.clone()
-                    } else {
-                        format!("{} - {}", item_name, field.field_name)
-                    };
+        if field.field_type == "totp"
+            && let Some(totp_uri) = &field.data.totp_uri
+            && !totp_uri.is_empty()
+        {
+            // Use the field name as part of the label
+            let combined_name = if field.field_name.is_empty() {
+                item_name.to_string()
+            } else if item_name.is_empty() {
+                field.field_name.clone()
+            } else {
+                format!("{} - {}", item_name, field.field_name)
+            };
 
-                    match create_entry_from_uri(totp_uri, &combined_name, item_note.clone()) {
-                        Ok(entry) => entries.push(entry),
-                        Err(e) => {
-                            errors.push(ImportError {
-                                context: format!(
-                                    "Error in vault {} item {} field {} ({})",
-                                    vault_id, item_idx, field_idx, field.field_name
-                                ),
-                                message: format!("{e:?}"),
-                            });
-                        }
-                    }
+            match create_entry_from_uri(totp_uri, &combined_name, item_note.clone()) {
+                Ok(entry) => entries.push(entry),
+                Err(e) => {
+                    errors.push(ImportError {
+                        context: format!(
+                            "Error in vault {} item {} field {} ({})",
+                            vault_id, item_idx, field_idx, field.field_name
+                        ),
+                        message: format!("{e:?}"),
+                    });
                 }
             }
         }
@@ -220,13 +219,14 @@ fn create_entry_from_uri(uri: &str, name: &str, note: Option<String>) -> Result<
             }
 
             // Clean reverse-exported TOTP label:issuer
-            if let (Some(label), Some(issuer)) = (totp.label.as_ref(), totp.issuer.as_ref()) {
-                if label == "Proton Pass" && !issuer.is_empty() {
-                    let label_clone = label.clone();
-                    let issuer_clone = issuer.clone();
-                    totp.label = Some(issuer_clone);
-                    totp.issuer = Some(label_clone);
-                }
+            if let (Some(label), Some(issuer)) = (totp.label.as_ref(), totp.issuer.as_ref())
+                && label == "Proton Pass"
+                && !issuer.is_empty()
+            {
+                let label_clone = label.clone();
+                let issuer_clone = issuer.clone();
+                totp.label = Some(issuer_clone);
+                totp.issuer = Some(label_clone);
             }
         }
 
@@ -248,8 +248,8 @@ fn create_entry_from_uri(uri: &str, name: &str, note: Option<String>) -> Result<
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::get_file_contents_raw;
     use crate::AuthenticatorEntryContent;
+    use crate::test_utils::get_file_contents_raw;
     use proton_pass_totp::algorithm::Algorithm;
 
     struct ExpectedTotp<'a> {
@@ -372,6 +372,9 @@ mod test {
 
         let error = &errors[0];
         assert_eq!(error.message, "BadContent");
-        assert_eq!(error.context, "Error in vault LDvfA6MxFs3NYL3MU49nPpSYWVefHskOnztrHkbZGk1boc5FOi6oahgNfZqsD_KCKWon2-GIJzCXkGXEsz5XeQ== item 3 field 2 (Malformed totp)");
+        assert_eq!(
+            error.context,
+            "Error in vault LDvfA6MxFs3NYL3MU49nPpSYWVefHskOnztrHkbZGk1boc5FOi6oahgNfZqsD_KCKWon2-GIJzCXkGXEsz5XeQ== item 3 field 2 (Malformed totp)"
+        );
     }
 }

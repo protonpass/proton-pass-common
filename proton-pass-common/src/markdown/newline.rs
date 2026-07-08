@@ -218,7 +218,7 @@ mod tests {
     fn test_list_with_content_after_marker() {
         let text = "1. Item with text";
         let (new_text, _cursor) = NewlineHandler::insert_newline(text, 3).unwrap(); // Right after "1."
-                                                                                    // When splitting at position 3, before_cursor is "1. " and after_cursor is "Item with text"
+        // When splitting at position 3, before_cursor is "1. " and after_cursor is "Item with text"
         assert_eq!(new_text, "1. \n2. Item with text");
     }
 

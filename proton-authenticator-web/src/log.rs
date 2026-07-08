@@ -1,5 +1,5 @@
 use js_sys::Function;
-use proton_authenticator::{register_authenticator_logger as common_register, LogLevel as CommonLogLevel, Logger};
+use proton_authenticator::{LogLevel as CommonLogLevel, Logger, register_authenticator_logger as common_register};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tsify::Tsify;

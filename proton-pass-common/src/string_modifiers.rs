@@ -80,8 +80,8 @@ pub fn to_leetspeak(word: String) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rand::prelude::StdRng;
     use rand::SeedableRng;
+    use rand::prelude::StdRng;
 
     fn seeded_rng() -> StdRng {
         StdRng::seed_from_u64(42)

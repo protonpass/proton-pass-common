@@ -1,4 +1,4 @@
-use proton_pass_common::image::{image_bytes_to_256_webp, ConvertImageError as CommonConvertImageError};
+use proton_pass_common::image::{ConvertImageError as CommonConvertImageError, image_bytes_to_256_webp};
 
 #[derive(Debug, proton_pass_derive::Error, PartialEq, Eq, uniffi::Error)]
 #[uniffi(flat_error)]

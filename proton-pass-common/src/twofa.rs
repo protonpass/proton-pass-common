@@ -1,4 +1,4 @@
-use public_suffix::{EffectiveTLDProvider, DEFAULT_PROVIDER};
+use public_suffix::{DEFAULT_PROVIDER, EffectiveTLDProvider};
 use std::collections::HashSet;
 use std::env;
 

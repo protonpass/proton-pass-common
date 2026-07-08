@@ -103,8 +103,8 @@ pub fn parse_bitwarden_json(input: &str) -> Result<ImportResult, BitwardenImport
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::get_file_contents;
     use crate::AuthenticatorEntryContent;
+    use crate::test_utils::get_file_contents;
     use proton_pass_totp::algorithm::Algorithm;
     use proton_pass_totp::totp::TOTP;
 

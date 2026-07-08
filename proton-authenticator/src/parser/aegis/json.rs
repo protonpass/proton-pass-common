@@ -1,5 +1,5 @@
-use crate::parser::aegis::{db, encrypted, AegisImportError};
 use crate::parser::ImportResult;
+use crate::parser::aegis::{AegisImportError, db, encrypted};
 
 #[derive(Clone, Debug, serde::Deserialize)]
 pub struct CommonHeader {
@@ -44,9 +44,9 @@ pub fn parse_aegis_json(input: &str, password: Option<String>) -> Result<ImportR
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::AuthenticatorEntryContent;
     use crate::parser::aegis::test::check_export_matches;
     use crate::test_utils::get_file_contents;
-    use crate::AuthenticatorEntryContent;
 
     #[test]
     fn can_import_unencrypted_json() {

@@ -1,4 +1,4 @@
-use image::{imageops::FilterType, GenericImageView, ImageError, ImageFormat};
+use image::{GenericImageView, ImageError, ImageFormat, imageops::FilterType};
 use zenwebp::{EncodeRequest, LossyConfig, PixelLayout};
 
 /// Maximum desired image size after compression

@@ -19,10 +19,10 @@ impl AuthenticatorEntryModel {
     pub fn to_entry(&self) -> Result<AuthenticatorEntry, AuthenticatorEntryError> {
         let mut entry = AuthenticatorEntry::from_uri_and_id(&self.uri, self.note.clone(), self.id.clone())?;
 
-        if let AuthenticatorEntryContent::Steam(ref mut steam) = entry.content {
-            if !self.name.trim().is_empty() {
-                steam.set_name(Some(self.name.trim().to_string()));
-            }
+        if let AuthenticatorEntryContent::Steam(ref mut steam) = entry.content
+            && !self.name.trim().is_empty()
+        {
+            steam.set_name(Some(self.name.trim().to_string()));
         }
 
         Ok(entry)

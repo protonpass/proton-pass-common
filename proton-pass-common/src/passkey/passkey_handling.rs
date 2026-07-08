@@ -5,7 +5,7 @@ use passkey::client::Client;
 use passkey_authenticator::extensions::HmacSecretConfig;
 use passkey_authenticator::{UiHint, UserCheck};
 use passkey_types::ctap2::Ctap2Error;
-use passkey_types::{ctap2::Aaguid, Passkey};
+use passkey_types::{Passkey, ctap2::Aaguid};
 use url::{ParseError, Url};
 
 // AAGUID: 50726f74-6f6e-5061-7373-50726f746f6e

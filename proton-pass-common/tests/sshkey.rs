@@ -1,4 +1,4 @@
-use proton_pass_common::sshkey::{generate_ssh_key, validate_private_key, validate_public_key, SshKeyType};
+use proton_pass_common::sshkey::{SshKeyType, generate_ssh_key, validate_private_key, validate_public_key};
 
 #[test]
 fn test_validate_valid_ed25519_public_key() {

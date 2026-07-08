@@ -1,5 +1,5 @@
-use criterion::{criterion_group, criterion_main, BatchSize, Criterion, Throughput};
-use proton_pass_common::markdown::{parse_markdown_document, parse_markdown_document_with_limits, MarkdownParseLimits};
+use criterion::{BatchSize, Criterion, Throughput, criterion_group, criterion_main};
+use proton_pass_common::markdown::{MarkdownParseLimits, parse_markdown_document, parse_markdown_document_with_limits};
 use std::hint::black_box;
 
 #[path = "../test_support/markdown_perf_shapes.rs"]

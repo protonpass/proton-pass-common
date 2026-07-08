@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 
-use crate::common::{vec_to_uint8_array, WasmBoolDict};
+use crate::common::{WasmBoolDict, vec_to_uint8_array};
 use passkey::WasmCreatePasskeyData;
 use passkey::{PasskeyManager, WasmGeneratePasskeyResponse, WasmResolvePasskeyChallengeResponse};
 

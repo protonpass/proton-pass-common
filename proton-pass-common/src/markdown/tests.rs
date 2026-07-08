@@ -846,10 +846,12 @@ fn test_parse_basic_document_to_ir() {
         document.node(document.root[0]).unwrap().kind,
         MarkdownNodeKind::Heading { level: 1 }
     ));
-    assert!(document
-        .nodes
-        .iter()
-        .any(|node| matches!(node.kind, MarkdownNodeKind::Strong)));
+    assert!(
+        document
+            .nodes
+            .iter()
+            .any(|node| matches!(node.kind, MarkdownNodeKind::Strong))
+    );
 }
 
 #[test]
@@ -1036,11 +1038,13 @@ fn test_parse_unsupported_table_does_not_close_paragraph() {
     let document = parse_markdown_document(markdown).unwrap();
     assert_valid_markdown_document(&document);
 
-    assert!(document
-        .root
-        .iter()
-        .filter_map(|id| document.node(*id))
-        .any(|node| matches!(node.kind, MarkdownNodeKind::Paragraph)));
+    assert!(
+        document
+            .root
+            .iter()
+            .filter_map(|id| document.node(*id))
+            .any(|node| matches!(node.kind, MarkdownNodeKind::Paragraph))
+    );
 }
 
 #[test]
@@ -1185,14 +1189,18 @@ fn test_parse_markdown_fixture_contract() {
 
     assert_valid_markdown_document(&document);
     assert_eq!(document.root.len(), 6);
-    assert!(document
-        .nodes
-        .iter()
-        .any(|node| matches!(node.kind, MarkdownNodeKind::Heading { level: 1 })));
-    assert!(document
-        .nodes
-        .iter()
-        .any(|node| matches!(node.kind, MarkdownNodeKind::Strong)));
+    assert!(
+        document
+            .nodes
+            .iter()
+            .any(|node| matches!(node.kind, MarkdownNodeKind::Heading { level: 1 }))
+    );
+    assert!(
+        document
+            .nodes
+            .iter()
+            .any(|node| matches!(node.kind, MarkdownNodeKind::Strong))
+    );
     assert!(document.nodes.iter().any(|node| {
         matches!(
             &node.kind,

@@ -29,10 +29,10 @@ pub fn with_logger<F>(cb: F)
 where
     F: FnOnce(Arc<dyn Logger>),
 {
-    if let Ok(ref logger) = LOGGER.read() {
-        if let Some(logger) = logger.as_ref() {
-            cb(logger.clone());
-        }
+    if let Ok(ref logger) = LOGGER.read()
+        && let Some(logger) = logger.as_ref()
+    {
+        cb(logger.clone());
     }
 }
 

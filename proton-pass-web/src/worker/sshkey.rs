@@ -2,7 +2,7 @@
 pub use proton_pass_common::sshkey::SshKeyPair as WasmSshKeyPair;
 
 use proton_pass_common::sshkey::{
-    decrypt_private_key, generate_ssh_key, validate_private_key, validate_public_key, SshKeyType,
+    SshKeyType, decrypt_private_key, generate_ssh_key, validate_private_key, validate_public_key,
 };
 use wasm_bindgen::prelude::*;
 

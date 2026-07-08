@@ -2,7 +2,7 @@ use std::ops::Range;
 
 use pulldown_cmark::{CodeBlockKind, CowStr, Event, Options, Parser, Tag, TagEnd};
 
-use super::document::{classify_markdown_link_cow, MarkdownDocument, MarkdownNodeId, MarkdownNodeKind};
+use super::document::{MarkdownDocument, MarkdownNodeId, MarkdownNodeKind, classify_markdown_link_cow};
 use super::utf16::build_utf8_to_utf16_table;
 use super::{MarkdownError, Result};
 
@@ -148,13 +148,13 @@ impl DocumentBuilder {
             return;
         }
 
-        if let Some(id) = self.stack.pop() {
-            if let Some(node) = self.document.node(id) {
-                if self.is_block_kind(&node.kind) {
-                    self.block_depth = self.block_depth.saturating_sub(1);
-                } else {
-                    self.inline_depth = self.inline_depth.saturating_sub(1);
-                }
+        if let Some(id) = self.stack.pop()
+            && let Some(node) = self.document.node(id)
+        {
+            if self.is_block_kind(&node.kind) {
+                self.block_depth = self.block_depth.saturating_sub(1);
+            } else {
+                self.inline_depth = self.inline_depth.saturating_sub(1);
             }
         }
     }

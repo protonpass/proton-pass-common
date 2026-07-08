@@ -1,4 +1,4 @@
-use public_suffix::{EffectiveTLDProvider, Error, DEFAULT_PROVIDER};
+use public_suffix::{DEFAULT_PROVIDER, EffectiveTLDProvider, Error};
 
 #[derive(Debug, proton_pass_derive::Error, PartialEq, Eq)]
 pub enum GetRootDomainError {

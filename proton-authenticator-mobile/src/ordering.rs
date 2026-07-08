@@ -1,5 +1,5 @@
 use crate::{AuthenticatorEntryModel, AuthenticatorError};
-use proton_authenticator::ordering::{reorder_items, EntryWithOrder};
+use proton_authenticator::ordering::{EntryWithOrder, reorder_items};
 
 #[derive(uniffi::Record)]
 pub struct AuthenticatorEntryWithOrder {

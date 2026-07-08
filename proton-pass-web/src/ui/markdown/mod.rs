@@ -4,11 +4,11 @@ use markdown_types::{
     WasmMarkdownUnsafeLinkReason,
 };
 use proton_pass_common::markdown::{
-    parse_markdown_document, MarkdownDocument as CommonMarkdownDocument, MarkdownEditor as CommonMarkdownEditor,
+    MarkdownDocument as CommonMarkdownDocument, MarkdownEditor as CommonMarkdownEditor,
     MarkdownLink as CommonMarkdownLink, MarkdownLinkScheme as CommonMarkdownLinkScheme,
     MarkdownNode as CommonMarkdownNode, MarkdownNodeKind as CommonMarkdownNodeKind,
     MarkdownUnsafeLinkReason as CommonMarkdownUnsafeLinkReason, Operation as CommonOperation,
-    SpanStyle as CommonSpanStyle, StyledSpan as CommonStyledSpan,
+    SpanStyle as CommonSpanStyle, StyledSpan as CommonStyledSpan, parse_markdown_document,
 };
 use wasm_bindgen::prelude::*;
 

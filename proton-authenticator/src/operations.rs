@@ -1,5 +1,5 @@
-use crate::utils::list_to_map;
 use crate::AuthenticatorEntry;
+use crate::utils::list_to_map;
 use std::collections::HashSet;
 
 #[derive(Clone, Copy)]

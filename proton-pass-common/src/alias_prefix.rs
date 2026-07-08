@@ -1,4 +1,4 @@
-use proton_pass_derive::{ffi_error, Error};
+use proton_pass_derive::{Error, ffi_error};
 
 #[ffi_error]
 #[derive(Debug, Error, PartialEq, Eq)]

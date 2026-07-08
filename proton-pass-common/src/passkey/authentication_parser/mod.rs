@@ -7,12 +7,12 @@ fn sanitize_challenge(request: &str) -> PasskeyResult<String> {
     let mut parsed: Value = serde_json::from_str(request)
         .map_err(|e| PasskeyError::SerializationError(format!("Error parsing request: {e:?}")))?;
 
-    if let Some(obj) = parsed.as_object_mut() {
-        if let Some(challenge) = obj.get("challenge") {
-            let transformed = transform_byte_array(challenge.clone());
-            obj.insert("challenge".to_string(), transformed);
-            return Ok(serde_json::to_string(&parsed).unwrap_or(request.to_string()));
-        }
+    if let Some(obj) = parsed.as_object_mut()
+        && let Some(challenge) = obj.get("challenge")
+    {
+        let transformed = transform_byte_array(challenge.clone());
+        obj.insert("challenge".to_string(), transformed);
+        return Ok(serde_json::to_string(&parsed).unwrap_or(request.to_string()));
     }
 
     Ok(request.to_string())
@@ -58,17 +58,16 @@ fn adapt_request_with_prf_to_passkey(request: &str, passkey: Option<&ProtonPassK
     if let Ok(mut value) = serde_json::from_str::<Value>(request) {
         // Check if the request is for one of the domains we know about
         let rp_id = value.get("rpId").and_then(|v| v.as_str()).unwrap_or_default();
-        if should_perform_prf_sanitizing(rp_id) {
-            if let Some(extensions) = value.get_mut("extensions") {
-                if let Some(ext_obj) = extensions.as_object_mut() {
-                    if ext_obj.contains_key("prf") && passkey.extensions.hmac_secret.is_none() {
-                        // Request contains PRF and passkey doesn't have it. Strip it
-                        ext_obj.remove("prf");
+        if should_perform_prf_sanitizing(rp_id)
+            && let Some(extensions) = value.get_mut("extensions")
+            && let Some(ext_obj) = extensions.as_object_mut()
+            && ext_obj.contains_key("prf")
+            && passkey.extensions.hmac_secret.is_none()
+        {
+            // Request contains PRF and passkey doesn't have it. Strip it
+            ext_obj.remove("prf");
 
-                        return Ok(serde_json::to_string(&value).unwrap_or(request.to_string()));
-                    }
-                }
-            }
+            return Ok(serde_json::to_string(&value).unwrap_or(request.to_string()));
         }
     }
 

@@ -96,32 +96,32 @@ impl MarkdownOperations {
 
         // Special case: Handle *** (bold+italic combined)
         // Search for *** even if there are other wrappers in between
-        if wrapper == "*" || wrapper == "**" {
-            if let Some(triple_star_pos) = Self::find_triple_star_positions(text, start, end) {
-                let (opening_pos, closing_pos) = triple_star_pos;
-                if wrapper == "*" {
-                    // Remove one * from *** to leave **
-                    let mut new_text = String::new();
-                    new_text.push_str(&text[..opening_pos]);
-                    new_text.push_str("**");
-                    new_text.push_str(&text[opening_pos + 3..closing_pos]);
-                    new_text.push_str("**");
-                    new_text.push_str(&text[closing_pos + 3..]);
+        if (wrapper == "*" || wrapper == "**")
+            && let Some(triple_star_pos) = Self::find_triple_star_positions(text, start, end)
+        {
+            let (opening_pos, closing_pos) = triple_star_pos;
+            if wrapper == "*" {
+                // Remove one * from *** to leave **
+                let mut new_text = String::new();
+                new_text.push_str(&text[..opening_pos]);
+                new_text.push_str("**");
+                new_text.push_str(&text[opening_pos + 3..closing_pos]);
+                new_text.push_str("**");
+                new_text.push_str(&text[closing_pos + 3..]);
 
-                    let new_cursor = (closing_pos - 1) as u32;
-                    return Ok((new_text, new_cursor, None));
-                } else {
-                    // Remove two * from *** to leave *
-                    let mut new_text = String::new();
-                    new_text.push_str(&text[..opening_pos]);
-                    new_text.push('*');
-                    new_text.push_str(&text[opening_pos + 3..closing_pos]);
-                    new_text.push('*');
-                    new_text.push_str(&text[closing_pos + 3..]);
+                let new_cursor = (closing_pos - 1) as u32;
+                return Ok((new_text, new_cursor, None));
+            } else {
+                // Remove two * from *** to leave *
+                let mut new_text = String::new();
+                new_text.push_str(&text[..opening_pos]);
+                new_text.push('*');
+                new_text.push_str(&text[opening_pos + 3..closing_pos]);
+                new_text.push('*');
+                new_text.push_str(&text[closing_pos + 3..]);
 
-                    let new_cursor = (closing_pos - 2) as u32;
-                    return Ok((new_text, new_cursor, None));
-                }
+                let new_cursor = (closing_pos - 2) as u32;
+                return Ok((new_text, new_cursor, None));
             }
         }
 

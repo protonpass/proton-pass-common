@@ -31,7 +31,7 @@ fn can_match_all_test() {
         "amazon.com",
         "www.amazon.com",
         "amazon.com/some?path=extra",
-        "www.amazon.com/some?path=extra"
+        "www.amazon.com/some?path=extra",
     ];
 
     for domain in domains {

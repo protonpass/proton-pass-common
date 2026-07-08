@@ -1,7 +1,7 @@
 use proton_pass_common::string_modifiers::WordSeparator as CommonWordSeparator;
 use proton_pass_common::username::{
-    get_generator, UsernameGeneratorConfig as CommonUsernameGeneratorConfig,
-    UsernameGeneratorError as CommonUsernameGeneratorError, WordTypes as CommonWordTypes,
+    UsernameGeneratorConfig as CommonUsernameGeneratorConfig, UsernameGeneratorError as CommonUsernameGeneratorError,
+    WordTypes as CommonWordTypes, get_generator,
 };
 
 use super::password::WordSeparator;

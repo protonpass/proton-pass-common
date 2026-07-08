@@ -1,6 +1,6 @@
 use super::passkey_fetcher::get_webauthn_fetcher;
 use proton_pass_common::passkey::{
-    generate_passkey_for_domain, parse_create_passkey_data, resolve_challenge_for_domain, PasskeyResult,
+    PasskeyResult, generate_passkey_for_domain, parse_create_passkey_data, resolve_challenge_for_domain,
 };
 
 use proton_pass_common::passkey_types::webauthn::{

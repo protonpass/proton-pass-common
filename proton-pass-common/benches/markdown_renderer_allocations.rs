@@ -1,4 +1,4 @@
-use proton_pass_common::markdown::{parse_markdown_document, parse_markdown_document_with_limits, MarkdownParseLimits};
+use proton_pass_common::markdown::{MarkdownParseLimits, parse_markdown_document, parse_markdown_document_with_limits};
 use std::hint::black_box;
 use std::{
     alloc::{GlobalAlloc, Layout, System},

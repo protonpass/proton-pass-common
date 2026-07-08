@@ -4,7 +4,7 @@ use proton_authenticator::generator::{
     GeneratorCurrentTimeProvider, TotpGenerationHandle, TotpGenerator as CoreTotpGenerator, TotpGeneratorCallback,
     TotpGeneratorDependencies,
 };
-use proton_authenticator::{emit_log_message, AuthenticatorCodeResponse, LogLevel};
+use proton_authenticator::{AuthenticatorCodeResponse, LogLevel, emit_log_message};
 use std::sync::Arc;
 use wasm_bindgen::prelude::*;
 

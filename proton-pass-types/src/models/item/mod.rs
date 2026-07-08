@@ -22,7 +22,7 @@ mod field;
 mod flags;
 
 use crate::protos::item::item_v1;
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 pub use attachment::*;
 pub use field::Field;
 pub use flags::*;
@@ -151,31 +151,31 @@ impl ItemData {
         original_as_proto.extra_fields.clear();
 
         // Clear fields marked as "repeated" in content based on the content type
-        if let Some(content) = original_as_proto.content.as_mut() {
-            if let Some(content_inner) = content.content.as_mut() {
-                match content_inner {
-                    item_v1::content::Content::Login(login_mut) => {
-                        login_mut.urls.clear();
-                        login_mut.passkeys.clear();
-                    }
-                    item_v1::content::Content::Custom(custom_mut) => {
-                        custom_mut.sections.clear();
-                    }
-                    item_v1::content::Content::Identity(identity_mut) => {
-                        identity_mut.extra_personal_details.clear();
-                        identity_mut.extra_address_details.clear();
-                        identity_mut.extra_contact_details.clear();
-                        identity_mut.extra_work_details.clear();
-                        identity_mut.extra_sections.clear();
-                    }
-                    item_v1::content::Content::SshKey(ssh_mut) => {
-                        ssh_mut.sections.clear();
-                    }
-                    item_v1::content::Content::Wifi(wifi_mut) => {
-                        wifi_mut.sections.clear();
-                    }
-                    _ => {}
+        if let Some(content) = original_as_proto.content.as_mut()
+            && let Some(content_inner) = content.content.as_mut()
+        {
+            match content_inner {
+                item_v1::content::Content::Login(login_mut) => {
+                    login_mut.urls.clear();
+                    login_mut.passkeys.clear();
                 }
+                item_v1::content::Content::Custom(custom_mut) => {
+                    custom_mut.sections.clear();
+                }
+                item_v1::content::Content::Identity(identity_mut) => {
+                    identity_mut.extra_personal_details.clear();
+                    identity_mut.extra_address_details.clear();
+                    identity_mut.extra_contact_details.clear();
+                    identity_mut.extra_work_details.clear();
+                    identity_mut.extra_sections.clear();
+                }
+                item_v1::content::Content::SshKey(ssh_mut) => {
+                    ssh_mut.sections.clear();
+                }
+                item_v1::content::Content::Wifi(wifi_mut) => {
+                    wifi_mut.sections.clear();
+                }
+                _ => {}
             }
         }
 
@@ -1968,10 +1968,12 @@ mod tests {
         // Attempting to update totp field should fail
         let result = item.update_field("extra3", "otpauth://totp/new");
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("Editing TOTP fields is unsupported"));
+        assert!(
+            result
+                .unwrap_err()
+                .to_string()
+                .contains("Editing TOTP fields is unsupported")
+        );
     }
 
     #[test]
@@ -1985,10 +1987,12 @@ mod tests {
         // Attempting to update a timestamp field should fail
         let result = item.update_field("timestamp_field", "new_value");
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("Cannot update timestamp field"));
+        assert!(
+            result
+                .unwrap_err()
+                .to_string()
+                .contains("Cannot update timestamp field")
+        );
     }
 
     #[test]

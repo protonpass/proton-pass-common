@@ -25,7 +25,7 @@ impl PasskeySanitizer for MyMailCheapSanitizer {
         let user_display_name_edited = crate::passkey::utils::set_user_display_name_if_empty(&mut obj);
 
         let rp_name_edited = match obj.get_mut("rp") {
-            Some(Value::Object(ref mut rp_obj)) => match rp_obj.get_mut("name") {
+            Some(Value::Object(rp_obj)) => match rp_obj.get_mut("name") {
                 None | Some(Value::Null) => {
                     // null rp.name. Setting a defined one
                     rp_obj.insert("name".to_string(), Value::String("mailcheap.co".to_string()));

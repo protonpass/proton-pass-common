@@ -200,8 +200,8 @@ fn get_dictionary(spec: &RandomPasswordConfig) -> String {
 #[cfg(test)]
 mod test {
     use super::*;
-    use rand::prelude::StdRng;
     use rand::SeedableRng;
+    use rand::prelude::StdRng;
 
     const SEED: u64 = 7539514682;
 

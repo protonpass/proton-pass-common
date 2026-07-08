@@ -1,5 +1,5 @@
 use crate::steam::PERIOD as STEAM_PERIOD;
-use crate::{entry, AuthenticatorEntry, AuthenticatorEntryContent, ThirdPartyImportError};
+use crate::{AuthenticatorEntry, AuthenticatorEntryContent, ThirdPartyImportError, entry};
 
 #[derive(Clone, Debug, proton_pass_derive::Error)]
 pub enum AuthenticatorError {

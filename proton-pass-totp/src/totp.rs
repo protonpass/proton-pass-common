@@ -412,8 +412,7 @@ mod test_from_uri {
     #[test]
     fn explicit_params() {
         // Given
-        let uri =
-            "otpauth://totp/john.doe%40example.com?secret=somesecret&issuer=ProtonMail&algorithm=SHA512&digits=8&period=45";
+        let uri = "otpauth://totp/john.doe%40example.com?secret=somesecret&issuer=ProtonMail&algorithm=SHA512&digits=8&period=45";
 
         // When
         let sut = make_sut(uri);

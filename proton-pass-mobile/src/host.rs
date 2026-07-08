@@ -1,4 +1,4 @@
-use proton_pass_common::host::{parse, HostInfo as CommonHostInfo, ParseHostError as CommonParseHostError};
+use proton_pass_common::host::{HostInfo as CommonHostInfo, ParseHostError as CommonParseHostError, parse};
 
 #[derive(Debug, proton_pass_derive::Error, PartialEq, Eq, uniffi::Error)]
 #[uniffi(flat_error)]

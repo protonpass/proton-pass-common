@@ -1,7 +1,7 @@
-use crate::parser::lastpass::LastPassImportError;
-use crate::parser::{ImportError, ImportResult};
 use crate::AuthenticatorEntry;
 use crate::AuthenticatorEntryContent::Totp;
+use crate::parser::lastpass::LastPassImportError;
+use crate::parser::{ImportError, ImportResult};
 use proton_pass_totp::algorithm::Algorithm;
 use proton_pass_totp::totp::TOTP;
 
@@ -40,7 +40,7 @@ impl TryFrom<Account> for AuthenticatorEntry {
                         return Err(LastPassImportError::BadContent(format!(
                             "Unknown algorithm: {}",
                             value.algorithm
-                        )))
+                        )));
                     }
                 },
                 digits: Some(value.digits),
@@ -52,11 +52,7 @@ impl TryFrom<Account> for AuthenticatorEntry {
 }
 
 fn string_option_if_not_empty(s: String) -> Option<String> {
-    if s.is_empty() {
-        None
-    } else {
-        Some(s)
-    }
+    if s.is_empty() { None } else { Some(s) }
 }
 
 pub fn parse_lastpass_json(input: &str) -> Result<ImportResult, LastPassImportError> {
@@ -81,8 +77,8 @@ pub fn parse_lastpass_json(input: &str) -> Result<ImportResult, LastPassImportEr
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::get_file_contents;
     use crate::AuthenticatorEntryContent;
+    use crate::test_utils::get_file_contents;
     use proton_pass_totp::algorithm::Algorithm;
     use proton_pass_totp::totp::TOTP;
 

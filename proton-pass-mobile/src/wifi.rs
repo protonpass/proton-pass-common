@@ -1,6 +1,6 @@
 use crate::QrCodeError;
 use proton_pass_common::qr::generate_svg_qr_code;
-use proton_pass_common::wifi::{generate_wifi_uri, WifiError as CommonWifiError, WifiSecurity as CommonWifiSecurity};
+use proton_pass_common::wifi::{WifiError as CommonWifiError, WifiSecurity as CommonWifiSecurity, generate_wifi_uri};
 use proton_pass_derive::Error;
 use proton_pass_types::WifiSecurity;
 

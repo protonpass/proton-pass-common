@@ -1,9 +1,9 @@
 mod username_generator;
 
 pub use crate::string_modifiers::WordSeparator;
+use proton_pass_derive::Error;
 #[cfg(feature = "wasm")]
 use proton_pass_derive::ffi_type;
-use proton_pass_derive::Error;
 use rand::{rng, rngs::ThreadRng};
 use username_generator::UsernameGenerator;
 

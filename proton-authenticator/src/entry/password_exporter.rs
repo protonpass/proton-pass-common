@@ -1,10 +1,10 @@
 use crate::crypto::EncryptionTag;
 use crate::entry::{export_entries, import_authenticator_entries};
-use crate::{crypto, AuthenticatorEntry, AuthenticatorError, ImportResult, ThirdPartyImportError};
-use argon2::password_hash::rand_core::RngCore;
+use crate::{AuthenticatorEntry, AuthenticatorError, ImportResult, ThirdPartyImportError, crypto};
 use argon2::Algorithm::Argon2id;
 use argon2::Version::V0x13;
-use argon2::{password_hash::rand_core::OsRng, Argon2};
+use argon2::password_hash::rand_core::RngCore;
+use argon2::{Argon2, password_hash::rand_core::OsRng};
 use base64::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::error::Error;

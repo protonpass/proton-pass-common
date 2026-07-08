@@ -1,7 +1,7 @@
+use crate::AuthenticatorEntry;
 use crate::parser::aegis::AegisImportError;
 use crate::parser::{ImportError, ImportResult};
 use crate::utils::conceal;
-use crate::AuthenticatorEntry;
 
 pub fn parse_aegis_txt(input: &str) -> Result<ImportResult, AegisImportError> {
     let mut entries = Vec::new();
@@ -28,9 +28,9 @@ pub fn parse_aegis_txt(input: &str) -> Result<ImportResult, AegisImportError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::AuthenticatorEntryContent;
     use crate::parser::aegis::test::check_export_matches;
     use crate::test_utils::get_file_contents;
-    use crate::AuthenticatorEntryContent;
 
     #[test]
     fn can_parse_aegis_txt() {

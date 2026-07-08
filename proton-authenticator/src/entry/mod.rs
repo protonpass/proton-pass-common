@@ -1,14 +1,14 @@
 mod create;
 mod crypto;
 mod exporter;
-mod gen;
+mod r#gen;
 #[cfg(any(feature = "uniffi", feature = "wasm"))]
 mod model;
 mod password_exporter;
 mod serializer;
 mod update;
 
-use crate::steam::{SteamTotp, PERIOD as STEAM_PERIOD, STEAM_DIGITS, STEAM_ISSUER};
+use crate::steam::{PERIOD as STEAM_PERIOD, STEAM_DIGITS, STEAM_ISSUER, SteamTotp};
 pub use create::{AuthenticatorEntrySteamCreateParameters, AuthenticatorEntryTotpCreateParameters};
 pub use crypto::{decrypt_entries, encrypt_entries};
 pub use exporter::{export_entries, import_authenticator_entries};
@@ -195,8 +195,7 @@ mod tests {
 
     #[test]
     fn can_handle_colon_in_label_when_parsing() {
-        let input =
-            "otpauth://totp/issuer:label%3Awith%3Acolons?secret=MYSECRET&issuer=issuer&algorithm=SHA256&digits=8&period=15";
+        let input = "otpauth://totp/issuer:label%3Awith%3Acolons?secret=MYSECRET&issuer=issuer&algorithm=SHA256&digits=8&period=15";
         let parsed = AuthenticatorEntry::from_uri(input, None).expect("Should be able to parse");
         assert_eq!("label:with:colons", parsed.name());
         assert_eq!("issuer", parsed.issuer());

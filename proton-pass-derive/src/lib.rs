@@ -1,8 +1,9 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
+    DeriveInput, Item, LitStr, Token,
     parse::{Parse, ParseStream},
-    parse_macro_input, DeriveInput, Item, LitStr, Token,
+    parse_macro_input,
 };
 
 /// Parsed attributes for FFI type macros

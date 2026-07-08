@@ -1,6 +1,6 @@
 use crate::passkey::{PasskeyError, PasskeyResult};
 use passkey_types::webauthn::PublicKeyCredentialCreationOptions;
-use sanitize::{sanitize_request, PasskeySanitizer};
+use sanitize::{PasskeySanitizer, sanitize_request};
 
 mod cvs;
 mod ebay;
@@ -28,36 +28,32 @@ fn try_fix_request(request: &str) -> PasskeyResult<String> {
 }
 
 fn fix_null_user_name_values(json_value: &mut serde_json::Value) {
-    if let Some(obj) = json_value.as_object_mut() {
-        if let Some(user_obj) = obj.get_mut("user") {
-            if let Some(user_obj) = user_obj.as_object_mut() {
-                if let Some(display_name_value) = user_obj.get_mut("displayName") {
-                    if let serde_json::Value::Null = display_name_value {
-                        *display_name_value = serde_json::Value::String("null".to_string());
-                    }
-                }
+    if let Some(obj) = json_value.as_object_mut()
+        && let Some(user_obj) = obj.get_mut("user")
+        && let Some(user_obj) = user_obj.as_object_mut()
+    {
+        if let Some(display_name_value) = user_obj.get_mut("displayName")
+            && let serde_json::Value::Null = display_name_value
+        {
+            *display_name_value = serde_json::Value::String("null".to_string());
+        }
 
-                if let Some(user_name_value) = user_obj.get_mut("name") {
-                    if let serde_json::Value::Null = user_name_value {
-                        *user_name_value = serde_json::Value::String("null".to_string());
-                    }
-                }
-            }
+        if let Some(user_name_value) = user_obj.get_mut("name")
+            && let serde_json::Value::Null = user_name_value
+        {
+            *user_name_value = serde_json::Value::String("null".to_string());
         }
     }
 }
 
 fn fix_null_resident_key_value(json_value: &mut serde_json::Value) {
-    if let Some(obj) = json_value.as_object_mut() {
-        if let Some(as_obj) = obj.get_mut("authenticatorSelection") {
-            if let Some(as_obj) = as_obj.as_object_mut() {
-                if let Some(rrk_value) = as_obj.get_mut("requireResidentKey") {
-                    if let serde_json::Value::Null = rrk_value {
-                        *rrk_value = serde_json::Value::Bool(false);
-                    }
-                }
-            }
-        }
+    if let Some(obj) = json_value.as_object_mut()
+        && let Some(as_obj) = obj.get_mut("authenticatorSelection")
+        && let Some(as_obj) = as_obj.as_object_mut()
+        && let Some(rrk_value) = as_obj.get_mut("requireResidentKey")
+        && let serde_json::Value::Null = rrk_value
+    {
+        *rrk_value = serde_json::Value::Bool(false);
     }
 }
 

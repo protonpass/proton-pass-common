@@ -91,10 +91,8 @@ fn parse_totp_line(
                 Some(ref l) => l.is_empty(),
             };
 
-            if parse_label {
-                if let Some(name) = record.get(name_idx) {
-                    totp.label = Some(name.trim().to_string());
-                }
+            if parse_label && let Some(name) = record.get(name_idx) {
+                totp.label = Some(name.trim().to_string());
             }
 
             entries.push(AuthenticatorEntry {
@@ -144,8 +142,8 @@ fn parse_steam_line(
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::get_file_contents;
     use crate::AuthenticatorEntryContent;
+    use crate::test_utils::get_file_contents;
     use proton_pass_totp::algorithm::Algorithm;
     use proton_pass_totp::totp::TOTP;
 

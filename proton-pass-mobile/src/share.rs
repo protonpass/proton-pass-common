@@ -1,4 +1,4 @@
-use proton_pass_common::share::{visible_share_ids, Share as CommonShare, TargetType as CommonTargetType};
+use proton_pass_common::share::{Share as CommonShare, TargetType as CommonTargetType, visible_share_ids};
 
 #[derive(Clone, Debug, PartialEq, Eq, uniffi::Enum)]
 pub enum TargetType {

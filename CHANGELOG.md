@@ -6,6 +6,14 @@
 
 ### Other
 
+## 1.7.1
+
+### Other
+
+- pass-common: Markdown handling improved.
+- Use centralized versioning for the repo.
+- Upgrade to rust edition 2024.
+
 ## 1.7.0
 
 ### Features :tada:

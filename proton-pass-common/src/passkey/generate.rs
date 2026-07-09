@@ -6,10 +6,29 @@ use coset::iana;
 use coset::iana::EnumI64;
 use passkey_types::Bytes;
 use passkey_types::webauthn::{
+    AuthenticationExtensionsClientInputs, AuthenticationExtensionsPrfInputs, AuthenticationExtensionsPrfValues,
     CreatedPublicKeyCredential, CredentialCreationOptions, PublicKeyCredentialCreationOptions,
     PublicKeyCredentialParameters, PublicKeyCredentialRpEntity, PublicKeyCredentialType, PublicKeyCredentialUserEntity,
 };
 use url::Url;
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct CreatePasskeyPrfInput {
+    pub eval: Option<CreatePasskeyPrfValues>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct CreatePasskeyPrfValues {
+    pub first: Vec<u8>,
+    pub second: Option<Vec<u8>>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct CreatePasskeyPrfOutput {
+    pub supported: bool,
+    pub first: Option<Vec<u8>>,
+    pub second: Option<Vec<u8>>,
+}
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct CreatePasskeyResponse {
@@ -26,6 +45,7 @@ pub struct CreatePasskeyResponse {
     pub user_handle: Option<Vec<u8>>,
     pub client_data_hash: Vec<u8>,
     pub attestation_object: Vec<u8>,
+    pub prf: Option<CreatePasskeyPrfOutput>,
 }
 
 impl CreatePasskeyResponse {
@@ -66,6 +86,15 @@ async fn generate_passkey_response(
         let client_data_hash =
             passkey_types::crypto::sha256(my_webauthn_credential.response.client_data_json.as_slice()).to_vec();
         let attestation_object = my_webauthn_credential.response.attestation_object.to_vec();
+        let prf = my_webauthn_credential
+            .client_extension_results
+            .prf
+            .as_ref()
+            .map(|prf| CreatePasskeyPrfOutput {
+                supported: prf.enabled.unwrap_or(false),
+                first: prf.results.as_ref().map(|r| r.first.to_vec()),
+                second: prf.results.as_ref().and_then(|r| r.second.as_ref().map(|s| s.to_vec())),
+            });
 
         Ok(CreatePasskeyResponse {
             passkey: serialized,
@@ -81,6 +110,7 @@ async fn generate_passkey_response(
             domain,
             client_data_hash,
             attestation_object,
+            prf,
         })
     } else {
         Err(PasskeyError::GenerationError(
@@ -134,6 +164,22 @@ pub struct CreatePasskeyIosRequest {
     pub user_handle: Vec<u8>,
     pub client_data_hash: Vec<u8>,
     pub supported_algorithms: Vec<i64>,
+    pub prf: Option<CreatePasskeyPrfInput>,
+}
+
+impl CreatePasskeyPrfInput {
+    fn into_client_inputs(self) -> AuthenticationExtensionsClientInputs {
+        AuthenticationExtensionsClientInputs {
+            prf_already_hashed: Some(AuthenticationExtensionsPrfInputs {
+                eval: self.eval.map(|eval| AuthenticationExtensionsPrfValues {
+                    first: Bytes::from(eval.first),
+                    second: eval.second.map(Bytes::from),
+                }),
+                eval_by_credential: None,
+            }),
+            ..Default::default()
+        }
+    }
 }
 
 pub async fn generate_passkey_for_ios(
@@ -141,6 +187,7 @@ pub async fn generate_passkey_for_ios(
     fetcher: WebauthnFetcher,
 ) -> PasskeyResult<CreatePasskeyResponse> {
     let url = parse_url(&ios_request.service_identifier)?;
+    let extensions = ios_request.prf.map(CreatePasskeyPrfInput::into_client_inputs);
     let mut pub_key_cred_params = vec![];
 
     for algorithm in ios_request.supported_algorithms {
@@ -170,7 +217,7 @@ pub async fn generate_passkey_for_ios(
         hints: None,
         attestation: Default::default(),
         attestation_formats: None,
-        extensions: None,
+        extensions,
     };
 
     let request = CredentialCreationOptions { public_key: options };

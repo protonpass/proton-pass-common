@@ -11,8 +11,8 @@ mod utils;
 
 pub use fetcher::{FetchError, WebauthnClientFetcher, WebauthnDomainsResponse, WebauthnFetcher};
 pub use generate::{
-    CreatePasskeyData, CreatePasskeyIosRequest, CreatePasskeyResponse, generate_passkey_for_domain,
-    generate_passkey_for_ios, parse_create_passkey_data,
+    CreatePasskeyData, CreatePasskeyIosRequest, CreatePasskeyPrfInput, CreatePasskeyPrfOutput, CreatePasskeyPrfValues,
+    CreatePasskeyResponse, generate_passkey_for_domain, generate_passkey_for_ios, parse_create_passkey_data,
 };
 pub use protonpasskey::ProtonPassKey;
 pub use resolve::{

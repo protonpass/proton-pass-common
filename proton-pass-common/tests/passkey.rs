@@ -1,4 +1,7 @@
-use proton_pass_common::passkey::{CreatePasskeyResponse, PasskeyResult, ResolveChallengeResponse};
+use proton_pass_common::passkey::{
+    CreatePasskeyIosRequest, CreatePasskeyPrfInput, CreatePasskeyPrfValues, CreatePasskeyResponse, PasskeyResult,
+    ResolveChallengeResponse, generate_passkey_for_ios,
+};
 use proton_pass_common::passkey::{FetchError, WebauthnClientFetcher, WebauthnDomainsResponse, WebauthnFetcher};
 
 const EXAMPLE_JSON: &str = r#"
@@ -85,6 +88,65 @@ fn with_prf() {
 
     let prf = res.credential.client_extension_results.prf;
     assert!(prf.is_some());
+}
+
+fn generate_ios_passkey(request: CreatePasskeyIosRequest) -> PasskeyResult<CreatePasskeyResponse> {
+    let rt = get_runtime();
+    rt.block_on(async move { generate_passkey_for_ios(request, WebauthnFetcher::new(None)).await })
+}
+
+fn base_ios_request() -> CreatePasskeyIosRequest {
+    CreatePasskeyIosRequest {
+        service_identifier: "www.passkeys.io".to_string(),
+        rp_id: "Passkey PRF Example".to_string(),
+        user_name: "user@example.com".to_string(),
+        user_handle: vec![1, 2, 3, 4],
+        client_data_hash: vec![0; 32],
+        supported_algorithms: vec![-7, -257],
+        prf: None,
+    }
+}
+
+#[test]
+fn ios_without_prf_has_no_prf_output() {
+    let res = generate_ios_passkey(base_ios_request()).expect("should generate ios passkey");
+    assert!(res.prf.is_none());
+    assert!(res.credential.client_extension_results.prf.is_none());
+}
+
+#[test]
+fn ios_with_prf_check_for_support_enables_prf() {
+    let request = CreatePasskeyIosRequest {
+        prf: Some(CreatePasskeyPrfInput { eval: None }),
+        ..base_ios_request()
+    };
+
+    let res = generate_ios_passkey(request).expect("should generate ios passkey with prf support");
+
+    let prf = res.prf.expect("prf output should be present");
+    assert!(prf.supported);
+    assert!(prf.first.is_none());
+    assert!(prf.second.is_none());
+}
+
+#[test]
+fn ios_with_prf_eval_returns_results() {
+    let request = CreatePasskeyIosRequest {
+        prf: Some(CreatePasskeyPrfInput {
+            eval: Some(CreatePasskeyPrfValues {
+                first: vec![7; 32],
+                second: Some(vec![9; 32]),
+            }),
+        }),
+        ..base_ios_request()
+    };
+
+    let res = generate_ios_passkey(request).expect("should generate ios passkey with prf eval");
+
+    let prf = res.prf.expect("prf output should be present");
+    assert!(prf.supported);
+    assert!(prf.first.is_some());
+    assert!(prf.second.is_some());
 }
 
 #[test]

@@ -5,7 +5,9 @@ pub use proton_pass_common::passkey::{
     AuthenticateWithPasskeyAndroidRequest as CommonAuthenticateWithPasskeyAndroidRequest,
     AuthenticateWithPasskeyIosRequest as CommonAuthenticateWithPasskeyIosRequest,
     AuthenticateWithPasskeyIosResponse as CommonAuthenticateWithPasskeyIosResponse,
-    CreatePasskeyIosRequest as CommonCreatePasskeyIosRequest, PasskeyError as CommonPasskeyError,
+    CreatePasskeyIosRequest as CommonCreatePasskeyIosRequest, CreatePasskeyPrfInput as CommonCreatePasskeyPrfInput,
+    CreatePasskeyPrfOutput as CommonCreatePasskeyPrfOutput, CreatePasskeyPrfValues as CommonCreatePasskeyPrfValues,
+    PasskeyError as CommonPasskeyError,
 };
 use proton_pass_common::passkey::{
     WebauthnClientFetcher, WebauthnFetcher, generate_passkey_for_domain, generate_passkey_for_ios,
@@ -79,6 +81,7 @@ pub struct CreatePasskeyIosRequest {
     pub user_handle: Vec<u8>,
     pub client_data_hash: Vec<u8>,
     pub supported_algorithms: Vec<i64>,
+    pub prf: Option<CreatePasskeyPrfInput>,
 }
 
 impl From<CreatePasskeyIosRequest> for CommonCreatePasskeyIosRequest {
@@ -90,8 +93,44 @@ impl From<CreatePasskeyIosRequest> for CommonCreatePasskeyIosRequest {
             user_handle: other.user_handle,
             client_data_hash: other.client_data_hash,
             supported_algorithms: other.supported_algorithms,
+            prf: other.prf.map(CommonCreatePasskeyPrfInput::from),
         }
     }
+}
+
+#[derive(uniffi::Record)]
+pub struct CreatePasskeyPrfInput {
+    pub eval: Option<CreatePasskeyPrfValues>,
+}
+
+impl From<CreatePasskeyPrfInput> for CommonCreatePasskeyPrfInput {
+    fn from(other: CreatePasskeyPrfInput) -> Self {
+        Self {
+            eval: other.eval.map(CommonCreatePasskeyPrfValues::from),
+        }
+    }
+}
+
+#[derive(uniffi::Record)]
+pub struct CreatePasskeyPrfValues {
+    pub first: Vec<u8>,
+    pub second: Option<Vec<u8>>,
+}
+
+impl From<CreatePasskeyPrfValues> for CommonCreatePasskeyPrfValues {
+    fn from(other: CreatePasskeyPrfValues) -> Self {
+        Self {
+            first: other.first,
+            second: other.second,
+        }
+    }
+}
+
+#[derive(uniffi::Record)]
+pub struct CreatePasskeyPrfOutput {
+    pub supported: bool,
+    pub first: Option<Vec<u8>>,
+    pub second: Option<Vec<u8>>,
 }
 
 #[derive(Clone, Debug, proton_pass_derive::Error, uniffi::Error)]
@@ -147,6 +186,17 @@ pub struct CreatePasskeyIosResponse {
     pub client_data_hash: Vec<u8>,
     pub user_handle: Option<Vec<u8>>,
     pub attestation_object: Vec<u8>,
+    pub prf: Option<CreatePasskeyPrfOutput>,
+}
+
+impl From<CommonCreatePasskeyPrfOutput> for CreatePasskeyPrfOutput {
+    fn from(other: CommonCreatePasskeyPrfOutput) -> Self {
+        Self {
+            supported: other.supported,
+            first: other.first,
+            second: other.second,
+        }
+    }
 }
 
 #[derive(uniffi::Record)]
@@ -234,6 +284,7 @@ impl PasskeyManager {
                 client_data_hash: r.client_data_hash,
                 user_handle: r.user_handle,
                 attestation_object: r.attestation_object,
+                prf: r.prf.map(CreatePasskeyPrfOutput::from),
             })
         })
     }

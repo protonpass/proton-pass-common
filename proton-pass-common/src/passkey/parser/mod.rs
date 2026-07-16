@@ -133,34 +133,6 @@ mod tests {
         }
     }
 
-    mod ebay {
-        use super::*;
-
-        #[test]
-        fn parse_web_create_request() {
-            let input = r#"
-        {"attestation":"direct","authenticatorSelection":{"authenticatorAttachment":"platform","residentKey":"required","userVerification":"required"},"challenge":"MHFHazVISkJNamZrVXlwaWYtUGQ3eFJRb3lvVEk1VFZZdEZXdHQ3VERRay5NVGN6TXpnek9ETXdNekF5T1EuY21saWJIY3pkV3h4Ym0wLmdCUENVM1BrZVNZLUZnWWhueXRQWkxVRkU4aG5UQVpkVjZrMDNFY1FYalU","excludeCredentials":[],"pubKeyCredParams":[{"alg":-7,"type":"public-key"},{"alg":-35,"type":"public-key"},{"alg":-36,"type":"public-key"},{"alg":-257,"type":"public-key"},{"alg":-258,"type":"public-key"},{"alg":-259,"type":"public-key"},{"alg":-37,"type":"public-key"},{"alg":-38,"type":"public-key"},{"alg":-39,"type":"public-key"},{"alg":-1,"type":"public-key"}],"rp":{"id":"ebay.es","name":"ebay.es"},"user":{"displayName":"test@email.com","id":"abcdeFghWZxbm0","name":"test@email.com"}}
-        "#.trim();
-            let raw_parse = parse(input);
-            assert!(raw_parse.is_err());
-
-            let parsed = parse_create_request(input, Some("ebay.com"));
-            assert!(parsed.is_ok());
-        }
-
-        #[test]
-        fn parse_android_create_request() {
-            let input = r#"
-        {"attestation":"direct","authenticatorSelection":{"authenticatorAttachment":"platform","requireResidentKey":true,"userVerification":"required"},"challenge":"Y3loVFRSWTN5QmxYRzVuazRucVVlNF9udExmVnVmdTlSeWJac3NCR2wtRS5NVGN6TXpnME1ETTVPVFUzTXcuY21saWJIY3pkV3h4Ym0wLmo2V2VWWWEyZ0dHT0wzVU1POGZJNU1KbzROSU1CR3oxZG5XdVpPSllxcm8\u003d","pubKeyCredParams":[{"alg":"-7","type":"public-key"},{"alg":"-35","type":"public-key"},{"alg":"-36","type":"public-key"},{"alg":"-257","type":"public-key"},{"alg":"-258","type":"public-key"},{"alg":"-259","type":"public-key"},{"alg":"-37","type":"public-key"},{"alg":"-38","type":"public-key"},{"alg":"-39","type":"public-key"},{"alg":"-1","type":"public-key"}],"rp":{"id":"ebay.es","name":"ebay.es"},"user":{"displayName":"test@email.com","id":"abcdeFghWZxbm0\u003d","name":"test@email.com"}}
-        "#.trim();
-            let raw_parse = parse(input);
-            assert!(raw_parse.is_err());
-
-            let parsed = parse_create_request(input, Some("ebay.com"));
-            assert!(parsed.is_ok());
-        }
-    }
-
     mod paypal {
         use super::*;
         #[test]

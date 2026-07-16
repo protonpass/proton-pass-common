@@ -24,10 +24,10 @@ serde.workspace = true
 serde_json.workspace = true
 
 # Passkeys dependency
-passkey = { git = "https://github.com/1Password/passkey-rs.git", rev = "f43d644580b63d51696ec4ac042df97e9a14b750" }
-passkey-authenticator = { git = "https://github.com/1Password/passkey-rs.git", rev = "f43d644580b63d51696ec4ac042df97e9a14b750" }
-passkey-types = { git = "https://github.com/1Password/passkey-rs.git", rev = "f43d644580b63d51696ec4ac042df97e9a14b750", features = ["serialize_bytes_as_base64_string"] }
-public-suffix = { git = "https://github.com/1Password/passkey-rs.git", rev = "f43d644580b63d51696ec4ac042df97e9a14b750" }
+passkey = { git = "https://github.com/1Password/passkey-rs.git", rev = "46f3a936671d80842d1808871780a3a331bffbdb" }
+passkey-authenticator = { git = "https://github.com/1Password/passkey-rs.git", rev = "46f3a936671d80842d1808871780a3a331bffbdb" }
+passkey-types = { git = "https://github.com/1Password/passkey-rs.git", rev = "46f3a936671d80842d1808871780a3a331bffbdb", features = ["serialize_bytes_as_base64_string"] }
+public-suffix = { git = "https://github.com/1Password/passkey-rs.git", rev = "46f3a936671d80842d1808871780a3a331bffbdb" }
 
 coset = "0.4.0"
 email_address = "0.2.9"

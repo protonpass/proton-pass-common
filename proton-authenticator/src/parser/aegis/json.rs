@@ -126,4 +126,15 @@ mod test {
         assert_eq!(1, res.errors.len());
         assert!(res.errors[0].message.contains("Unsupported"));
     }
+
+    #[test]
+    fn detects_invalid_period_digits() {
+        let content = get_file_contents("aegis/aegis-json-unencrypted-with-bad-period-digits.json");
+        let res = parse_aegis_json(&content, None).expect("should be able to parse");
+
+        assert_eq!(0, res.entries.len());
+        assert_eq!(2, res.errors.len());
+        assert!(res.errors[0].message.contains("digits"));
+        assert!(res.errors[1].message.contains("period"));
+    }
 }

@@ -1,6 +1,7 @@
 use crate::AuthenticatorEntry;
 use crate::AuthenticatorEntryContent::Totp;
 use crate::parser::lastpass::LastPassImportError;
+use crate::parser::validation::{validate_digits, validate_period};
 use crate::parser::{ImportError, ImportResult};
 use proton_pass_totp::algorithm::Algorithm;
 use proton_pass_totp::totp::TOTP;
@@ -28,6 +29,20 @@ impl TryFrom<Account> for AuthenticatorEntry {
     type Error = LastPassImportError;
 
     fn try_from(value: Account) -> Result<Self, Self::Error> {
+        let account_name = if !value.user_name.is_empty() {
+            value.user_name.clone()
+        } else {
+            value.issuer_name.clone()
+        };
+
+        if let Some(digits_error) = validate_digits(value.digits as u32, &account_name) {
+            return Err(LastPassImportError::BadContent(digits_error));
+        }
+
+        if let Some(period_error) = validate_period(value.time_step as u32, &account_name) {
+            return Err(LastPassImportError::BadContent(period_error));
+        }
+
         Ok(AuthenticatorEntry {
             note: None,
             content: Totp(TOTP {
@@ -186,5 +201,23 @@ mod test {
         let entry = &res.entries[0];
         assert_eq!("sometest", entry.issuer());
         assert_eq!("sometest", entry.name());
+    }
+
+    #[test]
+    fn rejects_invalid_digits() {
+        let input = r#"{"version": 1, "accounts": [{"issuerName": "Test", "userName": "user@test.com", "secret": "JBSWY3DPEHPK3PXP", "timeStep": 30, "digits": 0, "algorithm": "SHA1"}]}"#;
+        let res = parse_lastpass_json(input).expect("should parse successfully but with errors");
+        assert_eq!(res.entries.len(), 0);
+        assert_eq!(res.errors.len(), 1);
+        assert!(res.errors[0].message.contains("digits"));
+    }
+
+    #[test]
+    fn rejects_invalid_period() {
+        let input = r#"{"version": 1, "accounts": [{"issuerName": "Test", "userName": "user@test.com", "secret": "JBSWY3DPEHPK3PXP", "timeStep": 0, "digits": 6, "algorithm": "SHA1"}]}"#;
+        let res = parse_lastpass_json(input).expect("should parse successfully but with errors");
+        assert_eq!(res.entries.len(), 0);
+        assert_eq!(res.errors.len(), 1);
+        assert!(res.errors[0].message.contains("period"));
     }
 }

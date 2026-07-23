@@ -3,6 +3,7 @@ use crate::{AuthenticatorEntry, AuthenticatorEntryContent};
 
 use base64::{Engine as _, engine::general_purpose};
 
+use crate::parser::validation::{validate_digits, validate_period};
 use crate::parser::{ImportError, ImportResult};
 use crate::steam::SteamTotp;
 use aes_gcm::aead::{Aead, KeyInit};
@@ -209,6 +210,17 @@ fn get_content_from_entry(obj: TwoFasEntry) -> Result<AuthenticatorEntryContent,
 
             let label = calculate_label(otp.label, otp.account, obj.name.to_string());
 
+            let digits = otp.digits.unwrap_or(6);
+            let period = otp.period.unwrap_or(30);
+
+            if let Some(digits_error) = validate_digits(digits, &obj.name) {
+                return Err(TwoFasImportError::InvalidConfig(digits_error));
+            }
+
+            if let Some(period_error) = validate_period(period, &obj.name) {
+                return Err(TwoFasImportError::InvalidConfig(period_error));
+            }
+
             Ok(AuthenticatorEntryContent::Totp(TOTP {
                 label: Some(label),
                 secret: obj.secret,
@@ -223,8 +235,8 @@ fn get_content_from_entry(obj: TwoFasEntry) -> Result<AuthenticatorEntryContent,
                     },
                     None => None,
                 },
-                digits: otp.digits.map(|v| v as u8),
-                period: otp.period.map(|v| v as u16),
+                digits: Some(digits as u8),
+                period: Some(period as u16),
             }))
         }
         _ => {
@@ -402,5 +414,27 @@ mod test {
 
         assert_eq!(res.errors.len(), 1);
         assert!(res.errors[0].message.contains("Unsupported"));
+    }
+
+    #[test]
+    fn rejects_invalid_digits() {
+        let content = r#"{"schemaVersion": 4, "services": [{"name": "Test Entry", "secret": "JBSWY3DPEHPK3PXP", "otp": {"tokenType": "TOTP", "source": "Manual", "digits": 0, "period": 30}}]}"#;
+        let res = parse_2fas_file(content, None).expect("should parse");
+        assert_eq!(res.entries.len(), 0);
+        assert_eq!(res.errors.len(), 1);
+        let error_message = &res.errors[0].message;
+        assert!(error_message.contains("InvalidConfig"));
+        assert!(error_message.contains("digits"));
+    }
+
+    #[test]
+    fn rejects_invalid_period() {
+        let content = r#"{"schemaVersion": 4, "services": [{"name": "Test Entry", "secret": "JBSWY3DPEHPK3PXP", "otp": {"tokenType": "TOTP", "source": "Manual", "digits": 6, "period": 0}}]}"#;
+        let res = parse_2fas_file(content, None).expect("should parse");
+        assert_eq!(res.entries.len(), 0);
+        assert_eq!(res.errors.len(), 1);
+        let error_message = &res.errors[0].message;
+        assert!(error_message.contains("InvalidConfig"));
+        assert!(error_message.contains("period"));
     }
 }

@@ -1,6 +1,7 @@
 pub mod r#gen;
 
 use crate::parser::google::r#gen::google_authenticator::migration_payload::OtpType;
+use crate::parser::validation::validate_digits;
 use crate::parser::{ImportError, ImportResult, ThirdPartyImportError};
 use crate::{AuthenticatorEntry, AuthenticatorEntryContent};
 use base64::Engine;
@@ -62,17 +63,24 @@ impl TryFrom<google::OtpParameters> for AuthenticatorEntry {
                 } else {
                     parameters.issuer
                 };
+
+                let digits_u32 = match parameters.digits.enum_value_or_default() {
+                    google::DigitCount::DIGIT_COUNT_UNSPECIFIED => 6, // Default to 6
+                    google::DigitCount::DIGIT_COUNT_EIGHT => 8,
+                    google::DigitCount::DIGIT_COUNT_SIX => 6,
+                };
+
+                if validate_digits(digits_u32, &parameters.name).is_some() {
+                    return Err(GoogleAuthenticatorParseError::BadContent);
+                }
+
                 Ok(Self {
                     content: AuthenticatorEntryContent::Totp(TOTP {
                         label: Some(parameters.name),
                         secret: base32::encode(base32::Alphabet::Rfc4648 { padding: false }, &parameters.secret),
                         issuer: Some(issuer),
                         algorithm: Some(algorithm),
-                        digits: match parameters.digits.enum_value_or_default() {
-                            google::DigitCount::DIGIT_COUNT_UNSPECIFIED => None,
-                            google::DigitCount::DIGIT_COUNT_EIGHT => Some(8),
-                            google::DigitCount::DIGIT_COUNT_SIX => Some(6),
-                        },
+                        digits: Some(digits_u32 as u8),
                         period: Some(30), // Google always uses period=30
                     }),
                     note: None,

@@ -8,6 +8,7 @@ pub mod lastpass;
 pub mod pass;
 pub mod proton_authenticator;
 pub mod twofas;
+pub mod validation;
 
 #[derive(Clone, Debug)]
 pub struct ImportError {

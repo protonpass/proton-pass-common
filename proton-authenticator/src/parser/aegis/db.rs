@@ -1,4 +1,5 @@
 use crate::parser::aegis::AegisImportError;
+use crate::parser::validation::{validate_digits, validate_period};
 use crate::parser::{ImportError, ImportResult};
 use crate::steam::SteamTotp;
 use crate::{AuthenticatorEntry, AuthenticatorEntryContent};
@@ -93,6 +94,14 @@ impl TryFrom<TotpEntry> for TOTP {
         } else {
             entry.issuer
         };
+
+        if let Some(err) = validate_digits(entry.info.digits, &entry.name) {
+            return Err(AegisImportError::Unsupported(err));
+        }
+
+        if let Some(err) = validate_period(entry.info.period, &entry.name) {
+            return Err(AegisImportError::Unsupported(err));
+        }
 
         Ok(Self {
             secret: entry.info.secret,

@@ -9,6 +9,7 @@ pub enum TwoFasImportError {
     UnableToDecrypt,
     WrongPassword,
     MissingPassword,
+    InvalidConfig(String),
 }
 
 impl From<TwoFasImportError> for ThirdPartyImportError {
@@ -19,6 +20,7 @@ impl From<TwoFasImportError> for ThirdPartyImportError {
             TwoFasImportError::UnableToDecrypt => Self::DecryptionFailed,
             TwoFasImportError::WrongPassword => Self::BadPassword,
             TwoFasImportError::MissingPassword => Self::MissingPassword,
+            TwoFasImportError::InvalidConfig(_) => Self::BadContent,
         }
     }
 }

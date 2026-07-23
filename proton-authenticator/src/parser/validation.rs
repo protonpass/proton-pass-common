@@ -12,7 +12,7 @@ pub fn validate_digits(digits: u32, entry_name: &str) -> Option<String> {
 }
 
 pub fn validate_period(period: u32, entry_name: &str) -> Option<String> {
-    if period < 1 {
+    if period == 0 {
         Some(format!("Invalid entry period for {}", entry_name))
     } else {
         None

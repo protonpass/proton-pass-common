@@ -6,6 +6,12 @@
 
 ### Other
 
+## 1.7.2
+
+### Fixes :bug:
+
+- authenticator-common: improve parser validations and some error messages.
+
 ## 1.7.1
 
 ### Other

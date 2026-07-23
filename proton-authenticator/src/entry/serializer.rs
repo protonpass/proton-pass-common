@@ -1,5 +1,6 @@
 use super::r#gen::authenticator_entry as proto;
 use crate::steam::SteamTotp;
+use crate::utils::conceal;
 use crate::{AuthenticatorEntry, AuthenticatorEntryContent, AuthenticatorEntryError};
 use protobuf::Message;
 use proton_pass_totp::totp::TOTP;
@@ -57,9 +58,10 @@ impl TryFrom<proto::AuthenticatorEntry> for AuthenticatorEntry {
                     proto::authenticator_entry_content::Content::Totp(totp) => match TOTP::from_uri(&totp.uri) {
                         Ok(totp) => AuthenticatorEntryContent::Totp(totp),
                         Err(e) => {
+                            let concealed_uri = conceal(&totp.uri);
                             return Err(AuthenticatorEntryError::SerializationError(format!(
                                 "error parsing TOTP uri [{}]: {:?}",
-                                totp.uri, e
+                                concealed_uri, e
                             )));
                         }
                     },

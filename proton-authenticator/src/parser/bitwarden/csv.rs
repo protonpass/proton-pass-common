@@ -102,9 +102,10 @@ fn parse_totp_line(
             });
         }
         Err(e) => {
+            let concealed_uri = conceal(uri);
             errors.push(ImportError {
                 context: format!("Error in record {idx}"),
-                message: format!("Error parsing TOTP uri [{uri}]: {e:?}"),
+                message: format!("Error parsing TOTP uri [{}]: {e:?}", concealed_uri),
             });
         }
     }
@@ -131,9 +132,10 @@ fn parse_steam_line(
             });
         }
         Err(e) => {
+            let concealed_uri = conceal(uri);
             errors.push(ImportError {
                 context: format!("Error in record {idx}"),
-                message: format!("Error parsing steam uri [{uri}]: {e:?}"),
+                message: format!("Error parsing steam uri [{}]: {e:?}", concealed_uri),
             });
         }
     }

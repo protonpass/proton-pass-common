@@ -6,7 +6,7 @@ use crate::{AuthenticatorEntry, AuthenticatorEntryContent};
 use proton_pass_totp::algorithm::Algorithm;
 use proton_pass_totp::totp::TOTP;
 
-#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, serde::Deserialize, serde::Serialize)]
 pub struct TotpInfo {
     pub secret: String,
     pub algo: String,
@@ -14,7 +14,7 @@ pub struct TotpInfo {
     pub period: u32,
 }
 
-#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, serde::Deserialize, serde::Serialize)]
 pub struct HotpInfo {
     pub secret: String,
     pub algo: String,
@@ -22,7 +22,7 @@ pub struct HotpInfo {
     pub counter: u64,
 }
 
-#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, serde::Deserialize, serde::Serialize)]
 pub struct TotpEntry {
     uuid: String,
     name: String,
@@ -34,7 +34,7 @@ pub struct TotpEntry {
     groups: Vec<String>,
 }
 
-#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, serde::Deserialize, serde::Serialize)]
 pub struct SteamEntry {
     uuid: String,
     name: String,
@@ -46,7 +46,7 @@ pub struct SteamEntry {
     groups: Vec<String>,
 }
 
-#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, serde::Deserialize, serde::Serialize)]
 pub struct HotpEntry {
     uuid: String,
     name: String,
@@ -58,7 +58,7 @@ pub struct HotpEntry {
     groups: Vec<String>,
 }
 
-#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, serde::Deserialize, serde::Serialize)]
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum DbEntry {
     Totp {
@@ -75,13 +75,13 @@ pub enum DbEntry {
     },
 }
 
-#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, serde::Deserialize, serde::Serialize)]
 pub struct AegisDbRoot {
     pub version: i64,
     pub entries: Vec<DbEntry>,
 }
 
-#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, serde::Deserialize, serde::Serialize)]
 pub struct CommonRootWithDb {
     pub db: AegisDbRoot,
 }
@@ -181,7 +181,7 @@ pub fn parse_aegis_db(db: AegisDbRoot) -> Result<ImportResult, AegisImportError>
                     warn!("Error importing entry {}: {:?}", totp.name, e);
                     errors.push(ImportError {
                         context: format!("Error importing entry {idx}"),
-                        message: format!("Error importing entry {totp:?}, {e:?}"),
+                        message: format!("Error importing entry '{}': {}", totp.name, e),
                     })
                 }
             },
@@ -191,14 +191,14 @@ pub fn parse_aegis_db(db: AegisDbRoot) -> Result<ImportResult, AegisImportError>
                     warn!("Error importing entry {}: {:?}", steam.name, e);
                     errors.push(ImportError {
                         context: format!("Error importing entry {idx}"),
-                        message: format!("Error importing entry {steam:?}, {e:?}"),
+                        message: format!("Error importing entry '{}': {}", steam.name, e),
                     })
                 }
             },
             DbEntry::Hotp { entry: hotp } => {
                 errors.push(ImportError {
                     context: format!("Error parsing entry {idx}"),
-                    message: format!("Error parsing entry {}: Unsupported entry type", hotp.name),
+                    message: format!("Error parsing entry '{}': Unsupported entry type", hotp.name),
                 });
             }
         }

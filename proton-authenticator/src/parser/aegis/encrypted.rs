@@ -165,7 +165,10 @@ mod test {
     #[test]
     fn invalid_key_returns_error() {
         let input = get_file_contents("aegis/aegis-json-encrypted-test.json");
-        let err = decrypt_aegis_encrypted_backup(&input, "invalid").expect_err("should not be able to decrypt");
-        assert!(matches!(err, AegisImportError::BadPassword));
+        match decrypt_aegis_encrypted_backup(&input, "invalid") {
+            Ok(_) => panic!("should not be able to decrypt"),
+            Err(AegisImportError::BadPassword) => {} // Expected
+            Err(other) => panic!("Expected BadPassword, got {:?}", other),
+        }
     }
 }

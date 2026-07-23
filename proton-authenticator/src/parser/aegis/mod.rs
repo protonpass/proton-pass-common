@@ -13,6 +13,21 @@ pub enum AegisImportError {
     UnableToDecrypt,
 }
 
+impl std::fmt::Display for AegisImportError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            AegisImportError::Unsupported(msg) => write!(f, "{}", msg),
+            AegisImportError::BadContent => write!(f, "Invalid content"),
+            AegisImportError::BadPassword => write!(f, "Invalid password"),
+            AegisImportError::NotEncryptedBackupWithPassword => {
+                write!(f, "Backup is not encrypted but a password was provided")
+            }
+            AegisImportError::EncryptedBackupWithNoPassword => write!(f, "Encrypted backup requires a password"),
+            AegisImportError::UnableToDecrypt => write!(f, "Unable to decrypt backup"),
+        }
+    }
+}
+
 impl From<AegisImportError> for ThirdPartyImportError {
     fn from(value: AegisImportError) -> Self {
         match value {

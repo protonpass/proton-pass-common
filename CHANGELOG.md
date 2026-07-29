@@ -6,6 +6,12 @@
 
 ### Other
 
+## 1.7.3
+
+### Other
+
+- pass-common: added support for the PRF extension for passkeys on iOS.
+
 ## 1.7.2
 
 ### Fixes :bug:

@@ -126,13 +126,6 @@ impl From<CreatePasskeyPrfValues> for CommonCreatePasskeyPrfValues {
     }
 }
 
-#[derive(uniffi::Record)]
-pub struct CreatePasskeyPrfOutput {
-    pub supported: bool,
-    pub first: Option<Vec<u8>>,
-    pub second: Option<Vec<u8>>,
-}
-
 #[derive(Clone, Debug, proton_pass_derive::Error, uniffi::Error)]
 #[uniffi(flat_error)]
 pub enum PasskeyError {
@@ -173,6 +166,23 @@ pub struct CreatePasskeyResponse {
 }
 
 #[derive(uniffi::Record)]
+pub struct CreatePasskeyPrfOutput {
+    pub supported: bool,
+    pub first: Option<Vec<u8>>,
+    pub second: Option<Vec<u8>>,
+}
+
+impl From<CommonCreatePasskeyPrfOutput> for CreatePasskeyPrfOutput {
+    fn from(other: CommonCreatePasskeyPrfOutput) -> Self {
+        Self {
+            supported: other.supported,
+            first: other.first,
+            second: other.second,
+        }
+    }
+}
+
+#[derive(uniffi::Record)]
 pub struct CreatePasskeyIosResponse {
     pub key_id: String,
     pub passkey: Vec<u8>,
@@ -187,16 +197,6 @@ pub struct CreatePasskeyIosResponse {
     pub user_handle: Option<Vec<u8>>,
     pub attestation_object: Vec<u8>,
     pub prf: Option<CreatePasskeyPrfOutput>,
-}
-
-impl From<CommonCreatePasskeyPrfOutput> for CreatePasskeyPrfOutput {
-    fn from(other: CommonCreatePasskeyPrfOutput) -> Self {
-        Self {
-            supported: other.supported,
-            first: other.first,
-            second: other.second,
-        }
-    }
 }
 
 #[derive(uniffi::Record)]

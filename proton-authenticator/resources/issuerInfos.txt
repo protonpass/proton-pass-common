@@ -79,7 +79,7 @@ avast;avast.com;https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fall
 avg;avg.com;https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://avg.com&size=256
 awardwallet;awardwallet.com;https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://awardwallet.com&size=256
 awin;awin.com;https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://awin.com&size=256
-aws.amazon;aws.amazon.com;https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://aws.amazon.com&size=256
+aws.amazon;aws.amazon.com;Amazon Web Services;https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://aws.amazon.com&size=256
 azure.microsoft;azure.microsoft.com;https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://azure.microsoft.com&size=256
 back4app;back4app.com;https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://back4app.com&size=256
 backblaze;backblaze.com;https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://backblaze.com&size=256

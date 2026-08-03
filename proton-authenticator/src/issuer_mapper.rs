@@ -111,4 +111,15 @@ mod tests {
         let infos = mapper.lookup("non existing domain");
         assert!(infos.is_none());
     }
+
+    #[test]
+    fn test_expo_auro_systems_override() {
+        let mapper = TOTPIssuerMapper::new();
+        let infos = mapper
+            .lookup("EXPO · Aur⊙ Systems")
+            .expect("EXPO issuer should have an icon mapping");
+
+        assert_eq!(infos.domain, "auro.systems");
+        assert_eq!(infos.icon_url, "https://auro.systems/products/expo/icon-256.png");
+    }
 }

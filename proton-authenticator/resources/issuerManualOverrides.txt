@@ -1,3 +1,4 @@
 protonmail;proton.me;https://proton.me/favicons/apple-touch-icon.png
 proton;proton.me;https://proton.me/favicons/apple-touch-icon.png
 Amazon Web Services;aws.amazon.com;https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://aws.amazon.com&size=256
+EXPO · Aur⊙ Systems;auro.systems;https://auro.systems/products/expo/icon-256.png

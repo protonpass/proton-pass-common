@@ -140,7 +140,7 @@ impl ItemData {
     pub fn deserialize(data: &[u8]) -> Result<Self> {
         let as_proto = item_v1::Item::parse_from_bytes(data).context("Error decoding Item from proto")?;
 
-        Ok(Self::from(as_proto))
+        Self::try_from(as_proto)
     }
 
     pub fn generate_uuid() -> String {
@@ -524,20 +524,22 @@ impl From<ItemData> for item_v1::Item {
     }
 }
 
-impl From<item_v1::Item> for ItemData {
-    fn from(value: item_v1::Item) -> Self {
+impl TryFrom<item_v1::Item> for ItemData {
+    type Error = anyhow::Error;
+
+    fn try_from(value: item_v1::Item) -> Result<Self> {
         let metadata = value.metadata.unwrap_or_default();
         let content = value.content.unwrap_or_default();
 
-        Self {
+        Ok(Self {
             title: metadata.name,
             note: metadata.note,
             item_uuid: metadata.item_uuid,
-            content: ItemContent::from(content),
+            content: ItemContent::try_from(content)?,
             extra_fields: value.extra_fields.into_iter().map(ItemExtraField::from).collect(),
             platform_specific: value.platform_specific.into_option().map(PlatformSpecific::from),
             custom_icon: metadata.custom_icon,
-        }
+        })
     }
 }
 
@@ -685,9 +687,11 @@ impl From<ItemContent> for item_v1::content::Content {
     }
 }
 
-impl From<item_v1::Content> for ItemContent {
-    fn from(value: item_v1::Content) -> Self {
-        match value.content {
+impl TryFrom<item_v1::Content> for ItemContent {
+    type Error = anyhow::Error;
+
+    fn try_from(value: item_v1::Content) -> Result<Self> {
+        let content = match value.content {
             Some(item_v1::content::Content::Note(note)) => ItemContent::Note(NoteItem::from(note)),
             Some(item_v1::content::Content::Login(login)) => ItemContent::Login(LoginItem::from(login)),
             Some(item_v1::content::Content::Alias(alias)) => ItemContent::Alias(AliasItem::from(alias)),
@@ -700,8 +704,9 @@ impl From<item_v1::Content> for ItemContent {
             Some(item_v1::content::Content::SshKey(ssh_key)) => ItemContent::SshKey(SshKeyItem::from(ssh_key)),
             Some(item_v1::content::Content::Wifi(wifi)) => ItemContent::Wifi(WifiItem::from(wifi)),
             Some(item_v1::content::Content::Custom(custom)) => ItemContent::Custom(CustomItem::from(custom)),
-            None => ItemContent::Note(NoteItem),
-        }
+            None => return Err(anyhow!("Item content is missing or has an unknown content type")),
+        };
+        Ok(content)
     }
 }
 

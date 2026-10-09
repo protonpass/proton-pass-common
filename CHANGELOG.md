@@ -6,6 +6,12 @@
 
 ### Other
 
+## 2.2.2
+
+### Fixes :bug:
+
+- pass-types: Fix fallback matching for unknown item types
+
 ## 2.2.1
 
 ### Features :tada:

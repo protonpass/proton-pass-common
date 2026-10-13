@@ -6,6 +6,12 @@
 
 ### Other
 
+## 2.3.0
+
+### Other
+
+- pass-web: Split code into multiple modules for smaller size
+
 ## 2.2.2
 
 ### Fixes :bug:

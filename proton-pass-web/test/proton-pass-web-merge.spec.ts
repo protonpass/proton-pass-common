@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { plan_group_merge_wasm, plan_item_merge_wasm } from "./pkg/worker/proton_pass_web";
+import { plan_group_merge_wasm, plan_item_merge_wasm } from "./pkg/duplicate/proton_pass_web";
 
 function passkey(keyId: string) {
     return {

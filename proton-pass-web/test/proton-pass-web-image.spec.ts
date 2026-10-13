@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 // Import from the worker pkg which has resize-image feature enabled
-import { convert_image_to_256_webp } from "./pkg/worker";
+import { convert_image_to_256_webp } from "./pkg/image";
 
 const TEST_IMAGES_DIR = new URL("./test_images", import.meta.url).pathname;
 

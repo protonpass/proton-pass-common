@@ -10,7 +10,7 @@ import {
     vault_data_deserialize,
     vault_data_perform_update,
     vault_data_serialize,
-} from "./pkg/worker/proton_pass_web";
+} from "./pkg/proto/proton_pass_web";
 
 function makeNoteItem(title: string, note: string, customIcon?: Uint8Array) {
     return {

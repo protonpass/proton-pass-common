@@ -19,6 +19,7 @@ For every function added to the library, we need to:
 3. Add the required UniFFI annotations and mobile wrapper code in `proton-pass-mobile/src`.
 4. Add it to the `proton-pass-mobile/src/lib.rs` file, calling the `proton-pass-common` function.
 5. Add it to the `proton-pass-web/src/lib.rs` file, marking it as `#[wasm_bindgen]` and calling the `proton-pass-common` function.
+   Each web module (`worker`, `ui`, `cxf`, …) is a separate wasm built from its `web_*` feature in `proton-pass-web/Cargo.toml`. `worker` is loaded when the web clients boot, so keep it to what they need there and gate on-demand features behind their own module.
 
 ### Running the tests
 

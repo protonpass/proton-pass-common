@@ -2,7 +2,11 @@
   "name": "@protontech/pass-rust-core",
   "version": "2.2.2",
   "workspaces": [
+    "cxf",
+    "duplicate",
+    "image",
     "password",
+    "proto",
     "ui",
     "username",
     "worker"

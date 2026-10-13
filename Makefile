@@ -16,6 +16,8 @@ WEB_DIR:=${PROJECT_ROOT}proton-pass-web
 WEB_BUILD_DIR:=${WEB_DIR}/dist
 WEB_TEST_DIR:=${WEB_DIR}/test
 WEB_TEST_BUILD_DIR:=${WEB_DIR}/test/pkg
+# Web-only profile overrides, for smaller wasm output
+WEB_CARGO_ENV:=CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S), Darwin)
@@ -272,33 +274,61 @@ web-setup:
 .PHONY: web-worker
 web-worker: ## Build the web worker artifacts
 	@echo "--- Building web-worker"
-	@wasm-pack build proton-pass-web --scope protontech --features web_worker
+	@${WEB_CARGO_ENV} wasm-pack build proton-pass-web --scope protontech --features web_worker
 	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "worker",/g' "${WEB_DIR}/pkg/package.json"
 	@mv "${WEB_DIR}/pkg" "${WEB_BUILD_DIR}/worker"
 
 .PHONY: web-ui
 web-ui: ## Build the web ui artifacts
 	@echo "--- Building web-ui"
-	@wasm-pack build proton-pass-web --scope protontech --features web_ui
+	@${WEB_CARGO_ENV} wasm-pack build proton-pass-web --scope protontech --features web_ui
 	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "ui",/g' "${WEB_DIR}/pkg/package.json"
 	@mv "${WEB_DIR}/pkg" "${WEB_BUILD_DIR}/ui"
 
 .PHONY: web-password
 web-password: ## Build the web password artifacts
 	@echo "--- Building web-password"
-	@wasm-pack build proton-pass-web --scope protontech --features web_password
+	@${WEB_CARGO_ENV} wasm-pack build proton-pass-web --scope protontech --features web_password
 	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "password",/g' "${WEB_DIR}/pkg/package.json"
 	@mv "${WEB_DIR}/pkg" "${WEB_BUILD_DIR}/password"
 
 .PHONY: web-username
 web-username: ## Build the web username artifacts
 	@echo "--- Building web-username"
-	@wasm-pack build proton-pass-web --scope protontech --features web_username
+	@${WEB_CARGO_ENV} wasm-pack build proton-pass-web --scope protontech --features web_username
 	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "username",/g' "${WEB_DIR}/pkg/package.json"
 	@mv "${WEB_DIR}/pkg" "${WEB_BUILD_DIR}/username"
 
+.PHONY: web-cxf
+web-cxf: ## Build the web cxf artifacts
+	@echo "--- Building web-cxf"
+	@${WEB_CARGO_ENV} wasm-pack build proton-pass-web --scope protontech --features web_cxf
+	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "cxf",/g' "${WEB_DIR}/pkg/package.json"
+	@mv "${WEB_DIR}/pkg" "${WEB_BUILD_DIR}/cxf"
+
+.PHONY: web-duplicate
+web-duplicate: ## Build the web duplicate artifacts
+	@echo "--- Building web-duplicate"
+	@${WEB_CARGO_ENV} wasm-pack build proton-pass-web --scope protontech --features web_duplicate
+	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "duplicate",/g' "${WEB_DIR}/pkg/package.json"
+	@mv "${WEB_DIR}/pkg" "${WEB_BUILD_DIR}/duplicate"
+
+.PHONY: web-image
+web-image: ## Build the web image artifacts
+	@echo "--- Building web-image"
+	@${WEB_CARGO_ENV} wasm-pack build proton-pass-web --scope protontech --features web_image
+	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "image",/g' "${WEB_DIR}/pkg/package.json"
+	@mv "${WEB_DIR}/pkg" "${WEB_BUILD_DIR}/image"
+
+.PHONY: web-proto
+web-proto: ## Build the web proto artifacts
+	@echo "--- Building web-proto"
+	@${WEB_CARGO_ENV} wasm-pack build proton-pass-web --scope protontech --features web_proto
+	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "proto",/g' "${WEB_DIR}/pkg/package.json"
+	@mv "${WEB_DIR}/pkg" "${WEB_BUILD_DIR}/proto"
+
 .PHONY: web
-web: web-setup web-worker web-ui web-password web-username ## Build the web artifacts
+web: web-setup web-worker web-ui web-password web-username web-cxf web-duplicate web-image web-proto ## Build the web artifacts
 	@cp "${WEB_DIR}/package.json" "${WEB_BUILD_DIR}/package.json"
 
 .PHONY: web-test
@@ -320,15 +350,31 @@ web-test: web-setup ## Test the web artifacts
 	@wasm-pack build proton-pass-web --scope protontech --target nodejs --out-dir "${WEB_TEST_BUILD_DIR}/username" --features "web_username,experimental"
 	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "username",/g' "${WEB_TEST_BUILD_DIR}/username/package.json"
 
+	@echo "--- Building web-cxf"
+	@wasm-pack build proton-pass-web --scope protontech --target nodejs --out-dir "${WEB_TEST_BUILD_DIR}/cxf" --features "web_cxf,experimental"
+	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "cxf",/g' "${WEB_TEST_BUILD_DIR}/cxf/package.json"
+
+	@echo "--- Building web-duplicate"
+	@wasm-pack build proton-pass-web --scope protontech --target nodejs --out-dir "${WEB_TEST_BUILD_DIR}/duplicate" --features "web_duplicate,experimental"
+	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "duplicate",/g' "${WEB_TEST_BUILD_DIR}/duplicate/package.json"
+
+	@echo "--- Building web-image"
+	@wasm-pack build proton-pass-web --scope protontech --target nodejs --out-dir "${WEB_TEST_BUILD_DIR}/image" --features "web_image,experimental"
+	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "image",/g' "${WEB_TEST_BUILD_DIR}/image/package.json"
+
+	@echo "--- Building web-proto"
+	@wasm-pack build proton-pass-web --scope protontech --target nodejs --out-dir "${WEB_TEST_BUILD_DIR}/proto" --features "web_proto,experimental"
+	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "proto",/g' "${WEB_TEST_BUILD_DIR}/proto/package.json"
+
 	@cp "${WEB_DIR}/package.json" "${WEB_TEST_BUILD_DIR}/package.json"
 	@cd ${WEB_TEST_DIR} && bun test
 
 .PHONY: pass-test-website-build
 pass-test-website-build: web-setup ## Build the pass web test website artifacts for browser
 	@rm -rf "${WEB_TEST_BUILD_DIR}" && mkdir -p "${WEB_TEST_BUILD_DIR}"
-	@echo "--- Building web-worker for browser"
-	@wasm-pack build proton-pass-web --scope protontech --target web --out-dir "${WEB_TEST_BUILD_DIR}/worker" --features "web_worker,experimental"
-	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "worker",/g' "${WEB_TEST_BUILD_DIR}/worker/package.json"
+	@echo "--- Building web-duplicate for browser"
+	@wasm-pack build proton-pass-web --scope protontech --target web --out-dir "${WEB_TEST_BUILD_DIR}/duplicate" --features "web_duplicate,experimental"
+	@sed -i'' -e 's/"name": "@protontech\/proton-pass-web",/"name": "duplicate",/g' "${WEB_TEST_BUILD_DIR}/duplicate/package.json"
 	@cp "${WEB_DIR}/package.json" "${WEB_TEST_BUILD_DIR}/package.json"
 
 .PHONY: pass-test-website

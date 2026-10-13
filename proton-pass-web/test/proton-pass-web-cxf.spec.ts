@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { cxf_export, cxf_import } from "./pkg/worker/proton_pass_web";
+import { cxf_export, cxf_import } from "./pkg/cxf/proton_pass_web";
 
 function makeLoginItem(title: string, email: string, password: string, username: string = "") {
     return {

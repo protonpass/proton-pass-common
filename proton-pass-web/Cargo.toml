@@ -37,10 +37,11 @@ web_password = []
 web_ui = []
 web_worker = [
     "web_password",
-    "resize-image",
-    "proton-pass-common/cxf",
-    "proton-pass-common/duplicate",
     "proton-pass-types/wasm"
 ]
+web_cxf = ["proton-pass-common/cxf"]
+web_duplicate = ["proton-pass-common/duplicate"]
+web_image = ["resize-image"]
+web_proto = []
 experimental = []
 resize-image = ["proton-pass-common/resize-image"]

@@ -1,4 +1,4 @@
-import init, { find_duplicate_items_wasm } from "./pkg/worker/proton_pass_web.js";
+import init, { find_duplicate_items_wasm } from "./pkg/duplicate/proton_pass_web.js";
 
 const FIELD_TYPES = ["Text", "Hidden", "Totp", "Timestamp"];
 

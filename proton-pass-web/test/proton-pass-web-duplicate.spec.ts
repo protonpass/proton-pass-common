@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { find_duplicate_items_wasm } from "./pkg/worker/proton_pass_web";
+import { find_duplicate_items_wasm } from "./pkg/duplicate/proton_pass_web";
 
 function loginItem(
     itemId: string,

@@ -13,9 +13,7 @@ class AuthenticatorImportTest {
 
     @Test
     fun `can import from pass zip`() {
-        val path = "../../../proton-authenticator/test_data/authenticator/pass/PassExport.zip"
-        val asFile = File(path)
-        val contents = asFile.readBytes()
+        val contents = TestUtils.repoFile("proton-authenticator/test_data/authenticator/pass/PassExport.zip").readBytes()
 
         val imported = importer.importFromPassZip(contents)
         assertThat(imported.entries.size).isEqualTo(7)

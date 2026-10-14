@@ -46,5 +46,5 @@ class QrCodeScannerTest {
     }
 
     private fun importQrCode(filename: String) =
-        File("../../../proton-authenticator/test_data/qr/${filename}").readBytes()
+        TestUtils.repoFile("proton-authenticator/test_data/qr/${filename}").readBytes()
 }

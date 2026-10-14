@@ -42,3 +42,9 @@ proton-authenticator-web/dist
 *.dylib
 bindings/
 tmp-bindings/
+
+# Bazel
+/bazel-*
+user.bazelrc
+/.cache/
+/bazel-junit/

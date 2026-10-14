@@ -13,8 +13,8 @@ class AuthenticatorLoggerTest {
     fun `can register a logger`() {
         val loggedMessages = mutableListOf<Pair<AuthenticatorLogLevel, String>>()
         registerAuthenticatorLogger(object : AuthenticatorLogger {
-            override fun log(level: AuthenticatorLogLevel, message: String) {
-                loggedMessages.add(level to message)
+            override fun log(level: AuthenticatorLogLevel, msg: String) {
+                loggedMessages.add(level to msg)
             }
         })
 

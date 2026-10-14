@@ -4,15 +4,13 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import proton.android.pass.commonrust.ConvertImageException
 import proton.android.pass.commonrust.ImageConverter
-import java.io.File
 import kotlin.test.assertFailsWith
 
 class ImageConverterTest {
 
-    private fun getTestImage(name: String): ByteArray {
-        val testFile = File("src/test/resources/images/$name")
-        return testFile.readBytes()
-    }
+    private fun getTestImage(name: String): ByteArray =
+        requireNotNull(javaClass.getResourceAsStream("/images/$name")) { "Missing test image $name" }
+            .use { it.readBytes() }
 
     @Test
     fun `can convert JPEG to WebP`() {

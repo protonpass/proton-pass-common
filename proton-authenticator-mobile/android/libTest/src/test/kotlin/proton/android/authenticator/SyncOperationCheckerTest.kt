@@ -44,7 +44,7 @@ class SyncOperationCheckerTest {
         assertThat(res[0].entry).isEqualTo(entry)
         assertThat(res[0].remoteId).isEqualTo(remoteId)
         assertThat(res[0].operation).isEqualTo(OperationType.UPSERT)
-        assertThat(res[0].revision).isEqualTo(revision)
+        assertThat(res[0].revision!!).isEqualTo(revision)
     }
 
     @Test

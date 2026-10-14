@@ -20,9 +20,9 @@ class TotpTest {
         assertThat(totp.label).isEqualTo("MYLABEL")
         assertThat(totp.secret).isEqualTo("MYSECRET")
         assertThat(totp.issuer).isEqualTo("MYISSUER")
-        assertThat(totp.algorithm).isEqualTo(TotpAlgorithm.SHA256)
-        assertThat(totp.digits).isEqualTo(8.toUByte())
-        assertThat(totp.period).isEqualTo(15.toUShort())
+        assertThat(totp.algorithm!!).isEqualTo(TotpAlgorithm.SHA256)
+        assertThat(totp.digits!!).isEqualTo(8.toUByte())
+        assertThat(totp.period!!).isEqualTo(15.toUShort())
     }
 
     @Test

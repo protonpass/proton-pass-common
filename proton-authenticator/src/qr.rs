@@ -75,7 +75,11 @@ mod tests {
     use std::fs;
 
     fn read_file(filename: &str) -> Vec<u8> {
-        fs::read(format!("test_data/qr/{filename}")).unwrap_or_else(|_| panic!("Failed to read test data {filename}"))
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("test_data")
+            .join("qr")
+            .join(filename);
+        fs::read(path).unwrap_or_else(|_| panic!("Failed to read test data {filename}"))
     }
 
     fn parse_google_authenticator_qr(filename: &str) {

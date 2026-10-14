@@ -2,6 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use crate::passkey_fetcher::{MobileWebauthnClientFetcher, make_webauthn_client};
 pub use proton_pass_common::passkey::{
+    AuthenticatePasskeyPrfIosValues as CommonAuthenticatePasskeyPrfIosValues,
     AuthenticateWithPasskeyAndroidRequest as CommonAuthenticateWithPasskeyAndroidRequest,
     AuthenticateWithPasskeyIosRequest as CommonAuthenticateWithPasskeyIosRequest,
     AuthenticateWithPasskeyIosResponse as CommonAuthenticateWithPasskeyIosResponse,
@@ -34,10 +35,35 @@ impl From<AuthenticateWithPasskeyAndroidRequest> for CommonAuthenticateWithPassk
 }
 
 #[derive(uniffi::Record)]
+pub struct AuthenticatePasskeyPrfIosValues {
+    pub first: Vec<u8>,
+    pub second: Option<Vec<u8>>,
+}
+
+impl From<AuthenticatePasskeyPrfIosValues> for CommonAuthenticatePasskeyPrfIosValues {
+    fn from(other: AuthenticatePasskeyPrfIosValues) -> Self {
+        Self {
+            first: other.first,
+            second: other.second,
+        }
+    }
+}
+
+impl From<CommonAuthenticatePasskeyPrfIosValues> for AuthenticatePasskeyPrfIosValues {
+    fn from(other: CommonAuthenticatePasskeyPrfIosValues) -> Self {
+        Self {
+            first: other.first,
+            second: other.second,
+        }
+    }
+}
+
+#[derive(uniffi::Record)]
 pub struct AuthenticateWithPasskeyIosRequest {
     pub service_identifier: String,
     pub passkey: Vec<u8>,
     pub client_data_hash: Vec<u8>,
+    pub prf: Option<AuthenticatePasskeyPrfIosValues>,
 }
 
 impl From<AuthenticateWithPasskeyIosRequest> for CommonAuthenticateWithPasskeyIosRequest {
@@ -46,6 +72,7 @@ impl From<AuthenticateWithPasskeyIosRequest> for CommonAuthenticateWithPasskeyIo
             service_identifier: other.service_identifier,
             passkey: other.passkey,
             client_data_hash: other.client_data_hash,
+            prf: other.prf.map(CommonAuthenticatePasskeyPrfIosValues::from),
         }
     }
 }
@@ -58,6 +85,7 @@ pub struct AuthenticateWithPasskeyIosResponse {
     pub client_data_hash: Vec<u8>,
     pub authenticator_data: Vec<u8>,
     pub credential_id: Vec<u8>,
+    pub prf: Option<AuthenticatePasskeyPrfIosValues>,
 }
 
 impl From<CommonAuthenticateWithPasskeyIosResponse> for AuthenticateWithPasskeyIosResponse {
@@ -69,6 +97,7 @@ impl From<CommonAuthenticateWithPasskeyIosResponse> for AuthenticateWithPasskeyI
             client_data_hash: other.client_data_hash,
             authenticator_data: other.authenticator_data,
             credential_id: other.credential_id,
+            prf: other.prf.map(AuthenticatePasskeyPrfIosValues::from),
         }
     }
 }

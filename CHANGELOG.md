@@ -2,6 +2,8 @@
 
 ### Features :tada:
 
+- pass-common (and pass-mobile): Support PRF extension when authenticating with passkeys on iOS
+
 ### Fixes :bug:
 
 ### Other

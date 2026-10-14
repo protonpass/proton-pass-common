@@ -2,8 +2,10 @@ use super::fetcher::WebauthnFetcher;
 use super::passkey_handling::{deserialize_passkey, get_client, parse_url};
 use super::{PasskeyError, PasskeyResult, ProtonPassKey};
 use crate::passkey::authentication_parser::{parse_authenticate_request, parse_authenticate_request_with_passkey};
+use passkey_types::Bytes;
 use passkey_types::webauthn::{
-    AuthenticatedPublicKeyCredential, CredentialRequestOptions, PublicKeyCredentialRequestOptions,
+    AuthenticatedPublicKeyCredential, AuthenticationExtensionsClientInputs, AuthenticationExtensionsPrfInputs,
+    AuthenticationExtensionsPrfValues, CredentialRequestOptions, PublicKeyCredentialRequestOptions,
 };
 use url::Url;
 
@@ -47,10 +49,32 @@ pub struct AuthenticateWithPasskeyAndroidRequest {
     pub client_data_hash: Option<Vec<u8>>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AuthenticatePasskeyPrfIosValues {
+    pub first: Vec<u8>,
+    pub second: Option<Vec<u8>>,
+}
+
+impl AuthenticatePasskeyPrfIosValues {
+    fn into_client_inputs(self) -> AuthenticationExtensionsClientInputs {
+        AuthenticationExtensionsClientInputs {
+            prf_already_hashed: Some(AuthenticationExtensionsPrfInputs {
+                eval: Some(AuthenticationExtensionsPrfValues {
+                    first: Bytes::from(self.first),
+                    second: self.second.map(Bytes::from),
+                }),
+                eval_by_credential: None,
+            }),
+            ..Default::default()
+        }
+    }
+}
+
 pub struct AuthenticateWithPasskeyIosRequest {
     pub service_identifier: String,
     pub passkey: Vec<u8>,
     pub client_data_hash: Vec<u8>,
+    pub prf: Option<AuthenticatePasskeyPrfIosValues>,
 }
 
 pub struct AuthenticateWithPasskeyIosResponse {
@@ -60,6 +84,7 @@ pub struct AuthenticateWithPasskeyIosResponse {
     pub client_data_hash: Vec<u8>,
     pub authenticator_data: Vec<u8>,
     pub credential_id: Vec<u8>,
+    pub prf: Option<AuthenticatePasskeyPrfIosValues>,
 }
 
 async fn resolve_challenge_for_mobile(
@@ -94,7 +119,7 @@ pub async fn resolve_challenge_for_ios(
             hints: None,
             attestation: Default::default(),
             attestation_formats: None,
-            extensions: None,
+            extensions: request.prf.map(AuthenticatePasskeyPrfIosValues::into_client_inputs),
         },
     };
 
@@ -108,6 +133,14 @@ pub async fn resolve_challenge_for_ios(
     .await?;
 
     let user_handle = res.response.user_handle.map(|h| h.to_vec()).unwrap_or_default();
+    let prf = res
+        .client_extension_results
+        .prf
+        .and_then(|prf| prf.results)
+        .map(|results| AuthenticatePasskeyPrfIosValues {
+            first: results.first.to_vec(),
+            second: results.second.map(|s| s.to_vec()),
+        });
 
     let response = AuthenticateWithPasskeyIosResponse {
         user_handle,
@@ -116,6 +149,7 @@ pub async fn resolve_challenge_for_ios(
         client_data_hash: request.client_data_hash,
         authenticator_data: res.response.authenticator_data.to_vec(),
         credential_id: res.raw_id.to_vec(),
+        prf,
     };
     Ok(response)
 }

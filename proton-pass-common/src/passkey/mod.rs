@@ -20,8 +20,9 @@ pub use protonpasskey::{
     ProtonValue,
 };
 pub use resolve::{
-    AuthenticateWithPasskeyAndroidRequest, AuthenticateWithPasskeyIosRequest, AuthenticateWithPasskeyIosResponse,
-    ResolveChallengeResponse, resolve_challenge_for_android, resolve_challenge_for_domain, resolve_challenge_for_ios,
+    AuthenticatePasskeyPrfIosValues, AuthenticateWithPasskeyAndroidRequest, AuthenticateWithPasskeyIosRequest,
+    AuthenticateWithPasskeyIosResponse, ResolveChallengeResponse, resolve_challenge_for_android,
+    resolve_challenge_for_domain, resolve_challenge_for_ios,
 };
 
 pub type PasskeyResult<T> = Result<T, PasskeyError>;

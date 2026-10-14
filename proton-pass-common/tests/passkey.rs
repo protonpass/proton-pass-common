@@ -1,6 +1,7 @@
 use proton_pass_common::passkey::{
+    AuthenticatePasskeyPrfIosValues, AuthenticateWithPasskeyIosRequest, AuthenticateWithPasskeyIosResponse,
     CreatePasskeyIosRequest, CreatePasskeyPrfInput, CreatePasskeyPrfValues, CreatePasskeyResponse, PasskeyResult,
-    ResolveChallengeResponse, generate_passkey_for_ios,
+    ResolveChallengeResponse, generate_passkey_for_ios, resolve_challenge_for_ios,
 };
 use proton_pass_common::passkey::{FetchError, WebauthnClientFetcher, WebauthnDomainsResponse, WebauthnFetcher};
 
@@ -147,6 +148,89 @@ fn ios_with_prf_eval_returns_results() {
     assert!(prf.supported);
     assert!(prf.first.is_some());
     assert!(prf.second.is_some());
+}
+
+fn authenticate_ios(
+    passkey: Vec<u8>,
+    prf: Option<AuthenticatePasskeyPrfIosValues>,
+) -> AuthenticateWithPasskeyIosResponse {
+    let request = AuthenticateWithPasskeyIosRequest {
+        service_identifier: base_ios_request().service_identifier,
+        passkey,
+        client_data_hash: vec![1; 32],
+        prf,
+    };
+    get_runtime()
+        .block_on(async move { resolve_challenge_for_ios(request, WebauthnFetcher::new(None)).await })
+        .expect("should authenticate with ios passkey")
+}
+
+fn prf_salts() -> AuthenticatePasskeyPrfIosValues {
+    AuthenticatePasskeyPrfIosValues {
+        first: vec![7; 32],
+        second: Some(vec![9; 32]),
+    }
+}
+
+#[test]
+fn ios_authenticate_with_prf_matches_registration_output() {
+    let request = CreatePasskeyIosRequest {
+        prf: Some(CreatePasskeyPrfInput {
+            eval: Some(CreatePasskeyPrfValues {
+                first: vec![7; 32],
+                second: Some(vec![9; 32]),
+            }),
+        }),
+        ..base_ios_request()
+    };
+    let created = generate_ios_passkey(request).expect("should generate ios passkey with prf eval");
+    let created_prf = created.prf.expect("registration prf output should be present");
+
+    let res = authenticate_ios(created.passkey, Some(prf_salts()));
+
+    let prf = res.prf.expect("assertion prf output should be present");
+    assert_eq!(Some(prf.first), created_prf.first);
+    assert_eq!(prf.second, created_prf.second);
+}
+
+#[test]
+fn ios_authenticate_with_prf_after_check_for_support_registration() {
+    let request = CreatePasskeyIosRequest {
+        prf: Some(CreatePasskeyPrfInput { eval: None }),
+        ..base_ios_request()
+    };
+    let created = generate_ios_passkey(request).expect("should generate ios passkey with prf support");
+
+    let res = authenticate_ios(created.passkey.clone(), Some(prf_salts()));
+    let again = authenticate_ios(created.passkey, Some(prf_salts()));
+
+    let prf = res.prf.expect("assertion prf output should be present");
+    assert_eq!(prf.first.len(), 32);
+    assert_eq!(Some(prf), again.prf);
+}
+
+#[test]
+fn ios_authenticate_without_prf_has_no_prf_output() {
+    let request = CreatePasskeyIosRequest {
+        prf: Some(CreatePasskeyPrfInput { eval: None }),
+        ..base_ios_request()
+    };
+    let created = generate_ios_passkey(request).expect("should generate ios passkey with prf support");
+
+    let res = authenticate_ios(created.passkey, None);
+
+    assert!(!res.signature.is_empty());
+    assert!(res.prf.is_none());
+}
+
+#[test]
+fn ios_authenticate_with_prf_on_passkey_without_prf_has_no_prf_output() {
+    let created = generate_ios_passkey(base_ios_request()).expect("should generate ios passkey");
+
+    let res = authenticate_ios(created.passkey, Some(prf_salts()));
+
+    assert!(!res.signature.is_empty());
+    assert!(res.prf.is_none());
 }
 
 #[test]

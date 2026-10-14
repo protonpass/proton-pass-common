@@ -6,9 +6,16 @@
 
 ### Other
 
+## 2.3.2
+
+### Other
+
+- pass-web: Reduced size of the artifacts
+
 ## 2.3.1
 
 ### Features :tada:
+
 - pass-common (and pass-mobile): Support PRF extension when authenticating with passkeys on iOS
 
 ## 2.3.0

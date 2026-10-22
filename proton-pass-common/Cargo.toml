@@ -65,10 +65,10 @@ rsa = { version = "0.10.0-rc.18", optional = true }
 zeroize = { version = "1", optional = true }
 
 # Passkeys dependency
-passkey = { git = "https://github.com/1Password/passkey-rs.git", rev = "8a0635474a40d7e54d4ecbeab0979591ea60e17e" }
-passkey-authenticator = { git = "https://github.com/1Password/passkey-rs.git", rev = "8a0635474a40d7e54d4ecbeab0979591ea60e17e" }
-passkey-types = { git = "https://github.com/1Password/passkey-rs.git", rev = "8a0635474a40d7e54d4ecbeab0979591ea60e17e", features = ["serialize_bytes_as_base64_string"] }
-public-suffix = { git = "https://github.com/1Password/passkey-rs.git", rev = "8a0635474a40d7e54d4ecbeab0979591ea60e17e" }
+passkey = { git = "https://github.com/1Password/passkey-rs.git", rev = "1606717bd9888b629905d435bb876b24b1aaddb5" }
+passkey-authenticator = { git = "https://github.com/1Password/passkey-rs.git", rev = "1606717bd9888b629905d435bb876b24b1aaddb5" }
+passkey-types = { git = "https://github.com/1Password/passkey-rs.git", rev = "1606717bd9888b629905d435bb876b24b1aaddb5", features = ["serialize_bytes_as_base64_string"] }
+public-suffix = { git = "https://github.com/1Password/passkey-rs.git", rev = "1606717bd9888b629905d435bb876b24b1aaddb5" }
 
 coset = "0.4.2"
 email_address = "0.2.9"

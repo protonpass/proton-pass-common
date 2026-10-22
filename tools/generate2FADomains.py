@@ -9,11 +9,29 @@ from os import path
 # URL to download the JSON data from
 url = "https://api.2fa.directory/v3/totp.json"
 
-DOMAIN_RE = re.compile(r"^(?=.{1,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$")
+# Characters allowed in a DNS label (lowercase, since inputs are lowercased first)
+LABEL_RE = re.compile(r"^[a-z0-9-]+\Z")
+TLD_RE = re.compile(r"^(?:[a-z]{2,63}|xn--[a-z0-9-]{1,59})\Z")
+
+
+def is_valid_label(label: str) -> bool:
+    # RFC 1035: 1-63 chars, alphanumeric at both ends, hyphens allowed inside
+    return (
+        1 <= len(label) <= 63
+        and LABEL_RE.match(label) is not None
+        and label[0] != '-'
+        and label[-1] != '-'
+    )
 
 
 def is_valid_domain(value: str) -> bool:
-    return bool(DOMAIN_RE.match(value))
+    # Split-and-check instead of a single regex: linear time, no backtracking blowup
+    if not 1 <= len(value) <= 253:
+        return False
+    labels = value.split('.')
+    if len(labels) < 2:
+        return False
+    return all(is_valid_label(label) for label in labels[:-1]) and bool(TLD_RE.match(labels[-1]))
 
 CUSTOM_DOMAINS_FILE = path.abspath(path.join(path.dirname(__file__), 'custom2faDomains.txt'))
 EXCLUDE_DOMAINS_FILE = path.abspath(path.join(path.dirname(__file__), 'excluded2faDomains.txt'))
@@ -23,9 +41,8 @@ DEFAULT_DST = path.abspath(path.join(__file__, "../../proton-pass-common", "2faD
 req = urllib.request.Request(url, headers={'Accept': 'application/json', 'User-Agent': 'curl/7.81.0'})
 response = urllib.request.urlopen(req)
 
-excluded_domains = []
 with open(EXCLUDE_DOMAINS_FILE, 'r') as f:
-    excluded_domains = [domain.strip() for domain in f.readlines() if domain.strip()]
+    excluded_domains = {domain.strip().lower() for domain in f.readlines() if domain.strip()}
 
 # Check if the request was successful
 if response.status == 200:

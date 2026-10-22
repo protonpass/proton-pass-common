@@ -6,6 +6,15 @@ from typing import List
 import urllib.request
 import sys
 
+FORBIDDEN_CHARS = set('"\\')
+
+
+def sanitize(line: str):
+    stripped = line.strip().replace("'", "")
+    if any(c in FORBIDDEN_CHARS or not c.isprintable() for c in stripped):
+        return None
+    return stripped
+
 
 WORDLISTS = [
   "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/xato-net-10-million-passwords-1000.txt",
@@ -20,8 +29,8 @@ def download_list(url: str) -> List[str]:
      text = data.decode('utf-8')
      lines = []
      for line in text.split('\n'):
-        stripped = line.strip().replace("'", "")
-        if len(stripped) > 3:
+        stripped = sanitize(line)
+        if stripped is not None and len(stripped) > 3:
             lines.append(stripped.lower())
      return lines
 

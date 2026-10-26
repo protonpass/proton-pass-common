@@ -1,9 +1,12 @@
+pub(crate) mod credential_kind;
 mod credentials;
 mod export;
 mod fields;
 #[cfg(test)]
 mod fixtures;
 mod import;
+#[cfg(test)]
+pub(crate) mod test_support;
 mod vault;
 
 use proton_pass_derive::{Error, ffi_error};
@@ -93,8 +96,24 @@ pub enum CxfError {
     DeserializationError(String),
 }
 
+#[cfg(feature = "cxp")]
+pub(crate) use credential_kind::CxfCredentialKind;
+#[cfg(feature = "cxp")]
+pub(crate) use export::CxfExportOutcome;
+
 pub fn export_cxf(input: CxfExportInput) -> Result<CxfExportResult, CxfError> {
     export::export(input)
+}
+
+// Exports only the credentials whose kind appears in `allowed_credential_kinds`.
+// `None` means no restriction. `Some(&[])` allows nothing, which is what a peer that requested
+// only credential types Proton Pass cannot produce must receive.
+#[cfg(feature = "cxp")]
+pub(crate) fn export_cxf_with_allowed_kinds(
+    input: CxfExportInput,
+    allowed_credential_kinds: Option<&[CxfCredentialKind]>,
+) -> Result<CxfExportOutcome, CxfError> {
+    export::export_with_allowed_kinds(input, allowed_credential_kinds)
 }
 
 pub fn import_cxf(payload: &str) -> Result<CxfImportResult, CxfError> {

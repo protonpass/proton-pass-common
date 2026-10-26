@@ -2,7 +2,7 @@ mod archive;
 mod handshake;
 mod hpke;
 
-use crate::cxf::{CxfError, CxfExportInput, CxfImportResult, CxfWarning, CxfWarningKind};
+use crate::cxf::{CxfCredentialKind, CxfError, CxfExportInput, CxfImportResult, CxfWarning, CxfWarningKind};
 use credential_exchange_protocol::{CredentialType, ExportResponse, Version};
 use parking_lot::Mutex;
 use proton_pass_derive::{Error, ffi_error};
@@ -69,6 +69,83 @@ impl CxpCredentialType {
             CredentialType::Unknown(_) => return None,
         })
     }
+
+    fn allowed_export_kinds(self) -> &'static [CxfCredentialKind] {
+        match self {
+            CxpCredentialType::BasicAuth => &[CxfCredentialKind::BasicAuth],
+            CxpCredentialType::Passkey => &[CxfCredentialKind::Passkey],
+            CxpCredentialType::Totp => &[CxfCredentialKind::Totp],
+            CxpCredentialType::Note => &[CxfCredentialKind::Note],
+            CxpCredentialType::Address => &[CxfCredentialKind::Address],
+            CxpCredentialType::CreditCard => &[CxfCredentialKind::CreditCard],
+            CxpCredentialType::DriverLicense => &[CxfCredentialKind::DriversLicense],
+            CxpCredentialType::IdentityDocument => &[CxfCredentialKind::IdentityDocument],
+            CxpCredentialType::Passport => &[CxfCredentialKind::Passport],
+            CxpCredentialType::PersonName => &[CxfCredentialKind::PersonName],
+            CxpCredentialType::SshKey => &[CxfCredentialKind::SshKey],
+            CxpCredentialType::ApiKey => &[CxfCredentialKind::ApiKey],
+            CxpCredentialType::File | CxpCredentialType::ItemReference => &[],
+        }
+    }
+}
+
+const EXPORTABLE_CREDENTIAL_TYPES: [CxpCredentialType; 14] = [
+    CxpCredentialType::BasicAuth,
+    CxpCredentialType::Passkey,
+    CxpCredentialType::Totp,
+    CxpCredentialType::Note,
+    CxpCredentialType::File,
+    CxpCredentialType::Address,
+    CxpCredentialType::CreditCard,
+    CxpCredentialType::DriverLicense,
+    CxpCredentialType::ItemReference,
+    CxpCredentialType::IdentityDocument,
+    CxpCredentialType::Passport,
+    CxpCredentialType::PersonName,
+    CxpCredentialType::SshKey,
+    CxpCredentialType::ApiKey,
+];
+
+fn allowed_export_kinds(requested: Option<&[CredentialType]>) -> Option<Vec<CxfCredentialKind>> {
+    let requested = requested?;
+    let mut kinds = Vec::new();
+    for credential_type in requested {
+        let Some(credential_type) = CxpCredentialType::from_upstream(credential_type) else {
+            // An unknown type is one Proton Pass cannot produce, so it contributes no kinds.
+            continue;
+        };
+        for kind in credential_type.allowed_export_kinds() {
+            if !kinds.contains(kind) {
+                kinds.push(*kind);
+            }
+        }
+    }
+    Some(kinds)
+}
+
+fn exportable_types(allowed: Option<&[CxfCredentialKind]>) -> Vec<CxpCredentialType> {
+    EXPORTABLE_CREDENTIAL_TYPES
+        .into_iter()
+        .filter(|credential_type| match allowed {
+            None => !credential_type.allowed_export_kinds().is_empty(),
+            Some(allowed) => credential_type
+                .allowed_export_kinds()
+                .iter()
+                .any(|kind| allowed.contains(kind)),
+        })
+        .collect()
+}
+
+fn types_of_exported_kinds(kinds: &[CxfCredentialKind]) -> Vec<CxpCredentialType> {
+    EXPORTABLE_CREDENTIAL_TYPES
+        .into_iter()
+        .filter(|credential_type| {
+            credential_type
+                .allowed_export_kinds()
+                .iter()
+                .any(|kind| kinds.contains(kind))
+        })
+        .collect()
 }
 
 #[proton_pass_derive::ffi_type]
@@ -76,6 +153,7 @@ impl CxpCredentialType {
 pub struct CxpExportRequestSummary {
     pub importer_name: String,
     pub requested_credential_types: Vec<CxpCredentialType>,
+    pub exportable_credential_types: Vec<CxpCredentialType>,
     pub requests_all_credential_types: bool,
 }
 
@@ -109,6 +187,7 @@ struct CxpExportEnvelope {
 pub struct CxpExportResponse {
     pub response: Vec<u8>,
     pub warnings: Vec<CxfWarning>,
+    pub sent_credential_types: Vec<CxpCredentialType>,
 }
 
 fn begin_cxp_export(request: CxpExportRequest) -> Result<(String, CxpExportEnvelope), CxpError> {
@@ -173,16 +252,6 @@ fn exclude_items_with_no_representable_type(export: &mut CxfExportInput, warning
     }
 }
 
-fn filter_export_input_by_requested_types(export: &mut CxfExportInput, requested: &[CxpCredentialType]) {
-    for vault in &mut export.vaults {
-        vault.items.retain(|item| {
-            credential_types_for_item(&item.item.content)
-                .iter()
-                .any(|t| requested.contains(t))
-        });
-    }
-}
-
 fn summarize_export_request(request: &str) -> Result<CxpExportRequestSummary, CxpError> {
     let parsed_request = handshake::parse_export_request(request)?;
     let requested_credential_types = parsed_request
@@ -194,9 +263,12 @@ fn summarize_export_request(request: &str) -> Result<CxpExportRequestSummary, Cx
         .filter_map(CxpCredentialType::from_upstream)
         .collect();
 
+    let allowed = allowed_export_kinds(parsed_request.request.credential_types.as_deref());
+
     Ok(CxpExportRequestSummary {
         importer_name: parsed_request.request.importer,
         requested_credential_types,
+        exportable_credential_types: exportable_types(allowed.as_deref()),
         requests_all_credential_types: parsed_request.request.credential_types.is_none(),
     })
 }
@@ -208,19 +280,16 @@ fn respond_to_cxp_export(request: &str, mut export: CxfExportInput) -> Result<Cx
 
     let mut warnings = Vec::new();
     exclude_items_with_no_representable_type(&mut export, &mut warnings);
-    if let Some(credential_types) = &parsed_request.request.credential_types {
-        let requested: Vec<CxpCredentialType> = credential_types
-            .iter()
-            .filter_map(CxpCredentialType::from_upstream)
-            .collect();
-        filter_export_input_by_requested_types(&mut export, &requested);
-    }
+
+    let allowed = allowed_export_kinds(parsed_request.request.credential_types.as_deref());
 
     let exporter_name = export.exporter_display_name.clone();
-    let cxf_result = crate::cxf::export_cxf(export).map_err(|e| CxpError::SerializationError(format!("{e}")))?;
-    warnings.extend(cxf_result.warnings);
+    let outcome = crate::cxf::export_cxf_with_allowed_kinds(export, allowed.as_deref())
+        .map_err(|e| CxpError::SerializationError(format!("{e}")))?;
+    warnings.extend(outcome.result.warnings);
+    let sent_credential_types = types_of_exported_kinds(&outcome.exported_credential_kinds);
 
-    let compressed_payload = archive::compress(archive_algorithm, cxf_result.payload.as_bytes())?;
+    let compressed_payload = archive::compress(archive_algorithm, outcome.result.payload.as_bytes())?;
 
     let sealed = hpke::seal(
         aead,
@@ -239,7 +308,11 @@ fn respond_to_cxp_export(request: &str, mut export: CxfExportInput) -> Result<Cx
 
     let response = handshake::build_export_response(&response, archive_algorithm)?;
 
-    Ok(CxpExportResponse { response, warnings })
+    Ok(CxpExportResponse {
+        response,
+        warnings,
+        sent_credential_types,
+    })
 }
 
 fn complete_cxp_export(envelope: CxpExportEnvelope, encrypted_response: &[u8]) -> Result<CxfImportResult, CxpError> {
@@ -313,8 +386,48 @@ impl CxpExportHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::cxf::test_support::sample_passkey;
     use crate::cxf::{CxfVaultWithItems, ItemMetadata, ItemWithMetadata};
     use proton_pass_types::{ItemContent, ItemData, LoginItem, VaultData, VaultDisplayPreferences};
+
+    fn export_and_decrypt(
+        input: CxfExportInput,
+        requested: Option<Vec<CxpCredentialType>>,
+    ) -> (crate::cxf::CxfHeader, CxpExportResponse) {
+        let keypair = hpke::generate_keypair();
+        let request =
+            handshake::build_export_request("Peer", requested.unwrap_or_default(), keypair.public_jwk).unwrap();
+
+        let exporter = CxpExportHandler::new();
+        let response = exporter.create_export_response(&request, input).unwrap();
+
+        let parsed_response = handshake::parse_export_response(&response.response).unwrap();
+        let aead = handshake::validate_export_response(&parsed_response.response).unwrap();
+        let encapped_key = parsed_response.response.hpke.key.clone().unwrap();
+        let plaintext = hpke::open(
+            aead,
+            &keypair.private_key,
+            &encapped_key,
+            b"Peer",
+            request.as_bytes(),
+            parsed_response.response.payload.as_ref(),
+        )
+        .unwrap();
+        let response_archive = archive::parse_selected(&parsed_response.archive).unwrap();
+        let decompressed = archive::decompress(response_archive, &plaintext).unwrap();
+        let payload = String::from_utf8(decompressed).unwrap();
+        let header: crate::cxf::CxfHeader = serde_json::from_str(&payload).unwrap();
+        (header, response)
+    }
+
+    fn credential_kinds(header: &crate::cxf::CxfHeader) -> Vec<CxfCredentialKind> {
+        header.accounts[0]
+            .items
+            .iter()
+            .flat_map(|item| item.credentials.iter())
+            .map(CxfCredentialKind::of)
+            .collect()
+    }
 
     fn sample_export_input() -> CxfExportInput {
         let login = LoginItem {
@@ -661,6 +774,362 @@ mod tests {
         let exporter = CxpExportHandler::new();
         let result = exporter.parse_export_request("not json");
         assert!(matches!(result, Err(CxpError::DeserializationError(_))));
+    }
+
+    fn login_with_totp_and_passkey(title: &str) -> ItemData {
+        ItemData::new(
+            title.to_string(),
+            String::new(),
+            String::new(),
+            ItemContent::Login(LoginItem {
+                email: "alice@example.com".to_string(),
+                username: "alice".to_string(),
+                password: "hunter2".to_string(),
+                urls: vec!["https://example.com".to_string()],
+                totp_uri: "otpauth://totp/Example:alice?secret=JBSWY3DPEHPK3PXP&issuer=Example".to_string(),
+                passkeys: vec![sample_passkey()],
+                autofill_urls: Vec::new(),
+            }),
+            Vec::new(),
+        )
+        .unwrap()
+    }
+
+    fn single_item_input(item: ItemData) -> CxfExportInput {
+        CxfExportInput {
+            vaults: vec![CxfVaultWithItems {
+                vault: VaultData::new(
+                    "Personal".to_string(),
+                    String::new(),
+                    VaultDisplayPreferences::default(),
+                )
+                .unwrap(),
+                items: vec![ItemWithMetadata {
+                    item,
+                    metadata: ItemMetadata {
+                        created_at: 0,
+                        modified_at: 0,
+                        pinned: false,
+                    },
+                }],
+            }],
+            exporter_rp_id: "other-app.example".to_string(),
+            exporter_display_name: "Other Password Manager".to_string(),
+            timestamp: 1_700_000_000,
+        }
+    }
+
+    #[test]
+    fn requesting_only_basic_auth_does_not_leak_totp_or_passkeys_from_the_same_item() {
+        let (header, response) = export_and_decrypt(
+            single_item_input(login_with_totp_and_passkey("Multi credential login")),
+            Some(vec![CxpCredentialType::BasicAuth]),
+        );
+
+        let kinds = credential_kinds(&header);
+        assert!(kinds.contains(&CxfCredentialKind::BasicAuth));
+        assert!(!kinds.contains(&CxfCredentialKind::Totp), "{kinds:?}");
+        assert!(!kinds.contains(&CxfCredentialKind::Passkey), "{kinds:?}");
+        assert_eq!(response.sent_credential_types, vec![CxpCredentialType::BasicAuth]);
+    }
+
+    #[test]
+    fn requesting_only_totp_does_not_leak_the_password_or_passkeys() {
+        let (header, response) = export_and_decrypt(
+            single_item_input(login_with_totp_and_passkey("Multi credential login")),
+            Some(vec![CxpCredentialType::Totp]),
+        );
+
+        assert_eq!(credential_kinds(&header), vec![CxfCredentialKind::Totp]);
+        assert_eq!(response.sent_credential_types, vec![CxpCredentialType::Totp]);
+    }
+
+    #[test]
+    fn requesting_only_passkeys_does_not_leak_the_password_or_totp() {
+        let (header, response) = export_and_decrypt(
+            single_item_input(login_with_totp_and_passkey("Multi credential login")),
+            Some(vec![CxpCredentialType::Passkey]),
+        );
+
+        assert_eq!(credential_kinds(&header), vec![CxfCredentialKind::Passkey]);
+        assert_eq!(response.sent_credential_types, vec![CxpCredentialType::Passkey]);
+    }
+
+    #[test]
+    fn requesting_only_basic_auth_drops_the_totp_stored_in_an_extra_field() {
+        let mut item = ItemData::new(
+            "Login with TOTP field".to_string(),
+            String::new(),
+            String::new(),
+            ItemContent::Login(LoginItem {
+                email: "alice@example.com".to_string(),
+                username: String::new(),
+                password: "hunter2".to_string(),
+                urls: Vec::new(),
+                totp_uri: String::new(),
+                passkeys: Vec::new(),
+                autofill_urls: Vec::new(),
+            }),
+            vec![proton_pass_types::ItemExtraField {
+                name: "2FA".to_string(),
+                content: proton_pass_types::ItemExtraFieldContent::Totp(
+                    "otpauth://totp/Example:alice?secret=JBSWY3DPEHPK3PXP&issuer=Example".to_string(),
+                ),
+            }],
+        )
+        .unwrap();
+        item.note = "a secret note".to_string();
+
+        let (header, response) = export_and_decrypt(single_item_input(item), Some(vec![CxpCredentialType::BasicAuth]));
+
+        let kinds = credential_kinds(&header);
+        assert!(!kinds.contains(&CxfCredentialKind::Totp), "{kinds:?}");
+        assert!(!kinds.contains(&CxfCredentialKind::Note), "{kinds:?}");
+        assert_eq!(response.sent_credential_types, vec![CxpCredentialType::BasicAuth]);
+    }
+
+    fn sample_identity() -> proton_pass_types::IdentityItem {
+        proton_pass_types::IdentityItem {
+            full_name: "Alice Doe".to_string(),
+            email: "alice@example.com".to_string(),
+            phone_number: "+10000000000".to_string(),
+            first_name: "Alice".to_string(),
+            middle_name: String::new(),
+            last_name: "Doe".to_string(),
+            birthdate: String::new(),
+            gender: String::new(),
+            extra_personal_details: Vec::new(),
+            organization: String::new(),
+            street_address: "1 Example Street".to_string(),
+            zip_or_postal_code: "12345".to_string(),
+            city: "Exampleville".to_string(),
+            state_or_province: String::new(),
+            country_or_region: "Wonderland".to_string(),
+            floor: String::new(),
+            county: String::new(),
+            extra_address_details: Vec::new(),
+            social_security_number: "000-00-0000".to_string(),
+            passport_number: "P1234567".to_string(),
+            license_number: "D7654321".to_string(),
+            website: String::new(),
+            x_handle: String::new(),
+            second_phone_number: String::new(),
+            linkedin: String::new(),
+            reddit: String::new(),
+            facebook: String::new(),
+            yahoo: String::new(),
+            instagram: String::new(),
+            extra_contact_details: Vec::new(),
+            company: String::new(),
+            job_title: String::new(),
+            personal_website: String::new(),
+            work_phone_number: String::new(),
+            work_email: String::new(),
+            extra_work_details: Vec::new(),
+            extra_sections: Vec::new(),
+        }
+    }
+
+    fn identity_item_with_extras() -> ItemData {
+        let mut identity = sample_identity();
+        identity.extra_sections = vec![proton_pass_types::CustomSection {
+            section_name: "Membership".to_string(),
+            section_fields: vec![proton_pass_types::ItemExtraField {
+                name: "Member ID".to_string(),
+                content: proton_pass_types::ItemExtraFieldContent::Text("M-42".to_string()),
+            }],
+        }];
+        ItemData::new(
+            "Identity".to_string(),
+            String::new(),
+            String::new(),
+            ItemContent::Identity(Box::new(identity)),
+            vec![proton_pass_types::ItemExtraField {
+                name: "Locker".to_string(),
+                content: proton_pass_types::ItemExtraFieldContent::Hidden("1234".to_string()),
+            }],
+        )
+        .unwrap()
+    }
+
+    #[test]
+    fn requesting_only_person_name_does_not_leak_the_rest_of_an_identity_item() {
+        let (header, response) = export_and_decrypt(
+            single_item_input(identity_item_with_extras()),
+            Some(vec![CxpCredentialType::PersonName]),
+        );
+
+        assert_eq!(credential_kinds(&header), vec![CxfCredentialKind::PersonName]);
+        assert_eq!(response.sent_credential_types, vec![CxpCredentialType::PersonName]);
+    }
+
+    #[test]
+    fn requesting_every_identity_type_keeps_the_identity_custom_fields() {
+        let (header, _) = export_and_decrypt(
+            single_item_input(identity_item_with_extras()),
+            Some(vec![
+                CxpCredentialType::PersonName,
+                CxpCredentialType::Address,
+                CxpCredentialType::IdentityDocument,
+                CxpCredentialType::Passport,
+                CxpCredentialType::DriverLicense,
+            ]),
+        );
+
+        let custom_fields = credential_kinds(&header)
+            .into_iter()
+            .filter(|kind| *kind == CxfCredentialKind::CustomFields)
+            .count();
+        // Unmapped identity fields, the extra section and the item extra fields.
+        assert_eq!(custom_fields, 3);
+    }
+
+    fn login_with_extra_field() -> ItemData {
+        ItemData::new(
+            "Login with extras".to_string(),
+            String::new(),
+            String::new(),
+            ItemContent::Login(LoginItem {
+                email: "alice@example.com".to_string(),
+                username: "alice".to_string(),
+                password: "hunter2".to_string(),
+                urls: Vec::new(),
+                totp_uri: String::new(),
+                passkeys: vec![sample_passkey()],
+                autofill_urls: Vec::new(),
+            }),
+            vec![proton_pass_types::ItemExtraField {
+                name: "Recovery code".to_string(),
+                content: proton_pass_types::ItemExtraFieldContent::Hidden("abcd-efgh".to_string()),
+            }],
+        )
+        .unwrap()
+    }
+
+    #[test]
+    fn requesting_basic_auth_keeps_the_login_identifiers_and_extra_fields() {
+        let (header, _) = export_and_decrypt(
+            single_item_input(login_with_extra_field()),
+            Some(vec![CxpCredentialType::BasicAuth]),
+        );
+
+        assert_eq!(
+            credential_kinds(&header),
+            vec![
+                CxfCredentialKind::BasicAuth,
+                CxfCredentialKind::CustomFields,
+                CxfCredentialKind::CustomFields,
+            ]
+        );
+    }
+
+    #[test]
+    fn requesting_only_passkeys_drops_the_login_extra_fields() {
+        let (header, _) = export_and_decrypt(
+            single_item_input(login_with_extra_field()),
+            Some(vec![CxpCredentialType::Passkey]),
+        );
+
+        assert_eq!(credential_kinds(&header), vec![CxfCredentialKind::Passkey]);
+    }
+
+    #[test]
+    fn requesting_ssh_keys_keeps_the_public_key_and_sections() {
+        let private_key = ssh_key::PrivateKey::from(ssh_key::private::Ed25519Keypair::random(&mut rand::rng()));
+        let item = ItemData::new(
+            "SSH key".to_string(),
+            String::new(),
+            String::new(),
+            ItemContent::SshKey(proton_pass_types::SshKeyItem {
+                private_key: private_key.to_openssh(ssh_key::LineEnding::LF).unwrap().to_string(),
+                public_key: private_key.public_key().to_openssh().unwrap(),
+                sections: vec![proton_pass_types::CustomSection {
+                    section_name: "Host".to_string(),
+                    section_fields: vec![proton_pass_types::ItemExtraField {
+                        name: "Server".to_string(),
+                        content: proton_pass_types::ItemExtraFieldContent::Text("example.com".to_string()),
+                    }],
+                }],
+            }),
+            Vec::new(),
+        )
+        .unwrap();
+
+        let (header, response) = export_and_decrypt(single_item_input(item), Some(vec![CxpCredentialType::SshKey]));
+
+        assert!(response.warnings.is_empty(), "{:?}", response.warnings);
+        assert_eq!(
+            credential_kinds(&header),
+            vec![
+                CxfCredentialKind::SshKey,
+                CxfCredentialKind::CustomFields,
+                CxfCredentialKind::CustomFields,
+            ]
+        );
+    }
+
+    #[test]
+    fn restricting_the_export_does_not_report_warnings_about_credentials_it_drops() {
+        // The login holds a passkey that fails to export, and an SSH key whose public half alone
+        // would warn. Neither is requested, so neither should produce a warning.
+        let (_, response) = export_and_decrypt(
+            single_item_input(login_with_totp_and_passkey("Multi credential login")),
+            Some(vec![CxpCredentialType::BasicAuth]),
+        );
+
+        assert!(response.warnings.is_empty(), "{:?}", response.warnings);
+    }
+
+    #[test]
+    fn requesting_a_type_proton_pass_cannot_produce_sends_no_credentials() {
+        let (header, response) = export_and_decrypt(
+            single_item_input(login_with_totp_and_passkey("Multi credential login")),
+            Some(vec![CxpCredentialType::File]),
+        );
+
+        assert!(credential_kinds(&header).is_empty());
+        assert!(response.sent_credential_types.is_empty());
+        assert!(header.accounts[0].items.is_empty());
+    }
+
+    #[test]
+    fn an_unrestricted_request_still_exports_every_credential() {
+        let (header, _) = export_and_decrypt(
+            single_item_input(login_with_totp_and_passkey("Multi credential login")),
+            None,
+        );
+
+        let kinds = credential_kinds(&header);
+        assert!(kinds.contains(&CxfCredentialKind::BasicAuth));
+        assert!(kinds.contains(&CxfCredentialKind::Totp));
+        assert!(kinds.contains(&CxfCredentialKind::Passkey));
+    }
+
+    #[test]
+    fn export_request_summary_reports_only_types_that_can_be_sent() {
+        let importer = CxpImportHandler::new();
+        let request = importer
+            .create_export_request(CxpExportRequest {
+                importer_name: "Peer".to_string(),
+                supported_credential_types: vec![
+                    CxpCredentialType::BasicAuth,
+                    CxpCredentialType::File,
+                    CxpCredentialType::ItemReference,
+                ],
+            })
+            .unwrap();
+
+        let summary = CxpExportHandler::new().parse_export_request(&request).unwrap();
+
+        assert_eq!(
+            summary.requested_credential_types,
+            vec![
+                CxpCredentialType::BasicAuth,
+                CxpCredentialType::File,
+                CxpCredentialType::ItemReference
+            ]
+        );
+        assert_eq!(summary.exportable_credential_types, vec![CxpCredentialType::BasicAuth]);
     }
 
     #[test]

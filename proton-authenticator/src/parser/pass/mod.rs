@@ -94,7 +94,12 @@ pub fn parse_pass_zip(input: &[u8]) -> Result<ImportResult, PassImportError> {
             warn!("Error opening file inside zip at index {i}: {e:?}");
             PassImportError::BadZip
         })?;
-        if file.name() == "Proton Pass/data.json" {
+        let file_name = file.name().map_err(|e| {
+            warn!("Error reading file name inside zip at index {i}: {e:?}");
+            PassImportError::BadZip
+        })?;
+
+        if file_name == "Proton Pass/data.json" {
             // Read the JSON content
             file.read_to_string(&mut json_content).map_err(|e| {
                 warn!("Error reading Pass data file inside zip: {e:?}");

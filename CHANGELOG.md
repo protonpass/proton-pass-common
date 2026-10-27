@@ -6,6 +6,12 @@
 
 ### Other
 
+## 2.3.3
+
+### Other
+
+- General dependency updates
+
 ## 2.3.2
 
 ### Other

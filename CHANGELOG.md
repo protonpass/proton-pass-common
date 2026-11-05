@@ -6,6 +6,13 @@
 
 ### Other
 
+## 2.3.5
+
+### Features :tada:
+
+- pass-common: offer android-specific passkey methods
+- pass-mobile: expose android-specific passkey methods
+
 ## 2.3.4
 
 ### Other

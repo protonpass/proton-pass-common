@@ -1895,7 +1895,7 @@ dependencies = [
 
 [[package]]
 name = "icon_fetcher"
-version = "2.3.4"
+version = "2.3.5"
 dependencies = [
  "futures",
  "indicatif",
@@ -3366,7 +3366,7 @@ checksum = "263a3f48f01e7309e857138bd47f785585b4a005e8e56c6d2824ce91195999c3"
 
 [[package]]
 name = "proton-authenticator"
-version = "2.3.4"
+version = "2.3.5"
 dependencies = [
  "aes-gcm",
  "argon2",
@@ -3405,7 +3405,7 @@ dependencies = [
 
 [[package]]
 name = "proton-authenticator-mobile"
-version = "2.3.4"
+version = "2.3.5"
 dependencies = [
  "jiff",
  "proton-authenticator",
@@ -3417,7 +3417,7 @@ dependencies = [
 
 [[package]]
 name = "proton-authenticator-web"
-version = "2.3.4"
+version = "2.3.5"
 dependencies = [
  "js-sys",
  "proton-authenticator",
@@ -3429,7 +3429,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-common"
-version = "2.3.4"
+version = "2.3.5"
 dependencies = [
  "async-trait",
  "chrono",
@@ -3482,7 +3482,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-derive"
-version = "2.3.4"
+version = "2.3.5"
 dependencies = [
  "quote",
  "syn 3.0.9",
@@ -3490,7 +3490,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-mobile"
-version = "2.3.4"
+version = "2.3.5"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3503,7 +3503,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-totp"
-version = "2.3.4"
+version = "2.3.5"
 dependencies = [
  "criterion",
  "proton-pass-derive",
@@ -3519,7 +3519,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-types"
-version = "2.3.4"
+version = "2.3.5"
 dependencies = [
  "anyhow",
  "protobuf",
@@ -3535,7 +3535,7 @@ dependencies = [
 
 [[package]]
 name = "proton-pass-web"
-version = "2.3.4"
+version = "2.3.5"
 dependencies = [
  "async-trait",
  "js-sys",
@@ -5209,7 +5209,7 @@ dependencies = [
 
 [[package]]
 name = "uniffi-bindgen-cli"
-version = "2.3.4"
+version = "2.3.5"
 dependencies = [
  "uniffi",
 ]

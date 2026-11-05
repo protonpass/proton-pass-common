@@ -67,6 +67,7 @@ zeroize = { version = "1", optional = true }
 # Passkeys dependency
 passkey = { git = "https://github.com/1Password/passkey-rs.git", rev = "1606717bd9888b629905d435bb876b24b1aaddb5" }
 passkey-authenticator = { git = "https://github.com/1Password/passkey-rs.git", rev = "1606717bd9888b629905d435bb876b24b1aaddb5" }
+passkey-client = { git = "https://github.com/1Password/passkey-rs.git", rev = "1606717bd9888b629905d435bb876b24b1aaddb5", features = ["android-asset-validation"] }
 passkey-types = { git = "https://github.com/1Password/passkey-rs.git", rev = "1606717bd9888b629905d435bb876b24b1aaddb5", features = ["serialize_bytes_as_base64_string"] }
 public-suffix = { git = "https://github.com/1Password/passkey-rs.git", rev = "1606717bd9888b629905d435bb876b24b1aaddb5" }
 

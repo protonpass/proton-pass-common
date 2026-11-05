@@ -2,7 +2,9 @@ use std::sync::{Arc, Mutex};
 
 use crate::passkey_fetcher::{MobileWebauthnClientFetcher, make_webauthn_client};
 pub use proton_pass_common::passkey::{
+    AndroidAppOrigin as CommonAndroidAppOrigin,
     AuthenticatePasskeyPrfIosValues as CommonAuthenticatePasskeyPrfIosValues,
+    AuthenticateWithPasskeyAndroidAppRequest as CommonAuthenticateWithPasskeyAndroidAppRequest,
     AuthenticateWithPasskeyAndroidRequest as CommonAuthenticateWithPasskeyAndroidRequest,
     AuthenticateWithPasskeyIosRequest as CommonAuthenticateWithPasskeyIosRequest,
     AuthenticateWithPasskeyIosResponse as CommonAuthenticateWithPasskeyIosResponse,
@@ -11,9 +13,44 @@ pub use proton_pass_common::passkey::{
     PasskeyError as CommonPasskeyError,
 };
 use proton_pass_common::passkey::{
-    WebauthnClientFetcher, WebauthnFetcher, generate_passkey_for_domain, generate_passkey_for_ios,
-    parse_create_passkey_data, resolve_challenge_for_android, resolve_challenge_for_ios,
+    CreatePasskeyResponse as CommonCreatePasskeyResponse, WebauthnClientFetcher, WebauthnFetcher,
+    generate_passkey_for_android_app, generate_passkey_for_domain, generate_passkey_for_ios, parse_create_passkey_data,
+    resolve_challenge_for_android, resolve_challenge_for_android_app, resolve_challenge_for_ios,
 };
+
+#[derive(uniffi::Record)]
+pub struct AndroidAppOrigin {
+    pub package_name: String,
+    pub sha256_cert_fingerprint: Vec<u8>,
+    pub rp_id: String,
+}
+
+impl From<AndroidAppOrigin> for CommonAndroidAppOrigin {
+    fn from(other: AndroidAppOrigin) -> Self {
+        Self {
+            package_name: other.package_name,
+            sha256_cert_fingerprint: other.sha256_cert_fingerprint,
+            rp_id: other.rp_id,
+        }
+    }
+}
+
+#[derive(uniffi::Record)]
+pub struct AuthenticateWithPasskeyAndroidAppRequest {
+    pub app: AndroidAppOrigin,
+    pub request: String,
+    pub passkey: Vec<u8>,
+}
+
+impl From<AuthenticateWithPasskeyAndroidAppRequest> for CommonAuthenticateWithPasskeyAndroidAppRequest {
+    fn from(other: AuthenticateWithPasskeyAndroidAppRequest) -> Self {
+        Self {
+            app: CommonAndroidAppOrigin::from(other.app),
+            request: other.request,
+            passkey: other.passkey,
+        }
+    }
+}
 
 #[derive(uniffi::Record)]
 pub struct AuthenticateWithPasskeyAndroidRequest {
@@ -262,31 +299,21 @@ impl PasskeyManager {
     pub fn generate_passkey(&self, url: String, request: String) -> PasskeyResult<CreatePasskeyResponse> {
         let fetcher = self.get_fetcher();
         self.rt.handle().block_on(async move {
-            match generate_passkey_for_domain(&url, &request, false, fetcher).await {
-                Ok(r) => match r.response() {
-                    Ok(response) => Ok(CreatePasskeyResponse {
-                        response,
-                        key_id: r.key_id,
-                        passkey: r.passkey,
-                        domain: r.domain,
-                        rp_id: r.rp_id,
-                        rp_name: r.rp_name,
-                        user_name: r.user_name,
-                        user_display_name: r.user_display_name,
-                        user_id: r.user_id,
-                        credential_id: r.credential_id,
-                        user_handle: r.user_handle,
-                    }),
-                    Err(e) => {
-                        println!("Error in generate_passkey: {e:?}");
-                        Err(PasskeyError::from(e))
-                    }
-                },
-                Err(e) => {
-                    println!("Error in generate_passkey: {e:?}");
-                    Err(PasskeyError::from(e))
-                }
-            }
+            let result = generate_passkey_for_domain(&url, &request, false, fetcher).await;
+            Self::to_create_passkey_response(result, "generate_passkey")
+        })
+    }
+
+    pub fn generate_passkey_for_android_app(
+        &self,
+        app: AndroidAppOrigin,
+        request: String,
+    ) -> PasskeyResult<CreatePasskeyResponse> {
+        let fetcher = self.get_fetcher();
+        self.rt.handle().block_on(async move {
+            let app = CommonAndroidAppOrigin::from(app);
+            let result = generate_passkey_for_android_app(&app, &request, fetcher).await;
+            Self::to_create_passkey_response(result, "generate_passkey_for_android_app")
         })
     }
 
@@ -336,6 +363,27 @@ impl PasskeyManager {
         })
     }
 
+    pub fn resolve_challenge_for_android_app(
+        &self,
+        request: AuthenticateWithPasskeyAndroidAppRequest,
+    ) -> PasskeyResult<String> {
+        let fetcher = self.get_fetcher();
+        self.rt.handle().block_on(async move {
+            match resolve_challenge_for_android_app(
+                CommonAuthenticateWithPasskeyAndroidAppRequest::from(request),
+                fetcher,
+            )
+            .await
+            {
+                Ok(r) => Ok(r),
+                Err(e) => {
+                    println!("Error in resolve_challenge_for_android_app: {e:?}");
+                    Err(PasskeyError::from(e))
+                }
+            }
+        })
+    }
+
     pub fn resolve_challenge_for_ios(
         &self,
         request: AuthenticateWithPasskeyIosRequest,
@@ -373,5 +421,31 @@ impl PasskeyManager {
     fn get_fetcher(&self) -> WebauthnFetcher {
         let client = self.fetcher.lock().unwrap().clone();
         WebauthnFetcher::new(client)
+    }
+
+    fn to_create_passkey_response(
+        result: Result<CommonCreatePasskeyResponse, CommonPasskeyError>,
+        context: &str,
+    ) -> PasskeyResult<CreatePasskeyResponse> {
+        let r = result.inspect_err(|e| println!("Error in {context}: {e:?}"))?;
+        match r.response() {
+            Ok(response) => Ok(CreatePasskeyResponse {
+                response,
+                key_id: r.key_id,
+                passkey: r.passkey,
+                domain: r.domain,
+                rp_id: r.rp_id,
+                rp_name: r.rp_name,
+                user_name: r.user_name,
+                user_display_name: r.user_display_name,
+                user_id: r.user_id,
+                credential_id: r.credential_id,
+                user_handle: r.user_handle,
+            }),
+            Err(e) => {
+                println!("Error in {context}: {e:?}");
+                Err(PasskeyError::from(e))
+            }
+        }
     }
 }

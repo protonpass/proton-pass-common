@@ -2910,6 +2910,7 @@ source = "git+https://github.com/1Password/passkey-rs.git?rev=1606717bd9888b6299
 dependencies = [
  "ciborium",
  "idna",
+ "nom 7.1.3",
  "passkey-authenticator",
  "passkey-crypto",
  "passkey-types",
@@ -3451,6 +3452,7 @@ dependencies = [
  "parking_lot 0.13.0",
  "passkey",
  "passkey-authenticator",
+ "passkey-client",
  "passkey-types",
  "pkcs8",
  "proptest",

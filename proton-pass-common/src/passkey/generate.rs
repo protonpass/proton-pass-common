@@ -1,9 +1,11 @@
+use super::android_origin::AndroidAppOrigin;
 use super::fetcher::WebauthnFetcher;
 use super::parser::parse_create_request;
 use super::passkey_handling::{get_client, parse_url, serialize_passkey};
 use super::{PasskeyError, PasskeyResult, ProtonPassKey};
 use coset::iana;
 use coset::iana::EnumI64;
+use passkey_client::Origin;
 use passkey_types::Bytes;
 use passkey_types::webauthn::{
     AuthenticationExtensionsClientInputs, AuthenticationExtensionsPrfInputs, AuthenticationExtensionsPrfValues,
@@ -56,8 +58,16 @@ impl CreatePasskeyResponse {
     }
 }
 
+fn web_domain(origin: &Url, request: &CredentialCreationOptions) -> String {
+    match origin.domain() {
+        Some(d) => d.to_string(),
+        None => request.public_key.rp.name.to_string(),
+    }
+}
+
 async fn generate_passkey_response(
-    origin: &Url,
+    origin: Origin<'_>,
+    domain: String,
     request: CredentialCreationOptions,
     client_data_hash: Option<Vec<u8>>,
     allows_insecure_localhost: bool,
@@ -68,10 +78,6 @@ async fn generate_passkey_response(
     let user_id = request.public_key.user.id.to_vec();
     let user_name = request.public_key.user.name.clone();
     let user_display_name = request.public_key.user.display_name.clone();
-    let domain = match origin.domain() {
-        Some(d) => d.to_string(),
-        None => request.public_key.rp.name.to_string(),
-    };
 
     let mut client = get_client(None, fetcher, allows_insecure_localhost);
 
@@ -126,18 +132,23 @@ async fn generate_passkey(
     fetcher: WebauthnFetcher,
 ) -> PasskeyResult<CreatePasskeyResponse> {
     let request = CredentialCreationOptions { public_key: request };
-    generate_passkey_response(&origin, request, None, allows_insecure_localhost, fetcher).await
+    let domain = web_domain(&origin, &request);
+    generate_passkey_response(
+        Origin::from(&origin),
+        domain,
+        request,
+        None,
+        allows_insecure_localhost,
+        fetcher,
+    )
+    .await
 }
 
-pub async fn generate_passkey_for_domain(
-    url: &str,
+fn parse_create_request_with_default_algorithms(
     request: &str,
-    allows_insecure_localhost: bool,
-    fetcher: WebauthnFetcher,
-) -> PasskeyResult<CreatePasskeyResponse> {
-    let origin = parse_url(url)?;
-
-    let mut parsed = parse_create_request(request, Some(url))?;
+    url: Option<&str>,
+) -> PasskeyResult<PublicKeyCredentialCreationOptions> {
+    let mut parsed = parse_create_request(request, url)?;
 
     // If pub_key_cred_params is empty, add default ES256 and RS256 algorithms
     if parsed.pub_key_cred_params.is_empty() {
@@ -153,7 +164,37 @@ pub async fn generate_passkey_for_domain(
         ];
     }
 
+    Ok(parsed)
+}
+
+pub async fn generate_passkey_for_domain(
+    url: &str,
+    request: &str,
+    allows_insecure_localhost: bool,
+    fetcher: WebauthnFetcher,
+) -> PasskeyResult<CreatePasskeyResponse> {
+    let origin = parse_url(url)?;
+    let parsed = parse_create_request_with_default_algorithms(request, Some(url))?;
     generate_passkey(origin, parsed, allows_insecure_localhost, fetcher).await
+}
+
+pub async fn generate_passkey_for_android_app(
+    app: &AndroidAppOrigin,
+    request: &str,
+    fetcher: WebauthnFetcher,
+) -> PasskeyResult<CreatePasskeyResponse> {
+    let asset_link = app.asset_link()?;
+    let parsed = parse_create_request_with_default_algorithms(request, Some(&app.rp_id))?;
+    let request = CredentialCreationOptions { public_key: parsed };
+    generate_passkey_response(
+        Origin::Android(asset_link),
+        app.rp_id.clone(),
+        request,
+        None,
+        false,
+        fetcher,
+    )
+    .await
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -221,7 +262,16 @@ pub async fn generate_passkey_for_ios(
     };
 
     let request = CredentialCreationOptions { public_key: options };
-    generate_passkey_response(&url, request, Some(ios_request.client_data_hash), false, fetcher).await
+    let domain = web_domain(&url, &request);
+    generate_passkey_response(
+        Origin::from(&url),
+        domain,
+        request,
+        Some(ios_request.client_data_hash),
+        false,
+        fetcher,
+    )
+    .await
 }
 
 pub struct CreatePasskeyData {
@@ -232,21 +282,7 @@ pub struct CreatePasskeyData {
 }
 
 pub fn parse_create_passkey_data(request: &str) -> PasskeyResult<CreatePasskeyData> {
-    let mut parsed = parse_create_request(request, None)?;
-
-    // If pub_key_cred_params is empty, add default ES256 and RS256 algorithms
-    if parsed.pub_key_cred_params.is_empty() {
-        parsed.pub_key_cred_params = vec![
-            PublicKeyCredentialParameters {
-                ty: PublicKeyCredentialType::PublicKey,
-                alg: iana::Algorithm::ES256,
-            },
-            PublicKeyCredentialParameters {
-                ty: PublicKeyCredentialType::PublicKey,
-                alg: iana::Algorithm::RS256,
-            },
-        ];
-    }
+    let parsed = parse_create_request_with_default_algorithms(request, None)?;
 
     Ok(CreatePasskeyData {
         rp_id: parsed.rp.id,

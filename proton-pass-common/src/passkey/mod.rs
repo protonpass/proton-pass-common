@@ -1,3 +1,4 @@
+mod android_origin;
 mod authentication_parser;
 pub mod fetcher;
 mod generate;
@@ -9,10 +10,12 @@ mod protonpasskeyserializer;
 mod resolve;
 mod utils;
 
+pub use android_origin::AndroidAppOrigin;
 pub use fetcher::{FetchError, WebauthnClientFetcher, WebauthnDomainsResponse, WebauthnFetcher};
 pub use generate::{
     CreatePasskeyData, CreatePasskeyIosRequest, CreatePasskeyPrfInput, CreatePasskeyPrfOutput, CreatePasskeyPrfValues,
-    CreatePasskeyResponse, generate_passkey_for_domain, generate_passkey_for_ios, parse_create_passkey_data,
+    CreatePasskeyResponse, generate_passkey_for_android_app, generate_passkey_for_domain, generate_passkey_for_ios,
+    parse_create_passkey_data,
 };
 pub use protonpasskey::{
     ProtonAlgorithm, ProtonInteger, ProtonKey, ProtonKeyType, ProtonLabel, ProtonPassCredentialExtensions,
@@ -20,9 +23,10 @@ pub use protonpasskey::{
     ProtonValue,
 };
 pub use resolve::{
-    AuthenticatePasskeyPrfIosValues, AuthenticateWithPasskeyAndroidRequest, AuthenticateWithPasskeyIosRequest,
-    AuthenticateWithPasskeyIosResponse, ResolveChallengeResponse, resolve_challenge_for_android,
-    resolve_challenge_for_domain, resolve_challenge_for_ios,
+    AuthenticatePasskeyPrfIosValues, AuthenticateWithPasskeyAndroidAppRequest, AuthenticateWithPasskeyAndroidRequest,
+    AuthenticateWithPasskeyIosRequest, AuthenticateWithPasskeyIosResponse, ResolveChallengeResponse,
+    resolve_challenge_for_android, resolve_challenge_for_android_app, resolve_challenge_for_domain,
+    resolve_challenge_for_ios,
 };
 
 pub type PasskeyResult<T> = Result<T, PasskeyError>;

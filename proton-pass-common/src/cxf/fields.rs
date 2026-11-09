@@ -83,7 +83,7 @@ pub(crate) fn opt_date_field(
     if value.is_empty() {
         return None;
     }
-    match chrono::NaiveDate::parse_from_str(value, "%Y-%m-%d") {
+    match value.parse::<jiff::civil::Date>() {
         Ok(date) => Some(EditableField {
             id: None,
             value: EditableFieldDate(date).into(),

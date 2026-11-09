@@ -15,7 +15,7 @@ resize-image = ["dep:image", "dep:zenwebp"]
 cxf = [
     "dep:credential-exchange-format",
     "dep:proton-pass-types",
-    "dep:chrono",
+    "dep:jiff",
     "dep:p256",
     "dep:p384",
     "dep:p521",
@@ -48,10 +48,10 @@ serde.workspace = true
 serde_json.workspace = true
 
 # CXF/CXP dependencies
-credential-exchange-format = { git = "https://github.com/bitwarden/credential-exchange", rev = "22a87d9852ae64a659ae37774bd9194fd362bdde", optional = true }
-credential-exchange-protocol = { git = "https://github.com/bitwarden/credential-exchange", rev = "22a87d9852ae64a659ae37774bd9194fd362bdde", optional = true }
+credential-exchange-format = { git = "https://github.com/bitwarden/credential-exchange", rev = "06129f6eaca5f2ebf0974a804d287a77897c9711", default-features = false, features = ["jiff"], optional = true }
+credential-exchange-protocol = { git = "https://github.com/bitwarden/credential-exchange", rev = "06129f6eaca5f2ebf0974a804d287a77897c9711", default-features = false, features = ["jiff"], optional = true }
 
-chrono = { version = "0.4", default-features = false, features = ["clock"], optional = true }
+jiff = { version = "0.2", default-features = false, features = ["std"], optional = true }
 ed25519-dalek = { version = "3", features = ["pkcs8"], optional = true }
 flate2 = { version = "1", optional = true }
 hpke = { version = "0.14", default-features = false, features = ["alloc", "getrandom", "x25519", "chacha", "aes"], optional = true }

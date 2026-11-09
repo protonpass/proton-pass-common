@@ -36,7 +36,7 @@ fn parse_year_month(
         let (year, month) = value.split_once('-')?;
         let year: u16 = year.parse().ok()?;
         let month: u8 = month.parse().ok()?;
-        let month = chrono::Month::try_from(month).ok()?;
+        let month = credential_exchange_format::Month::try_from(month).ok()?;
         Some(EditableFieldYearMonth { year, month })
     })();
     if parsed.is_none() {

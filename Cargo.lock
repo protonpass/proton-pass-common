@@ -624,7 +624,6 @@ dependencies = [
  "iana-time-zone",
  "js-sys",
  "num-traits",
- "serde",
  "wasm-bindgen",
  "windows-link",
 ]
@@ -859,10 +858,10 @@ dependencies = [
 [[package]]
 name = "credential-exchange-format"
 version = "0.4.0"
-source = "git+https://github.com/bitwarden/credential-exchange?rev=22a87d9852ae64a659ae37774bd9194fd362bdde#22a87d9852ae64a659ae37774bd9194fd362bdde"
+source = "git+https://github.com/bitwarden/credential-exchange?rev=06129f6eaca5f2ebf0974a804d287a77897c9711#06129f6eaca5f2ebf0974a804d287a77897c9711"
 dependencies = [
- "chrono",
  "data-encoding",
+ "jiff",
  "serde",
  "serde_json",
 ]
@@ -870,7 +869,7 @@ dependencies = [
 [[package]]
 name = "credential-exchange-protocol"
 version = "0.4.0"
-source = "git+https://github.com/bitwarden/credential-exchange?rev=22a87d9852ae64a659ae37774bd9194fd362bdde#22a87d9852ae64a659ae37774bd9194fd362bdde"
+source = "git+https://github.com/bitwarden/credential-exchange?rev=06129f6eaca5f2ebf0974a804d287a77897c9711#06129f6eaca5f2ebf0974a804d287a77897c9711"
 dependencies = [
  "credential-exchange-format",
  "jose-jwk",
@@ -3432,7 +3431,6 @@ name = "proton-pass-common"
 version = "2.3.5"
 dependencies = [
  "async-trait",
- "chrono",
  "coset",
  "credential-exchange-format",
  "credential-exchange-protocol",
@@ -3443,6 +3441,7 @@ dependencies = [
  "flate2",
  "hpke",
  "image",
+ "jiff",
  "jose-jwk",
  "lazy_static",
  "luhn",

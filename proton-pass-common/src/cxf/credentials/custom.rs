@@ -1,4 +1,3 @@
-use chrono::DateTime;
 use credential_exchange_format::{
     ApiKeyCredential, Credential, CustomFieldsCredential, EditableField, EditableFieldDate, EditableFieldValue,
 };
@@ -24,7 +23,10 @@ pub(crate) fn extra_field_to_editable_value(field: &ItemExtraField) -> Option<Ed
             extensions: None,
         })),
         ItemExtraFieldContent::Timestamp(seconds) => {
-            let date = DateTime::from_timestamp(*seconds, 0).map(|dt| dt.date_naive())?;
+            let date = jiff::Timestamp::from_second(*seconds)
+                .ok()?
+                .to_zoned(jiff::tz::TimeZone::UTC)
+                .date();
             Some(EditableFieldValue::Date(EditableField {
                 id: None,
                 value: EditableFieldDate(date).into(),
@@ -56,8 +58,8 @@ pub(crate) fn editable_value_to_extra_field(
                 .value
                 .as_expected()
                 .ok()
-                .and_then(|d| d.0.and_hms_opt(0, 0, 0))
-                .map(|dt| dt.and_utc().timestamp())
+                .and_then(|d| d.0.to_zoned(jiff::tz::TimeZone::UTC).ok())
+                .map(|zdt| zdt.timestamp().as_second())
                 .unwrap_or_default();
             ItemExtraField {
                 name,

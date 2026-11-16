@@ -35,6 +35,8 @@ pub mod share;
 pub mod sshkey;
 pub mod string_modifiers;
 pub mod twofa;
+#[cfg(feature = "url-matching")]
+pub mod url_matching;
 pub mod username;
 pub mod wifi;
 

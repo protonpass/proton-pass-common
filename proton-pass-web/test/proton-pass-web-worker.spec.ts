@@ -5,6 +5,7 @@ import {
     generate_passkey,
     generate_passphrase,
     library_version,
+    match_urls,
     random_words,
     generate_totp,
     register_webauthn_fetcher,
@@ -191,5 +192,19 @@ describe("ProtonPassWeb WASM", () => {
         const prf = extensionResults.prf;
         expect(prf).not.toBeUndefined();
         expect(prf.enabled).toBeTrue();
+    });
+
+    test("Can match urls", () => {
+        const candidates = [
+            { item_id: "weak", share_id: "share", url_mode: [{ url: "https://example.com", mode: "Default" }] },
+            { item_id: "none", share_id: "share", url_mode: [{ url: "https://proton.me", mode: "Default" }] },
+            { item_id: "exact", share_id: "share", url_mode: [{ url: "https://login.example.com", mode: "Exact" }] },
+        ];
+        const results = match_urls("https://login.example.com", candidates, []);
+
+        expect(results).toEqual([
+            { item_id: "exact", share_id: "share", score: 1000 },
+            { item_id: "weak", share_id: "share", score: 999 },
+        ]);
     });
 });

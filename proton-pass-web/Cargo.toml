@@ -37,7 +37,8 @@ web_password = []
 web_ui = []
 web_worker = [
     "web_password",
-    "proton-pass-types/wasm"
+    "proton-pass-types/wasm",
+    "proton-pass-common/url-matching",
 ]
 web_cxf = ["proton-pass-common/cxf"]
 web_duplicate = ["proton-pass-common/duplicate"]

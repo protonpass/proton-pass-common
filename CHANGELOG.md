@@ -6,6 +6,14 @@
 
 ### Other
 
+## 2.4.0
+
+### Features :tada:
+
+- pass-common: offer method for advanced URL matching.
+- pass-mobile: expose method for advanced URL matching.
+- pass-web: expose method for advanced URL matching.
+
 ## 2.3.5
 
 ### Features :tada:

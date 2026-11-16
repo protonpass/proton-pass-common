@@ -12,6 +12,7 @@ mod share;
 #[cfg(feature = "experimental")]
 mod sshkey;
 mod totp;
+mod url_matching;
 
 #[wasm_bindgen]
 pub fn twofa_domain_eligible(domain: String) -> bool {

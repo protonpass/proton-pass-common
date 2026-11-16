@@ -25,6 +25,7 @@ mod share;
 mod sshkey;
 mod totp;
 mod twofa;
+mod url_matching;
 mod username;
 mod wifi;
 
@@ -60,6 +61,7 @@ pub use share::*;
 pub use sshkey::*;
 pub use totp::*;
 pub use twofa::*;
+pub use url_matching::*;
 pub use username::*;
 pub use wifi::*;
 

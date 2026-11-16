@@ -18,7 +18,7 @@ fn keypair_to_pkcs8_der(key_data: &KeypairData) -> Option<Vec<u8>> {
             signing_key.to_pkcs8_der().ok().map(|doc| doc.as_bytes().to_vec())
         }
         KeypairData::Rsa(keypair) => {
-            let private_key = rsa::RsaPrivateKey::try_from(keypair).ok()?;
+            let private_key = rsa::PrivateKey::try_from(keypair).ok()?;
             private_key.to_pkcs8_der().ok().map(|doc| doc.as_bytes().to_vec())
         }
         KeypairData::Ecdsa(EcdsaKeypair::NistP256 { private, .. }) => {
@@ -41,7 +41,7 @@ fn pkcs8_der_to_keypair(der: &[u8]) -> Option<KeypairData> {
     if let Ok(signing_key) = SigningKey::from_pkcs8_der(der) {
         return Some(KeypairData::Ed25519(Ed25519Keypair::from(signing_key)));
     }
-    if let Ok(private_key) = rsa::RsaPrivateKey::from_pkcs8_der(der) {
+    if let Ok(private_key) = rsa::PrivateKey::from_pkcs8_der(der) {
         return RsaKeypair::try_from(private_key).ok().map(KeypairData::Rsa);
     }
     if let Ok(secret) = p256::SecretKey::from_pkcs8_der(der) {

@@ -180,7 +180,8 @@ impl MarkdownOperations {
         // Reject when either side is actually the delimiter of a real, non-empty span
         // elsewhere (e.g. the "****" junction between "**a**" and "**b**") rather than
         // a genuinely empty "**|**" pair.
-        !(Self::closes_real_span_before(text, cursor - w, wrapper) || Self::opens_real_span_after(text, cursor + w, wrapper))
+        !(Self::closes_real_span_before(text, cursor - w, wrapper)
+            || Self::opens_real_span_after(text, cursor + w, wrapper))
     }
 
     /// True when the cursor is flanked by `wrapper` on both sides (like

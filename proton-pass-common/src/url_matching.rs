@@ -9,6 +9,7 @@ use url::{Host, Url};
 use web_time::{Duration, Instant};
 
 pub const MAX_SCORE: u32 = 1000;
+/// Max length of a textual domain name: 255 wire bytes minus the leading length byte and the root label (RFC 1035 §2.3.4).
 const MAX_HOSTNAME_LENGTH: usize = 253;
 const REGEX_TIME_BUDGET: Duration = Duration::from_millis(100);
 const REGEX_SIZE_LIMIT: usize = 1 << 20;

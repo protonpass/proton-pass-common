@@ -1,4 +1,4 @@
-use proton_pass_common::url_matching::{UrlMatchResult, UrlMatchingCandidate, match_urls};
+use proton_pass_common::url_matching::{MAX_SCORE, UrlMatchResult, UrlMatchingCandidate, match_urls};
 use proton_pass_types::{AutofillUrl, AutofillUrlMode};
 
 use AutofillUrlMode::*;
@@ -54,47 +54,65 @@ fn default_mode_no_match() {
 
 #[test]
 fn default_mode_sub_and_top_matches() {
-    assert_eq!(default("pm.me", &["https://subdomain.pm.me"]), Some(999));
+    assert_eq!(default("pm.me", &["https://subdomain.pm.me"]), Some(MAX_SCORE - 1));
     assert_eq!(
         default("subdomain.pm.me", &["http://nested.subdomain.pm.me"]),
-        Some(999)
+        Some(MAX_SCORE - 1)
     );
-    assert_eq!(default("http://proton.ch", &["http://sub.proton.ch"]), Some(999));
+    assert_eq!(
+        default("http://proton.ch", &["http://sub.proton.ch"]),
+        Some(MAX_SCORE - 1)
+    );
     assert_eq!(
         default("http://proton.ch:3001", &["http://sub.proton.ch:3001"]),
-        Some(999)
+        Some(MAX_SCORE - 1)
     );
-    assert_eq!(default("proton.ch", &["http://sub.proton.ch:3001"]), Some(999));
-    assert_eq!(default("b.c.me", &["https://a.b.c.me"]), Some(999));
+    assert_eq!(
+        default("proton.ch", &["http://sub.proton.ch:3001"]),
+        Some(MAX_SCORE - 1)
+    );
+    assert_eq!(default("b.c.me", &["https://a.b.c.me"]), Some(MAX_SCORE - 1));
     assert_eq!(
         default("example.com", &["https://sub.example.com/path?query=param"]),
-        Some(999)
+        Some(MAX_SCORE - 1)
     );
-    assert_eq!(default("a.b.pm.me", &["https://pm.me"]), Some(998));
+    assert_eq!(default("a.b.pm.me", &["https://pm.me"]), Some(MAX_SCORE - 2));
     // sibling
-    assert_eq!(default("b.example.com", &["https://a.example.com"]), Some(999));
-    assert_eq!(default("b.example.com", &["https://a.b.example.com"]), Some(999));
+    assert_eq!(
+        default("b.example.com", &["https://a.example.com"]),
+        Some(MAX_SCORE - 1)
+    );
+    assert_eq!(
+        default("b.example.com", &["https://a.b.example.com"]),
+        Some(MAX_SCORE - 1)
+    );
 }
 
 #[test]
 fn default_mode_exact_matches() {
-    assert_eq!(default("pm.me", &["https://pm.me"]), Some(1000));
-    assert_eq!(default("proton.ch", &["nomatch", "https://proton.ch"]), Some(1000));
-    assert_eq!(default("ftp://proton.ch", &["ftp://proton.ch"]), Some(1000));
-    assert_eq!(default("http://proton.ch:3001", &["http://proton.ch:3001"]), Some(1000));
-    assert_eq!(default("proton.ch", &["http://proton.ch:3001"]), Some(1000));
-    assert_eq!(default("192.168.1.1", &["http://192.168.1.1"]), Some(1000));
-    assert_eq!(default("192.168.1.1", &["https://192.168.1.1/path"]), Some(1000));
+    assert_eq!(default("pm.me", &["https://pm.me"]), Some(MAX_SCORE));
+    assert_eq!(default("proton.ch", &["nomatch", "https://proton.ch"]), Some(MAX_SCORE));
+    assert_eq!(default("ftp://proton.ch", &["ftp://proton.ch"]), Some(MAX_SCORE));
+    assert_eq!(
+        default("http://proton.ch:3001", &["http://proton.ch:3001"]),
+        Some(MAX_SCORE)
+    );
+    assert_eq!(default("proton.ch", &["http://proton.ch:3001"]), Some(MAX_SCORE));
+    assert_eq!(default("192.168.1.1", &["http://192.168.1.1"]), Some(MAX_SCORE));
+    assert_eq!(default("192.168.1.1", &["https://192.168.1.1/path"]), Some(MAX_SCORE));
     assert_eq!(
         default("example.com", &["https://example.com/path?query=param"]),
-        Some(1000)
+        Some(MAX_SCORE)
     );
-    assert_eq!(default("a.b.c.me", &["https://a.b.c.me"]), Some(1000));
+    assert_eq!(default("a.b.c.me", &["https://a.b.c.me"]), Some(MAX_SCORE));
     assert_eq!(
         default("a.example.com", &["https://example.com", "https://a.example.com"]),
-        Some(1000)
+        Some(MAX_SCORE)
     );
-    assert_eq!(default("https://www.proton.me", &["https://proton.me"]), Some(1000));
+    assert_eq!(
+        default("https://www.proton.me", &["https://proton.me"]),
+        Some(MAX_SCORE)
+    );
 }
 
 #[test]
@@ -109,7 +127,10 @@ fn default_mode_bare_public_suffix_never_matches() {
 fn exact_mode() {
     assert_eq!(score("pm.me", &[("https://proton.ch", Exact)]), None);
     assert_eq!(score("b.example.com", &[("https://example.com", Exact)]), None);
-    assert_eq!(score("a.example.com", &[("https://a.example.com", Exact)]), Some(1000));
+    assert_eq!(
+        score("a.example.com", &[("https://a.example.com", Exact)]),
+        Some(MAX_SCORE)
+    );
 }
 
 #[test]
@@ -118,24 +139,24 @@ fn never_mode() {
     assert_eq!(score("example.com", &[("https://example.com", Never)]), None);
     let blocked = [("https://example.com", Default), ("https://example.com", Never)];
     assert_eq!(score("example.com", &blocked), None);
-    assert_eq!(score("login.example.com", &blocked), Some(999));
+    assert_eq!(score("login.example.com", &blocked), Some(MAX_SCORE - 1));
     let other = [("https://example.com", Default), ("https://other.com", Never)];
-    assert_eq!(score("example.com", &other), Some(1000));
+    assert_eq!(score("example.com", &other), Some(MAX_SCORE));
     let ancestor = [("https://example.com", Default), ("https://never.example.com", Never)];
-    assert_eq!(score("login.example.com", &ancestor), Some(999));
+    assert_eq!(score("login.example.com", &ancestor), Some(MAX_SCORE - 1));
 
     let logout = [
         ("https://example.com", ExactPath),
         ("https://example.com/logout", Never),
     ];
-    assert_eq!(score("https://example.com", &logout), Some(1000));
+    assert_eq!(score("https://example.com", &logout), Some(MAX_SCORE));
     assert_eq!(score("https://example.com/logout", &logout), None);
 
     let sso = [
         ("https://sso.megacorp.com/login", ExactPath),
         ("https://sso.megacorp.com/logout", Never),
     ];
-    assert_eq!(score("https://sso.megacorp.com/login", &sso), Some(1000));
+    assert_eq!(score("https://sso.megacorp.com/login", &sso), Some(MAX_SCORE));
     assert_eq!(score("https://sso.megacorp.com/logout", &sso), None);
 
     let query = [("https://example.com", Default), ("https://example.com/logout", Never)];
@@ -155,10 +176,10 @@ fn start_with_mode() {
             "https://proton.me/pass/something?param=value#hash",
             "https://proton.me/pass"
         ),
-        Some(1000)
+        Some(MAX_SCORE)
     );
-    assert_eq!(s("https://proton.me/pass", "https://proton.me/pass"), Some(1000));
-    assert_eq!(s("https://proton.me", "https://proton.me"), Some(1000));
+    assert_eq!(s("https://proton.me/pass", "https://proton.me/pass"), Some(MAX_SCORE));
+    assert_eq!(s("https://proton.me", "https://proton.me"), Some(MAX_SCORE));
 }
 
 #[test]
@@ -205,10 +226,10 @@ fn regex_mode() {
 fn exact_path_mode() {
     let e = |page, url| score(page, &[(url, ExactPath)]);
     assert_eq!(e("https://proton.me/path", "https://proton.me"), None);
-    assert_eq!(e("https://proton.me/path", "https://proton.me/path"), Some(1000));
+    assert_eq!(e("https://proton.me/path", "https://proton.me/path"), Some(MAX_SCORE));
     assert_eq!(
         e("https://proton.me/path?param=value#hash", "https://proton.me/path"),
-        Some(1000)
+        Some(MAX_SCORE)
     );
 }
 
@@ -320,7 +341,10 @@ fn best_url_wins_and_results_are_sorted() {
     let res: Vec<UrlMatchResult> = match_urls("https://login.example.com", items, vec![]);
     let got: Vec<(&str, u32)> = res.iter().map(|r| (r.item_id.as_str(), r.score)).collect();
     // Ties keep input order
-    assert_eq!(got, vec![("exact", 1000), ("weak", 999), ("weak2", 999)]);
+    assert_eq!(
+        got,
+        vec![("exact", MAX_SCORE), ("weak", MAX_SCORE - 1), ("weak2", MAX_SCORE - 1)]
+    );
 }
 
 #[test]

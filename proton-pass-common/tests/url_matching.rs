@@ -249,9 +249,16 @@ fn regex_mode() {
     // Matching runs on the normalized URL: root path gets a trailing slash, missing scheme becomes https
     assert!(r("https://proton.me", r"^https://proton\.me/$"));
     assert!(r("proton.me", r"^https://proton\.me/$"));
-    // Ports are part of the URL; default ports are dropped by normalization
+    // Ports: a non-default port changes the destination, so it stays in the URL
     assert!(r("https://proton.me:8443/", r"^https://proton\.me:8443/$"));
+    // 443 is the default https port (80 for http), so `https://proton.me:443/` is the same page as
+    // `https://proton.me/`. WHATWG serialization drops a scheme's default port, like browsers do,
+    // so the regex sees `https://proton.me/`.
     assert!(r("https://proton.me:443/", r"^https://proton\.me/$"));
+    // Consequence: a pattern spelling out the default port can never match
+    assert!(!r("https://proton.me:443/", r"^https://proton\.me:443/"));
+    // Defaults are per scheme: 443 isn't http's default, so it stays
+    assert!(r("http://proton.me:443/", r"^http://proton\.me:443/$"));
     // Alternation and character classes work
     assert!(r("https://proton.ch", r"proton\.(me|ch)"));
     assert!(!r("https://proton.com", r"proton\.(me|ch)"));

@@ -302,10 +302,10 @@ fn parse_url(input: &str, private_domains: &[String]) -> Option<ParsedUrl> {
     };
 
     if let Some(d) = &domain
-        && let Some((d, sub)) = find_private_domain(d, subdomain.as_deref(), private_domains)
+        && let Some(split) = find_private_domain(d, subdomain.as_deref(), private_domains)
     {
-        domain = Some(d);
-        subdomain = sub;
+        domain = Some(split.domain);
+        subdomain = split.subdomain;
     }
 
     Some(ParsedUrl {
@@ -326,31 +326,50 @@ fn parse_url(input: &str, private_domains: &[String]) -> Option<ParsedUrl> {
     })
 }
 
+/// Domain and subdomain after re-splitting a host on a private domain.
+struct PrivateDomainSplit {
+    domain: String,
+    subdomain: Option<String>,
+}
+
 /// Walks from the root domain outwards: the first combination in
-/// `private_domains` becomes the public suffix. Returns the new (domain, subdomain).
+/// `private_domains` becomes the public suffix. Returns the new domain and subdomain.
+///
+/// The subdomain's dot-separated parts are added to the domain one at a time,
+/// starting with the one closest to it.
+///
+/// Example: `foo.bar.example.com` gives domain `example.com` and subdomain `foo.bar`.
+/// - `private_domains = ["example.com"]`: `example.com` is a suffix, so the result is
+///   domain `bar.example.com`, subdomain `Some("foo")`.
+/// - `private_domains = ["bar.example.com"]`: the walk goes `example.com` (no match),
+///   then `bar.example.com` (match), so the result is domain `foo.bar.example.com`, subdomain `None`.
+/// - `private_domains = ["other.com"]`: no match, so the result is `None`.
 fn find_private_domain(
     domain: &str,
     subdomain: Option<&str>,
     private_domains: &[String],
-) -> Option<(String, Option<String>)> {
+) -> Option<PrivateDomainSplit> {
     if private_domains.is_empty() {
         return None;
     }
-    let mut labels: Vec<&str> = subdomain.map(|s| s.rsplit('.').collect()).unwrap_or_default();
+    let mut subdomain_parts: Vec<&str> = subdomain.map(|s| s.rsplit('.').collect()).unwrap_or_default();
     let mut suffix = domain.to_string();
     loop {
         if private_domains.contains(&suffix) {
-            let (new_domain, rest) = match labels.split_first() {
-                Some((label, rest)) => (format!("{label}.{suffix}"), rest),
+            let (new_domain, rest) = match subdomain_parts.split_first() {
+                Some((part, rest)) => (format!("{part}.{suffix}"), rest),
                 None => (suffix, &[][..]),
             };
             let rest: Vec<&str> = rest.iter().rev().copied().collect();
-            return Some((new_domain, Some(rest.join(".")).filter(|s| !s.is_empty())));
+            return Some(PrivateDomainSplit {
+                domain: new_domain,
+                subdomain: Some(rest.join(".")).filter(|s| !s.is_empty()),
+            });
         }
-        if labels.is_empty() {
+        if subdomain_parts.is_empty() {
             return None;
         }
-        suffix = format!("{}.{suffix}", labels.remove(0));
+        suffix = format!("{}.{suffix}", subdomain_parts.remove(0));
     }
 }
 

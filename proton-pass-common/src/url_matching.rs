@@ -1,17 +1,15 @@
 //! Advanced URL matching: given login items and their per-URL autofill rules, find the ones matching a page.
-//! Matches are ranked by a numeric score; regex rules run under a time budget.
+//! Matches are ranked by a numeric score.
 
 use proton_pass_types::{AutofillUrl, AutofillUrlMode};
 use public_suffix::{DEFAULT_PROVIDER, EffectiveTLDProvider};
 use regex_lite::{Regex, RegexBuilder};
 use std::sync::LazyLock;
 use url::{Host, Url};
-use web_time::{Duration, Instant};
 
 pub const MAX_SCORE: u32 = 1000;
 /// Max length of a textual domain name: 255 wire bytes minus the leading length byte and the root label (RFC 1035 §2.3.4).
 const MAX_HOSTNAME_LENGTH: usize = 253;
-const REGEX_TIME_BUDGET: Duration = Duration::from_millis(100);
 /// Cap compiled size of user-supplied patterns (regex-lite default is 10 MiB); bounds both memory and linear-time match cost.
 const REGEX_SIZE_LIMIT: usize = 1 << 20;
 
@@ -40,7 +38,6 @@ const UNSUPPORTED_SCHEMES: &[&str] = &[
     "safari-web-extension",
 ];
 
-/// https://urlregex.com
 static URL_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
         r"((([A-Za-z]{3,9}:(?://)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:/[\+~%/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.!/\\\w]*))?)",
@@ -68,8 +65,11 @@ pub struct UrlMatchResult {
     pub score: u32,
 }
 
-/// Returns the candidates matching `url`, best score first.
-/// Sort is stable: pass candidates sorted by last use time to break ties.
+/// Returns the candidates matching `url`, best first. Ties keep input order.
+///
+/// `private_domains`: extra domains treated as public suffixes, on top of the
+/// public suffix list. With `example.com` listed, `a.example.com` and
+/// `b.example.com` are separate sites and don't match each other.
 pub fn match_urls(
     url: &str,
     candidates: Vec<UrlMatchingCandidate>,
@@ -82,7 +82,7 @@ pub fn match_urls(
     let mut results: Vec<UrlMatchResult> = candidates
         .into_iter()
         .filter_map(|c| {
-            score_item(&c.url_mode, &page).map(|score| UrlMatchResult {
+            score_item(&c.url_mode, &page, &private_domains).map(|score| UrlMatchResult {
                 item_id: c.item_id,
                 share_id: c.share_id,
                 score,
@@ -94,9 +94,10 @@ pub fn match_urls(
 }
 
 /// Best score of the item's URLs, `None` if none matches or a `Never` rule blocks this exact page.
-fn score_item(urls: &[AutofillUrl], page: &ParsedUrl) -> Option<u32> {
+fn score_item(urls: &[AutofillUrl], page: &ParsedUrl, private_domains: &[String]) -> Option<u32> {
     let blocked = urls.iter().any(|u| {
-        u.mode == AutofillUrlMode::Never && parse_url(&u.url, &[]).is_some_and(|p| p.clean_url == page.clean_url)
+        u.mode == AutofillUrlMode::Never
+            && parse_url(&u.url, private_domains).is_some_and(|p| p.clean_url == page.clean_url)
     });
     if blocked {
         return None;
@@ -104,7 +105,7 @@ fn score_item(urls: &[AutofillUrl], page: &ParsedUrl) -> Option<u32> {
 
     let mut best = None;
     for u in urls {
-        best = best.max(score_url(u, page));
+        best = best.max(score_url(u, page, private_domains));
         if best == Some(MAX_SCORE) {
             break;
         }
@@ -112,13 +113,13 @@ fn score_item(urls: &[AutofillUrl], page: &ParsedUrl) -> Option<u32> {
     best
 }
 
-fn score_url(rule: &AutofillUrl, page: &ParsedUrl) -> Option<u32> {
+fn score_url(rule: &AutofillUrl, page: &ParsedUrl, private_domains: &[String]) -> Option<u32> {
     let matched = match rule.mode {
         AutofillUrlMode::Never => false,
         AutofillUrlMode::Pattern => match_pattern(&rule.url, page),
         AutofillUrlMode::RegularExpression => match_regex(&rule.url, page),
         mode => {
-            let item = parse_url(&rule.url, &[])?;
+            let item = parse_url(&rule.url, private_domains)?;
             match mode {
                 AutofillUrlMode::Default => return match_default(&item, page),
                 AutofillUrlMode::Exact => match_exact(&item, page),
@@ -162,7 +163,7 @@ fn label_distance(a: &str, b: &str) -> u32 {
 }
 
 /// A leading scheme pins the protocol, the host glob must match the hostname alone (anti-spoofing),
-/// then host + path glob must match the scheme-stripped page URL.
+/// an explicit port must equal the page port, then the path glob must match the page path (query and fragment ignored).
 fn match_pattern(pattern: &str, page: &ParsedUrl) -> bool {
     let pinned = PATTERN_PROTOCOL_REGEX.find(pattern).map(|m| m.as_str());
     if let Some(pinned) = pinned
@@ -172,15 +173,18 @@ fn match_pattern(pattern: &str, page: &ParsedUrl) -> bool {
     }
 
     let pattern = &pattern[pinned.map_or(0, str::len)..];
-    // `protocol` is `scheme:`, the sanitized URL always continues with `//`
-    let target = &page.url[page.protocol.len() + 2..];
-
     let (host_part, path_part) = pattern.split_at(pattern.find('/').unwrap_or(pattern.len()));
-    let host_part = host_part.to_lowercase();
-    if !glob_matches(&host_part, &page.hostname) {
+    let (host_part, port) = host_part
+        .split_once(':')
+        .map_or((host_part, None), |(h, p)| (h, Some(p)));
+    if !glob_matches(&host_part.to_lowercase(), &page.hostname) {
         return false;
     }
-    path_part.is_empty() || glob_matches(&format!("{host_part}{path_part}"), target)
+    // shortcut: an explicit default port (`:443` on https) never matches, since `Url::port` drops it.
+    if port.is_some_and(|p| page.port.map(|pp| pp.to_string()).as_deref() != Some(p)) {
+        return false;
+    }
+    path_part.is_empty() || glob_matches(path_part, &page.path)
 }
 
 /// `*` matches within a segment (no `.` or `/`), `**` matches across separators. Case-sensitive, anchored.
@@ -198,16 +202,13 @@ fn glob_matches(glob: &str, input: &str) -> bool {
 }
 
 /// Unanchored and case-insensitive against the page URL.
-/// `regex-lite` is linear-time so it can't hang, but a big pattern on a long URL can still be slow:
-/// anything over the time budget counts as no match.
+/// `regex-lite` is linear-time, and `REGEX_SIZE_LIMIT` bounds the pattern side of that cost.
 fn match_regex(pattern: &str, page: &ParsedUrl) -> bool {
-    let start = Instant::now();
-    let matched = RegexBuilder::new(pattern)
+    RegexBuilder::new(pattern)
         .case_insensitive(true)
         .size_limit(REGEX_SIZE_LIMIT)
         .build()
-        .is_ok_and(|r| r.is_match(&page.url));
-    matched && start.elapsed() <= REGEX_TIME_BUDGET
+        .is_ok_and(|r| r.is_match(&page.url))
 }
 
 #[derive(Debug)]
@@ -220,6 +221,8 @@ struct ParsedUrl {
     /// e.g. `https:`
     protocol: String,
     port: Option<u16>,
+    /// e.g. `/login`, without query or fragment
+    path: String,
     /// The sanitized URL, so it always has a scheme even when the input didn't.
     url: String,
     /// origin + path
@@ -291,6 +294,7 @@ fn parse_url(input: &str, private_domains: &[String]) -> Option<ParsedUrl> {
         subdomain: subdomain.filter(|s| s != "www").map(|_| hostname.clone()),
         protocol: format!("{}:", url.scheme()),
         port: url.port(),
+        path: url.path().to_string(),
         clean_url: format!("{}{}", url.origin().ascii_serialization(), url.path()),
         url: url.into(),
         hostname,

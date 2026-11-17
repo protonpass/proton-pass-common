@@ -3463,7 +3463,6 @@ dependencies = [
  "uniffi",
  "url",
  "wasm-bindgen",
- "web-time",
  "zenwebp",
  "zeroize",
 ]

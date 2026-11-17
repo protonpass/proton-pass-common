@@ -405,3 +405,39 @@ fn browser_internal_pages_never_match() {
         assert_eq!(default(page, &[page]), None, "{page}");
     }
 }
+
+#[test]
+fn pattern_mode_ignores_query_and_handles_ports() {
+    let p = |page, pattern| score(page, &[(pattern, Pattern)]).is_some();
+    assert!(p("https://acme.com/login?next=/home#top", "acme.com/login"));
+    assert!(p("https://acme.com:8443/login", "acme.com/*"));
+    assert!(p("http://localhost:3000/login", "localhost:3000/**"));
+    assert!(p("http://localhost:3000", "localhost:3000"));
+    assert!(!p("http://localhost:3001/login", "localhost:3000/**"));
+    assert!(!p("http://localhost/login", "localhost:3000/**"));
+}
+
+#[test]
+fn item_urls_use_private_domains() {
+    let private = &["example.com"];
+    assert_eq!(
+        score_private(
+            "https://login.a.example.com",
+            &[("https://a.example.com", Default)],
+            private
+        ),
+        Some(MAX_SCORE - 1)
+    );
+    assert_eq!(
+        score_private(
+            "https://www.a.example.com",
+            &[("https://www.a.example.com", Exact)],
+            private
+        ),
+        Some(MAX_SCORE)
+    );
+    assert_eq!(
+        score_private("https://b.example.com", &[("https://a.example.com", Default)], private),
+        None
+    );
+}

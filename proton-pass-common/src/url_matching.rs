@@ -38,18 +38,6 @@ const UNSUPPORTED_SCHEMES: &[&str] = &[
     "safari-web-extension",
 ];
 
-static URL_REGEX: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(
-        r"((([A-Za-z]{3,9}:(?://)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:/[\+~%/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.!/\\\w]*))?)",
-    )
-    .expect("valid URL regex")
-});
-
-/// Scheme-less `host:port` (e.g. `localhost:3000`), which WHATWG would otherwise read as scheme `host`.
-static HOST_PORT_REGEX: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(?i)^(?:localhost|[a-z0-9-]+(?:\.[a-z0-9-]+)+):\d+(?:[/?#]|$)").expect("valid host:port regex")
-});
-
 static PATTERN_SCHEME_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"(?i)^[a-z][a-z\d+.-]*://").expect("valid scheme regex"));
 
@@ -265,15 +253,13 @@ fn sanitize_url(input: &str) -> Option<Url> {
             return Ok(None);
         }
         let hostname_ok = url.host_str().unwrap_or_default().len() <= MAX_HOSTNAME_LENGTH;
-        // URL_REGEX has no bracketed-host support; WHATWG already validated the IPv6 address.
-        let shape_ok = matches!(url.host(), Some(Host::Ipv6(_))) || URL_REGEX.is_match(url.as_str());
-        Ok((hostname_ok && shape_ok).then_some(url))
+        Ok(hostname_ok.then_some(url))
     }
 
     if input.is_empty() {
         return None;
     }
-    if HOST_PORT_REGEX.is_match(input.trim()) {
+    if is_host_port(input.trim()) {
         return parse(&format!("https://{}", input.trim())).ok().flatten();
     }
     match parse(input) {
@@ -283,6 +269,23 @@ fn sanitize_url(input: &str) -> Option<Url> {
         }
         Err(_) => None,
     }
+}
+
+/// Detects scheme-less `host:port` input, which WHATWG would otherwise parse as scheme `host` with path `port`
+/// (`localhost:3000` becomes scheme `localhost`, no host).
+///
+/// - `true`: `localhost:3000`, `example.com:8080/login`, `example.com:8080?q=1`
+/// - `false`: `https://example.com:8080` (has a scheme), `mailto:a@b.com` (not a port), `tel:1234` (no dot, not localhost)
+///
+/// Host characters aren't checked here: `Url::parse` validates them once `https://` is prepended.
+fn is_host_port(input: &str) -> bool {
+    let Some((host, rest)) = input.split_once(':') else {
+        return false;
+    };
+    let port = rest.split(['/', '?', '#']).next().unwrap_or_default();
+    (host.eq_ignore_ascii_case("localhost") || host.contains('.'))
+        && !port.is_empty()
+        && port.bytes().all(|b| b.is_ascii_digit())
 }
 
 /// `None` when there is no hostname.
@@ -380,6 +383,34 @@ fn find_private_domain(
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn is_host_port_detects_scheme_less_host_and_port() {
+        for input in [
+            "localhost:3000",
+            "LOCALHOST:3000",
+            "example.com:8080",
+            "example.com:8080/login",
+            "example.com:8080?q=1",
+            "example.com:8080#top",
+        ] {
+            assert!(is_host_port(input), "{input}");
+        }
+    }
+
+    #[test]
+    fn is_host_port_rejects_schemes_and_non_ports() {
+        for input in [
+            "example.com",
+            "example.com:",
+            "example.com:80a",
+            "https://example.com:8080",
+            "mailto:a@b.com",
+            "tel:1234",
+        ] {
+            assert!(!is_host_port(input), "{input}");
+        }
+    }
 
     #[test]
     fn parse_url_domain_and_subdomain() {

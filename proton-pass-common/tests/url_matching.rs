@@ -208,6 +208,9 @@ fn pattern_mode() {
     assert!(p("https://sub.proton.me/login", "HTTPS://*.Proton.Me/*"));
     assert!(p("https://sub.proton.me/Login", "*.Proton.Me/Login"));
     assert!(!p("https://sub.proton.me/login", "*.Proton.Me/Login"));
+    assert!(p("https://acme.com/index.html", "acme.com/*"));
+    assert!(p("https://acme.com/a/b.c/login.php", "acme.com/*/*/login.php"));
+    assert!(!p("https://acme.com/a/index.html", "acme.com/*"));
 }
 
 #[test]

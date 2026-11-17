@@ -186,25 +186,26 @@ fn match_pattern(pattern: &str, page: &ParsedUrl) -> bool {
     let (host_part, port) = host_part
         .split_once(':')
         .map_or((host_part, None), |(h, p)| (h, Some(p)));
-    if !glob_matches(&host_part.to_lowercase(), &page.hostname) {
+    if !glob_matches(&host_part.to_lowercase(), &page.hostname, '.') {
         return false;
     }
     // shortcut: an explicit default port (`:443` on https) never matches, since `Url::port` drops it.
     if port.is_some_and(|p| page.port.map(|pp| pp.to_string()).as_deref() != Some(p)) {
         return false;
     }
-    path_part.is_empty() || glob_matches(path_part, &page.path)
+    path_part.is_empty() || glob_matches(path_part, &page.path, '/')
 }
 
-/// `*` matches within a segment (no `.` or `/`), `**` matches across separators. Case-sensitive, anchored.
-fn glob_matches(glob: &str, input: &str) -> bool {
+/// `*` matches within a segment (no `separator`), `**` matches across separators. Case-sensitive, anchored.
+/// Hosts split on `.`, paths on `/`, so `/*` matches `/index.html`.
+fn glob_matches(glob: &str, input: &str, separator: char) -> bool {
     let mut regex = String::from("^");
     for (i, part) in glob.split("**").enumerate() {
         if i > 0 {
             regex.push_str(".*");
         }
         let escaped: Vec<String> = part.split('*').map(regex_lite::escape).collect();
-        regex.push_str(&escaped.join(r"[^./]*"));
+        regex.push_str(&escaped.join(&format!("[^{separator}]*")));
     }
     regex.push('$');
     Regex::new(&regex).is_ok_and(|r| r.is_match(input))
@@ -425,11 +426,13 @@ mod test {
 
     #[test]
     fn glob() {
-        assert!(glob_matches("*.proton.me", "a.proton.me"));
-        assert!(!glob_matches("*.proton.me", "a.b.proton.me"));
-        assert!(glob_matches("**.proton.me", "a.b.proton.me"));
-        assert!(!glob_matches("*.proton.me", "proton.me"));
-        assert!(glob_matches("a+b(c)?.me", "a+b(c)?.me"));
+        assert!(glob_matches("*.proton.me", "a.proton.me", '.'));
+        assert!(!glob_matches("*.proton.me", "a.b.proton.me", '.'));
+        assert!(glob_matches("**.proton.me", "a.b.proton.me", '.'));
+        assert!(!glob_matches("*.proton.me", "proton.me", '.'));
+        assert!(glob_matches("a+b(c)?.me", "a+b(c)?.me", '.'));
+        assert!(glob_matches("/*", "/index.html", '/'));
+        assert!(!glob_matches("/*", "/a/index.html", '/'));
     }
 
     #[test]

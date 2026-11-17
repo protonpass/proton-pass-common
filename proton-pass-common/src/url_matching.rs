@@ -8,7 +8,7 @@ use std::sync::LazyLock;
 use url::{Host, Url};
 
 pub const MAX_SCORE: u32 = 1000;
-/// Max length of a textual domain name: 255 wire bytes minus the leading length byte and the root label (RFC 1035 §2.3.4).
+/// Max length of a domain name in text form (RFC 1035).
 const MAX_HOSTNAME_LENGTH: usize = 253;
 /// Cap compiled size of user-supplied patterns (regex-lite default is 10 MiB); bounds both memory and linear-time match cost.
 const REGEX_SIZE_LIMIT: usize = 1 << 20;
@@ -129,7 +129,7 @@ fn score_url(rule: &AutofillUrl, page: &ParsedUrl, private_domains: &[String]) -
                 AutofillUrlMode::Default => return match_default(&item, page),
                 AutofillUrlMode::Exact => match_exact(&item, page),
                 AutofillUrlMode::ExactPath => item.clean_url == page.clean_url,
-                // Same origin first: a plain prefix on clean_url lets `x://bank.com` match `x://bank.com.evil.com`.
+                // Compare origins, not a string prefix: `bank.com.evil.com` starts with `bank.com`.
                 AutofillUrlMode::StartWith => {
                     (&item.protocol, &item.hostname, item.port) == (&page.protocol, &page.hostname, page.port)
                         && page.path.starts_with(&item.path)
@@ -171,8 +171,7 @@ fn label_distance(a: &str, b: &str) -> u32 {
     (mismatches + a.len().abs_diff(b.len())) as u32
 }
 
-/// A leading scheme pins the protocol, the host glob must match the hostname alone (anti-spoofing),
-/// an explicit port must equal the page port, then the path glob must match the page path (query and fragment ignored).
+/// Pattern shape: optional scheme, host glob, optional port, path glob. Query and fragment are ignored.
 fn match_pattern(pattern: &str, page: &ParsedUrl) -> bool {
     let pinned = PATTERN_PROTOCOL_REGEX.find(pattern).map(|m| m.as_str());
     if let Some(pinned) = pinned
@@ -196,8 +195,13 @@ fn match_pattern(pattern: &str, page: &ParsedUrl) -> bool {
     path_part.is_empty() || glob_matches(path_part, &page.path, '/')
 }
 
-/// `*` matches within a segment (no `separator`), `**` matches across separators. Case-sensitive, anchored.
-/// Hosts split on `.`, paths on `/`, so `/*` matches `/index.html`.
+/// Matches `input` against `glob` by converting the glob into an anchored (`^...$`), case-sensitive regex:
+/// - `**` becomes `.*`, which can match across separators.
+/// - `*` becomes `[^<separator>]*`, which stays inside one segment.
+/// - Everything else is regex-escaped, so it matches literally.
+///
+/// The separator is `.` for hosts and `/` for paths. So `*.proton.me` matches `a.proton.me` but not
+/// `a.b.proton.me`, and `/*` matches `/index.html` (dots are allowed in a path segment).
 fn glob_matches(glob: &str, input: &str, separator: char) -> bool {
     let mut regex = String::from("^");
     for (i, part) in glob.split("**").enumerate() {
@@ -211,8 +215,6 @@ fn glob_matches(glob: &str, input: &str, separator: char) -> bool {
     Regex::new(&regex).is_ok_and(|r| r.is_match(input))
 }
 
-/// Unanchored and case-insensitive against the page URL.
-/// `regex-lite` is linear-time, and `REGEX_SIZE_LIMIT` bounds the pattern side of that cost.
 fn match_regex(pattern: &str, page: &ParsedUrl) -> bool {
     RegexBuilder::new(pattern)
         .case_insensitive(true)
@@ -277,8 +279,7 @@ fn sanitize_url(input: &str) -> Option<Url> {
     }
 }
 
-/// `None` when there is no hostname. Public suffix semantics only ever come from the
-/// WHATWG hostname (SECBTY-1891).
+/// `None` when there is no hostname.
 fn parse_url(input: &str, private_domains: &[String]) -> Option<ParsedUrl> {
     let url = sanitize_url(input)?;
     let hostname = url.host_str().filter(|h| !h.is_empty())?.to_string();
@@ -386,7 +387,6 @@ mod test {
 
     #[test]
     fn parse_url_backslash_spoofing() {
-        // SECBTY-1891
         let p = parse_url(r"https://evil.com\@bank.com/", &[]).unwrap();
         assert_eq!(p.hostname, "evil.com");
         assert_eq!(p.domain, "evil.com");

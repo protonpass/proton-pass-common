@@ -239,10 +239,31 @@ fn regex_mode() {
     assert!(r("https://proton.me/aaa", r"https:\/\/proton\.me\/a+"));
     assert!(r("https://proton.me/some/path", "proton"));
     assert!(r("https://PROTON.me", "proton"));
-    // Invalid or JS-only syntax (lookaround) never matches
+    // Unanchored patterns match anywhere in the URL, including path, query and fragment
+    assert!(r("https://evil.com/proton.me", r"proton\.me"));
+    assert!(r("https://proton.me/login?next=inbox", "next=inbox"));
+    assert!(r("https://proton.me/login#2fa", "#2fa"));
+    // Anchors pin the pattern to the full URL
+    assert!(!r("https://evil.com/proton.me", r"^https://proton\.me/"));
+    assert!(!r("https://proton.me.evil.com/", r"^https://proton\.me/$"));
+    // Matching runs on the normalized URL: root path gets a trailing slash, missing scheme becomes https
+    assert!(r("https://proton.me", r"^https://proton\.me/$"));
+    assert!(r("proton.me", r"^https://proton\.me/$"));
+    // Ports are part of the URL; default ports are dropped by normalization
+    assert!(r("https://proton.me:8443/", r"^https://proton\.me:8443/$"));
+    assert!(r("https://proton.me:443/", r"^https://proton\.me/$"));
+    // Alternation and character classes work
+    assert!(r("https://proton.ch", r"proton\.(me|ch)"));
+    assert!(!r("https://proton.com", r"proton\.(me|ch)"));
+    assert!(r("https://mail7.proton.me", r"^https://mail\d\.proton\.me/"));
+    // Patterns that fail to compile never match. "(proton" is an unclosed group, so it's invalid
+    // everywhere. "(?=proton)" is a lookahead: valid in JS RegExp, but regex_lite doesn't support
+    // lookaround, so the build returns Err and is_ok_and gives false instead of panicking.
     assert!(!r("https://proton.me", "(proton"));
     assert!(!r("https://proton.me", "(?=proton)"));
-    // Huge patterns are rejected by the size limit
+    // Huge patterns are rejected by the size limit: counted repetition is unrolled at compile time,
+    // so (a{1000}){1000} becomes 1,000,000 `a` states, far over the 1 MiB cap. The build fails and
+    // the pattern doesn't match, even though the `proton` branch alone would.
     assert!(!r("https://proton.me", "(a{1000}){1000}|proton"));
 }
 

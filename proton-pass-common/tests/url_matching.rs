@@ -284,7 +284,8 @@ fn pattern_mode() {
     assert!(p("sub.proton.me", "https://*.proton.me"));
     // Query and fragment are ignored, ports must match
     assert!(p("https://acme.com/login?next=/home#top", "acme.com/login"));
-    assert!(p("https://acme.com:8443/login", "acme.com/*"));
+    assert!(!p("https://acme.com:8443/login", "acme.com/*"));
+    assert!(p("https://acme.com:8443/login", "acme.com:8443/*"));
     assert!(p("http://localhost:3000/login", "localhost:3000/**"));
     assert!(p("http://localhost:3000", "localhost:3000"));
     assert!(!p("http://localhost:3001/login", "localhost:3000/**"));

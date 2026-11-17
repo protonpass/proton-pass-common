@@ -192,7 +192,8 @@ fn match_pattern(pattern: &str, page: &ParsedUrl) -> bool {
         return false;
     }
     // shortcut: an explicit default port (`:443` on https) never matches, since `Url::port` drops it.
-    if port.is_some_and(|p| page.port.map(|pp| pp.to_string()).as_deref() != Some(p)) {
+    // Like Default mode, a page on a non-default port only matches a pattern naming that port.
+    if page.port.map(|p| p.to_string()).as_deref() != port {
         return false;
     }
     // A host-only pattern matches the root path only.

@@ -211,7 +211,9 @@ fn pattern_mode() {
     assert!(p("https://a.b.c.proton.me/a/b/login", "**.proton.me/**/login"));
     assert!(p("https://a.b.c.proton.me/a/b/login", "*.*.*.proton.me/**/login"));
     assert!(p("https://a.b.proton.me", "**.proton.me"));
-    assert!(p("https://proton.me/anything", "proton.me"));
+    assert!(p("https://proton.me", "proton.me"));
+    assert!(p("https://proton.me/", "proton.me"));
+    assert!(!p("https://proton.me/anything", "proton.me"));
     assert!(!p("http://a.proton.me/x", "https://*.proton.me/*"));
     assert!(!p("http://proton.me", "https://proton.me"));
     assert!(p("ftp://a.proton.me/x", "**.proton.me/*"));
@@ -219,7 +221,8 @@ fn pattern_mode() {
         assert!(!p("https://evil.com/x.acme.com", pattern), "{pattern}");
         assert!(!p("https://evil.com/x.acme.com/p", pattern), "{pattern}");
     }
-    assert!(p("https://anything.com/at/all", "**"));
+    assert!(p("https://anything.com/at/all", "**/**"));
+    assert!(!p("https://anything.com/at/all", "**"));
     assert!(p("https://sub.proton.me", "*.Proton.ME"));
     assert!(p("https://sub.proton.me/login", "HTTPS://*.Proton.Me/*"));
     assert!(p("https://sub.proton.me/Login", "*.Proton.Me/Login"));

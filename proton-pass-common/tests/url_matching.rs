@@ -44,13 +44,28 @@ fn default_mode_no_match() {
     assert_eq!(default("http://proton.ch", &["https://proton.ch"]), None);
     assert_eq!(default("http://proton.ch", &["ftp://proton.ch"]), None);
     assert_eq!(default("http://proton.ch", &["ftp://sub.proton.ch"]), None);
+    assert_eq!(default("https://proton.ch", &["ftp://proton.ch"]), None);
+    assert_eq!(default("ftp://proton.ch", &["https://proton.ch"]), None);
     assert_eq!(default("https://proton.ch:3001", &["https://proton.ch:3002"]), None);
+    assert_eq!(default("https://example.com:3000/", &["example.com:4000"]), None);
+    assert_eq!(default("https://[::1]/", &["https://[::2]/"]), None);
     assert_eq!(
         score_with_private_domains("b.c.me", &[("https://a.b.c.me", Default)], &["b.c.me"]),
         None
     );
+    assert_eq!(
+        score_with_private_domains(
+            "https://b.example.com",
+            &[("https://a.example.com", Default)],
+            &["example.com"]
+        ),
+        None
+    );
     for invalid in ["https::/proton.ch", ",,,,/proton.ch", " ", ""] {
         assert_eq!(default("proton.ch", &[invalid]), None, "{invalid}");
+    }
+    for invalid_page in ["", "http::://invalid.com", " "] {
+        assert_eq!(default(invalid_page, &["https://proton.me"]), None, "{invalid_page}");
     }
 }
 
@@ -79,6 +94,15 @@ fn default_mode_sub_and_top_matches() {
         Some(MAX_SCORE - 1)
     );
     assert_eq!(default("a.b.pm.me", &["https://pm.me"]), Some(MAX_SCORE - 2));
+    assert_eq!(default("a.b.c.pm.me", &["https://pm.me"]), Some(MAX_SCORE - 3));
+    assert_eq!(
+        score_with_private_domains(
+            "https://login.a.example.com",
+            &[("https://a.example.com", Default)],
+            &["example.com"]
+        ),
+        Some(MAX_SCORE - 1)
+    );
     // sibling
     assert_eq!(
         default("b.example.com", &["https://a.example.com"]),
@@ -100,6 +124,15 @@ fn default_mode_exact_matches() {
         Some(MAX_SCORE)
     );
     assert_eq!(default("proton.ch", &["http://proton.ch:3001"]), Some(MAX_SCORE));
+    assert_eq!(
+        default("https://localhost:3000/login", &["localhost:3000"]),
+        Some(MAX_SCORE)
+    );
+    assert_eq!(
+        default("https://example.com:3000/", &["example.com:3000"]),
+        Some(MAX_SCORE)
+    );
+    assert_eq!(default("https://[::1]/", &["https://[::1]/"]), Some(MAX_SCORE));
     assert_eq!(default("192.168.1.1", &["http://192.168.1.1"]), Some(MAX_SCORE));
     assert_eq!(default("192.168.1.1", &["https://192.168.1.1/path"]), Some(MAX_SCORE));
     assert_eq!(
@@ -147,6 +180,14 @@ fn exact_mode() {
     assert_eq!(score("b.example.com", &[("https://example.com", Exact)]), None);
     assert_eq!(
         score("a.example.com", &[("https://a.example.com", Exact)]),
+        Some(MAX_SCORE)
+    );
+    assert_eq!(
+        score_with_private_domains(
+            "https://www.a.example.com",
+            &[("https://www.a.example.com", Exact)],
+            &["example.com"]
+        ),
         Some(MAX_SCORE)
     );
 }
@@ -198,6 +239,10 @@ fn start_with_mode() {
     );
     assert_eq!(s("https://proton.me/pass", "https://proton.me/pass"), Some(MAX_SCORE));
     assert_eq!(s("https://proton.me", "https://proton.me"), Some(MAX_SCORE));
+    // Custom schemes keep the host
+    assert_eq!(s("custom://evil.com/login", "custom://bank.com/"), None);
+    assert_eq!(s("custom://bank.com.evil.com/login", "custom://bank.com"), None);
+    assert_eq!(s("custom://bank.com/login", "custom://bank.com"), Some(MAX_SCORE));
 }
 
 #[test]
@@ -230,6 +275,20 @@ fn pattern_mode() {
     assert!(p("https://acme.com/index.html", "acme.com/*"));
     assert!(p("https://acme.com/a/b.c/login.php", "acme.com/*/*/login.php"));
     assert!(!p("https://acme.com/a/index.html", "acme.com/*"));
+    // Wildcard inside a label
+    assert!(p("https://subdomain.acme.com/path", "https://subdomain*.acme.com/*"));
+    assert!(p("https://subdomain42.acme.com/path", "https://subdomain*.acme.com/*"));
+    assert!(!p("https://acme.com/path", "https://subdomain*.acme.com/*"));
+    // Page without scheme
+    assert!(p("proton.me/login", "proton.me/login"));
+    assert!(p("sub.proton.me", "https://*.proton.me"));
+    // Query and fragment are ignored, ports must match
+    assert!(p("https://acme.com/login?next=/home#top", "acme.com/login"));
+    assert!(p("https://acme.com:8443/login", "acme.com/*"));
+    assert!(p("http://localhost:3000/login", "localhost:3000/**"));
+    assert!(p("http://localhost:3000", "localhost:3000"));
+    assert!(!p("http://localhost:3001/login", "localhost:3000/**"));
+    assert!(!p("http://localhost/login", "localhost:3000/**"));
 }
 
 #[test]
@@ -283,100 +342,10 @@ fn exact_path_mode() {
         e("https://proton.me/path?param=value#hash", "https://proton.me/path"),
         Some(MAX_SCORE)
     );
-}
-
-#[test]
-fn autofill_help_examples() {
-    #[allow(clippy::type_complexity)]
-    let cases: &[(AutofillUrlMode, &str, &[(&str, bool)])] = &[
-        (
-            Default,
-            "https://subdomain.acme.com",
-            &[
-                ("https://acme.com", true),
-                ("https://subdomain.acme.com", true),
-                ("https://acme.net", false),
-                ("https://google.com", false),
-            ],
-        ),
-        (
-            Exact,
-            "https://subdomain.acme.com",
-            &[
-                ("https://subdomain.acme.com", true),
-                ("https://acme.com", false),
-                ("https://www.acme.com:5000", false),
-                ("https://acme.com/example", false),
-            ],
-        ),
-        (
-            ExactPath,
-            "https://subdomain.acme.com",
-            &[
-                ("https://subdomain.acme.com", true),
-                ("https://subdomain.acme.com/path", false),
-                ("https://acme.com", false),
-                ("https://subdomain2.acme.com", false),
-            ],
-        ),
-        (
-            Never,
-            "https://subdomain.acme.com",
-            &[
-                ("https://acme.com", false),
-                ("https://subdomain.acme.com", false),
-                ("https://acme.net", false),
-                ("https://google.com", false),
-            ],
-        ),
-        (
-            Pattern,
-            "https://subdomain*.acme.com/*",
-            &[
-                ("https://subdomain.acme.com/path", true),
-                ("https://subdomain42.acme.com/path", true),
-                ("https://subdomain.acme.com/path/sub", false),
-                ("https://acme.com", false),
-            ],
-        ),
-        (
-            RegularExpression,
-            r"subdomain\d*\.acme\.com",
-            &[
-                ("https://subdomain.acme.com", true),
-                ("https://subdomain42.acme.com", true),
-                ("https://subdomain.acme.com/path", true),
-                ("https://acme.com", false),
-            ],
-        ),
-        (
-            StartWith,
-            "https://subdomain.acme.com",
-            &[
-                ("https://subdomain.acme.com", true),
-                ("https://subdomain.acme.com/path", true),
-                ("https://acme.com", false),
-                ("https://subdomain2.acme.com", false),
-            ],
-        ),
-    ];
-    for (mode, url, examples) in cases {
-        for (page, expected) in *examples {
-            assert_eq!(
-                score(page, &[(url, *mode)]).is_some(),
-                *expected,
-                "{mode:?} {url} on {page}"
-            );
-        }
-    }
-}
-
-#[test]
-fn invalid_page_returns_nothing() {
-    let items = || vec![candidate("a", &[("https://proton.me", Default)])];
-    for page in ["", "http::://invalid.com", " "] {
-        assert!(match_urls(page, items(), vec![]).is_empty(), "{page}");
-    }
+    assert_eq!(e("https://[::1]:8443/a", "https://[::1]:8443/a"), Some(MAX_SCORE));
+    // Custom schemes keep the host
+    assert_eq!(e("custom://evil.com/login", "custom://bank.com/login"), None);
+    assert_eq!(e("custom://bank.com/login", "custom://bank.com/login"), Some(MAX_SCORE));
 }
 
 #[test]
@@ -400,50 +369,6 @@ fn best_url_wins_and_results_are_sorted() {
 }
 
 #[test]
-fn protocol_filter() {
-    let items = || {
-        vec![
-            candidate("http", &[("http://proton.me", Default)]),
-            candidate("https", &[("https://proton.me", Default)]),
-            candidate("ftp", &[("ftp://proton.me", Default)]),
-        ]
-    };
-    let ids = |page| {
-        match_urls(page, items(), vec![])
-            .into_iter()
-            .map(|r| r.item_id)
-            .collect::<Vec<_>>()
-    };
-    // https page also accepts http, otherwise protocols must be equal
-    assert_eq!(ids("https://proton.me"), vec!["http", "https"]);
-    assert_eq!(ids("http://proton.me"), vec!["http"]);
-    assert_eq!(ids("ftp://proton.me"), vec!["ftp"]);
-}
-
-#[test]
-fn subdomain_ordering() {
-    let items = vec![
-        candidate("far", &[("https://account.google.com", Default)]),
-        candidate("root", &[("https://google.com", Default)]),
-        candidate("same", &[("https://my.sub.domain.google.com", Default)]),
-        candidate("near", &[("https://sub.domain.google.com", Default)]),
-    ];
-    let ids: Vec<String> = match_urls("https://my.sub.domain.google.com", items, vec![])
-        .into_iter()
-        .map(|r| r.item_id)
-        .collect();
-    // `google.com` (3 extra labels) and `account.google.com` (1 differing + 2 extra) both score 997:
-    // the tie keeps input order.
-    assert_eq!(ids, vec!["same", "near", "far", "root"]);
-}
-
-#[test]
-fn pattern_mode_page_without_scheme() {
-    assert!(score("proton.me/login", &[("proton.me/login", Pattern)]).is_some());
-    assert!(score("sub.proton.me", &[("https://*.proton.me", Pattern)]).is_some());
-}
-
-#[test]
 fn browser_internal_pages_never_match() {
     for page in [
         "chrome://settings",
@@ -456,95 +381,4 @@ fn browser_internal_pages_never_match() {
     ] {
         assert_eq!(default(page, &[page]), None, "{page}");
     }
-}
-
-#[test]
-fn pattern_mode_ignores_query_and_handles_ports() {
-    let p = |page, pattern| score(page, &[(pattern, Pattern)]).is_some();
-    assert!(p("https://acme.com/login?next=/home#top", "acme.com/login"));
-    assert!(p("https://acme.com:8443/login", "acme.com/*"));
-    assert!(p("http://localhost:3000/login", "localhost:3000/**"));
-    assert!(p("http://localhost:3000", "localhost:3000"));
-    assert!(!p("http://localhost:3001/login", "localhost:3000/**"));
-    assert!(!p("http://localhost/login", "localhost:3000/**"));
-}
-
-#[test]
-fn item_urls_use_private_domains() {
-    let private_domains = &["example.com"];
-    assert_eq!(
-        score_with_private_domains(
-            "https://login.a.example.com",
-            &[("https://a.example.com", Default)],
-            private_domains
-        ),
-        Some(MAX_SCORE - 1)
-    );
-    assert_eq!(
-        score_with_private_domains(
-            "https://www.a.example.com",
-            &[("https://www.a.example.com", Exact)],
-            private_domains
-        ),
-        Some(MAX_SCORE)
-    );
-    assert_eq!(
-        score_with_private_domains(
-            "https://b.example.com",
-            &[("https://a.example.com", Default)],
-            private_domains
-        ),
-        None
-    );
-}
-
-#[test]
-fn custom_scheme_paths_keep_the_host() {
-    assert_eq!(
-        score("custom://evil.com/login", &[("custom://bank.com/login", ExactPath)]),
-        None
-    );
-    assert_eq!(
-        score("custom://evil.com/login", &[("custom://bank.com/", StartWith)]),
-        None
-    );
-    assert_eq!(
-        score("custom://bank.com.evil.com/login", &[("custom://bank.com", StartWith)]),
-        None
-    );
-    assert_eq!(
-        score("https://bank.com.evil.com/login", &[("https://bank.com", StartWith)]),
-        None
-    );
-    assert_eq!(
-        score("custom://bank.com/login", &[("custom://bank.com", StartWith)]),
-        Some(MAX_SCORE)
-    );
-    assert_eq!(
-        score("custom://bank.com/login", &[("custom://bank.com/login", ExactPath)]),
-        Some(MAX_SCORE)
-    );
-}
-
-#[test]
-fn ipv6_hosts_match() {
-    assert_eq!(default("https://[::1]/", &["https://[::1]/"]), Some(MAX_SCORE));
-    assert_eq!(
-        score("https://[::1]:8443/a", &[("https://[::1]:8443/a", ExactPath)]),
-        Some(MAX_SCORE)
-    );
-    assert_eq!(default("https://[::1]/", &["https://[::2]/"]), None);
-}
-
-#[test]
-fn scheme_less_host_with_port() {
-    assert_eq!(
-        default("https://localhost:3000/login", &["localhost:3000"]),
-        Some(MAX_SCORE)
-    );
-    assert_eq!(
-        default("https://example.com:3000/", &["example.com:3000"]),
-        Some(MAX_SCORE)
-    );
-    assert_eq!(default("https://example.com:3000/", &["example.com:4000"]), None);
 }

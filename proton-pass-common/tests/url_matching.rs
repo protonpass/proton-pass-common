@@ -1,3 +1,5 @@
+#![cfg(feature = "url-matching")]
+
 use proton_pass_common::url_matching::{MAX_SCORE, UrlMatchResult, UrlMatchingCandidate, match_urls};
 use proton_pass_types::{AutofillUrl, AutofillUrlMode};
 
@@ -440,4 +442,55 @@ fn item_urls_use_private_domains() {
         score_private("https://b.example.com", &[("https://a.example.com", Default)], private),
         None
     );
+}
+
+#[test]
+fn custom_scheme_paths_keep_the_host() {
+    assert_eq!(
+        score("custom://evil.com/login", &[("custom://bank.com/login", ExactPath)]),
+        None
+    );
+    assert_eq!(
+        score("custom://evil.com/login", &[("custom://bank.com/", StartWith)]),
+        None
+    );
+    assert_eq!(
+        score("custom://bank.com.evil.com/login", &[("custom://bank.com", StartWith)]),
+        None
+    );
+    assert_eq!(
+        score("https://bank.com.evil.com/login", &[("https://bank.com", StartWith)]),
+        None
+    );
+    assert_eq!(
+        score("custom://bank.com/login", &[("custom://bank.com", StartWith)]),
+        Some(MAX_SCORE)
+    );
+    assert_eq!(
+        score("custom://bank.com/login", &[("custom://bank.com/login", ExactPath)]),
+        Some(MAX_SCORE)
+    );
+}
+
+#[test]
+fn ipv6_hosts_match() {
+    assert_eq!(default("https://[::1]/", &["https://[::1]/"]), Some(MAX_SCORE));
+    assert_eq!(
+        score("https://[::1]:8443/a", &[("https://[::1]:8443/a", ExactPath)]),
+        Some(MAX_SCORE)
+    );
+    assert_eq!(default("https://[::1]/", &["https://[::2]/"]), None);
+}
+
+#[test]
+fn scheme_less_host_with_port() {
+    assert_eq!(
+        default("https://localhost:3000/login", &["localhost:3000"]),
+        Some(MAX_SCORE)
+    );
+    assert_eq!(
+        default("https://example.com:3000/", &["example.com:3000"]),
+        Some(MAX_SCORE)
+    );
+    assert_eq!(default("https://example.com:3000/", &["example.com:4000"]), None);
 }

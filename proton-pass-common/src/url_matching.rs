@@ -45,6 +45,11 @@ static URL_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     .expect("valid URL regex")
 });
 
+/// Scheme-less `host:port` (e.g. `localhost:3000`), which WHATWG would otherwise read as scheme `host`.
+static HOST_PORT_REGEX: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)^(?:localhost|[a-z0-9-]+(?:\.[a-z0-9-]+)+):\d+(?:[/?#]|$)").expect("valid host:port regex")
+});
+
 static PATTERN_PROTOCOL_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"(?i)^[a-z][a-z\d+.-]*://").expect("valid protocol regex"));
 
@@ -124,7 +129,11 @@ fn score_url(rule: &AutofillUrl, page: &ParsedUrl, private_domains: &[String]) -
                 AutofillUrlMode::Default => return match_default(&item, page),
                 AutofillUrlMode::Exact => match_exact(&item, page),
                 AutofillUrlMode::ExactPath => item.clean_url == page.clean_url,
-                AutofillUrlMode::StartWith => page.clean_url.starts_with(&item.clean_url),
+                // Same origin first: a plain prefix on clean_url lets `x://bank.com` match `x://bank.com.evil.com`.
+                AutofillUrlMode::StartWith => {
+                    (&item.protocol, &item.hostname, item.port) == (&page.protocol, &page.hostname, page.port)
+                        && page.path.starts_with(&item.path)
+                }
                 _ => false,
             }
         }
@@ -247,11 +256,16 @@ fn sanitize_url(input: &str) -> Option<Url> {
             return Ok(None);
         }
         let hostname_ok = url.host_str().unwrap_or_default().len() <= MAX_HOSTNAME_LENGTH;
-        Ok((hostname_ok && URL_REGEX.is_match(url.as_str())).then_some(url))
+        // URL_REGEX has no bracketed-host support; WHATWG already validated the IPv6 address.
+        let shape_ok = matches!(url.host(), Some(Host::Ipv6(_))) || URL_REGEX.is_match(url.as_str());
+        Ok((hostname_ok && shape_ok).then_some(url))
     }
 
     if input.is_empty() {
         return None;
+    }
+    if HOST_PORT_REGEX.is_match(input.trim()) {
+        return parse(&format!("https://{}", input.trim())).ok().flatten();
     }
     match parse(input) {
         Ok(url) => url,
@@ -295,7 +309,13 @@ fn parse_url(input: &str, private_domains: &[String]) -> Option<ParsedUrl> {
         protocol: format!("{}:", url.scheme()),
         port: url.port(),
         path: url.path().to_string(),
-        clean_url: format!("{}{}", url.origin().ascii_serialization(), url.path()),
+        // Not `url.origin()`: it is opaque (`null`) for custom schemes, which would drop the host.
+        clean_url: format!(
+            "{}://{hostname}{}{}",
+            url.scheme(),
+            url.port().map(|p| format!(":{p}")).unwrap_or_default(),
+            url.path()
+        ),
         url: url.into(),
         hostname,
     })

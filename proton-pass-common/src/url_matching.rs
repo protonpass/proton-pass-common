@@ -327,6 +327,7 @@ fn parse_url(input: &str, private_domains: &[String]) -> Option<ParsedUrl> {
 }
 
 /// Domain and subdomain after re-splitting a host on a private domain.
+#[derive(Debug, PartialEq)]
 struct PrivateDomainSplit {
     domain: String,
     subdomain: Option<String>,
@@ -427,6 +428,86 @@ mod test {
 
         let p = parse_url("https://www.b.example.com", &private).unwrap();
         assert_eq!(p.subdomain, None);
+    }
+
+    #[test]
+    fn private_domain_split() {
+        // No private domains, or none matching
+        assert_eq!(find_private_domain("example.com", Some("foo.bar"), &[]), None);
+        assert_eq!(
+            find_private_domain("example.com", Some("foo.bar"), &["other.com".to_string()]),
+            None
+        );
+        assert_eq!(
+            find_private_domain("example.com", None, &["other.com".to_string()]),
+            None
+        );
+        // Partial label match is not a suffix match
+        assert_eq!(
+            find_private_domain("example.com", Some("foo.bar"), &["ar.example.com".to_string()]),
+            None
+        );
+
+        // Match on the root domain: closest part joins the domain, the rest stays in order
+        assert_eq!(
+            find_private_domain("example.com", Some("a.b.c"), &["example.com".to_string()]),
+            Some(PrivateDomainSplit {
+                domain: "c.example.com".to_string(),
+                subdomain: Some("a.b".to_string())
+            })
+        );
+        assert_eq!(
+            find_private_domain("example.com", Some("foo"), &["example.com".to_string()]),
+            Some(PrivateDomainSplit {
+                domain: "foo.example.com".to_string(),
+                subdomain: None
+            })
+        );
+        // Match with no subdomain left to promote
+        assert_eq!(
+            find_private_domain("example.com", None, &["example.com".to_string()]),
+            Some(PrivateDomainSplit {
+                domain: "example.com".to_string(),
+                subdomain: None
+            })
+        );
+
+        // Match one level out
+        assert_eq!(
+            find_private_domain("example.com", Some("foo.bar"), &["bar.example.com".to_string()]),
+            Some(PrivateDomainSplit {
+                domain: "foo.bar.example.com".to_string(),
+                subdomain: None
+            })
+        );
+        assert_eq!(
+            find_private_domain("example.com", Some("a.b.foo.bar"), &["bar.example.com".to_string()]),
+            Some(PrivateDomainSplit {
+                domain: "foo.bar.example.com".to_string(),
+                subdomain: Some("a.b".to_string())
+            })
+        );
+        // Match consuming the whole host
+        assert_eq!(
+            find_private_domain("example.com", Some("foo.bar"), &["foo.bar.example.com".to_string()]),
+            Some(PrivateDomainSplit {
+                domain: "foo.bar.example.com".to_string(),
+                subdomain: None
+            })
+        );
+
+        // The walk starts at the root, so the shortest matching suffix wins
+        assert_eq!(
+            find_private_domain(
+                "example.com",
+                Some("a.b.c"),
+                &["c.example.com".to_string(), "example.com".to_string()]
+            ),
+            Some(PrivateDomainSplit {
+                domain: "c.example.com".to_string(),
+                subdomain: Some("a.b".to_string())
+            })
+        );
     }
 
     #[test]

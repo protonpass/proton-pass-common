@@ -10,7 +10,12 @@ impl UrlMatcher {
         Self
     }
 
-    pub fn match_urls(&self, url: String, candidates: Vec<UrlMatchingCandidate>) -> Vec<UrlMatchResult> {
-        match_urls(&url, candidates, vec![])
+    pub fn match_urls(
+        &self,
+        url: String,
+        candidates: Vec<UrlMatchingCandidate>,
+        private_domains: Option<Vec<String>>,
+    ) -> Vec<UrlMatchResult> {
+        match_urls(&url, candidates, private_domains.unwrap_or_default())
     }
 }

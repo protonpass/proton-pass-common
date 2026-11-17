@@ -161,15 +161,19 @@ fn match_default(item: &ParsedUrl, page: &ParsedUrl) -> Option<u32> {
     // Parent/child/sibling all share the root domain. A bare public suffix (e.g. a saved `com`) has no
     // root domain, so it never matches its children.
     (item_sub == page_sub || item.domain == page.domain)
-        .then(|| MAX_SCORE.saturating_sub(label_distance(item_sub, page_sub)))
+        .then(|| domain_closeness(item_sub, page_sub))
 }
 
-/// Labels compared from the right: each differing label and each extra label costs 1.
-fn label_distance(a: &str, b: &str) -> u32 {
+/// How close two domains are: `MAX_SCORE` when identical, minus 1 for each label (compared from the
+/// right) that differs or exists on only one side.
+///
+/// - `example.com` vs `example.com` → `MAX_SCORE`
+/// - `login.example.com` vs `a.b.example.com` → `MAX_SCORE - 2` (`login` ≠ `b`, extra `a`)
+fn domain_closeness(a: &str, b: &str) -> u32 {
     let a: Vec<&str> = a.rsplit('.').collect();
     let b: Vec<&str> = b.rsplit('.').collect();
     let mismatches = a.iter().zip(&b).filter(|(x, y)| x != y).count();
-    (mismatches + a.len().abs_diff(b.len())) as u32
+    MAX_SCORE.saturating_sub((mismatches + a.len().abs_diff(b.len())) as u32)
 }
 
 /// Pattern shape: optional scheme, host glob, optional port, path glob. Query and fragment are ignored.
@@ -437,9 +441,9 @@ mod test {
     }
 
     #[test]
-    fn distance() {
-        assert_eq!(label_distance("pm.me", "a.b.pm.me"), 2);
-        assert_eq!(label_distance("other.example.com", "login.example.com"), 1);
-        assert_eq!(label_distance("example.com", "example.com"), 0);
+    fn closeness() {
+        assert_eq!(domain_closeness("pm.me", "a.b.pm.me"), MAX_SCORE - 2);
+        assert_eq!(domain_closeness("other.example.com", "login.example.com"), MAX_SCORE - 1);
+        assert_eq!(domain_closeness("example.com", "example.com"), MAX_SCORE);
     }
 }

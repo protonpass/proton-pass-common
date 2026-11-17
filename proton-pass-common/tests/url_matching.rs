@@ -126,6 +126,22 @@ fn default_mode_bare_public_suffix_never_matches() {
 }
 
 #[test]
+fn http_item_matches_https_page_but_not_the_reverse() {
+    for mode in [Default, Exact] {
+        assert_eq!(
+            score("https://proton.me", &[("http://proton.me", mode)]),
+            Some(MAX_SCORE),
+            "{mode:?}"
+        );
+        assert_eq!(
+            score("http://proton.me", &[("https://proton.me", mode)]),
+            None,
+            "{mode:?}"
+        );
+    }
+}
+
+#[test]
 fn exact_mode() {
     assert_eq!(score("pm.me", &[("https://proton.ch", Exact)]), None);
     assert_eq!(score("b.example.com", &[("https://example.com", Exact)]), None);

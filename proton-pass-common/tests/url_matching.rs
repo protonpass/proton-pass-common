@@ -367,8 +367,8 @@ fn protocol_filter() {
             .map(|r| r.item_id)
             .collect::<Vec<_>>()
     };
-    // https page accepts any protocol, otherwise protocols must be equal
-    assert_eq!(ids("https://proton.me"), vec!["http", "https", "ftp"]);
+    // https page also accepts http, otherwise protocols must be equal
+    assert_eq!(ids("https://proton.me"), vec!["http", "https"]);
     assert_eq!(ids("http://proton.me"), vec!["http"]);
     assert_eq!(ids("ftp://proton.me"), vec!["ftp"]);
 }

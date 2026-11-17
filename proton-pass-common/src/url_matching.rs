@@ -143,7 +143,8 @@ fn score_url(rule: &AutofillUrl, page: &ParsedUrl, private_domains: &[String]) -
 
 fn share_port_and_protocol(item: &ParsedUrl, page: &ParsedUrl) -> bool {
     let share_port = page.port.is_none() || item.port == page.port;
-    let share_protocol = page.protocol == "https:" || item.protocol == page.protocol;
+    let share_protocol =
+        item.protocol == page.protocol || (page.protocol == "https:" && item.protocol == "http:");
     share_port && share_protocol
 }
 

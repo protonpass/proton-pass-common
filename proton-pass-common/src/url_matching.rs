@@ -50,8 +50,8 @@ static HOST_PORT_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(?i)^(?:localhost|[a-z0-9-]+(?:\.[a-z0-9-]+)+):\d+(?:[/?#]|$)").expect("valid host:port regex")
 });
 
-static PATTERN_PROTOCOL_REGEX: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"(?i)^[a-z][a-z\d+.-]*://").expect("valid protocol regex"));
+static PATTERN_SCHEME_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?i)^[a-z][a-z\d+.-]*://").expect("valid scheme regex"));
 
 #[proton_pass_derive::ffi_type]
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -143,8 +143,7 @@ fn score_url(rule: &AutofillUrl, page: &ParsedUrl, private_domains: &[String]) -
 
 fn share_port_and_protocol(item: &ParsedUrl, page: &ParsedUrl) -> bool {
     let share_port = page.port.is_none() || item.port == page.port;
-    let share_protocol =
-        item.protocol == page.protocol || (page.protocol == "https:" && item.protocol == "http:");
+    let share_protocol = item.protocol == page.protocol || (page.protocol == "https:" && item.protocol == "http:");
     share_port && share_protocol
 }
 
@@ -160,8 +159,7 @@ fn match_default(item: &ParsedUrl, page: &ParsedUrl) -> Option<u32> {
     let (item_sub, page_sub) = (item.resolve_subdomain(), page.resolve_subdomain());
     // Parent/child/sibling all share the root domain. A bare public suffix (e.g. a saved `com`) has no
     // root domain, so it never matches its children.
-    (item_sub == page_sub || item.domain == page.domain)
-        .then(|| domain_closeness(item_sub, page_sub))
+    (item_sub == page_sub || item.domain == page.domain).then(|| domain_closeness(item_sub, page_sub))
 }
 
 /// How close two domains are: `MAX_SCORE` when identical, minus 1 for each label (compared from the
@@ -178,14 +176,14 @@ fn domain_closeness(a: &str, b: &str) -> u32 {
 
 /// Pattern shape: optional scheme, host glob, optional port, path glob. Query and fragment are ignored.
 fn match_pattern(pattern: &str, page: &ParsedUrl) -> bool {
-    let pinned = PATTERN_PROTOCOL_REGEX.find(pattern).map(|m| m.as_str());
-    if let Some(pinned) = pinned
-        && !page.url.starts_with(&pinned.to_lowercase())
+    let scheme = PATTERN_SCHEME_REGEX.find(pattern).map(|m| m.as_str());
+    if let Some(scheme) = scheme
+        && !page.url.starts_with(&scheme.to_lowercase())
     {
         return false;
     }
 
-    let pattern = &pattern[pinned.map_or(0, str::len)..];
+    let pattern = &pattern[scheme.map_or(0, str::len)..];
     let (host_part, path_part) = pattern.split_at(pattern.find('/').unwrap_or(pattern.len()));
     let (host_part, port) = host_part
         .split_once(':')
@@ -443,7 +441,10 @@ mod test {
     #[test]
     fn closeness() {
         assert_eq!(domain_closeness("pm.me", "a.b.pm.me"), MAX_SCORE - 2);
-        assert_eq!(domain_closeness("other.example.com", "login.example.com"), MAX_SCORE - 1);
+        assert_eq!(
+            domain_closeness("other.example.com", "login.example.com"),
+            MAX_SCORE - 1
+        );
         assert_eq!(domain_closeness("example.com", "example.com"), MAX_SCORE);
     }
 }

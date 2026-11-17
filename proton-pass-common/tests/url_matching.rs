@@ -1,6 +1,9 @@
 #![cfg(feature = "url-matching")]
 
-use proton_pass_common::url_matching::{MAX_SCORE, UrlMatchResult, UrlMatchingCandidate, match_urls};
+use proton_pass_common::url_matching::{
+    MAX_SCORE, UrlMatchResult, UrlMatchingCandidate, UrlMatchingError, match_urls, url_matches_pattern,
+    url_matches_regex,
+};
 use proton_pass_types::{AutofillUrl, AutofillUrlMode};
 
 use AutofillUrlMode::*;
@@ -382,4 +385,32 @@ fn browser_internal_pages_never_match() {
     ] {
         assert_eq!(default(page, &[page]), None, "{page}");
     }
+}
+
+#[test]
+fn standalone_pattern_and_regex_validation() {
+    assert_eq!(
+        url_matches_pattern("*.proton.me", "https://account.proton.me"),
+        Ok(true)
+    );
+    assert_eq!(url_matches_pattern("*.proton.me", "https://a.b.proton.me"), Ok(false));
+    assert_eq!(
+        url_matches_pattern("*.proton.me", "not a url"),
+        Err(UrlMatchingError::InvalidUrl)
+    );
+    assert_eq!(
+        url_matches_regex(r"^https://.*\.proton\.me/", "https://account.proton.me/login"),
+        Ok(true)
+    );
+    assert_eq!(url_matches_regex("^http://", "https://proton.me"), Ok(false));
+    assert!(matches!(
+        url_matches_regex("(proton", "https://proton.me"),
+        Err(UrlMatchingError::InvalidRegex(_))
+    ));
+    // Over the compiled size limit (see regex_mode): an error here, not a silent non-match
+    assert!(matches!(
+        url_matches_regex("(a{1000}){1000}|proton", "https://proton.me"),
+        Err(UrlMatchingError::InvalidRegex(_))
+    ));
+    assert_eq!(url_matches_regex(".*", "not a url"), Err(UrlMatchingError::InvalidUrl));
 }

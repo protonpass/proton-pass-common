@@ -1,6 +1,7 @@
 //! Advanced URL matching: given login items and their per-URL autofill rules, find the ones matching a page.
 //! Matches are ranked by a numeric score.
 
+use proton_pass_derive::{Error, ffi_error};
 use proton_pass_types::{AutofillUrl, AutofillUrlMode};
 use public_suffix::{DEFAULT_PROVIDER, EffectiveTLDProvider};
 use regex_lite::{Regex, RegexBuilder};
@@ -84,6 +85,31 @@ pub fn match_urls(
         .collect();
     results.sort_by_key(|r| std::cmp::Reverse(r.score));
     results
+}
+
+#[ffi_error]
+#[derive(Debug, Error, PartialEq, Eq)]
+pub enum UrlMatchingError {
+    /// The sample URL has no usable hostname or an unsupported scheme.
+    InvalidUrl,
+    /// The regex doesn't compile or is too large; carries the compiler message.
+    InvalidRegex(String),
+}
+
+fn parse_sample_url(url: &str) -> Result<ParsedUrl, UrlMatchingError> {
+    parse_url(url, &[]).ok_or(UrlMatchingError::InvalidUrl)
+}
+
+/// Whether `url` matches a `Pattern` mode rule, for validating user input against a sample URL.
+pub fn url_matches_pattern(pattern: &str, url: &str) -> Result<bool, UrlMatchingError> {
+    Ok(match_pattern(pattern, &parse_sample_url(url)?))
+}
+
+/// Whether `url` matches a `RegularExpression` mode rule, for validating user input against a sample URL.
+pub fn url_matches_regex(regex: &str, url: &str) -> Result<bool, UrlMatchingError> {
+    let page = parse_sample_url(url)?;
+    let regex = build_regex(regex).map_err(|e| UrlMatchingError::InvalidRegex(e.to_string()))?;
+    Ok(regex.is_match(&page.url))
 }
 
 /// Best score of the item's URLs, `None` if none matches or a `Never` rule blocks this exact page.
@@ -209,12 +235,16 @@ fn glob_matches(glob: &str, input: &str, separator: char) -> bool {
     Regex::new(&regex).is_ok_and(|r| r.is_match(input))
 }
 
-fn match_regex(pattern: &str, page: &ParsedUrl) -> bool {
+fn build_regex(pattern: &str) -> Result<Regex, regex_lite::Error> {
     RegexBuilder::new(pattern)
         .case_insensitive(true)
         .size_limit(REGEX_SIZE_LIMIT)
         .build()
-        .is_ok_and(|r| r.is_match(&page.url))
+}
+
+/// An invalid regex never matches.
+fn match_regex(pattern: &str, page: &ParsedUrl) -> bool {
+    build_regex(pattern).is_ok_and(|r| r.is_match(&page.url))
 }
 
 #[derive(Debug)]

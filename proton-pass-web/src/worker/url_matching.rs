@@ -18,3 +18,13 @@ pub fn match_urls(
     let candidates = candidates.to_rust()?.0;
     Ok(WasmUrlMatchResults(url_matching::match_urls(&url, candidates, private_domains)).into_ts()?)
 }
+
+#[wasm_bindgen]
+pub fn url_matches_pattern(pattern: String, url: String) -> Result<bool, JsError> {
+    Ok(url_matching::url_matches_pattern(&pattern, &url)?)
+}
+
+#[wasm_bindgen]
+pub fn url_matches_regex(regex: String, url: String) -> Result<bool, JsError> {
+    Ok(url_matching::url_matches_regex(&regex, &url)?)
+}

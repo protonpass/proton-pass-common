@@ -12,18 +12,32 @@ pub const MAX_SCORE: u32 = 1000;
 /// Max length of a textual domain name: 255 wire bytes minus the leading length byte and the root label (RFC 1035 §2.3.4).
 const MAX_HOSTNAME_LENGTH: usize = 253;
 const REGEX_TIME_BUDGET: Duration = Duration::from_millis(100);
+/// Cap compiled size of user-supplied patterns (regex-lite default is 10 MiB); bounds both memory and linear-time match cost.
 const REGEX_SIZE_LIMIT: usize = 1 << 20;
 
+/// Local, script, inline-data and browser-internal pages (settings, extensions, new tab). They have no
+/// real website to autofill, so `sanitize_url` rejects them and they never match any item.
 const UNSUPPORTED_SCHEMES: &[&str] = &[
     "file",
     "javascript",
     "data",
-    "chrome-extension",
+    "view-source",
+    // Chromium-based browsers: Chrome, Brave, Edge, Opera, Vivaldi, Arc, Samsung Internet, Yandex
     "chrome",
+    "chrome-extension",
     "brave",
     "edge",
-    "moz-extension",
+    "opera",
+    "vivaldi",
+    "arc",
+    "internet",
+    "browser",
+    // Firefox
     "about",
+    "moz-extension",
+    "resource",
+    // Safari
+    "safari-web-extension",
 ];
 
 /// https://urlregex.com

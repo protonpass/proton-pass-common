@@ -390,3 +390,18 @@ fn pattern_mode_page_without_scheme() {
     assert!(score("proton.me/login", &[("proton.me/login", Pattern)]).is_some());
     assert!(score("sub.proton.me", &[("https://*.proton.me", Pattern)]).is_some());
 }
+
+#[test]
+fn browser_internal_pages_never_match() {
+    for page in [
+        "chrome://settings",
+        "edge://settings",
+        "opera://settings",
+        "vivaldi://settings",
+        "about:blank",
+        "moz-extension://abc/popup.html",
+        "safari-web-extension://abc/popup.html",
+    ] {
+        assert_eq!(default(page, &[page]), None, "{page}");
+    }
+}

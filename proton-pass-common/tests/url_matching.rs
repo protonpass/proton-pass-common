@@ -21,12 +21,12 @@ fn candidate(id: &str, urls: &[(&str, AutofillUrlMode)]) -> UrlMatchingCandidate
 
 /// Score of a single item on `page`, `None` when it doesn't match.
 fn score(page: &str, urls: &[(&str, AutofillUrlMode)]) -> Option<u32> {
-    score_private(page, urls, &[])
+    score_with_private_domains(page, urls, &[])
 }
 
-fn score_private(page: &str, urls: &[(&str, AutofillUrlMode)], private: &[&str]) -> Option<u32> {
-    let private = private.iter().map(|s| s.to_string()).collect();
-    match_urls(page, vec![candidate("item", urls)], private)
+fn score_with_private_domains(page: &str, urls: &[(&str, AutofillUrlMode)], private_domains: &[&str]) -> Option<u32> {
+    let private_domains = private_domains.iter().map(|s| s.to_string()).collect();
+    match_urls(page, vec![candidate("item", urls)], private_domains)
         .first()
         .map(|r| r.score)
 }
@@ -46,7 +46,7 @@ fn default_mode_no_match() {
     assert_eq!(default("http://proton.ch", &["ftp://sub.proton.ch"]), None);
     assert_eq!(default("https://proton.ch:3001", &["https://proton.ch:3002"]), None);
     assert_eq!(
-        score_private("b.c.me", &[("https://a.b.c.me", Default)], &["b.c.me"]),
+        score_with_private_domains("b.c.me", &[("https://a.b.c.me", Default)], &["b.c.me"]),
         None
     );
     for invalid in ["https::/proton.ch", ",,,,/proton.ch", " ", ""] {
@@ -424,25 +424,29 @@ fn pattern_mode_ignores_query_and_handles_ports() {
 
 #[test]
 fn item_urls_use_private_domains() {
-    let private = &["example.com"];
+    let private_domains = &["example.com"];
     assert_eq!(
-        score_private(
+        score_with_private_domains(
             "https://login.a.example.com",
             &[("https://a.example.com", Default)],
-            private
+            private_domains
         ),
         Some(MAX_SCORE - 1)
     );
     assert_eq!(
-        score_private(
+        score_with_private_domains(
             "https://www.a.example.com",
             &[("https://www.a.example.com", Exact)],
-            private
+            private_domains
         ),
         Some(MAX_SCORE)
     );
     assert_eq!(
-        score_private("https://b.example.com", &[("https://a.example.com", Default)], private),
+        score_with_private_domains(
+            "https://b.example.com",
+            &[("https://a.example.com", Default)],
+            private_domains
+        ),
         None
     );
 }

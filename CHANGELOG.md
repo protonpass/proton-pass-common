@@ -6,6 +6,13 @@
 
 ### Other
 
+## 2.4.1
+
+### Features :tada:
+
+- pass-common: improve support for passkey algorithms
+- pass-common: upgrade to `jiff 1` to use a stable datetime library
+
 ## 2.4.0
 
 ### Features :tada:

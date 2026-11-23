@@ -25,7 +25,7 @@ pub(crate) fn extra_field_to_editable_value(field: &ItemExtraField) -> Option<Ed
         ItemExtraFieldContent::Timestamp(seconds) => {
             let date = jiff::Timestamp::from_second(*seconds)
                 .ok()?
-                .to_zoned(jiff::tz::TimeZone::UTC)
+                .to_zoned_datetime(jiff::tz::TimeZone::UTC)
                 .date();
             Some(EditableFieldValue::Date(EditableField {
                 id: None,
@@ -58,7 +58,7 @@ pub(crate) fn editable_value_to_extra_field(
                 .value
                 .as_expected()
                 .ok()
-                .and_then(|d| d.0.to_zoned(jiff::tz::TimeZone::UTC).ok())
+                .and_then(|d| d.0.to_zoned_datetime(jiff::tz::TimeZone::UTC).ok())
                 .map(|zdt| zdt.timestamp().as_second())
                 .unwrap_or_default();
             ItemExtraField {

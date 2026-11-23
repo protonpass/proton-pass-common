@@ -22,7 +22,7 @@ impl MobileTotpBenchmark {
         let entries = vec![as_entry];
         loop {
             let now = jiff::Timestamp::now();
-            if (now - start).get_milliseconds() > self.milliseconds as i64 {
+            if (now - start).as_millis() > i128::from(self.milliseconds) {
                 break;
             }
 

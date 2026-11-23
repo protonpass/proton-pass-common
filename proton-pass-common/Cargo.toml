@@ -49,10 +49,10 @@ serde.workspace = true
 serde_json.workspace = true
 
 # CXF/CXP dependencies
-credential-exchange-format = { git = "https://github.com/bitwarden/credential-exchange", rev = "06129f6eaca5f2ebf0974a804d287a77897c9711", default-features = false, features = ["jiff"], optional = true }
-credential-exchange-protocol = { git = "https://github.com/bitwarden/credential-exchange", rev = "06129f6eaca5f2ebf0974a804d287a77897c9711", default-features = false, features = ["jiff"], optional = true }
+credential-exchange-format = { git = "https://github.com/cquintana92/credential-exchange", rev = "16a7beefc8799d53d9c8feee245ffc53307bd96f", default-features = false, features = ["jiff"], optional = true }
+credential-exchange-protocol = { git = "https://github.com/cquintana92/credential-exchange", rev = "16a7beefc8799d53d9c8feee245ffc53307bd96f", default-features = false, features = ["jiff"], optional = true }
 
-jiff = { version = "0.2", default-features = false, features = ["std"], optional = true }
+jiff = { version = "1", default-features = false, features = ["std"], optional = true }
 ed25519-dalek = { version = "3", features = ["pkcs8"], optional = true }
 flate2 = { version = "1", optional = true }
 hpke = { version = "0.14", default-features = false, features = ["alloc", "getrandom", "x25519", "chacha", "aes"], optional = true }

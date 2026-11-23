@@ -48,6 +48,7 @@ pub enum ProtonKeyType {
     Symmetric = 4,
     HSS_LMS = 5,
     WalnutDSA = 6,
+    AKP = 7,
 }
 
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -86,6 +87,9 @@ pub enum ProtonAlgorithm {
     RS512 = -259,
     RS384 = -258,
     RS256 = -257,
+    ML_DSA_87 = -50,
+    ML_DSA_65 = -49,
+    ML_DSA_44 = -48,
     ES256K = -47,
     HSS_LMS = -46,
     SHAKE256 = -45,
@@ -109,6 +113,7 @@ pub enum ProtonAlgorithm {
     ECDH_SS_HKDF_256 = -27,
     ECDH_ES_HKDF_512 = -26,
     ECDH_ES_HKDF_256 = -25,
+    Ed25519 = -19,
     SHAKE128 = -18,
     SHA_512_256 = -17,
     SHA_256 = -16,
@@ -120,6 +125,7 @@ pub enum ProtonAlgorithm {
     Direct_HKDF_SHA_256 = -10,
     EdDSA = -8,
     ES256 = -7,
+    ESP256 = -9,
     Direct = -6,
     A256KW = -5,
     A192KW = -4,

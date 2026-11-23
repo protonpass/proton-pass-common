@@ -1,5 +1,11 @@
 use super::fetcher::WebauthnFetcher;
+use super::protonpasskey::{
+    ProtonAlgorithm, ProtonKey, ProtonKeyType, ProtonLabel, ProtonRegisteredLabelKeyType,
+    ProtonRegisteredLabelWithPrivateAlgorithm, ProtonValue,
+};
 use super::{PasskeyError, PasskeyResult, ProtonPassKey};
+use coset::CoseKey;
+use coset::iana::Algorithm;
 use passkey::authenticator::{Authenticator, UserValidationMethod};
 use passkey::client::Client;
 use passkey::crypto::rust_crypto::RustCryptoBackend;
@@ -16,6 +22,22 @@ const AAGUID: [u8; 16] = [
 ];
 
 const CONTENT_FORMAT_VERSION: u8 = 1;
+
+const REGISTRATION_ALGORITHMS: &[Algorithm] = &[
+    Algorithm::ES256,
+    Algorithm::ESP256,
+    Algorithm::EdDSA,
+    Algorithm::Ed25519,
+    Algorithm::ML_DSA_44,
+    Algorithm::ML_DSA_65,
+    Algorithm::ML_DSA_87,
+];
+
+const AKP_PUB_LABEL: i64 = -1;
+const AKP_PRIV_LABEL: i64 = -2;
+const ML_DSA_44_PUBLIC_KEY_LEN: usize = 1312;
+const ML_DSA_65_PUBLIC_KEY_LEN: usize = 1952;
+const ML_DSA_87_PUBLIC_KEY_LEN: usize = 2592;
 
 pub(crate) struct MyUserValidationMethod {}
 
@@ -58,9 +80,93 @@ pub(crate) fn get_client(
     allows_insecure_localhost: bool,
 ) -> Client<Option<Passkey>, MyUserValidationMethod, RustCryptoBackend, public_suffix::PublicSuffixList, WebauthnFetcher>
 {
-    let authenticator = get_authenticator(pk);
+    let mut authenticator = get_authenticator(pk);
+    let _ = authenticator.set_algorithms(REGISTRATION_ALGORITHMS);
     Client::new_with_custom_tld_provider(authenticator, public_suffix::DEFAULT_PROVIDER, Some(fetcher))
         .allows_insecure_localhost(allows_insecure_localhost)
+}
+
+/// Checks that a freshly generated COSE key survives conversion to `ProtonKey` before it is saved.
+/// Fails registration if the converted key has a `Reserved` kty or alg (an unknown type that the
+/// serializer could not map), or if converting back does not give the original key. This avoids
+/// storing a passkey that could never be used to log in.
+pub(crate) fn ensure_storable(original: &CoseKey, converted: &ProtonKey) -> PasskeyResult<()> {
+    let reserved_kty = matches!(
+        converted.kty,
+        ProtonRegisteredLabelKeyType::Assigned(ProtonKeyType::Reserved)
+    );
+    let reserved_alg = matches!(
+        converted.alg,
+        Some(ProtonRegisteredLabelWithPrivateAlgorithm::Assigned(
+            ProtonAlgorithm::Reserved
+        ))
+    );
+    if reserved_kty || reserved_alg || &CoseKey::from(converted.clone()) != original {
+        return Err(PasskeyError::GenerationError(format!(
+            "generated passkey with kty {:?} and alg {:?} cannot be stored",
+            original.kty, original.alg
+        )));
+    }
+    Ok(())
+}
+
+/// Returns the byte string stored under the integer `label` in the COSE key params, if any.
+fn find_param_bytes(params: &[(ProtonLabel, ProtonValue)], label: i64) -> Option<&Vec<u8>> {
+    params.iter().find_map(|(l, v)| match (l, v) {
+        (ProtonLabel::Int(i), ProtonValue::Bytes(b)) if *i == label => Some(b),
+        _ => None,
+    })
+}
+
+/// Infers the ML-DSA variant from the length of the public key (label -1, fixed by FIPS 204).
+/// Requires a private key (label -2) to be present. Returns `None` if the size is not recognised.
+fn ml_dsa_algorithm_for_public_key(params: &[(ProtonLabel, ProtonValue)]) -> Option<ProtonAlgorithm> {
+    find_param_bytes(params, AKP_PRIV_LABEL)?;
+    match find_param_bytes(params, AKP_PUB_LABEL)?.len() {
+        ML_DSA_44_PUBLIC_KEY_LEN => Some(ProtonAlgorithm::ML_DSA_44),
+        ML_DSA_65_PUBLIC_KEY_LEN => Some(ProtonAlgorithm::ML_DSA_65),
+        ML_DSA_87_PUBLIC_KEY_LEN => Some(ProtonAlgorithm::ML_DSA_87),
+        _ => None,
+    }
+}
+
+/// Fixes passkeys saved by older versions that stored `Reserved` for the key type or algorithm.
+/// Only the labels were lost, the key material is intact, so they are inferred from it:
+/// - `Reserved` kty with an ML-DSA private key and a public key of a known size becomes `AKP` with the matching ML-DSA algorithm.
+/// - `AKP` with a `Reserved` alg gets the ML-DSA algorithm inferred from the public key size.
+/// - `EC2` with a `Reserved` alg becomes `ES256` and `OKP` with a `Reserved` alg becomes `EdDSA`
+///   (same signature format as ESP256 and Ed25519).
+///
+/// Anything else is left untouched.
+pub(crate) fn repair_key(key: &mut ProtonKey) {
+    let is_reserved_alg = matches!(
+        key.alg,
+        Some(ProtonRegisteredLabelWithPrivateAlgorithm::Assigned(
+            ProtonAlgorithm::Reserved
+        ))
+    );
+    let kty = match &key.kty {
+        ProtonRegisteredLabelKeyType::Assigned(kty) => kty.clone(),
+        ProtonRegisteredLabelKeyType::Text(_) => return,
+    };
+
+    let repaired_alg = match kty {
+        ProtonKeyType::Reserved => match ml_dsa_algorithm_for_public_key(&key.params) {
+            Some(alg) => {
+                key.kty = ProtonRegisteredLabelKeyType::Assigned(ProtonKeyType::AKP);
+                Some(alg)
+            }
+            None => None,
+        },
+        ProtonKeyType::AKP if is_reserved_alg => ml_dsa_algorithm_for_public_key(&key.params),
+        ProtonKeyType::EC2 if is_reserved_alg => Some(ProtonAlgorithm::ES256),
+        ProtonKeyType::OKP if is_reserved_alg => Some(ProtonAlgorithm::EdDSA),
+        _ => None,
+    };
+
+    if let Some(alg) = repaired_alg {
+        key.alg = Some(ProtonRegisteredLabelWithPrivateAlgorithm::Assigned(alg));
+    }
 }
 
 pub(crate) fn get_authenticator(
@@ -90,8 +196,12 @@ pub(crate) fn deserialize_passkey(content: &[u8]) -> PasskeyResult<ProtonPassKey
     let deserialized: SerializedPassKey = rmp_serde::from_slice(content)
         .map_err(|e| PasskeyError::SerializationError(format!("Error deserializing SerializedPassKey: {e:?}")))?;
     match deserialized.format_version {
-        1 => rmp_serde::from_slice(&deserialized.content)
-            .map_err(|e| PasskeyError::SerializationError(format!("Error deserializing ProtonPassKey: {e:?}"))),
+        1 => {
+            let mut key: ProtonPassKey = rmp_serde::from_slice(&deserialized.content)
+                .map_err(|e| PasskeyError::SerializationError(format!("Error deserializing ProtonPassKey: {e:?}")))?;
+            repair_key(&mut key.key);
+            Ok(key)
+        }
         _ => Err(PasskeyError::SerializationError(format!(
             "Unknown SerializedPassKey format_version {}",
             deserialized.format_version
@@ -118,9 +228,125 @@ pub(crate) fn parse_url(url: &str) -> PasskeyResult<Url> {
 mod test {
     use super::*;
     use crate::passkey::protonpasskey::{
-        ProtonInteger, ProtonKey, ProtonKeyType, ProtonLabel, ProtonPassCredentialExtensions,
-        ProtonPassStoredHmacSecret, ProtonRegisteredLabelKeyOperation, ProtonRegisteredLabelKeyType, ProtonValue,
+        ProtonKey, ProtonKeyType, ProtonLabel, ProtonPassCredentialExtensions, ProtonPassStoredHmacSecret,
+        ProtonRegisteredLabelKeyOperation, ProtonRegisteredLabelKeyType, ProtonValue,
     };
+
+    use crate::passkey::protonpasskey::ProtonInteger;
+
+    fn reserved_key(kty: ProtonKeyType, params: Vec<(ProtonLabel, ProtonValue)>) -> ProtonKey {
+        ProtonKey {
+            kty: ProtonRegisteredLabelKeyType::Assigned(kty),
+            key_id: vec![],
+            alg: Some(ProtonRegisteredLabelWithPrivateAlgorithm::Assigned(
+                ProtonAlgorithm::Reserved,
+            )),
+            key_ops: vec![],
+            base_iv: vec![],
+            params,
+        }
+    }
+
+    fn akp_params(pub_len: usize) -> Vec<(ProtonLabel, ProtonValue)> {
+        vec![
+            (ProtonLabel::Int(-1), ProtonValue::Bytes(vec![1; pub_len])),
+            (ProtonLabel::Int(-2), ProtonValue::Bytes(vec![2; 32])),
+        ]
+    }
+
+    fn assigned_alg(key: &ProtonKey) -> Option<ProtonAlgorithm> {
+        match &key.alg {
+            Some(ProtonRegisteredLabelWithPrivateAlgorithm::Assigned(a)) => Some(a.clone()),
+            _ => None,
+        }
+    }
+
+    #[test]
+    fn repairs_reserved_ml_dsa_keys() {
+        for (len, expected) in [
+            (1312, ProtonAlgorithm::ML_DSA_44),
+            (1952, ProtonAlgorithm::ML_DSA_65),
+            (2592, ProtonAlgorithm::ML_DSA_87),
+        ] {
+            let mut key = reserved_key(ProtonKeyType::Reserved, akp_params(len));
+            repair_key(&mut key);
+            assert_eq!(key.kty, ProtonRegisteredLabelKeyType::Assigned(ProtonKeyType::AKP));
+            assert_eq!(assigned_alg(&key), Some(expected));
+        }
+    }
+
+    #[test]
+    fn repairs_reserved_alg_for_ec2_and_okp() {
+        let mut ec2 = reserved_key(ProtonKeyType::EC2, vec![]);
+        repair_key(&mut ec2);
+        assert_eq!(assigned_alg(&ec2), Some(ProtonAlgorithm::ES256));
+
+        let mut okp = reserved_key(ProtonKeyType::OKP, vec![]);
+        repair_key(&mut okp);
+        assert_eq!(assigned_alg(&okp), Some(ProtonAlgorithm::EdDSA));
+    }
+
+    #[test]
+    fn does_not_repair_unrecognised_keys() {
+        let mut key = reserved_key(ProtonKeyType::Reserved, akp_params(10));
+        let before = key.clone();
+        repair_key(&mut key);
+        assert_eq!(key, before);
+    }
+
+    #[test]
+    fn deserialize_repairs_saved_reserved_passkey() {
+        let mut pk = get_sample_passkey_v1();
+        pk.key = reserved_key(ProtonKeyType::Reserved, akp_params(1312));
+        let repaired = deserialize_passkey(&serialize_passkey(&pk).unwrap()).unwrap();
+        assert_eq!(assigned_alg(&repaired.key), Some(ProtonAlgorithm::ML_DSA_44));
+        let cose = CoseKey::from(repaired.key);
+        assert_eq!(cose.alg, Some(coset::Algorithm::Assigned(Algorithm::ML_DSA_44)));
+    }
+
+    #[test]
+    fn repaired_legacy_ml_dsa_passkey_can_sign() {
+        use passkey::crypto::{CryptoBackend, PublicKeyT, SecretKeyT};
+
+        for alg in [Algorithm::ML_DSA_44, Algorithm::ML_DSA_65, Algorithm::ML_DSA_87] {
+            let backend = RustCryptoBackend;
+            let original = backend.generate_key(alg).unwrap();
+
+            let mut legacy = get_sample_passkey_v1();
+            legacy.key = ProtonKey::from(original.to_cose_key());
+            legacy.key.kty = ProtonRegisteredLabelKeyType::Assigned(ProtonKeyType::Reserved);
+            legacy.key.alg = Some(ProtonRegisteredLabelWithPrivateAlgorithm::Assigned(
+                ProtonAlgorithm::Reserved,
+            ));
+
+            let loaded = deserialize_passkey(&serialize_passkey(&legacy).unwrap()).unwrap();
+            let mut repaired =
+                <RustCryptoBackend as CryptoBackend>::SecretKey::from_cose_key(&CoseKey::from(loaded.key)).unwrap();
+
+            let signature = repaired.sign(b"challenge");
+            original.public_key().verify(b"challenge", &signature).unwrap();
+        }
+    }
+
+    #[test]
+    fn ml_dsa_cose_key_survives_conversion() {
+        let cose = CoseKey {
+            kty: coset::KeyType::Assigned(coset::iana::KeyType::AKP),
+            alg: Some(coset::Algorithm::Assigned(Algorithm::ML_DSA_65)),
+            params: vec![(coset::Label::Int(-2), coset::cbor::Value::Bytes(vec![2; 32]))],
+            ..Default::default()
+        };
+        let converted = ProtonKey::from(cose.clone());
+        assert!(ensure_storable(&cose, &converted).is_ok());
+        assert_eq!(CoseKey::from(converted), cose);
+    }
+
+    #[test]
+    fn ensure_storable_rejects_reserved() {
+        let cose = CoseKey::default();
+        let converted = reserved_key(ProtonKeyType::Reserved, vec![]);
+        assert!(ensure_storable(&cose, &converted).is_err());
+    }
 
     fn get_sample_passkey_v1() -> ProtonPassKey {
         ProtonPassKey {

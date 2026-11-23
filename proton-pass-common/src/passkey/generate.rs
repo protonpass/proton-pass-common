@@ -1,7 +1,7 @@
 use super::android_origin::AndroidAppOrigin;
 use super::fetcher::WebauthnFetcher;
 use super::parser::parse_create_request;
-use super::passkey_handling::{get_client, parse_url, serialize_passkey};
+use super::passkey_handling::{ensure_storable, get_client, parse_url, serialize_passkey};
 use super::{PasskeyError, PasskeyResult, ProtonPassKey};
 use coset::iana;
 use coset::iana::EnumI64;
@@ -88,6 +88,7 @@ async fn generate_passkey_response(
 
     if let Some(pk) = client.authenticator().store() {
         let converted = ProtonPassKey::from(pk.clone());
+        ensure_storable(&pk.key, &converted.key)?;
         let key_id = my_webauthn_credential.id.clone();
         let serialized = serialize_passkey(&converted)?;
         let client_data_hash = Sha256::digest(my_webauthn_credential.response.client_data_json.as_slice()).to_vec();

@@ -2869,7 +2869,7 @@ dependencies = [
 [[package]]
 name = "passkey"
 version = "0.6.0"
-source = "git+https://github.com/1Password/passkey-rs.git?rev=1606717bd9888b629905d435bb876b24b1aaddb5#1606717bd9888b629905d435bb876b24b1aaddb5"
+source = "git+https://github.com/cquintana92/passkey-rs.git?rev=46fd3fa0df9cb24f80f43805f440489d5a4ddba1#46fd3fa0df9cb24f80f43805f440489d5a4ddba1"
 dependencies = [
  "passkey-authenticator",
  "passkey-client",
@@ -2881,7 +2881,7 @@ dependencies = [
 [[package]]
 name = "passkey-authenticator"
 version = "0.6.0"
-source = "git+https://github.com/1Password/passkey-rs.git?rev=1606717bd9888b629905d435bb876b24b1aaddb5#1606717bd9888b629905d435bb876b24b1aaddb5"
+source = "git+https://github.com/cquintana92/passkey-rs.git?rev=46fd3fa0df9cb24f80f43805f440489d5a4ddba1#46fd3fa0df9cb24f80f43805f440489d5a4ddba1"
 dependencies = [
  "async-trait",
  "ciborium",
@@ -2893,7 +2893,7 @@ dependencies = [
 [[package]]
 name = "passkey-client"
 version = "0.6.0"
-source = "git+https://github.com/1Password/passkey-rs.git?rev=1606717bd9888b629905d435bb876b24b1aaddb5#1606717bd9888b629905d435bb876b24b1aaddb5"
+source = "git+https://github.com/cquintana92/passkey-rs.git?rev=46fd3fa0df9cb24f80f43805f440489d5a4ddba1#46fd3fa0df9cb24f80f43805f440489d5a4ddba1"
 dependencies = [
  "ciborium",
  "idna",
@@ -2910,7 +2910,7 @@ dependencies = [
 [[package]]
 name = "passkey-crypto"
 version = "0.1.1"
-source = "git+https://github.com/1Password/passkey-rs.git?rev=1606717bd9888b629905d435bb876b24b1aaddb5#1606717bd9888b629905d435bb876b24b1aaddb5"
+source = "git+https://github.com/cquintana92/passkey-rs.git?rev=46fd3fa0df9cb24f80f43805f440489d5a4ddba1#46fd3fa0df9cb24f80f43805f440489d5a4ddba1"
 dependencies = [
  "coset",
  "ed25519-dalek",
@@ -2928,12 +2928,12 @@ dependencies = [
 [[package]]
 name = "passkey-transports"
 version = "0.2.0"
-source = "git+https://github.com/1Password/passkey-rs.git?rev=1606717bd9888b629905d435bb876b24b1aaddb5#1606717bd9888b629905d435bb876b24b1aaddb5"
+source = "git+https://github.com/cquintana92/passkey-rs.git?rev=46fd3fa0df9cb24f80f43805f440489d5a4ddba1#46fd3fa0df9cb24f80f43805f440489d5a4ddba1"
 
 [[package]]
 name = "passkey-types"
 version = "0.6.0"
-source = "git+https://github.com/1Password/passkey-rs.git?rev=1606717bd9888b629905d435bb876b24b1aaddb5#1606717bd9888b629905d435bb876b24b1aaddb5"
+source = "git+https://github.com/cquintana92/passkey-rs.git?rev=46fd3fa0df9cb24f80f43805f440489d5a4ddba1#46fd3fa0df9cb24f80f43805f440489d5a4ddba1"
 dependencies = [
  "bitflags",
  "ciborium",
@@ -3536,8 +3536,8 @@ dependencies = [
 
 [[package]]
 name = "public-suffix"
-version = "0.1.3"
-source = "git+https://github.com/1Password/passkey-rs.git?rev=1606717bd9888b629905d435bb876b24b1aaddb5#1606717bd9888b629905d435bb876b24b1aaddb5"
+version = "0.2.0"
+source = "git+https://github.com/cquintana92/passkey-rs.git?rev=46fd3fa0df9cb24f80f43805f440489d5a4ddba1#46fd3fa0df9cb24f80f43805f440489d5a4ddba1"
 
 [[package]]
 name = "pulldown-cmark"

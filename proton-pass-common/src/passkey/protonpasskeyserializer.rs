@@ -68,6 +68,7 @@ impl From<coset::iana::KeyType> for ProtonKeyType {
             coset::iana::KeyType::Symmetric => ProtonKeyType::Symmetric,
             coset::iana::KeyType::HSS_LMS => ProtonKeyType::HSS_LMS,
             coset::iana::KeyType::WalnutDSA => ProtonKeyType::WalnutDSA,
+            coset::iana::KeyType::AKP => ProtonKeyType::AKP,
 
             _ => ProtonKeyType::Reserved,
         }
@@ -82,6 +83,9 @@ impl From<coset::iana::Algorithm> for ProtonAlgorithm {
             coset::iana::Algorithm::RS512 => ProtonAlgorithm::RS512,
             coset::iana::Algorithm::RS384 => ProtonAlgorithm::RS384,
             coset::iana::Algorithm::RS256 => ProtonAlgorithm::RS256,
+            coset::iana::Algorithm::ML_DSA_87 => ProtonAlgorithm::ML_DSA_87,
+            coset::iana::Algorithm::ML_DSA_65 => ProtonAlgorithm::ML_DSA_65,
+            coset::iana::Algorithm::ML_DSA_44 => ProtonAlgorithm::ML_DSA_44,
             coset::iana::Algorithm::ES256K => ProtonAlgorithm::ES256K,
             coset::iana::Algorithm::HSS_LMS => ProtonAlgorithm::HSS_LMS,
             coset::iana::Algorithm::SHAKE256 => ProtonAlgorithm::SHAKE256,
@@ -105,6 +109,7 @@ impl From<coset::iana::Algorithm> for ProtonAlgorithm {
             coset::iana::Algorithm::ECDH_SS_HKDF_256 => ProtonAlgorithm::ECDH_SS_HKDF_256,
             coset::iana::Algorithm::ECDH_ES_HKDF_512 => ProtonAlgorithm::ECDH_ES_HKDF_512,
             coset::iana::Algorithm::ECDH_ES_HKDF_256 => ProtonAlgorithm::ECDH_ES_HKDF_256,
+            coset::iana::Algorithm::Ed25519 => ProtonAlgorithm::Ed25519,
             coset::iana::Algorithm::SHAKE128 => ProtonAlgorithm::SHAKE128,
             coset::iana::Algorithm::SHA_512_256 => ProtonAlgorithm::SHA_512_256,
             coset::iana::Algorithm::SHA_256 => ProtonAlgorithm::SHA_256,
@@ -116,6 +121,7 @@ impl From<coset::iana::Algorithm> for ProtonAlgorithm {
             coset::iana::Algorithm::Direct_HKDF_SHA_256 => ProtonAlgorithm::Direct_HKDF_SHA_256,
             coset::iana::Algorithm::EdDSA => ProtonAlgorithm::EdDSA,
             coset::iana::Algorithm::ES256 => ProtonAlgorithm::ES256,
+            coset::iana::Algorithm::ESP256 => ProtonAlgorithm::ESP256,
             coset::iana::Algorithm::Direct => ProtonAlgorithm::Direct,
             coset::iana::Algorithm::A256KW => ProtonAlgorithm::A256KW,
             coset::iana::Algorithm::A192KW => ProtonAlgorithm::A192KW,

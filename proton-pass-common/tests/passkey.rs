@@ -520,3 +520,75 @@ fn android_app_registration_rejects_short_fingerprint() {
 
     assert!(generate_android_app_passkey(&app, EXAMPLE_JSON).is_err());
 }
+
+fn creation_json_with_algorithms(algs: &[i64]) -> String {
+    let params: Vec<String> = algs
+        .iter()
+        .map(|alg| format!(r#"{{"alg":{alg},"type":"public-key"}}"#))
+        .collect();
+    format!(
+        r#"{{"attestation":"none","authenticatorSelection":{{"residentKey":"preferred","userVerification":"preferred"}},"challenge":"D-5y7y_E4V8NQBJrFnnhd7NCvRGhO5sBGwzfh23y8D4a_hSMyRRuTAp0hmSm6_eimM71XoYF84VUiY8e9kqavA","excludeCredentials":[],"pubKeyCredParams":[{}],"rp":{{"id":"webauthn.io","name":"webauthn.io"}},"user":{{"displayName":"uyguyhj","id":"ZFhsbmRYbG9hZw","name":"uyguyhj"}}}}"#,
+        params.join(",")
+    )
+}
+
+const WEBAUTHN_IO_AUTH: &str = r#"{"challenge":"Rnm5npHqYiIxZSD0cAMeXrBMQzlgiomT90D3IsnwObQ","rpId":"webauthn.io"}"#;
+
+#[test]
+fn registration_with_ml_dsa_is_usable() {
+    for alg in [-48, -49, -50] {
+        let input = creation_json_with_algorithms(&[alg, -7]);
+        let created = generate_passkey("https://webauthn.io", &input).expect("should register");
+
+        authenticate_with_passkey("https://webauthn.io", &created.passkey, WEBAUTHN_IO_AUTH)
+            .expect("passkey should be usable for login");
+    }
+}
+
+#[test]
+fn registration_follows_relying_party_preference_for_ml_dsa() {
+    let input = creation_json_with_algorithms(&[-48, -7]);
+    let created = generate_passkey("https://webauthn.io", &input).expect("should register");
+    assert_eq!(created.credential.response.public_key_algorithm, -48);
+}
+
+#[test]
+fn registration_with_fully_specified_algorithms_is_usable() {
+    for alg in [-9, -19] {
+        let input = creation_json_with_algorithms(&[alg]);
+        let created = generate_passkey("https://webauthn.io", &input).expect("should register");
+        assert_eq!(created.credential.response.public_key_algorithm, alg);
+
+        authenticate_with_passkey("https://webauthn.io", &created.passkey, WEBAUTHN_IO_AUTH)
+            .expect("passkey should be usable for login");
+    }
+}
+
+#[test]
+fn registration_follows_relying_party_preference_for_fully_specified_algorithms() {
+    for (algs, expected) in [
+        (vec![-9, -7], -9),
+        (vec![-7, -9], -7),
+        (vec![-19, -8], -19),
+        (vec![-8, -19], -8),
+    ] {
+        let input = creation_json_with_algorithms(&algs);
+        let created = generate_passkey("https://webauthn.io", &input).expect("should register");
+        assert_eq!(created.credential.response.public_key_algorithm, expected);
+    }
+}
+
+#[test]
+fn registration_with_only_unsupported_algorithms_fails() {
+    let input = creation_json_with_algorithms(&[-257, -35]);
+    assert!(generate_passkey("https://webauthn.io", &input).is_err());
+}
+
+#[test]
+fn registration_with_eddsa_is_usable() {
+    let input = creation_json_with_algorithms(&[-8]);
+    let created = generate_passkey("https://webauthn.io", &input).expect("should register");
+
+    authenticate_with_passkey("https://webauthn.io", &created.passkey, WEBAUTHN_IO_AUTH)
+        .expect("passkey should be usable for login");
+}

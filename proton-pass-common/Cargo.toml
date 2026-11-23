@@ -66,11 +66,11 @@ rsa = { version = "0.10.0-rc.18", optional = true }
 zeroize = { version = "1", optional = true }
 
 # Passkeys dependency
-passkey = { git = "https://github.com/1Password/passkey-rs.git", rev = "1606717bd9888b629905d435bb876b24b1aaddb5" }
-passkey-authenticator = { git = "https://github.com/1Password/passkey-rs.git", rev = "1606717bd9888b629905d435bb876b24b1aaddb5" }
-passkey-client = { git = "https://github.com/1Password/passkey-rs.git", rev = "1606717bd9888b629905d435bb876b24b1aaddb5", features = ["android-asset-validation"] }
-passkey-types = { git = "https://github.com/1Password/passkey-rs.git", rev = "1606717bd9888b629905d435bb876b24b1aaddb5", features = ["serialize_bytes_as_base64_string"] }
-public-suffix = { git = "https://github.com/1Password/passkey-rs.git", rev = "1606717bd9888b629905d435bb876b24b1aaddb5" }
+passkey = { git = "https://github.com/cquintana92/passkey-rs.git", rev = "46fd3fa0df9cb24f80f43805f440489d5a4ddba1" }
+passkey-authenticator = { git = "https://github.com/cquintana92/passkey-rs.git", rev = "46fd3fa0df9cb24f80f43805f440489d5a4ddba1" }
+passkey-client = { git = "https://github.com/cquintana92/passkey-rs.git", rev = "46fd3fa0df9cb24f80f43805f440489d5a4ddba1", features = ["android-asset-validation"] }
+passkey-types = { git = "https://github.com/cquintana92/passkey-rs.git", rev = "46fd3fa0df9cb24f80f43805f440489d5a4ddba1", features = ["serialize_bytes_as_base64_string"] }
+public-suffix = { git = "https://github.com/cquintana92/passkey-rs.git", rev = "46fd3fa0df9cb24f80f43805f440489d5a4ddba1" }
 
 coset = "0.4.2"
 email_address = "0.2.9"

@@ -210,9 +210,7 @@ fn match_pattern(pattern: &str, page: &ParsedUrl) -> bool {
     if page.port.map(|p| p.to_string()).as_deref() != port {
         return false;
     }
-    // A host-only pattern matches the root path only.
-    let path_part = if path_part.is_empty() { "/" } else { path_part };
-    glob_matches(path_part, &page.path, '/')
+    path_part.is_empty() || glob_matches(path_part, &page.path, '/')
 }
 
 /// Matches `input` against `glob` by converting the glob into an anchored (`^...$`), case-sensitive regex:

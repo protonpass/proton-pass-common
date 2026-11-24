@@ -4,6 +4,8 @@
 
 ### Fixes :bug:
 
+- pass-common: URL patterns without a path match any path, as on web
+
 ### Other
 
 ## 2.4.1

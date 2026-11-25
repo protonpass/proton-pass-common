@@ -4,6 +4,10 @@
 
 ### Fixes :bug:
 
+## 2.4.2
+
+### Other
+
 - pass-common: URL patterns without a path match any path, as on web
 
 ### Other
